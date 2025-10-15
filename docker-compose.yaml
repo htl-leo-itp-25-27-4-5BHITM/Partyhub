@@ -3,13 +3,13 @@ services:
     container_name: postgres
     image: postgres:16-alpine
     ports:
-      - 5433:5433
+      - 5433:5432
     volumes:
       - postgres:/var/lib/postgresql/data
     environment:
-      - POSTGRES_PASSWORD=demo
-      - POSTGRES_USER=demo
-      - POSTGRES_DB=demo
+      - POSTGRES_PASSWORD=admin
+      - POSTGRES_USER=user
+      - POSTGRES_DB=partyhub
 
 volumes:
   postgres:
