@@ -1,0 +1,32 @@
+services:
+  partyhub:
+    build:
+      context: .
+    environment:
+      - LD_LIBRARY_PATH=/usr/lib/x86_64-linux-gnu
+      - JNA_LIBRARY_PATH=/usr/lib/x86_64-linux-gnu
+      - OMP_THREAD_LIMIT=4
+      - OMP_NUM_THREADS=4
+      - POSTGRES_HOST=postgres
+      - POSTGRES_USER=demo
+      - POSTGRES_PASSWORD=demo
+      - POSTGRES_DB=partyhub
+    ports:
+      - "8080:8080"
+    depends_on:
+      - postgres
+
+  postgres:
+    container_name: postgres
+    image: postgres:16-alpine
+    ports:
+      - 5432:5432
+    volumes:
+      - postgres:/var/lib/postgresql/data
+    environment:
+      - POSTGRES_PASSWORD=demo
+      - POSTGRES_USER=demo
+      - POSTGRES_DB=partyhub
+
+volumes:
+  postgres:
