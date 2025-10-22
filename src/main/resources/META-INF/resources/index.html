@@ -22,11 +22,9 @@
         <th>User ID</th>
         <th>Name</th>
         <th>Email</th>
-        <th>Username</th>
     </tr>
     </thead>
     <tbody>
-    <!-- User data will be populated here -->
     </tbody>
 </table>
 
@@ -35,13 +33,11 @@
     <thead>
     <tr>
         <th>Party ID</th>
-        <th>Name</th>
         <th>Date</th>
-        <th>Location</th>
+        <th>Date</th>
     </tr>
     </thead>
     <tbody>
-    <!-- Party data will be populated here -->
     </tbody>
 </table>
 
@@ -56,15 +52,15 @@
     </tr>
     </thead>
     <tbody>
-    <!-- Friendship data will be populated here -->
     </tbody>
 </table>
 
+<div id="demo"></div>
+
 <script>
-    // Function to fetch and display users
     async function fetchUsers() {
         try {
-            const response = await fetch('http://localhost:8080/api/users'); // Update API endpoint as necessary
+            const response = await fetch('http://localhost:8080/api/users');
             const users = await response.json();
             const userTableBody = document.getElementById('userTable').querySelector('tbody');
             userTableBody.innerHTML = '';
@@ -73,7 +69,6 @@
                     <td>${user.id}</td>
                     <td>${user.name}</td>
                     <td>${user.email}</td>
-                    <td>${user.username}</td>
                 </tr>`;
                 userTableBody.insertAdjacentHTML('beforeend', row);
             });
@@ -82,19 +77,17 @@
         }
     }
 
-    // Function to fetch and display parties
     async function fetchParties() {
         try {
-            const response = await fetch('http://localhost:8080/api/parties'); // Update API endpoint as necessary
+            const response = await fetch('http://localhost:8080/api/parties');
             const parties = await response.json();
             const partyTableBody = document.getElementById('partyTable').querySelector('tbody');
             partyTableBody.innerHTML = '';
             parties.forEach(party => {
                 const row = `<tr>
-                    <td>${party.id}</td>
-                    <td>${party.name}</td>
-                    <td>${party.date}</td>
-                    <td>${party.location}</td>
+                    <td>${party.party_id}</td>
+                    <td>${party.time_start}</td>
+                    <td>${party.time_end}</td>
                 </tr>`;
                 partyTableBody.insertAdjacentHTML('beforeend', row);
             });
@@ -103,29 +96,23 @@
         }
     }
 
-    // Function to fetch and display friendships
-    async function fetchFriendships() {
-        try {
-            const response = await fetch('http://localhost:8080/api/friendships'); // Update API endpoint as necessary
-            const friendships = await response.json();
-            const friendshipTableBody = document.getElementById('friendshipTable').querySelector('tbody');
-            friendshipTableBody.innerHTML = '';
-            friendships.forEach(friendship => {
-                const row = `<tr>
-                    <td>${friendship.id}</td>
-                    <td>${friendship.user1Id}</td>
-                    <td>${friendship.user2Id}</td>
-                    <td>${friendship.status}</td>
-                </tr>`;
-                friendshipTableBody.insertAdjacentHTML('beforeend', row);
-            });
-        } catch (error) {
-            console.error('Error fetching friendships:', error);
-        }
-    }
 
-    // Initial fetch calls
     fetchUsers();
     fetchParties();
-    fetchFriendships();
-    </
+    </script>
+<script>
+    const x = document.getElementById("demo");
+    function getLocation() {
+        console.log("getlocation called");
+            navigator.geolocation.getCurrentPosition((pos) => showPosition(pos), ()=>{
+                x.innerHTML = "Geolocation is not supported by this browser.";
+            });
+    }
+
+    function showPosition(position) {
+        console.log("showpos called");
+        x.innerHTML = "Latitude: " + position.coords.latitude +
+            "<br>Longitude: " + position.coords.longitude;
+    }
+    getLocation()
+</script>

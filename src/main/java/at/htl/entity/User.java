@@ -11,7 +11,6 @@ public class User {
     private String name;
     private String email;
 
-    // Getters and Setters
     public Long getId() { return user_id; }
     public void setId(Long id) { this.user_id = id; }
 

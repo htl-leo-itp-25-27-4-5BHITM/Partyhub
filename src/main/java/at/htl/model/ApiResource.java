@@ -1,6 +1,7 @@
 package at.htl.model;
 
 import at.htl.entity.Category;
+import at.htl.entity.Party;
 import at.htl.entity.User;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
@@ -26,4 +27,11 @@ public class ApiResource {
     public List<Category> getCategory() {
         return entityManager.createQuery("SELECT c FROM Category c", Category.class).getResultList();
     }
+
+    @GET
+    @Path("/parties")
+    public List<Party> getParties() {
+        return entityManager.createQuery("SELECT p FROM Party p", Party.class).getResultList();
+    }
+
 }

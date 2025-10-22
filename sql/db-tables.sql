@@ -2,7 +2,7 @@ DROP TABLE IF EXISTS UserAccount CASCADE;
 DROP TABLE IF EXISTS Party CASCADE;
 DROP TABLE IF EXISTS Post CASCADE;
 DROP TABLE IF EXISTS Category CASCADE;
-DROP TABLE IF EXISTS UserPartyMapping CASCADE;
+DROP TABLE IF EXISTS PartySignup CASCADE;
 DROP TABLE IF EXISTS PartyLocation CASCADE;
 DROP TABLE IF EXISTS Gallery CASCADE;
 DROP TABLE IF EXISTS PartyImage CASCADE;
@@ -19,7 +19,7 @@ CREATE TABLE Category (
 );
 
 CREATE TABLE Party (
-    id SERIAL PRIMARY KEY,
+    party_id SERIAL PRIMARY KEY,
     host_user_id INT NOT NULL,
     category_id INT NOT NULL,
     time_start TIMESTAMP NOT NULL,
@@ -32,16 +32,16 @@ CREATE TABLE Party (
 );
 
 CREATE TABLE Post (
+    post_id SERIAL PRIMARY KEY,
     user_id INT NOT NULL,
     party_id INT NOT NULL,
     content TEXT NOT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    PRIMARY KEY (user_id, party_id),
     FOREIGN KEY (user_id) REFERENCES UserAccount (user_id),
     FOREIGN KEY (party_id) REFERENCES Party(party_id)
 );
 
-CREATE TABLE UserPartyMapping (
+CREATE TABLE PartySignup (
     party_id INT NOT NULL,
     user_id INT NOT NULL,
     PRIMARY KEY (party_id, user_id),
@@ -53,6 +53,7 @@ CREATE TABLE PartyLocation (
     party_id INT NOT NULL PRIMARY KEY,
     longitude FLOAT NOT NULL,
     latitude FLOAT NOT NULL,
+    location_name TEXT,
     FOREIGN KEY (party_id) REFERENCES Party(party_id)
 );
 
