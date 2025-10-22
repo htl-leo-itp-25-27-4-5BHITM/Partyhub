@@ -19,7 +19,7 @@ CREATE TABLE Category (
 );
 
 CREATE TABLE Party (
-    party_id SERIAL PRIMARY KEY,
+    id SERIAL PRIMARY KEY,
     host_user_id INT NOT NULL,
     category_id INT NOT NULL,
     time_start TIMESTAMP NOT NULL,

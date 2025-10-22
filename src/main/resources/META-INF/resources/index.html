@@ -1,13 +1,131 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <title>Page Title</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Demo Quarkus Static Site</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+        th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+        th { background-color: #f2f2f2; }
+    </style>
 </head>
 <body>
 
-<h1>This is a Heading</h1>
-<p>This is a paragraph.</p>
+<h1>Data from PostgreSQL</h1>
 
-</body>
-</html>
+<h2>Users</h2>
+<table id="userTable">
+    <thead>
+    <tr>
+        <th>User ID</th>
+        <th>Name</th>
+        <th>Email</th>
+        <th>Username</th>
+    </tr>
+    </thead>
+    <tbody>
+    <!-- User data will be populated here -->
+    </tbody>
+</table>
 
+<h2>Parties</h2>
+<table id="partyTable">
+    <thead>
+    <tr>
+        <th>Party ID</th>
+        <th>Name</th>
+        <th>Date</th>
+        <th>Location</th>
+    </tr>
+    </thead>
+    <tbody>
+    <!-- Party data will be populated here -->
+    </tbody>
+</table>
+
+<h2>Friendships</h2>
+<table id="friendshipTable">
+    <thead>
+    <tr>
+        <th>Friendship ID</th>
+        <th>User 1 ID</th>
+        <th>User 2 ID</th>
+        <th>Status</th>
+    </tr>
+    </thead>
+    <tbody>
+    <!-- Friendship data will be populated here -->
+    </tbody>
+</table>
+
+<script>
+    // Function to fetch and display users
+    async function fetchUsers() {
+        try {
+            const response = await fetch('http://localhost:8080/api/users'); // Update API endpoint as necessary
+            const users = await response.json();
+            const userTableBody = document.getElementById('userTable').querySelector('tbody');
+            userTableBody.innerHTML = '';
+            users.forEach(user => {
+                const row = `<tr>
+                    <td>${user.id}</td>
+                    <td>${user.name}</td>
+                    <td>${user.email}</td>
+                    <td>${user.username}</td>
+                </tr>`;
+                userTableBody.insertAdjacentHTML('beforeend', row);
+            });
+        } catch (error) {
+            console.error('Error fetching users:', error);
+        }
+    }
+
+    // Function to fetch and display parties
+    async function fetchParties() {
+        try {
+            const response = await fetch('http://localhost:8080/api/parties'); // Update API endpoint as necessary
+            const parties = await response.json();
+            const partyTableBody = document.getElementById('partyTable').querySelector('tbody');
+            partyTableBody.innerHTML = '';
+            parties.forEach(party => {
+                const row = `<tr>
+                    <td>${party.id}</td>
+                    <td>${party.name}</td>
+                    <td>${party.date}</td>
+                    <td>${party.location}</td>
+                </tr>`;
+                partyTableBody.insertAdjacentHTML('beforeend', row);
+            });
+        } catch (error) {
+            console.error('Error fetching parties:', error);
+        }
+    }
+
+    // Function to fetch and display friendships
+    async function fetchFriendships() {
+        try {
+            const response = await fetch('http://localhost:8080/api/friendships'); // Update API endpoint as necessary
+            const friendships = await response.json();
+            const friendshipTableBody = document.getElementById('friendshipTable').querySelector('tbody');
+            friendshipTableBody.innerHTML = '';
+            friendships.forEach(friendship => {
+                const row = `<tr>
+                    <td>${friendship.id}</td>
+                    <td>${friendship.user1Id}</td>
+                    <td>${friendship.user2Id}</td>
+                    <td>${friendship.status}</td>
+                </tr>`;
+                friendshipTableBody.insertAdjacentHTML('beforeend', row);
+            });
+        } catch (error) {
+            console.error('Error fetching friendships:', error);
+        }
+    }
+
+    // Initial fetch calls
+    fetchUsers();
+    fetchParties();
+    fetchFriendships();
+    </
