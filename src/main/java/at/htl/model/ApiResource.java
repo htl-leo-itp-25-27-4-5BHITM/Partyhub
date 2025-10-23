@@ -8,6 +8,7 @@ import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
+import jakarta.transaction.Transactional;
 import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
@@ -20,6 +21,7 @@ import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 
+@ApplicationScoped
 @Path("/api")
 @Produces(MediaType.APPLICATION_JSON)
 @Consumes(MediaType.APPLICATION_JSON)
@@ -71,12 +73,15 @@ public class ApiResource {
     @Path("/upload/{partyId}")
     @Consumes(MediaType.MULTIPART_FORM_DATA)
     @Produces(MediaType.APPLICATION_JSON)
+    @Transactional
     public Response upload(FileUploadInput input, @PathParam("partyId") long partyId) throws IOException {
-        // TODO: put into db
         logger.log(Logger.Level.DEBUG, "upload");
         String uploadDir = "src/main/resources/uploads/party" + partyId + "/";
         Files.createDirectories(Paths.get(uploadDir));
         for (FileUpload file : input.file) {
+            Image image = new Image(partyId, 1L, file.fileName());
+            System.out.println(image.toString());
+            entityManager.persist(image);
             java.nio.file.Path uploadedFile = file.uploadedFile();
             java.nio.file.Path targetLocation = Paths.get(uploadDir, file.fileName());
             Files.move(uploadedFile, targetLocation);
@@ -95,5 +100,3 @@ public class ApiResource {
 
     }
 }
-
-
