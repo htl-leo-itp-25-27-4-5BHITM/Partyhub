@@ -18,8 +18,11 @@ import org.jboss.resteasy.reactive.multipart.FileUpload;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.sql.Timestamp;
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 @ApplicationScoped
 @Path("/api")
@@ -44,11 +47,6 @@ public class ApiResource {
         return entityManager.createQuery("SELECT c FROM Category c", Category.class).getResultList();
     }
 
-    @GET
-    @Path("/parties")
-    public List<Party> getParties() {
-        return entityManager.createQuery("SELECT p FROM Party p", Party.class).getResultList();
-    }
 
     @GET
     @Path("/users/{id}")
@@ -80,7 +78,6 @@ public class ApiResource {
         Files.createDirectories(Paths.get(uploadDir));
         for (FileUpload file : input.file) {
             Image image = new Image(partyId, 1L, file.fileName());
-            System.out.println(image.toString());
             entityManager.persist(image);
             java.nio.file.Path uploadedFile = file.uploadedFile();
             java.nio.file.Path targetLocation = Paths.get(uploadDir, file.fileName());
@@ -91,12 +88,43 @@ public class ApiResource {
     }
 
     public static class FileUploadInput {
-
-        @FormParam("text")
-        public String text;
-
         @FormParam("file")
         public List<FileUpload> file;
 
+    }
+
+    @POST
+    @Transactional
+    @Consumes(MediaType.MULTIPART_FORM_DATA)
+    @Produces(MediaType.APPLICATION_JSON)
+    @Path("/party")
+    public Response addParty(@FormParam("category_id") Long category_id, @FormParam("max_people") int max_people, @FormParam("min_age")  int min_age, @FormParam("max_age") int max_age) {
+        Party party = new Party(1L, category_id, new Timestamp(0L), new Timestamp(1L), max_people, min_age, max_age);
+        logger.log(Logger.Level.INFO, "addParty");
+        entityManager.persist(party);
+        return Response.ok().build();
+    }
+
+    @POST
+    @Produces(MediaType.APPLICATION_JSON)
+    @Path("/party/{party_id}?")
+    public Response deleteParty(@PathParam("party_id") long party_id) {
+        logger.log(Logger.Level.INFO, "deleteParty");
+        entityManager.remove(entityManager.find(Party.class, party_id));
+        return Response.ok().build();
+    }
+
+    @POST
+    @Produces(MediaType.APPLICATION_JSON)
+    @Path("/party/{party_id}")
+    public Response attendParty(@PathParam("party_id") long party_id, @QueryParam("type") String type) {
+        logger.log(Logger.Level.INFO, "deleteParty?"+type);
+        return Response.ok().build();
+    }
+
+    @GET
+    @Path("/party/list")
+    public List<Party> getParties() {
+        return entityManager.createQuery("SELECT p FROM Party p", Party.class).getResultList();
     }
 }

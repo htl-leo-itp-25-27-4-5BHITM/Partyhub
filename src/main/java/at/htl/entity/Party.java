@@ -18,6 +18,21 @@ public class Party {
     private int min_age;
     private int max_age;
 
+
+    public Party() {
+
+    }
+
+    public Party(Long host_user_id, Long category_id, Timestamp time_start, Timestamp time_end, int max_people, int min_age, int max_age) {
+        this.host_user_id = host_user_id;
+        this.category_id = category_id;
+        this.time_start = time_start;
+        this.time_end = time_end;
+        this.max_people = max_people;
+        this.min_age = min_age;
+        this.max_age = max_age;
+    }
+
     public Long getParty_id() {
         return party_id;
     }
