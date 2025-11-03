@@ -118,7 +118,7 @@ public class ApiResource {
     @Produces(MediaType.APPLICATION_JSON)
     @Path("/party/{party_id}")
     public Response attendParty(@PathParam("party_id") long party_id, @QueryParam("type") String type) {
-        logger.log(Logger.Level.INFO, "deleteParty?"+type);
+        logger.log(Logger.Level.INFO, "attendParty?"+type);
         return Response.ok().build();
     }
 
