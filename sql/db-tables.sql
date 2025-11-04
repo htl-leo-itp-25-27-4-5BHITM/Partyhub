@@ -1,20 +1,3 @@
-DROP TABLE IF EXISTS user_account CASCADE;
-DROP TABLE IF EXISTS party CASCADE;
-DROP TABLE IF EXISTS post CASCADE;
-DROP TABLE IF EXISTS category CASCADE;
-DROP TABLE IF EXISTS party_attendees CASCADE;
-DROP TABLE IF EXISTS party_location CASCADE;
-DROP TABLE IF EXISTS gallery CASCADE;
-DROP TABLE IF EXISTS party_image CASCADE;
-DROP TABLE IF EXISTS blocked_users CASCADE;
-DROP TABLE IF EXISTS friendship CASCADE;
-
-DROP SEQUENCE IF EXISTS user_account_id_seq CASCADE;
-DROP SEQUENCE IF EXISTS category_id_seq CASCADE;
-DROP SEQUENCE IF EXISTS party_id_seq CASCADE;
-DROP SEQUENCE IF EXISTS post_id_seq CASCADE;
-DROP SEQUENCE IF EXISTS img_id_seq CASCADE;
-
 CREATE SEQUENCE user_account_id_seq START WITH 1 INCREMENT BY 1;
 CREATE SEQUENCE category_id_seq START WITH 1 INCREMENT BY 1;
 CREATE SEQUENCE party_id_seq START WITH 1 INCREMENT BY 1;
@@ -26,6 +9,7 @@ CREATE TABLE user_account (
                               name VARCHAR(100) NOT NULL,
                               email VARCHAR(100) UNIQUE NOT NULL
 );
+
 
 CREATE TABLE category (
                           category_id INT PRIMARY KEY DEFAULT nextval('category_id_seq'),
@@ -93,7 +77,6 @@ CREATE TABLE blocked_users (
                                FOREIGN KEY (blocker_id) REFERENCES user_account (user_id),
                                FOREIGN KEY (blocked_id) REFERENCES user_account (user_id)
 );
-
 CREATE TABLE friendship (
                             user1_id INT NOT NULL,
                             user2_id INT NOT NULL,
