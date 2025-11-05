@@ -1,7 +1,7 @@
 package at.htl.model;
 
 import at.htl.entity.Category;
-import at.htl.entity.Image;
+import at.htl.entity.Media;
 import at.htl.entity.Party;
 import at.htl.entity.User;
 import jakarta.enterprise.context.ApplicationScoped;
@@ -18,12 +18,9 @@ import org.jboss.resteasy.reactive.multipart.FileUpload;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
-import java.sql.Timestamp;
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
 
 @ApplicationScoped
 @Path("/api")
@@ -56,20 +53,20 @@ public class ApiResource {
     }
 
     @GET
-    @Path("/images/{party}/")
-    public List<Image> getImages(@PathParam("party") long partyId) {
-        List<Image> result = new ArrayList<>();
+    @Path("/media/{party}/")
+    public List<Media> getImages(@PathParam("party") long partyId) {
+        List<Media> result = new ArrayList<>();
         boolean access = entityManager.createQuery("SELECT userId FROM PartyAttendees WHERE partyId=" + partyId).getResultList().stream().findFirst().isPresent();
         logger.log(Logger.Level.INFO, "access? " + access);
 
         if (access) {
-            result = entityManager.createQuery("SELECT url FROM Image WHERE party_id=" + partyId).getResultList();
+            result = entityManager.createQuery("SELECT url FROM Media WHERE party_id=" + partyId).getResultList();
         }
         return result;
     }
 
     @POST
-    @Path("/upload/{partyId}")
+    @Path("/media/upload/{partyId}")
     @Consumes(MediaType.MULTIPART_FORM_DATA)
     @Produces(MediaType.APPLICATION_JSON)
     @Transactional
@@ -78,8 +75,8 @@ public class ApiResource {
         String uploadDir = "src/main/resources/uploads/party" + partyId + "/";
         Files.createDirectories(Paths.get(uploadDir));
         for (FileUpload file : input.file) {
-            Image image = new Image(partyId, 1L, file.fileName());
-            entityManager.persist(image);
+            Media media = new Media(partyId, 1L, file.fileName());
+            entityManager.persist(media);
             java.nio.file.Path uploadedFile = file.uploadedFile();
             java.nio.file.Path targetLocation = Paths.get(uploadDir, file.fileName());
             Files.move(uploadedFile, targetLocation);
@@ -124,8 +121,16 @@ public class ApiResource {
     }
 
     @GET
+    @Produces(MediaType.APPLICATION_JSON)
     @Path("/party/list")
     public List<Party> getParties() {
+        return entityManager.createQuery("SELECT p FROM Party p", Party.class).getResultList();
+    }
+
+    @GET
+    @Produces(MediaType.APPLICATION_JSON)
+    @Path("/party")
+    public List<Party> filterParty(@QueryParam("filter") String filter) {
         return entityManager.createQuery("SELECT p FROM Party p", Party.class).getResultList();
     }
 }

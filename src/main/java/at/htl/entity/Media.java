@@ -3,8 +3,8 @@ package at.htl.entity;
 import jakarta.persistence.*;
 
 @Entity
-@Table(name="party_image")
-public class Image {
+@Table(name="party_media")
+public class Media {
     public Long getId() {
         return id;
     }
@@ -39,7 +39,7 @@ public class Image {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "img_id")
+    @Column(name = "media_id")
     Long id;
     @Column(name = "party_id")
     private Long party_id;
@@ -50,11 +50,11 @@ public class Image {
     @Column(name = "url")
     private String url;
 
-    public Image() {
+    public Media() {
 
     }
 
-    public Image(Long party_id, Long user_id, String url) {
+    public Media(Long party_id, Long user_id, String url) {
         this.party_id = party_id;
         this.user_id = user_id;
         this.url = url;

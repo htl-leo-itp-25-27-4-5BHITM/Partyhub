@@ -41,14 +41,14 @@ INSERT INTO party_location (party_id, longitude, latitude, location_name) VALUES
                                                                               (4, -73.9857, 40.7484, 'New York, NY'),
                                                                               (5, -0.1276, 51.5074, 'London, UK');
 
-INSERT INTO party_image (party_id, user_id, url) VALUES
+INSERT INTO party_media (party_id, user_id, url) VALUES
                                                      (1, 1, 'http://example.com/images/party1.jpg'),
                                                      (2, 2, 'http://example.com/images/party2.jpg'),
                                                      (3, 3, 'http://example.com/images/party3.jpg'),
                                                      (4, 4, 'http://example.com/images/party4.jpg'),
                                                      (5, 5, 'http://example.com/images/party5.jpg');
 
-INSERT INTO gallery (img_id) VALUES
+INSERT INTO gallery (media_id) VALUES
                                  (1),
                                  (2),
                                  (3),

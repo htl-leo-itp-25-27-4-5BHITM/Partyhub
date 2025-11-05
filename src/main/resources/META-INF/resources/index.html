@@ -1,7 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta http-equiv="Expires" content="Thu, 01 Jan 1970 00:00:00 GMT">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Demo Quarkus Static Site</title>
@@ -10,8 +9,7 @@
 <body>
 <script src="script.js" defer></script>
 
-<h1>Data from PostgreSQL</h1>
-
+<h1>Data</h1>
 <h2>Users</h2>
 <table id="userTable">
     <thead>
@@ -43,7 +41,7 @@
 </table>
 
 <h1>File Upload</h1>
-<form action="/api/upload/1" method="post" enctype="multipart/form-data">
+<form action="/api/media/upload/1" method="post" enctype="multipart/form-data">
     <div>
         <input type="file" name="file">
     </div>
@@ -66,6 +64,9 @@
 
 <h1>Geolocation</h1>
 <div id="demo"></div>
+
+<h1>Media test!</h1>
+<div id="media_test"></div>
 
 </body>
 </html>
