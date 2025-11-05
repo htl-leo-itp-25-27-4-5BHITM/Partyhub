@@ -4,7 +4,7 @@ CREATE SEQUENCE party_id_seq START WITH 1 INCREMENT BY 1;
 CREATE SEQUENCE post_id_seq START WITH 1 INCREMENT BY 1;
 CREATE SEQUENCE img_id_seq START WITH 1 INCREMENT BY 1;
 
-CREATE TABLE useraccount (
+CREATE TABLE user_account (
                               user_id INT PRIMARY KEY DEFAULT nextval('user_account_id_seq'),
                               name VARCHAR(100) NOT NULL,
                               email VARCHAR(100) UNIQUE NOT NULL
@@ -25,7 +25,7 @@ CREATE TABLE party (
                        max_people INT NOT NULL,
                        min_age INT NOT NULL,
                        max_age INT NOT NULL,
-                       FOREIGN KEY (host_user_id) REFERENCES useraccount (user_id),
+                       FOREIGN KEY (host_user_id) REFERENCES user_account (user_id),
                        FOREIGN KEY (category_id) REFERENCES category(category_id)
 );
 
@@ -35,16 +35,16 @@ CREATE TABLE post (
                       party_id INT NOT NULL,
                       content TEXT NOT NULL,
                       created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                      FOREIGN KEY (user_id) REFERENCES useraccount (user_id),
+                      FOREIGN KEY (user_id) REFERENCES user_account (user_id),
                       FOREIGN KEY (party_id) REFERENCES party(party_id)
 );
 
-CREATE TABLE userpartymapping (
+CREATE TABLE party_attendees (
                                  party_id INT NOT NULL,
                                  user_id INT NOT NULL,
                                  PRIMARY KEY (party_id, user_id),
                                  FOREIGN KEY (party_id) REFERENCES party(party_id),
-                                 FOREIGN KEY (user_id) REFERENCES useraccount (user_id)
+                                 FOREIGN KEY (user_id) REFERENCES user_account (user_id)
 );
 
 CREATE TABLE party_location (
@@ -61,7 +61,7 @@ CREATE TABLE party_image (
                              user_id INT NOT NULL,
                              url VARCHAR(255) NOT NULL,
                              FOREIGN KEY (party_id) REFERENCES party(party_id),
-                             FOREIGN KEY (user_id) REFERENCES useraccount (user_id)
+                             FOREIGN KEY (user_id) REFERENCES user_account (user_id)
 );
 
 CREATE TABLE gallery (
@@ -74,14 +74,14 @@ CREATE TABLE blocked_users (
                                blocker_id INT NOT NULL,
                                blocked_id INT NOT NULL,
                                PRIMARY KEY (blocker_id, blocked_id),
-                               FOREIGN KEY (blocker_id) REFERENCES useraccount (user_id),
-                               FOREIGN KEY (blocked_id) REFERENCES useraccount (user_id)
+                               FOREIGN KEY (blocker_id) REFERENCES user_account (user_id),
+                               FOREIGN KEY (blocked_id) REFERENCES user_account (user_id)
 );
 CREATE TABLE friendship (
                             user1_id INT NOT NULL,
                             user2_id INT NOT NULL,
                             status VARCHAR(20) NOT NULL,
                             PRIMARY KEY (user1_id, user2_id),
-                            FOREIGN KEY (user1_id) REFERENCES useraccount (user_id) ON DELETE CASCADE,
-                            FOREIGN KEY (user2_id) REFERENCES useraccount (user_id)
+                            FOREIGN KEY (user1_id) REFERENCES user_account (user_id) ON DELETE CASCADE,
+                            FOREIGN KEY (user2_id) REFERENCES user_account (user_id)
 );
