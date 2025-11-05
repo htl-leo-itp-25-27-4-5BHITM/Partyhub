@@ -1,7 +1,6 @@
 CREATE SEQUENCE user_account_id_seq START WITH 1 INCREMENT BY 1;
 CREATE SEQUENCE category_id_seq START WITH 1 INCREMENT BY 1;
 CREATE SEQUENCE party_id_seq START WITH 1 INCREMENT BY 1;
-CREATE SEQUENCE post_id_seq START WITH 1 INCREMENT BY 1;
 CREATE SEQUENCE media_id_seq START WITH 1 INCREMENT BY 1;
 
 CREATE TABLE user_account (
@@ -25,18 +24,11 @@ CREATE TABLE party (
                        max_people INT NOT NULL,
                        min_age INT NOT NULL,
                        max_age INT NOT NULL,
+                       title TEXT NOT NULL,
+                       description TEXT NOT NULL,
+                       created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                        FOREIGN KEY (host_user_id) REFERENCES user_account (user_id),
                        FOREIGN KEY (category_id) REFERENCES category(category_id)
-);
-
-CREATE TABLE post (
-                      post_id INT PRIMARY KEY DEFAULT nextval('post_id_seq'),
-                      user_id INT NOT NULL,
-                      party_id INT NOT NULL,
-                      content TEXT NOT NULL,
-                      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                      FOREIGN KEY (user_id) REFERENCES user_account (user_id),
-                      FOREIGN KEY (party_id) REFERENCES party(party_id)
 );
 
 CREATE TABLE party_attendees (

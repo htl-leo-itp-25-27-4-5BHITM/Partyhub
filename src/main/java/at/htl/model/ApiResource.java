@@ -103,23 +103,6 @@ public class ApiResource {
         return Response.ok().build();
     }
 
-    @POST
-    @Produces(MediaType.APPLICATION_JSON)
-    @Path("/party/{party_id}?")
-    public Response deleteParty(@PathParam("party_id") long party_id) {
-        logger.log(Logger.Level.INFO, "deleteParty");
-        entityManager.remove(entityManager.find(Party.class, party_id));
-        return Response.ok().build();
-    }
-
-    @POST
-    @Produces(MediaType.APPLICATION_JSON)
-    @Path("/party/{party_id}")
-    public Response attendParty(@PathParam("party_id") long party_id, @QueryParam("type") String type) {
-        logger.log(Logger.Level.INFO, "attendParty?"+type);
-        return Response.ok().build();
-    }
-
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     @Path("/party/list")
@@ -131,6 +114,10 @@ public class ApiResource {
     @Produces(MediaType.APPLICATION_JSON)
     @Path("/party")
     public List<Party> filterParty(@QueryParam("filter") String filter) {
-        return entityManager.createQuery("SELECT p FROM Party p", Party.class).getResultList();
+        return entityManager.createQuery(
+                "SELECT p FROM Party p WHERE p.title LIKE :filterParam OR p.description LIKE :filterParam",
+                Party.class)
+        .setParameter("filterParam", "%" + filter + "%")
+        .getResultList();
     }
 }
