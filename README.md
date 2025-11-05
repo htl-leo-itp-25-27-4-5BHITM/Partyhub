@@ -1,7 +1,10 @@
 
 # PartyHub
 
-
+## Sprint Review Dates
+1. Sprint: 08.10.2025
+2. Sprint: 05.11.2025
+3. Sprint: 19.11.2025
 
 ## Run Locally
 
@@ -15,6 +18,12 @@ Go to the project directory
 
 ```bash
   cd Partyhub
+```
+
+Run maven installs
+
+```bash
+  ./mvnw clean install
 ```
 
 Start the server
@@ -34,7 +43,7 @@ Open the Website in your Browser
 #### Test Backend connection
 
 ```http
-  GET /api/hello
+  GET /api/
 ```
 
 ## Screenshots
