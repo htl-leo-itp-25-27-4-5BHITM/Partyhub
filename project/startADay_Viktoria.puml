@@ -20,7 +20,7 @@ stop
 skinparam titleFontSize 24
 skinparam titleFontColor black
 skinparam ActivityFontName Roboto
-skinparam ActivityFontSize 14
+skinparam ActivityFontSize 12
 skinparam ActivityFontColor #222222
 
 @enduml
