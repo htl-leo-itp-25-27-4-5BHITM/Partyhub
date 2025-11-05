@@ -1,0 +1,15 @@
+@startuml
+start
+:Wecker klingelt;
+:Aufstehen;
+:Anziehen;
+:Essen;
+:Zähne putzen / Waschen / Haare machen;
+:Schulsachen in Schultasche tun;
+:Klo gehen;
+:Mit Auto zum Bahnhof fahren;
+:Mit Zug nach Linz fahren;
+:Bim umsteigen;
+:Zur Schule gehen;
+stop
+@enduml
