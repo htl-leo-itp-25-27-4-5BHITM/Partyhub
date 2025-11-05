@@ -19,15 +19,19 @@ async function fetchUsers() {
 
 async function fetchParties() {
     try {
-        const response = await fetch('http://localhost:8080/api/parties');
+        const response = await fetch('http://localhost:8080/api/party/list');
         const parties = await response.json();
         const partyTableBody = document.getElementById('partyTable').querySelector('tbody');
         partyTableBody.innerHTML = '';
         parties.forEach(party => {
             const row = `<tr>
                     <td>${party.party_id}</td>
+                    <td>${party.category_id}</td>
                     <td>${party.time_start}</td>
                     <td>${party.time_end}</td>
+                    <td>${party.max_people}</td>
+                    <td>${party.min_age}</td>
+                    <td>${party.max_age}</td>
                 </tr>`;
             partyTableBody.insertAdjacentHTML('beforeend', row);
         });

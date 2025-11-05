@@ -20,6 +20,7 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.sql.Timestamp;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -98,8 +99,8 @@ public class ApiResource {
     @Consumes(MediaType.MULTIPART_FORM_DATA)
     @Produces(MediaType.APPLICATION_JSON)
     @Path("/party")
-    public Response addParty(@FormParam("category_id") Long category_id, @FormParam("max_people") int max_people, @FormParam("min_age")  int min_age, @FormParam("max_age") int max_age) {
-        Party party = new Party(1L, category_id, new Timestamp(0L), new Timestamp(1L), max_people, min_age, max_age);
+    public Response addParty(@FormParam("category_id") Long category_id, @FormParam("time_start") LocalDateTime start, @FormParam("time_end")LocalDateTime end, @FormParam("max_people") int max_people, @FormParam("min_age")  int min_age, @FormParam("max_age") int max_age) {
+        Party party = new Party(1L, category_id, start, end, max_people, min_age, max_age);
         logger.log(Logger.Level.INFO, "addParty");
         entityManager.persist(party);
         return Response.ok().build();

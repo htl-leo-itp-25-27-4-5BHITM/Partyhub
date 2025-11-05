@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+    <meta http-equiv="Expires" content="Thu, 01 Jan 1970 00:00:00 GMT">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Demo Quarkus Static Site</title>
@@ -29,8 +30,12 @@
     <thead>
     <tr>
         <th>Party ID</th>
-        <th>Date</th>
-        <th>Date</th>
+        <th>Category ID</th>
+        <th>Date start</th>
+        <th>Date end</th>
+        <th>Max people</th>
+        <th>Min age</th>
+        <th>Max age</th>
     </tr>
     </thead>
     <tbody>
@@ -51,7 +56,7 @@
     <div>
         <input type="number" name="category_id">
         <input type="datetime-local" name="time_start">
-        <input type="date" name="time_end">
+        <input type="datetime-local" name="time_end">
         <input type="number" name="max_people">
         <input type="number" name="min_age">
         <input type="number" name="max_age">
