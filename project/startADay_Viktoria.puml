@@ -1,4 +1,5 @@
 @startuml
+title Der Weg zur Schule
 start
 :Wecker klingelt;
 :Wecker klingelt 2. Mal;
