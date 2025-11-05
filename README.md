@@ -17,6 +17,12 @@ Go to the project directory
   cd Partyhub
 ```
 
+Run maven installs
+
+```bash
+  ./mvnw clean install
+```
+
 Start the server
 
 ```bash
@@ -34,7 +40,7 @@ Open the Website in your Browser
 #### Test Backend connection
 
 ```http
-  GET /api/hello
+  GET /api/
 ```
 
 ## Screenshots

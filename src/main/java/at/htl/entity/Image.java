@@ -39,8 +39,24 @@ public class Image {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "img_id")
     Long id;
-    Long party_id;
-    Long user_id;
-    String url;
+    @Column(name = "party_id")
+    private Long party_id;
+
+    @Column(name = "user_id")
+    private Long user_id;
+
+    @Column(name = "url")
+    private String url;
+
+    public Image() {
+
+    }
+
+    public Image(Long party_id, Long user_id, String url) {
+        this.party_id = party_id;
+        this.user_id = user_id;
+        this.url = url;
+    }
 }

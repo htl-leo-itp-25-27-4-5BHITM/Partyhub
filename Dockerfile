@@ -16,4 +16,4 @@ ENV JNA_LIBRARY_PATH=/usr/lib/x86_64-linux-gnu
 ENV OMP_THREAD_LIMIT=4
 ENV OMP_NUM_THREADS=4
 
-CMD ["java", "-Dquarkus.profile=prod" , "-jar", "/work/quarkus-run.jar"]
+CMD ["java", "-Dquarkus.profile=dev" , "-jar", "/work/quarkus-run.jar"]

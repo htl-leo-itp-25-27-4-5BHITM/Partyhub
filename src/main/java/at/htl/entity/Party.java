@@ -3,6 +3,8 @@ package at.htl.entity;
 import jakarta.persistence.*;
 
 import java.sql.Timestamp;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 @Entity
 @Table(name="party")
@@ -12,11 +14,26 @@ public class Party {
     private Long party_id;
     private Long host_user_id;
     private Long category_id;
-    private Timestamp time_start;
-    private Timestamp time_end;
+    private LocalDateTime time_start;
+    private LocalDateTime time_end;
     private int max_people;
     private int min_age;
     private int max_age;
+
+
+    public Party() {
+
+    }
+
+    public Party(Long host_user_id, Long category_id, LocalDateTime time_start, LocalDateTime time_end, int max_people, int min_age, int max_age) {
+        this.host_user_id = host_user_id;
+        this.category_id = category_id;
+        this.time_start = time_start;
+        this.time_end = time_end;
+        this.max_people = max_people;
+        this.min_age = min_age;
+        this.max_age = max_age;
+    }
 
     public Long getParty_id() {
         return party_id;
@@ -42,19 +59,19 @@ public class Party {
         this.category_id = category_id;
     }
 
-    public Timestamp getTime_start() {
+    public LocalDateTime getTime_start() {
         return time_start;
     }
 
-    public void setTime_start(Timestamp time_start) {
+    public void setTime_start(LocalDateTime time_start) {
         this.time_start = time_start;
     }
 
-    public Timestamp getTime_end() {
+    public LocalDateTime getTime_end() {
         return time_end;
     }
 
-    public void setTime_end(Timestamp time_end) {
+    public void setTime_end(LocalDateTime time_end) {
         this.time_end = time_end;
     }
 
