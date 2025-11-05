@@ -1,7 +1,10 @@
 
 # PartyHub
 
-
+## Sprint Review Dates
+1. Sprint: 08.10.2025
+2. Sprint: 05.11.2025
+3. Sprint: 19.11.2025
 
 ## Run Locally
 
@@ -36,6 +39,8 @@ Open the Website in your Browser
 ```http
   GET /api/
 ```
+
+## Figma https://www.figma.com/design/kw6GNgxb9VgPkAxHW1AveI/Untitled?node-id=0-1&p=f&t=H4mPfGOefZ6HzJKc-0
 
 ## Screenshots
 

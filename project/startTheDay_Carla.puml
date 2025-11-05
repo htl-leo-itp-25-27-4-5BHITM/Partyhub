@@ -1,0 +1,21 @@
+@startuml
+title Start in den Tag
+skinparam defaultFontName "JetBrains Mono"
+skinparam defaultFontSize 9
+skinparam defaultFontColor black
+
+start
+#powderblue:Wecker klingelt;
+#cornflowerblue:Aufstehen;
+#powderblue:Anziehen;
+#cornflowerblue:Essen;
+#powderblue:Zähne putzen / Waschen / Haare machen;
+#cornflowerblue:Schulsachen in Schultasche tun;
+#powderblue:Klo gehen;
+#cornflowerblue:Mit Auto zum Bahnhof fahren;
+#powderblue:Mit Zug nach Linz fahren;
+#cornflowerblue:Bim umsteigen;
+#powderblue:Zur Schule gehen;
+end
+
+@enduml

@@ -1,0 +1,26 @@
+@startuml
+title Der Weg zur Schule
+start
+#Pink:Wecker klingelt;
+#AAAAAA:Wecker klingelt 2. Mal;
+#Pink:Aufstehen;
+#AAAAAA:Klo gehen;
+#Pink:Anziehen;
+#AAAAAA:Essen;
+#Pink:Schulsachen in Schultasche tun;
+#AAAAAA:Zähne putzen – <color:#777>//2min//</color>;
+#Pink:Waschen / Haare machen;
+#AAAAAA:Schuhe anziehen / Jacke;
+#Pink:Zum Auto gehen;
+#AAAAAA:Mit dem Auto zur schule gefahren werden;
+#Pink:Zur Schule gehen;
+#AAAAAA:In der Schule angekommen;
+stop
+
+skinparam titleFontSize 24
+skinparam titleFontColor black
+skinparam ActivityFontName Roboto
+skinparam ActivityFontSize 12
+skinparam ActivityFontColor #222222
+
+@enduml
