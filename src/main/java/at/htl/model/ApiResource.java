@@ -128,4 +128,6 @@ public class ApiResource {
     public List<Party> getParties() {
         return entityManager.createQuery("SELECT p FROM Party p", Party.class).getResultList();
     }
+
+
 }

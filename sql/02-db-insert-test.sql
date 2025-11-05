@@ -1,4 +1,4 @@
-INSERT INTO user_account (name, email) VALUES
+INSERT INTO useraccount (name, email) VALUES
                                            ('Alice Johnson', 'alice.johnson@example.com'),
                                            ('Bob Smith', 'bob.smith@example.com'),
                                            ('Charlie Brown', 'charlie.brown@example.com'),
@@ -26,7 +26,7 @@ INSERT INTO post (user_id, party_id, content) VALUES
                                                   (4, 4, 'Music festival is going to be epic!'),
                                                   (5, 5, 'Art exhibition tomorrow, hope to see you all!');
 
-INSERT INTO party_attendees (party_id, user_id) VALUES
+INSERT INTO  userpartymapping (party_id, user_id) VALUES
                                                     (1, 2),
                                                     (1, 3),
                                                     (2, 1),
@@ -34,14 +34,14 @@ INSERT INTO party_attendees (party_id, user_id) VALUES
                                                     (4, 1),
                                                     (5, 3);
 
-INSERT INTO party_location (party_id, longitude, latitude, location_name) VALUES
-                                                                              (1, -123.3656, 48.4284, 'Victoria, BC'),
-                                                                              (2, -122.4194, 37.7749, 'San Francisco, CA'),
-                                                                              (3, -104.9903, 39.7392, 'Denver, CO'),
-                                                                              (4, -73.9857, 40.7484, 'New York, NY'),
-                                                                              (5, -0.1276, 51.5074, 'London, UK');
+INSERT INTO partylocation (party_id, longitude, latitude) VALUES
+                                                                              (1, -123.3656, 48.4284),
+                                                                              (2, -122.4194, 37.7749),
+                                                                              (3, -104.9903, 39.7392),
+                                                                              (4, -73.9857, 40.7484),
+                                                                              (5, -0.1276, 51.5074);
 
-INSERT INTO party_image (party_id, user_id, url) VALUES
+INSERT INTO partyimage (party_id, user_id, url) VALUES
                                                      (1, 1, 'http://example.com/images/party1.jpg'),
                                                      (2, 2, 'http://example.com/images/party2.jpg'),
                                                      (3, 3, 'http://example.com/images/party3.jpg'),
@@ -55,7 +55,7 @@ INSERT INTO gallery (img_id) VALUES
                                  (4),
                                  (5);
 
-INSERT INTO blocked_users (blocker_id, blocked_id) VALUES
+INSERT INTO blockedusers (blocker_id, blocked_id) VALUES
                                                        (1, 2),
                                                        (2, 3),
                                                        (3, 1),
