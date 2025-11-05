@@ -20,16 +20,10 @@ Go to the project directory
   cd Partyhub
 ```
 
-Run maven installs
-
-```bash
-  ./mvnw clean install
-```
-
 Start the server
 
 ```bash
-  docker-compose up
+  ./deploy.sh
 ```
 
 Open the Website in your Browser

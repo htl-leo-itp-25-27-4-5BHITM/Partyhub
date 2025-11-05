@@ -1,8 +1,7 @@
 CREATE SEQUENCE user_account_id_seq START WITH 1 INCREMENT BY 1;
 CREATE SEQUENCE category_id_seq START WITH 1 INCREMENT BY 1;
 CREATE SEQUENCE party_id_seq START WITH 1 INCREMENT BY 1;
-CREATE SEQUENCE post_id_seq START WITH 1 INCREMENT BY 1;
-CREATE SEQUENCE img_id_seq START WITH 1 INCREMENT BY 1;
+CREATE SEQUENCE media_id_seq START WITH 1 INCREMENT BY 1;
 
 CREATE TABLE user_account (
                               user_id INT PRIMARY KEY DEFAULT nextval('user_account_id_seq'),
@@ -25,18 +24,11 @@ CREATE TABLE party (
                        max_people INT NOT NULL,
                        min_age INT NOT NULL,
                        max_age INT NOT NULL,
+                       title TEXT NOT NULL,
+                       description TEXT NOT NULL,
+                       created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                        FOREIGN KEY (host_user_id) REFERENCES user_account (user_id),
                        FOREIGN KEY (category_id) REFERENCES category(category_id)
-);
-
-CREATE TABLE post (
-                      post_id INT PRIMARY KEY DEFAULT nextval('post_id_seq'),
-                      user_id INT NOT NULL,
-                      party_id INT NOT NULL,
-                      content TEXT NOT NULL,
-                      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                      FOREIGN KEY (user_id) REFERENCES user_account (user_id),
-                      FOREIGN KEY (party_id) REFERENCES party(party_id)
 );
 
 CREATE TABLE party_attendees (
@@ -55,8 +47,8 @@ CREATE TABLE party_location (
                                 FOREIGN KEY (party_id) REFERENCES party(party_id)
 );
 
-CREATE TABLE party_image (
-                             img_id INT PRIMARY KEY DEFAULT nextval('img_id_seq'),
+CREATE TABLE party_media (
+                             media_id INT PRIMARY KEY DEFAULT nextval('media_id_seq'),
                              party_id INT NOT NULL,
                              user_id INT NOT NULL,
                              url VARCHAR(255) NOT NULL,
@@ -65,9 +57,9 @@ CREATE TABLE party_image (
 );
 
 CREATE TABLE gallery (
-                         gallery_id INT PRIMARY KEY DEFAULT nextval('img_id_seq'),
-                         img_id INT NOT NULL,
-                         FOREIGN KEY (img_id) REFERENCES party_image(img_id)
+                         gallery_id INT PRIMARY KEY DEFAULT nextval('media_id_seq'),
+                         media_id INT NOT NULL,
+                         FOREIGN KEY (media_id) REFERENCES party_media(media_id)
 );
 
 CREATE TABLE blocked_users (

@@ -4,10 +4,11 @@ echo ">> Pulling latest code"
 
 echo ">> Building project"
 chmod +x mvnw
-./mvnw clean package
+./mvnw clean install package
 
 echo ">> Removing current running container"
-docker rm -f quarkus-app
+docker-compose down
+docker rmi partyhub-partyhub
 
 echo ">> Starting"
 docker-compose up -d

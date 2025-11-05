@@ -64,3 +64,17 @@ function addFile() {
     input.name = 'file';
     document.querySelector('form div').appendChild(input);
 }
+
+async function loadMedia(){
+    const input = document.getElementById("media_test");
+    const response = await fetch('http://localhost:8080/api/media/1');
+    const media = await response.json();
+    console.log(media)
+    media.forEach(element => {
+        console.log(element)
+        let mediaImg = document.createElement("img")
+        mediaImg.src = `./uploads/party1/${element}`
+        input.appendChild(mediaImg)
+    });
+}
+loadMedia()
