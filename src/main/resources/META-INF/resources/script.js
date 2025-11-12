@@ -78,3 +78,18 @@ async function loadMedia(){
     });
 }
 loadMedia()
+
+async function fetchFilteredParties(filterType, filterParam) {
+    const url = `/party/filter?filter=${encodeURIComponent(filterType)}`;
+
+    const formData = new FormData();
+    formData.append('param', filterParam);
+
+    const response = await fetch(url, {
+        method: 'POST',
+        body: formData
+    });
+
+    if (!response.ok) throw new Error(`HTTP ${response.status}`);
+    return response.json();
+}

@@ -65,5 +65,50 @@
 <h1>Geolocation:</h1>
 <div id="demo"></div>
 
+<h2>Filter parties by content</h2>
+
+<form id="filterForm">
+    <label for="filter">Filter type</label>
+    <select id="filter" name="filter">
+        <option value="content">Content</option>
+    </select>
+
+    <label for="param">Search term</label>
+    <input type="text" id="param" name="param" placeholder="e.g. music" required>
+
+    <button type="submit">Search</button>
+</form>
+
+<h3>Result</h3>
+<pre id="output">Waiting for request…</pre>
 </body>
 </html>
+<script>
+    document.getElementById('filterForm').addEventListener('submit', async e => {
+        e.preventDefault();
+
+        const filter = document.getElementById('filter').value;
+        const param   = document.getElementById('param').value;
+        const formData = new FormData();
+        formData.append('param', param);
+        console.log(formData.get('param'))
+
+        const url = `api/party/filter?filter=${encodeURIComponent(filter)}`;
+
+        try {
+            const response = await fetch(url, {
+                method: 'POST',
+                headers: {
+                },
+                body: formData
+            });
+
+            if (!response.ok) throw new Error(`HTTP ${response.status}`);
+
+            const data = await response.json();
+            document.getElementById('output').textContent = JSON.stringify(data, null, 2);
+        } catch (err) {
+            document.getElementById('output').textContent = `Error: ${err.message}`;
+        }
+    });
+</script>
