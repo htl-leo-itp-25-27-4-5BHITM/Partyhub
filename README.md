@@ -28,14 +28,13 @@ Start the server
 
 Open the Website in your Browser
 
-```bash
+```http request
   http://localhost::8080
 ```
 
 ## API Reference
 
-Detailed Api available at:
-```http
+```http request
    http://localhost:8080/q/swagger-ui/ 
 ```
 
@@ -43,4 +42,4 @@ Detailed Api available at:
 
 ## Screenshots
 
-![ERD](./postgres.png)
+![ERD](/postgres.png)

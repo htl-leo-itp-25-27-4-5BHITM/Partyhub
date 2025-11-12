@@ -80,24 +80,17 @@ async function loadMedia(){
 loadMedia()
 
 
-async function filter(){
-    const filterTyp = 'content';
-    const filterParam = document.getElementById('filterInput').value;
+async function fetchFilteredParties(filterType, filterParam) {
+    const url = `/party/filter?filter=${encodeURIComponent(filterType)}`;
 
-    document.addEventListener("DOMContentLoaded", function() {
-
-        const formData = new FormData();
+    const formData = new FormData();
     formData.append('param', filterParam);
 
-    const response =  fetch(`/party/filter?filter=${filterTyp}&param=${filterParam}`, {
-        method: 'GET'
+    const response = await fetch(url, {
+        method: 'POST',
+        body: formData
     });
 
-    const parties = response.json();
-    console.log(parties);
-    });
-
-
+    if (!response.ok) throw new Error(`HTTP ${response.status}`);
+    return response.json();
 }
-
-

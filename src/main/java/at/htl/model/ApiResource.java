@@ -108,20 +108,22 @@ public class ApiResource {
         return entityManager.createQuery("SELECT p FROM Party p", Party.class).getResultList();
     }
 
-    @GET
+    @POST
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.MULTIPART_FORM_DATA)
     @Path("/party/filter")
     public List<Party> filterParty(@QueryParam("filter") String filterType, @FormParam("param")  String filterParam) {
+        logger.log(Logger.Level.INFO, filterType + " filter" +  filterParam);
         String query;
         if(filterType.equals("content")){
-            query = "SELECT p FROM Party p WHERE p.title LIKE :filterParam OR p.description LIKE %:filterParam %";
+            query = "SELECT p FROM Party p WHERE p.title LIKE :filterParam OR p.description LIKE :filterParam";
         } else{
             return null;
         }
+        String likePattern = "%" + filterParam.trim() + "%";
         return entityManager.createQuery(query,
                 Party.class)
-        .setParameter("filterParam", filterParam)
+        .setParameter("filterParam", likePattern)
         .getResultList();
     }
 
