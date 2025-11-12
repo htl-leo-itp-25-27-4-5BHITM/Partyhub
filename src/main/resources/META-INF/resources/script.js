@@ -19,7 +19,7 @@ async function fetchUsers() {
 
 async function fetchParties() {
     try {
-        const response = await fetch('http://localhost:8080/api/party/list');
+        const response = await fetch('http://localhost:8080/api/party');
         const parties = await response.json();
         const partyTableBody = document.getElementById('partyTable').querySelector('tbody');
         partyTableBody.innerHTML = '';

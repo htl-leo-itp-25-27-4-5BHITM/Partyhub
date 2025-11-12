@@ -57,8 +57,6 @@ public class ApiResource {
     public List<Media> getImages(@PathParam("party") long partyId) {
         List<Media> result = new ArrayList<>();
         boolean access = entityManager.createQuery("SELECT userId FROM PartyAttendees WHERE partyId=" + partyId).getResultList().stream().findFirst().isPresent();
-        logger.log(Logger.Level.INFO, "access? " + access);
-
         if (access) {
             result = entityManager.createQuery("SELECT url FROM Media WHERE party_id=" + partyId).getResultList();
         }
@@ -95,7 +93,7 @@ public class ApiResource {
     @Transactional
     @Consumes(MediaType.MULTIPART_FORM_DATA)
     @Produces(MediaType.APPLICATION_JSON)
-    @Path("/party")
+    @Path("/party/add")
     public Response addParty(@FormParam("category_id") Long category_id, @FormParam("time_start") LocalDateTime start, @FormParam("time_end")LocalDateTime end, @FormParam("max_people") int max_people, @FormParam("min_age")  int min_age, @FormParam("max_age") int max_age) {
         Party party = new Party(1L, category_id, start, end, max_people, min_age, max_age);
         logger.log(Logger.Level.INFO, "addParty");
@@ -105,19 +103,46 @@ public class ApiResource {
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
-    @Path("/party/list")
+    @Path("/party")
     public List<Party> getParties() {
         return entityManager.createQuery("SELECT p FROM Party p", Party.class).getResultList();
     }
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
-    @Path("/party")
-    public List<Party> filterParty(@QueryParam("filter") String filter) {
-        return entityManager.createQuery(
-                "SELECT p FROM Party p WHERE p.title LIKE :filterParam OR p.description LIKE :filterParam",
+    @Consumes(MediaType.MULTIPART_FORM_DATA)
+    @Path("/party/filter")
+    public List<Party> filterParty(@QueryParam("filter") String filterType, @FormParam("param")  String filterParam) {
+        String query;
+        if(filterType.equals("content")){
+            query = "SELECT p FROM Party p WHERE p.title LIKE :filterParam OR p.description LIKE %:filterParam %";
+        } else{
+            return null;
+        }
+        return entityManager.createQuery(query,
                 Party.class)
-        .setParameter("filterParam", "%" + filter + "%")
+        .setParameter("filterParam", filterParam)
         .getResultList();
+    }
+
+    @GET
+    @Produces(MediaType.APPLICATION_JSON)
+    @Path("/party/sort")
+    public List<Party> sortParty(@QueryParam("sort") String sort) {
+        String query;
+        if (sort.equals("asc")) {
+            query = "SELECT p FROM Party p ORDER BY p.time_start ASC, p.time_end ASC";
+        }
+        else if (sort.equals("desc")) {
+            query = "SELECT p FROM Party p ORDER BY p.time_start DESC, p.time_end DESC";
+        }
+        else{
+            logger.log(Logger.Level.ERROR, "sort not supported");
+            return null;
+        }
+        return entityManager.createQuery(
+                        query,
+                        Party.class)
+                .getResultList();
     }
 }

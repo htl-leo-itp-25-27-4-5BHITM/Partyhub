@@ -34,10 +34,9 @@ Open the Website in your Browser
 
 ## API Reference
 
-#### Test Backend connection
-
+Detailed Api available at:
 ```http
-  GET /api/
+   http://localhost:8080/q/swagger-ui/ 
 ```
 
 ## Figma https://www.figma.com/design/kw6GNgxb9VgPkAxHW1AveI/Untitled?node-id=0-1&p=f&t=H4mPfGOefZ6HzJKc-0
