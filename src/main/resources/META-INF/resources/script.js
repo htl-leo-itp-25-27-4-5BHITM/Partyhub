@@ -26,6 +26,7 @@ async function fetchParties() {
         parties.forEach(party => {
             const row = `<tr>
                     <td>${party.party_id}</td>
+                    <td>${party.title}</td>
                     <td>${party.category_id}</td>
                     <td>${party.time_start}</td>
                     <td>${party.time_end}</td>
