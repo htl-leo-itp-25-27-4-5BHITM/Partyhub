@@ -79,6 +79,7 @@ async function loadMedia(){
 }
 loadMedia()
 
+
 async function fetchFilteredParties(filterType, filterParam) {
     const url = `/party/filter?filter=${encodeURIComponent(filterType)}`;
 

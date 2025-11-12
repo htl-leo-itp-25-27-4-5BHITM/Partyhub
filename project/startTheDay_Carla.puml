@@ -1,5 +1,6 @@
 @startuml
 title Start in den Tag
+
 skinparam defaultFontName "JetBrains Mono"
 skinparam defaultFontSize 9
 skinparam defaultFontColor black
