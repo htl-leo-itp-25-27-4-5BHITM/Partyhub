@@ -9,13 +9,25 @@
 <body>
 <script src="script.js" defer></script>
 
-<form action="/party/filter" method="post" enctype="multipart/form-data">
-    <div>
-        <label for="filterInput"></label><input id="filterInput" name="filter">
-    </div>
-    <div onclick="filter()">Filter</div>
+<h2>Filter parties by content</h2>
+
+<form id="filterForm">
+    <label for="filter">Filter type</label>
+    <select id="filter" name="filter">
+        <option value="content">Content</option>
+        <option value="Date">Date</option>
+        <option value="Category">Category</option>
+        <option value="Party">Party</option>
+    </select>
+
+    <label for="param">Search term</label>
+    <input type="text" id="param" name="param" placeholder="e.g. music" required>
+
+    <button type="submit">Search</button>
 </form>
 
+<h3>Result</h3>
+<pre id="output">Waiting for request…</pre>
 
 <h1>Data</h1>
 <h2>Users</h2>
@@ -73,22 +85,6 @@
 <h1>Geolocation:</h1>
 <div id="demo"></div>
 
-<h2>Filter parties by content</h2>
-
-<form id="filterForm">
-    <label for="filter">Filter type</label>
-    <select id="filter" name="filter">
-        <option value="content">Content</option>
-    </select>
-
-    <label for="param">Search term</label>
-    <input type="text" id="param" name="param" placeholder="e.g. music" required>
-
-    <button type="submit">Search</button>
-</form>
-
-<h3>Result</h3>
-<pre id="output">Waiting for request…</pre>
 </body>
 </html>
 <script>

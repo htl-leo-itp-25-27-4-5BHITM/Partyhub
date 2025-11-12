@@ -116,7 +116,7 @@ public class ApiResource {
         logger.log(Logger.Level.INFO, filterType + " filter" +  filterParam);
         String query;
         if(filterType.equals("content")){
-            query = "SELECT p FROM Party p WHERE p.title LIKE :filterParam OR p.description LIKE :filterParam";
+            query = "SELECT p FROM Party p WHERE LOWER( p.title) LIKE :filterParam OR lower(p.description) LIKE :filterParam";
         } else{
             return null;
         }
