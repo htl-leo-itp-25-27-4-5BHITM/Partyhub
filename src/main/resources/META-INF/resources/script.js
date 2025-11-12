@@ -78,3 +78,26 @@ async function loadMedia(){
     });
 }
 loadMedia()
+
+
+async function filter(){
+    const filterTyp = 'content';
+    const filterParam = document.getElementById('filterInput').value;
+
+    document.addEventListener("DOMContentLoaded", function() {
+
+        const formData = new FormData();
+    formData.append('param', filterParam);
+
+    const response =  fetch(`/party/filter?filter=${filterTyp}&param=${filterParam}`, {
+        method: 'GET'
+    });
+
+    const parties = response.json();
+    console.log(parties);
+    });
+
+
+}
+
+
