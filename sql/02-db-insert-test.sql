@@ -23,7 +23,7 @@ INSERT INTO party (host_user_id, category_id, time_start, time_end, max_people, 
 (2, 3, '2025-11-15 10:00:00', '2025-11-15 16:00:00', 250, 30, 50, 'Global Business Leadership Summit', 'Ut enim ad minima veniam, quis nostrum exercitationem ullam corporis suscipit laboriosam, nisi ut aliquid ex ea commodi consequatur? Quis autem vel eum iure reprehenderit.');
 
 
-INSERT INTO party_attendees (party_id, user_id) VALUES
+INSERT INTO  party_attendees (party_id, user_id) VALUES
                                                     (1, 2),
                                                     (1, 3),
                                                     (2, 1),
@@ -31,12 +31,12 @@ INSERT INTO party_attendees (party_id, user_id) VALUES
                                                     (4, 1),
                                                     (5, 3);
 
-INSERT INTO party_location (party_id, longitude, latitude, location_name) VALUES
-                                                                              (1, -123.3656, 48.4284, 'Victoria, BC'),
-                                                                              (2, -122.4194, 37.7749, 'San Francisco, CA'),
-                                                                              (3, -104.9903, 39.7392, 'Denver, CO'),
-                                                                              (4, -73.9857, 40.7484, 'New York, NY'),
-                                                                              (5, -0.1276, 51.5074, 'London, UK');
+INSERT INTO party_location (party_id, longitude, latitude) VALUES
+                                                                              (1, -123.3656, 48.4284),
+                                                                              (2, -122.4194, 37.7749),
+                                                                              (3, -104.9903, 39.7392),
+                                                                              (4, -73.9857, 40.7484),
+                                                                              (5, -0.1276, 51.5074);
 
 INSERT INTO party_media (party_id, user_id, url) VALUES
                                                      (1, 1, 'http://example.com/images/party1.jpg'),
