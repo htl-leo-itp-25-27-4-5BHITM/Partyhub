@@ -31,10 +31,9 @@ Open the Website in your Browser
 
 ## API Reference
 
-#### Test Backend connection
-
+Detailed Api available at:
 ```http
-  GET /api/
+   http://localhost:8080/q/swagger-ui/ 
 ```
 
 ## Screenshots
