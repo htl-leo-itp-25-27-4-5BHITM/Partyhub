@@ -1,9 +1,6 @@
 package at.htl.model;
 
-import at.htl.entity.Category;
-import at.htl.entity.Media;
-import at.htl.entity.Party;
-import at.htl.entity.User;
+import at.htl.entity.*;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import jakarta.persistence.EntityManager;
@@ -161,5 +158,25 @@ public class ApiResource {
                         query,
                         Party.class)
                 .getResultList();
+    }
+
+    @GET
+    @Transactional
+    @Produces(MediaType.APPLICATION_JSON)
+    @Path("/party/attend/{id}")
+    public Response attendParty (@PathParam("id") Long party_id) {
+        PartyAttendees attendees = new PartyAttendees(party_id, 1L);
+        entityManager.persist(attendees);
+        return Response.ok().build();
+    }
+
+    @POST
+    @Transactional
+    @Produces(MediaType.APPLICATION_JSON)
+    @Path("/party/invite/{id}")
+    public Response inviteParty (@PathParam("id") Long id) {
+        PartyInvitation partyInvitation = new PartyInvitation(1L, 2L, id);
+        entityManager.persist(partyInvitation);
+        return Response.ok().build();
     }
 }

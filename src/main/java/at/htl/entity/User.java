@@ -1,10 +1,11 @@
 package at.htl.entity;
 
 import jakarta.persistence.*;
-
 @Entity
 @Table(name="user_account")
 public class User {
+    public User(){}
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long user_id;

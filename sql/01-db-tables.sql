@@ -69,11 +69,27 @@ CREATE TABLE blocked_users (
                                FOREIGN KEY (blocker_id) REFERENCES user_account (user_id),
                                FOREIGN KEY (blocked_id) REFERENCES user_account (user_id)
 );
+
+CREATE TABLE friendship_status (
+                                   status_id INT NOT NULL,
+                                   status_name TEXT not null
+);
+
 CREATE TABLE friendship (
                             user1_id INT NOT NULL,
                             user2_id INT NOT NULL,
-                            status VARCHAR(20) NOT NULL,
+                            status INT NOT NULL,
                             PRIMARY KEY (user1_id, user2_id),
                             FOREIGN KEY (user1_id) REFERENCES user_account (user_id) ON DELETE CASCADE,
-                            FOREIGN KEY (user2_id) REFERENCES user_account (user_id)
+                            FOREIGN KEY (user2_id) REFERENCES user_account (user_id),
+                            FOREIGN KEY (status) REFERENCES friendship_status (status_id)
+);
+CREATE TABLE party_invitation (
+    invitation_id INT NOT NULL,
+                                  user1_id INT NOT NULL,
+                                  user2_id INT NOT NULL,
+                                  party_id INT NOT NULL,
+                                  FOREIGN KEY (user1_id) REFERENCES user_account (user_id) ON DELETE CASCADE,
+                                  FOREIGN KEY (user2_id) REFERENCES user_account (user_id),
+                                  FOREIGN KEY (party_id) REFERENCES party (party_id)
 );

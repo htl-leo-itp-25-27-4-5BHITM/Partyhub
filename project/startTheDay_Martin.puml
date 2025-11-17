@@ -1,0 +1,10 @@
+@startuml
+start
+:Aufstehen;
+:Essen;
+:Zum Bahnhof fahren;
+:Mit Zug nach Linz fahren;
+:Bim umsteigen;
+:Zur Schule gehen;
+stop
+@enduml
