@@ -52,14 +52,12 @@ INSERT INTO gallery (media_id) VALUES
                                  (4),
                                  (5);
 
-INSERT INTO blocked_users (blocker_id, blocked_id) VALUES
-                                                       (1, 2),
-                                                       (2, 3),
-                                                       (3, 1),
-                                                       (4, 5);
-
+INSERT INTO friendship_status (status_id, status_name) VALUES
+                                                        (1,  'friends'),
+                                                        (2,  'pending'),
+                                                        (3,  'blocked');
 INSERT INTO friendship (user1_id, user2_id, status) VALUES
-                                                        (1, 2, 'friends'),
-                                                        (2, 3, 'pending'),
-                                                        (1, 3, 'blocked'),
-                                                        (4, 5, 'friends');
+                                                        (1, 2, 1),
+                                                        (2, 3, 2),
+                                                        (1, 3, 3),
+                                                        (4, 5, 1);
