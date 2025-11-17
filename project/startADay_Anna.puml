@@ -1,0 +1,27 @@
+@startuml
+title Mein Weg in die Schule
+start
+#F2D6CE:Wecker klingelt;
+#D9B99F:Nachrichten checken;
+#F2D6CE:Aufstehen;
+#D9B99F:Klo gehen;
+#F2D6CE:Zähne putzen;
+#D9B99F:Umziehen;
+#F2D6CE:Schminken;
+#D9B99F:Haare machen;
+#F2D6CE:Schmuck rauf;
+#D9B99F:Jause machen;
+#F2D6CE:Schuhe anziehen;
+#D9B99F:zum Auto gehen;
+#F2D6CE:mit Auto in die Schule fahren;
+#D9B99F:In der Schule angekommen;
+#F2D6CE:in die Klasse gehen;
+stop
+
+skinparam titleFontSize 24
+skinparam titleFontColor black
+skinparam ActivityFontName Roboto
+skinparam ActivityFontSize 12
+skinparam ActivityFontColor #222222
+
+@enduml
