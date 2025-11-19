@@ -3,24 +3,16 @@ package at.htl.entity;
 import jakarta.persistence.*;
 
 @Entity
+@TableGenerator(name="friendship")
 @Table(name="friendship")
 public class Friendship {
     public Friendship() {
 
     }
-    @Id
+    @Id @Column(name = "user1_id")
     Long user1_id;
-    @Id
+    @Id @Column(name = "user2_id")
     Long user2_id;
-
-    @OneToOne(cascade = CascadeType.ALL)
-    FriendshipStatus status;
-
-    public FriendshipStatus getStatus() {
-        return status;
-    }
-
-    public void setStatus(FriendshipStatus status) {
-        this.status = status;
-    }
+    @Column(name = "status_id")
+    Long status_id;
 }

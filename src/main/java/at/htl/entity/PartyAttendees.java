@@ -2,6 +2,7 @@ package at.htl.entity;
 
 import jakarta.persistence.*;
 @Entity
+@TableGenerator(name = "party_attendees")
 @Table(name = "party_attendees")
 public class PartyAttendees {
     @Id

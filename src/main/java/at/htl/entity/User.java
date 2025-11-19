@@ -1,10 +1,15 @@
 package at.htl.entity;
 
+import io.quarkus.security.identity.SecurityIdentity;
 import jakarta.persistence.*;
 @Entity
 @Table(name="user_account")
+@TableGenerator(name="user_account")
 public class User {
     public User(){}
+    public User(SecurityIdentity identity) {
+        this.name = identity.getPrincipal().getName();
+    }
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

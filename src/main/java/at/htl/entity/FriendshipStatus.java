@@ -3,10 +3,20 @@ package at.htl.entity;
 import jakarta.persistence.*;
 
 @Entity
+@TableGenerator(name="friendship_status")
 @Table(name="friendship_status")
 public class FriendshipStatus {
-    public FriendshipStatus(){}
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "status_id")
+    private Long status_id;
+    @Column(name = "status_name")
+    private String name;
+    public FriendshipStatus(String name){
+        setName(name);
+    }
 
+    public FriendshipStatus(){}
     public String getName() {
         return name;
     }
@@ -23,11 +33,4 @@ public class FriendshipStatus {
         this.status_id = status_id;
     }
 
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Id
-    private Long status_id;
-    private String name;
-    public FriendshipStatus(String name){
-        setName(name);
-    }
 }
