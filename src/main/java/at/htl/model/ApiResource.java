@@ -1,15 +1,22 @@
 package at.htl.model;
 
 import at.htl.entity.*;
+import io.quarkus.security.identity.SecurityIdentity;
+import jakarta.annotation.security.RolesAllowed;
 import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.enterprise.context.RequestScoped;
 import jakarta.inject.Inject;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 import jakarta.transaction.Transactional;
 import jakarta.ws.rs.*;
+import jakarta.ws.rs.core.Context;
+import jakarta.ws.rs.core.HttpHeaders;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
+import org.eclipse.microprofile.jwt.JsonWebToken;
 import org.jboss.logging.Logger;
+import org.jboss.resteasy.reactive.NoCache;
 import org.jboss.resteasy.reactive.multipart.FileUpload;
 
 import java.io.IOException;
@@ -27,8 +34,21 @@ public class ApiResource {
     @Inject
     Logger logger;
 
+    @Inject
+    JsonWebToken jwt;
+
+    @Inject
+    SecurityIdentity identity;
+
     @PersistenceContext
     EntityManager entityManager;
+
+    @GET
+    @Path("/users/me")
+    @NoCache
+    public User me() {
+        return new User(identity);
+    }
 
     @GET
     @Path("/users")
@@ -92,7 +112,7 @@ public class ApiResource {
     @Produces(MediaType.APPLICATION_JSON)
     @Path("/party/add")
     public Response addParty(@FormParam("category_id") Long category_id, @FormParam("time_start") LocalDateTime start, @FormParam("time_end")LocalDateTime end, @FormParam("max_people") int max_people, @FormParam("min_age")  int min_age, @FormParam("max_age") int max_age) {
-        Party party = new Party(1L, category_id, start, end, max_people, min_age, max_age);
+        Party party = new Party(1L, category_id, "testTitle", start, end, max_people, min_age, max_age, "TestDescription", 0.0, 0.0);
         logger.log(Logger.Level.INFO, "addParty");
         entityManager.persist(party);
         return Response.ok().build();
@@ -150,18 +170,10 @@ public class ApiResource {
     @Produces(MediaType.APPLICATION_JSON)
     @Path("/party/attend/{id}")
     public Response attendParty (@PathParam("id") Long party_id) {
-        PartyAttendees attendees = new PartyAttendees(party_id, 1L);
-        entityManager.persist(attendees);
-        return Response.ok().build();
-    }
-
-    @POST
-    @Transactional
-    @Produces(MediaType.APPLICATION_JSON)
-    @Path("/party/invite/{id}")
-    public Response inviteParty (@PathParam("id") Long id) {
-        PartyInvitation partyInvitation = new PartyInvitation(1L, 2L, id);
-        entityManager.persist(partyInvitation);
+		Long userId = Long.valueOf(jwt.getSubject());
+        logger.log(Logger.Level.INFO, "attendParty " + userId);
+        PartyAttendees pa = new PartyAttendees(party_id, userId);
+        entityManager.persist(pa);
         return Response.ok().build();
     }
 }
