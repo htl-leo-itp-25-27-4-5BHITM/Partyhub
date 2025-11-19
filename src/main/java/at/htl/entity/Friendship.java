@@ -13,6 +13,7 @@ public class Friendship {
     Long user1_id;
     @Id @Column(name = "user2_id")
     Long user2_id;
-    @Column(name = "status_id")
-    Long status_id;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "status_id", nullable = false)
+    FriendshipStatus status;
 }

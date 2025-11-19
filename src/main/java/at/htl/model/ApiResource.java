@@ -23,6 +23,7 @@ import org.jboss.resteasy.reactive.multipart.FileUpload;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.time.Instant;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -71,12 +72,12 @@ public class ApiResource {
     }
 
     @GET
-    @Path("/media/{party}/")
+    @Path("/media/{party}")
     public List<Media> getImages(@PathParam("party") long partyId) {
         List<Media> result = new ArrayList<>();
-        boolean access = entityManager.createQuery("SELECT userId FROM PartyAttendees WHERE partyId=" + partyId).getResultList().stream().findFirst().isPresent();
+        boolean access = entityManager.createQuery("SELECT user FROM PartyAttendees WHERE party.id=" + partyId).getResultList().stream().findFirst().isPresent();
         if (access) {
-            result = entityManager.createQuery("SELECT url FROM Media WHERE party_id=" + partyId).getResultList();
+            result = entityManager.createQuery("SELECT url FROM Media WHERE party.id=" + partyId).getResultList();
         }
         return result;
     }
@@ -87,14 +88,16 @@ public class ApiResource {
     @Produces(MediaType.APPLICATION_JSON)
     @Transactional
     public Response upload(FileUploadInput input, @PathParam("partyId") long partyId) throws IOException {
+        // TODO: Sanitize uploads
         logger.log(Logger.Level.DEBUG, "upload");
         String uploadDir = "src/main/resources/uploads/party" + partyId + "/";
         Files.createDirectories(Paths.get(uploadDir));
         for (FileUpload file : input.file) {
-            Media media = new Media(partyId, 1L, file.fileName());
+            // TODO: Use correct media path for db
+            Media media = new Media(Party.getPartyById(partyId, entityManager), User.getUserById(1L, entityManager), file.fileName());
             entityManager.persist(media);
             java.nio.file.Path uploadedFile = file.uploadedFile();
-            java.nio.file.Path targetLocation = Paths.get(uploadDir, file.fileName());
+            java.nio.file.Path targetLocation = Paths.get(uploadDir, Instant.now().toString() + file.fileName());
             Files.move(uploadedFile, targetLocation);
             logger.log(Logger.Level.INFO, "File saved to: " + targetLocation);
         }
@@ -113,8 +116,9 @@ public class ApiResource {
     @Produces(MediaType.APPLICATION_JSON)
     @Path("/party/add")
     public Response addParty(@FormParam("category_id") Long category_id, @FormParam("time_start") LocalDateTime start, @FormParam("time_end")LocalDateTime end, @FormParam("max_people") int max_people, @FormParam("min_age")  int min_age, @FormParam("max_age") int max_age) {
-        Party party = new Party(1L, category_id, "testTitle", start, end, max_people, min_age, max_age, "TestDescription", 0.0, 0.0);
+        Party party = new Party(User.getUserById(1L, entityManager), Category.getCategoryById(category_id, entityManager), "testTitle", start, end, max_people, min_age, max_age, "TestDescription", 0.0, 0.0, 1.0);
         logger.log(Logger.Level.INFO, "addParty");
+        logger.info(party.toString());
         entityManager.persist(party);
         return Response.ok().build();
     }
@@ -166,15 +170,16 @@ public class ApiResource {
                 .getResultList();
     }
 
-    @GET
+    @POST
     @Transactional
     @Produces(MediaType.APPLICATION_JSON)
     @Path("/party/attend/{id}")
     public Response attendParty (@PathParam("id") Long party_id) {
-		Long userId = Long.valueOf(jwt.getSubject());
-        logger.log(Logger.Level.INFO, "attendParty " + userId);
-        PartyAttendees pa = new PartyAttendees(party_id, userId);
+		//Long userId = Long.valueOf(jwt.getSubject());
+        //logger.log(Logger.Level.INFO, "attendParty " + userId);
+        PartyAttendees pa = new PartyAttendees(Party.getPartyById(party_id, entityManager), User.getUserById(1L, entityManager));
         entityManager.persist(pa);
-        return Response.ok().build();
+
+        return Response.status(Response.Status.CREATED).build();
     }
 }

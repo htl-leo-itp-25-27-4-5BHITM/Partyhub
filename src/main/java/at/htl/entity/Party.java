@@ -1,6 +1,7 @@
 package at.htl.entity;
 
 import jakarta.persistence.*;
+import org.hibernate.annotations.CreationTimestamp;
 
 import java.sql.Timestamp;
 import java.time.Instant;
@@ -11,11 +12,15 @@ import java.time.LocalDateTime;
 @TableGenerator(name = "party")
 @Table(name = "party")
 public class Party {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long party_id;
-    private Long host_user_id;
-    private Long category_id;
+    private Long id;
+    @ManyToOne(fetch = FetchType.LAZY)
+    private User host_user;
+    @ManyToOne
+    @JoinColumn(name = "category_id", nullable = false)
+    private Category category;
     private String title;
     private LocalDateTime time_start;
     private LocalDateTime time_end;
@@ -25,17 +30,16 @@ public class Party {
     private String description;
     private Double latitude;
     private Double longitude;
-
-
+    private Double fee;
+    @CreationTimestamp
+    @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime created_at;
 
-    public Party() {
+    public Party() {}
 
-    }
-
-    public Party(Long host_user_id, Long category_id, String title, LocalDateTime time_start, LocalDateTime time_end, int max_people, int min_age, int max_age, String description, double latitude, double longitude) {
-        this.host_user_id = host_user_id;
-        this.category_id = category_id;
+    public Party(User host_user, Category category, String title, LocalDateTime time_start, LocalDateTime time_end, int max_people, int min_age, int max_age, String description, Double latitude, Double longitude, Double fee) {
+        this.host_user = host_user;
+        this.category = category;
         this.title = title;
         this.time_start = time_start;
         this.time_end = time_end;
@@ -43,113 +47,34 @@ public class Party {
         this.min_age = min_age;
         this.max_age = max_age;
         this.description = description;
-        this.created_at = LocalDateTime.now();
         this.latitude = latitude;
         this.longitude = longitude;
+        this.fee = fee;
     }
 
-    public String getTitle() {
-        return title;
+    @Override
+    public String toString() {
+        return "Party{" +
+                "id=" + id +
+                ", host_user=" + host_user +
+                ", category=" + category +
+                ", title='" + title + '\'' +
+                ", time_start=" + time_start +
+                ", time_end=" + time_end +
+                ", max_people=" + max_people +
+                ", min_age=" + min_age +
+                ", max_age=" + max_age +
+                ", description='" + description + '\'' +
+                ", latitude=" + latitude +
+                ", longitude=" + longitude +
+                ", fee=" + fee +
+                ", created_at=" + created_at +
+                '}';
     }
 
-    public void setTitle(String title) {
-        this.title = title;
+    public static Party getPartyById(Long party_id, EntityManager entityManager) {
+        return entityManager.find(Party.class, party_id);
     }
 
-    public String getDescription() {
-        return description;
-    }
-
-    public void setDescription(String description) {
-        this.description = description;
-    }
-
-    public LocalDateTime getCreated_at() {
-        return created_at;
-    }
-
-    public void setCreated_at(LocalDateTime created_at) {
-        this.created_at = created_at;
-    }
-
-    public Long getParty_id() {
-        return party_id;
-    }
-
-    public void setParty_id(Long party_id) {
-        this.party_id = party_id;
-    }
-
-    public Long getHost_user_id() {
-        return host_user_id;
-    }
-
-    public void setHost_user_id(Long host_user_id) {
-        this.host_user_id = host_user_id;
-    }
-
-    public Long getCategory_id() {
-        return category_id;
-    }
-
-    public void setCategory_id(Long category_id) {
-        this.category_id = category_id;
-    }
-
-    public LocalDateTime getTime_start() {
-        return time_start;
-    }
-
-    public void setTime_start(LocalDateTime time_start) {
-        this.time_start = time_start;
-    }
-
-    public LocalDateTime getTime_end() {
-        return time_end;
-    }
-
-    public void setTime_end(LocalDateTime time_end) {
-        this.time_end = time_end;
-    }
-
-    public int getMax_people() {
-        return max_people;
-    }
-
-    public void setMax_people(int max_people) {
-        this.max_people = max_people;
-    }
-
-    public int getMin_age() {
-        return min_age;
-    }
-
-    public void setMin_age(int min_age) {
-        this.min_age = min_age;
-    }
-
-    public int getMax_age() {
-        return max_age;
-    }
-
-    public void setMax_age(int max_age) {
-        this.max_age = max_age;
-    }
-
-    public Double getLatitude() {
-        return latitude;
-    }
-
-    public void setLatitude(Double latitude) {
-        this.latitude = latitude;
-    }
-
-    public Double getLongitude() {
-        return longitude;
-    }
-
-    public void setLongitude(Double longitude) {
-        this.longitude = longitude;
-    }
 
 }

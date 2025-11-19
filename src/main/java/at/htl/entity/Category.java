@@ -1,28 +1,39 @@
 package at.htl.entity;
 
+import jakarta.inject.Inject;
 import jakarta.persistence.*;
 
 @Entity
-@Table(name = "category")
 @TableGenerator(name = "category")
+@Table(name = "category")
 public class Category{
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    Long category_id;
-    String category_name;
-    public Long getCategory_id() {
-        return category_id;
+    Long id;
+    String name;
+
+    public Category(){
+        this.id = null;
+        this.name = null;
     }
 
-    public void setCategory_id(Long category_id) {
-        this.category_id = category_id;
+    public static Category getCategoryById(Long category_id, EntityManager entityManager) {
+        return entityManager.find(Category.class, category_id);
     }
 
-    public String getCategory_name() {
-        return category_name;
+    public Long getId() {
+        return id;
     }
 
-    public void setCategory_name(String category_name) {
-        this.category_name = category_name;
+    public void setId(Long id) {
+        this.id = id;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
     }
 }

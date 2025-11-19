@@ -6,48 +6,14 @@ import jakarta.persistence.*;
 @TableGenerator(name="party_media")
 @Table(name="party_media")
 public class Media {
-    public Long getId() {
-        return id;
-    }
-
-    public void setId(Long id) {
-        this.id = id;
-    }
-
-    public Long getParty_id() {
-        return party_id;
-    }
-
-    public void setParty_id(Long party_id) {
-        this.party_id = party_id;
-    }
-
-    public Long getUser_id() {
-        return user_id;
-    }
-
-    public void setUser_id(Long user_id) {
-        this.user_id = user_id;
-    }
-
-    public String getUrl() {
-        return url;
-    }
-
-    public void setUrl(String url) {
-        this.url = url;
-    }
-
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "media_id")
     private Long id;
-    @Column(name = "party_id")
-    private Long party_id;
-
-    @Column(name = "user_id")
-    private Long user_id;
-
+    @ManyToOne(fetch = FetchType.LAZY)
+    private Party party;
+    @ManyToOne(fetch = FetchType.LAZY)
+    private User user;
     @Column(name = "url")
     private String url;
 
@@ -55,9 +21,9 @@ public class Media {
 
     }
 
-    public Media(Long party_id, Long user_id, String url) {
-        this.party_id = party_id;
-        this.user_id = user_id;
+    public Media(Party party, User user, String url) {
+        this.party = party;
+        this.user = user;
         this.url = url;
     }
 }
