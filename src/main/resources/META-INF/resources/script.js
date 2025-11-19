@@ -17,6 +17,7 @@ async function fetchUsers() {
     }
 }
 
+
 async function fetchParties() {
     try {
         const response = await fetch('http://localhost:8080/api/party');
