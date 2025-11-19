@@ -17,7 +17,13 @@ services:
       environment:
         KEYCLOAK_ADMIN: admin
         KEYCLOAK_ADMIN_PASSWORD: admin
-        KC_DB: dev-file
+#        KC_DB: jdbc:postgresql://postgres:5432/demo
+        KC_DB: postgres
+        KC_DB_SCHEMA: demo
+        KC_DB_URL=jdbc: postgresql://postgres:5432/demo
+        KC_DB_USERNAME: demo
+        KC_DB_PASSWORD: demo
+#        KC_DB: dev-file
         KC_HTTP_PORT: 8080
       ports:
         - "8081:8080"
