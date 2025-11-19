@@ -3,6 +3,7 @@ package at.htl.entity;
 import jakarta.persistence.*;
 
 @Entity
+@TableGenerator(name="party_media")
 @Table(name="party_media")
 public class Media {
     public Long getId() {
@@ -40,7 +41,7 @@ public class Media {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "media_id")
-    Long id;
+    private Long id;
     @Column(name = "party_id")
     private Long party_id;
 

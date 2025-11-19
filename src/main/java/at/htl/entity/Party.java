@@ -3,23 +3,50 @@ package at.htl.entity;
 import jakarta.persistence.*;
 
 import java.sql.Timestamp;
+import java.time.Instant;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 @Entity
-@Table(name="party")
+@TableGenerator(name = "party")
+@Table(name = "party")
 public class Party {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long party_id;
     private Long host_user_id;
     private Long category_id;
+    private String title;
     private LocalDateTime time_start;
     private LocalDateTime time_end;
     private int max_people;
     private int min_age;
     private int max_age;
-    private String title;
+    private String description;
+    private Double latitude;
+    private Double longitude;
+
+
+    private LocalDateTime created_at;
+
+    public Party() {
+
+    }
+
+    public Party(Long host_user_id, Long category_id, String title, LocalDateTime time_start, LocalDateTime time_end, int max_people, int min_age, int max_age, String description, double latitude, double longitude) {
+        this.host_user_id = host_user_id;
+        this.category_id = category_id;
+        this.title = title;
+        this.time_start = time_start;
+        this.time_end = time_end;
+        this.max_people = max_people;
+        this.min_age = min_age;
+        this.max_age = max_age;
+        this.description = description;
+        this.created_at = LocalDateTime.now();
+        this.latitude = latitude;
+        this.longitude = longitude;
+    }
 
     public String getTitle() {
         return title;
@@ -43,24 +70,6 @@ public class Party {
 
     public void setCreated_at(LocalDateTime created_at) {
         this.created_at = created_at;
-    }
-
-    private String description;
-    private LocalDateTime created_at;
-
-
-    public Party() {
-
-    }
-
-    public Party(Long host_user_id, Long category_id, LocalDateTime time_start, LocalDateTime time_end, int max_people, int min_age, int max_age) {
-        this.host_user_id = host_user_id;
-        this.category_id = category_id;
-        this.time_start = time_start;
-        this.time_end = time_end;
-        this.max_people = max_people;
-        this.min_age = min_age;
-        this.max_age = max_age;
     }
 
     public Long getParty_id() {
@@ -126,4 +135,21 @@ public class Party {
     public void setMax_age(int max_age) {
         this.max_age = max_age;
     }
+
+    public Double getLatitude() {
+        return latitude;
+    }
+
+    public void setLatitude(Double latitude) {
+        this.latitude = latitude;
+    }
+
+    public Double getLongitude() {
+        return longitude;
+    }
+
+    public void setLongitude(Double longitude) {
+        this.longitude = longitude;
+    }
+
 }

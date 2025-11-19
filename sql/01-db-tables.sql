@@ -41,8 +41,8 @@ CREATE TABLE party_attendees (
 
 CREATE TABLE party_location (
                                 party_id INT NOT NULL PRIMARY KEY,
-                                longitude FLOAT NOT NULL,
-                                latitude FLOAT NOT NULL,
+                                longitude DOUBLE PRECISION NOT NULL,
+                                latitude DOUBLE PRECISION NOT NULL,
                                 location_name TEXT,
                                 FOREIGN KEY (party_id) REFERENCES party(party_id)
 );

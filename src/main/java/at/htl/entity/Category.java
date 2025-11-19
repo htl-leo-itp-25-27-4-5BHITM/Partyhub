@@ -4,8 +4,11 @@ import jakarta.persistence.*;
 
 @Entity
 @Table(name = "category")
+@TableGenerator(name = "category")
 public class Category{
-    @GeneratedValue @Id Long category_id;
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    Long category_id;
     String category_name;
     public Long getCategory_id() {
         return category_id;

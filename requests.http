@@ -1,0 +1,7 @@
+###
+GET localhost:8080/api/me
+Content-Type: */*
+###
+GET localhost:8080/api/protected
+Content-Type: */
+*

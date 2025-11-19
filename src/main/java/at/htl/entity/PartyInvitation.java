@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 
 @Entity
 @Table(name = "party_invitation")
+@TableGenerator(name = "party_invitation")
 public class PartyInvitation {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

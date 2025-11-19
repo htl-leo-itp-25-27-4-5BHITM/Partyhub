@@ -1,0 +1,25 @@
+{
+  "realm": "party-realm",
+  "enabled": true,
+  "clients": [
+    {
+      "clientId": "party-client",
+      "secret": "secret123",
+      "enabled": true,
+      "protocol": "openid-connect",
+      "publicClient": false,
+      "directAccessGrantsEnabled": true,
+      "standardFlowEnabled": true,
+      "redirectUris": ["*"]
+    }
+  ],
+  "users": [
+    {
+	  "id":4,
+      "username": "alice",
+      "enabled": true,
+      "credentials": [{ "type": "password", "value": "alicepwd" }],
+      "email": "alice@example.com"
+    }
+  ]
+}
