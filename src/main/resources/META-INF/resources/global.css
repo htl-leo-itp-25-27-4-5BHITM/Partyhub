@@ -1,8 +1,14 @@
+@font-face {
+  font-family: luckiestGuy;
+  src: url(../resources/fonts/LuckiestGuy-Regular.ttf);
+}
+
 main {
   margin: 0 auto;
   width: max-content;
   background-color: #1a1040;
   color: white;
+  font-family: luckiestGuy;
 }
 
 body {
