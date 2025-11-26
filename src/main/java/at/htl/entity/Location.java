@@ -1,27 +1,29 @@
 package at.htl.entity;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.Id;
-import jakarta.persistence.OneToMany;
+import jakarta.persistence.*;
 
 import java.util.List;
 
 @Entity
 public class Location {
     @Id
-    private Long location_id;
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
     double longitude;
     double latitude;
 
     @OneToMany
     List<Party> partyList;
 
+    public Location() {
+    }
+
     public Long getLocation_id() {
-        return location_id;
+        return id;
     }
 
     public void setLocation_id(Long location_id) {
-        this.location_id = location_id;
+        this.id = location_id;
     }
 
     public double getLongitude() {

@@ -53,6 +53,8 @@ public class PartyInvitation {
     public PartyInvitation(Long user1_id, Long user2_id, Long party_id) {
         setUser1_id(user1_id);
         setUser2_id(user2_id);
+
         setParty_id(party_id);
     }
+
 }

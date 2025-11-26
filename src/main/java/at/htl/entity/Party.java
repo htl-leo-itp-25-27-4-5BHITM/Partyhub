@@ -1,6 +1,5 @@
 package at.htl.entity;
 
-import com.fasterxml.jackson.annotation.JsonInclude;
 import jakarta.persistence.*;
 import org.hibernate.annotations.CreationTimestamp;
 
@@ -10,7 +9,6 @@ import java.time.LocalDateTime;
 @TableGenerator(name = "party")
 @Table(name = "party")
 public class Party {
-
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -33,9 +31,11 @@ public class Party {
     private LocalDateTime created_at;
 
     @ManyToOne
+
     Location location;
 
-    public Party() {}
+    public Party() {
+    }
 
     public Party(Long id, User host_user, Category category, String title, LocalDateTime time_start, LocalDateTime time_end, int max_people, int min_age, int max_age, String description, Double fee, LocalDateTime created_at, Location location) {
         this.id = id;
@@ -51,6 +51,10 @@ public class Party {
         this.fee = fee;
         this.created_at = created_at;
         this.location = location;
+    }
+
+    public Party(User userById, Category categoryById, String testTitle, LocalDateTime start, LocalDateTime end, int maxPeople, int minAge, int maxAge, String testDescription) {
+            
     }
 
     @Override
@@ -71,7 +75,6 @@ public class Party {
                 ", location=" + location +
                 '}';
     }
-
 
     public static Party getPartyById(Long party_id, EntityManager entityManager) {
         return entityManager.find(Party.class, party_id);

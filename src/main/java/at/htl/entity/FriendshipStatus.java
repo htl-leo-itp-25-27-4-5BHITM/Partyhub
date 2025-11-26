@@ -32,4 +32,5 @@ public class FriendshipStatus {
         this.status_id = status_id;
     }
 
+
 }

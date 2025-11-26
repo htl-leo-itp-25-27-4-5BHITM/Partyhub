@@ -11,6 +11,7 @@ public class PartyAttendees {
         this.user = user;
     }
 
+
     public Long getId() {
         return id;
     }
@@ -31,5 +32,21 @@ public class PartyAttendees {
 
     public PartyAttendees(){
 
+    }
+
+    public Party getParty() {
+        return party;
+    }
+
+    public void setParty(Party party) {
+        this.party = party;
+    }
+
+    public User getUser() {
+        return user;
+    }
+
+    public void setUser(User user) {
+        this.user = user;
     }
 }
