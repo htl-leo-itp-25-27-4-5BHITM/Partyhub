@@ -34,9 +34,11 @@ h6 {
 :root {
 
     /* Primary, Secondary, Accent colors */
-    --primary-color: #e9e9e1; /*#2f27ce*/
-    --secondary-color: #1a2802; /*#575757*/
-    --accent-color: #a3ac9f; /*#DA4F00*/
+    --primary-color: #1a1040; /*#2f27ce*/
+    --secondary-color: #4f3b9a; /*#575757*/
+    --accent-color: #ff2e63; /*#DA4F00*/
+    --secondary-color-blue: #3ec1f3;
+    --accent-color-green: #56f27c;
 
     /* Fonts */
     --font-family: "Montserrat", sans-serif;
