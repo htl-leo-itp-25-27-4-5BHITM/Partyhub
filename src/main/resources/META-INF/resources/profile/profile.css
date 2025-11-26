@@ -1,3 +1,35 @@
+.tab-btn .tab-icon svg {
+stroke: #fff;
+fill: #fff;
+transition: stroke 0.2s, fill 0.2s;
+}
+
+/* Party-Popper Icon: normal weiß, aktiv dunkel */
+#tabPartys.tab-btn .tab-icon svg {
+	stroke: #fff;
+	fill: #fff;
+}
+#tabPartys.tab-btn.active .tab-icon svg {
+	stroke: #1C274C;
+	fill: #1C274C;
+}
+.tab-btn.active .tab-icon svg {
+	stroke: #4F3B9A;
+	fill: #4F3B9A;
+}
+.tab-icon {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	height: 24px;
+	width: 24px;
+	margin: 0 auto;
+}
+.tab-btn svg {
+	width: 24px;
+	height: 24px;
+	display: block;
+}
 /* Edit Account Button */
 .edit-account-btn {
 	width: 90vw;
@@ -31,7 +63,7 @@
 .tab-buttons {
 	display: flex;
 	justify-content: center;
-	gap: 40px;
+	gap: 18px;
 	margin-bottom: 0;
 }
 .tab-btn {
@@ -104,11 +136,12 @@ html, body {
 }
 
 #searchBar {
-  width: 100%;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  padding: 14px 0;
+	width: 100%;
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	margin-top: 18px;
+	padding: 14px 0;
 }
 
 .searchBox {
