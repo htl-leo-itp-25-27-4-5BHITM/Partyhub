@@ -19,27 +19,28 @@
     />
   </head>
   <body>
-    
     <form action="/api/party/add" method="post" enctype="multipart/form-data">
       <input type="text" name="title" placeholder="Name" />
 
       <div>
         <!-- WICHTIG: type="text", NICHT datetime-local -->
         <input
+          class="input_fields"
           id="time_start"
           type="text"
           name="time_start"
           placeholder="START"
         />
         <input
+          class="input_fields"
           id="time_end"
           type="text"
           name="time_end"
           placeholder="Ende"
         />
-        <input type="number" name="max_people" placeholder="Max People" />
-        <input type="number" name="min_age" placeholder="Min Alter" />
-        <input type="number" name="max_age" placeholder="Max Alter" />
+        <input class="input_fields" type="number" name="max_people" placeholder="Max People" />
+        <input class="input_fields" type="number" name="min_age" placeholder="Min Alter" />
+        <input class="input_fields" type="number" name="max_age" placeholder="Max Alter" />
       </div>
 
       <button type="submit">Submit</button>
