@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Demo Quarkus Static Site</title>
+
+    <link href="../global.css" rel="stylesheet" />
+    <link rel="stylesheet" href="./addParty.css" />
+
+    <!-- Flatpickr Styles -->
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/flatpickr/dist/themes/dark.css"
+    />
+  </head>
+  <body>
+    
+    <form action="/api/party/add" method="post" enctype="multipart/form-data">
+      <input type="text" name="title" placeholder="Name" />
+
+      <div>
+        <!-- WICHTIG: type="text", NICHT datetime-local -->
+        <input
+          id="time_start"
+          type="text"
+          name="time_start"
+          placeholder="START"
+        />
+        <input
+          id="time_end"
+          type="text"
+          name="time_end"
+          placeholder="Ende"
+        />
+        <input type="number" name="max_people" placeholder="Max People" />
+        <input type="number" name="min_age" placeholder="Min Alter" />
+        <input type="number" name="max_age" placeholder="Max Alter" />
+      </div>
+
+      <button type="submit">Submit</button>
+    </form>
+
+    <!-- Flatpickr Script -->
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+    <script>
+      flatpickr("#time_start", {
+        enableTime: true,
+        dateFormat: "d.m.Y H:i",
+        time_24hr: true,
+        minuteIncrement: 15,
+      });
+
+      flatpickr("#time_end", {
+        enableTime: true,
+        dateFormat: "d.m.Y H:i",
+        time_24hr: true,
+        minuteIncrement: 15,
+      });
+    </script>
+  </body>
+</html>
