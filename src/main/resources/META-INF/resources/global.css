@@ -22,6 +22,11 @@ h6 {
   margin: 0;
 }
 
+a{
+  text-decoration: none;
+  color: inherit;
+}
+
 /* Design for Labels */
 .input_fields {
   background-color: #1a1040;
