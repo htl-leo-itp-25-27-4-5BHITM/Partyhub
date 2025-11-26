@@ -118,7 +118,7 @@ public class ApiResource {
     @Produces(MediaType.APPLICATION_JSON)
     @Path("/party/add")
     public Response addParty(@FormParam("category_id") Long category_id, @FormParam("time_start") LocalDateTime start, @FormParam("time_end")LocalDateTime end, @FormParam("max_people") int max_people, @FormParam("min_age")  int min_age, @FormParam("max_age") int max_age) {
-        Party party = new Party(User.getUserById(1L, entityManager), Category.getCategoryById(category_id, entityManager), "testTitle", start, end, max_people, min_age, max_age, "TestDescription", 0.0, 0.0, 1.0);
+        Party party = new Party(User.getUserById(1L, entityManager), Category.getCategoryById(category_id, entityManager), "testTitle", start, end, max_people, min_age, max_age, "TestDescription");
         logger.log(Logger.Level.INFO, "addParty");
         logger.info(party.toString());
         entityManager.persist(party);
