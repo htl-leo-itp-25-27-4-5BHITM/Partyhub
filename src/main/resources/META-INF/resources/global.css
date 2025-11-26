@@ -8,6 +8,10 @@
   src: url(./fonts/Lunasima-Regular.ttf);
 }
 
+body{
+  background-color: #1a1040;
+}
+
 h1,
 h2,
 h3,
