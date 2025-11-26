@@ -9,12 +9,10 @@
 <body>
 <script src="script.js" defer></script>
 
-<h1>AddParty</h1>
 <form action="/api/party/add" method="post" enctype="multipart/form-data">
-    <input type="text" name="title">
+    <input type="text" name="title" placeholder="Name">
     <div>
-        <input type="number" name="category_id">
-        <input type="datetime-local" name="time_start">
+        <input type="datetime-local" name="time_start" placeholder="19:00">
         <input type="datetime-local" name="time_end">
         <input type="number" name="max_people">
         <input type="number" name="min_age">
