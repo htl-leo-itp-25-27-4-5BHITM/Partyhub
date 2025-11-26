@@ -1,3 +1,22 @@
 input {
-    margin-bottom: -2px;
+  padding-right: -2%;
+}
+
+/* Kalender Designs anpassen */
+/* Deine Inputs wie bisher */
+input[type="text"] {
+  background-color: #1a1040;
+  color: white;
+  border-left: none;
+  border-right: none;
+  border-top: none;
+  border-bottom: #ffffff solid 3px;
+  padding-bottom: 5%;
+  font-family: luckiestGuy;
+  font-size: 100%;
+}
+
+/* Flatpickr Popup leicht tweaken */
+.flatpickr-calendar {
+  font-family: luckiestGuy;
 }

@@ -3,6 +3,11 @@
   src: url(./fonts/LuckiestGuy-Regular.ttf);
 }
 
+@font-face {
+  font-family: lanasima;
+  src: url(./fonts/Lunasima-Regular.ttf);
+}
+
 main {
   margin: 0 auto;
   width: max-content;
@@ -13,9 +18,18 @@ main {
 body {
   background-color: #1a1040;
   color: white;
-  font-family: luckiestGuy;
+  font-family: lanasima;
   margin: 20px;
   font-size: 200%;
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  font-family: luckiestGuy;
 }
 
 input,
@@ -39,7 +53,6 @@ th {
   background-color: #f2f2f2;
 }
 
-
 /* Design for Labels */
 input {
   background-color: #1a1040;
@@ -48,7 +61,8 @@ input {
   border-right: none;
   border-top: none;
   border-bottom: #ffffff solid 3px;
-  padding-bottom: 5%;
+  padding-bottom: 0.1%;
+  padding-top: 8%;
   font-family: luckiestGuy;
   font-size: 100%;
 }
