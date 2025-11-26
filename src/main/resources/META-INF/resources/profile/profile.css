@@ -1,3 +1,60 @@
+/* Mobile Navbar am unteren Rand */
+#mobileNavbar {
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    width: 100vw;
+    background: rgba(34, 30, 54, 0.98);
+    box-shadow: 0 -2px 16px rgba(0,0,0,0.12);
+    z-index: 100;
+}
+
+.navbar-list {
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+    margin: 0;
+    padding: 0 0 2px 0;
+    list-style: none;
+    height: 56px;
+}
+
+.navbar-btn {
+    background: none;
+    border: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    color: #fff;
+    transition: background 0.18s, color 0.18s;
+    cursor: pointer;
+}
+
+.navbar-btn:active,
+.navbar-btn:focus {
+    background: rgba(79, 59, 154, 0.18);
+    color: #4F3B9A;
+}
+
+/* Navbar-Icons größer */
+#mobileNavbar svg {
+    width: 32px;
+    height: 32px;
+    display: block;
+}
+
+/* Aktives Icon: grün */
+.navbar-btn.active svg {
+    color: #56F27C;
+    stroke: #56F27C;
+    fill: #56F27C;
+}
 .tab-btn .tab-icon svg {
     stroke: #fff;
     fill: #fff;
