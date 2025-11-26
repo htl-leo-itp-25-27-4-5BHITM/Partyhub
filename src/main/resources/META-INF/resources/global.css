@@ -1,6 +1,6 @@
 @font-face {
   font-family: luckiestGuy;
-  src: url(../resources/fonts/LuckiestGuy-Regular.ttf);
+  src: url(./fonts/LuckiestGuy-Regular.ttf);
 }
 
 main {
@@ -8,12 +8,14 @@ main {
   width: max-content;
   background-color: #1a1040;
   color: white;
-  font-family: luckiestGuy;
 }
 
 body {
   background-color: #1a1040;
   color: white;
+  font-family: luckiestGuy;
+  margin: 20px;
+  font-size: 200%;
 }
 
 input,
@@ -21,10 +23,7 @@ button {
   display: block;
   margin: 0.5rem 0;
 }
-body {
-  font-family: Arial, sans-serif;
-  margin: 20px;
-}
+
 table {
   width: 100%;
   border-collapse: collapse;
@@ -38,4 +37,18 @@ td {
 }
 th {
   background-color: #f2f2f2;
+}
+
+
+/* Design for Labels */
+input {
+  background-color: #1a1040;
+  color: white;
+  border-left: none;
+  border-right: none;
+  border-top: none;
+  border-bottom: #ffffff solid 3px;
+  padding-bottom: 5%;
+  font-family: luckiestGuy;
+  font-size: 100%;
 }
