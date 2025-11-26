@@ -1,21 +1,24 @@
 package at.htl.entity;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
 import jakarta.persistence.*;
+import org.hibernate.annotations.CreationTimestamp;
 
-import java.sql.Timestamp;
-import java.time.Instant;
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 @Entity
 @TableGenerator(name = "party")
 @Table(name = "party")
 public class Party {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long party_id;
-    private Long host_user_id;
-    private Long category_id;
+    private Long id;
+    @ManyToOne
+    private User host_user;
+    @ManyToOne
+    @JoinColumn(name = "category_id", nullable = false)
+    private Category category;
     private String title;
     private LocalDateTime time_start;
     private LocalDateTime time_end;
@@ -25,17 +28,16 @@ public class Party {
     private String description;
     private Double latitude;
     private Double longitude;
-
-
+    private Double fee;
+    @CreationTimestamp
+    @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime created_at;
 
-    public Party() {
+    public Party() {}
 
-    }
-
-    public Party(Long host_user_id, Long category_id, String title, LocalDateTime time_start, LocalDateTime time_end, int max_people, int min_age, int max_age, String description, double latitude, double longitude) {
-        this.host_user_id = host_user_id;
-        this.category_id = category_id;
+    public Party(User host_user, Category category, String title, LocalDateTime time_start, LocalDateTime time_end, int max_people, int min_age, int max_age, String description, Double latitude, Double longitude, Double fee) {
+        this.host_user = host_user;
+        this.category = category;
         this.title = title;
         this.time_start = time_start;
         this.time_end = time_end;
@@ -43,9 +45,57 @@ public class Party {
         this.min_age = min_age;
         this.max_age = max_age;
         this.description = description;
-        this.created_at = LocalDateTime.now();
         this.latitude = latitude;
         this.longitude = longitude;
+        this.fee = fee;
+    }
+
+    @Override
+    public String toString() {
+        return "Party{" +
+                "id=" + id +
+                ", host_user=" + host_user +
+                ", category=" + category +
+                ", title='" + title + '\'' +
+                ", time_start=" + time_start +
+                ", time_end=" + time_end +
+                ", max_people=" + max_people +
+                ", min_age=" + min_age +
+                ", max_age=" + max_age +
+                ", description='" + description + '\'' +
+                ", latitude=" + latitude +
+                ", longitude=" + longitude +
+                ", fee=" + fee +
+                ", created_at=" + created_at +
+                '}';
+    }
+
+    public static Party getPartyById(Long party_id, EntityManager entityManager) {
+        return entityManager.find(Party.class, party_id);
+    }
+
+    public Long getId() {
+        return id;
+    }
+
+    public void setId(Long id) {
+        this.id = id;
+    }
+
+    public User getHost_user() {
+        return host_user;
+    }
+
+    public void setHost_user(User host_user) {
+        this.host_user = host_user;
+    }
+
+    public Category getCategory() {
+        return category;
+    }
+
+    public void setCategory(Category category) {
+        this.category = category;
     }
 
     public String getTitle() {
@@ -54,46 +104,6 @@ public class Party {
 
     public void setTitle(String title) {
         this.title = title;
-    }
-
-    public String getDescription() {
-        return description;
-    }
-
-    public void setDescription(String description) {
-        this.description = description;
-    }
-
-    public LocalDateTime getCreated_at() {
-        return created_at;
-    }
-
-    public void setCreated_at(LocalDateTime created_at) {
-        this.created_at = created_at;
-    }
-
-    public Long getParty_id() {
-        return party_id;
-    }
-
-    public void setParty_id(Long party_id) {
-        this.party_id = party_id;
-    }
-
-    public Long getHost_user_id() {
-        return host_user_id;
-    }
-
-    public void setHost_user_id(Long host_user_id) {
-        this.host_user_id = host_user_id;
-    }
-
-    public Long getCategory_id() {
-        return category_id;
-    }
-
-    public void setCategory_id(Long category_id) {
-        this.category_id = category_id;
     }
 
     public LocalDateTime getTime_start() {
@@ -136,6 +146,14 @@ public class Party {
         this.max_age = max_age;
     }
 
+    public String getDescription() {
+        return description;
+    }
+
+    public void setDescription(String description) {
+        this.description = description;
+    }
+
     public Double getLatitude() {
         return latitude;
     }
@@ -152,4 +170,19 @@ public class Party {
         this.longitude = longitude;
     }
 
+    public Double getFee() {
+        return fee;
+    }
+
+    public void setFee(Double fee) {
+        this.fee = fee;
+    }
+
+    public LocalDateTime getCreated_at() {
+        return created_at;
+    }
+
+    public void setCreated_at(LocalDateTime created_at) {
+        this.created_at = created_at;
+    }
 }

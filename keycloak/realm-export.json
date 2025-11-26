@@ -15,7 +15,6 @@
   ],
   "users": [
     {
-	  "id":4,
       "username": "alice",
       "enabled": true,
       "credentials": [{ "type": "password", "value": "alicepwd" }],

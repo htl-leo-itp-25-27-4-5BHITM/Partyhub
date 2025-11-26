@@ -4,7 +4,7 @@ echo ">> Pulling latest code"
 
 echo ">> Building project"
 chmod +x mvnw
-./mvnw clean install package
+# ./mvnw clean install package
 
 echo ">> Removing current running container"
 # docker-compose down
