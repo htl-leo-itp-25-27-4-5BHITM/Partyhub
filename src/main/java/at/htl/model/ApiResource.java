@@ -49,7 +49,7 @@ public class ApiResource {
     @Path("/users/me")
     @NoCache
     public User me() {
-        return new User(identity);
+        return new User(jwt);
     }
 
     @GET
@@ -125,9 +125,14 @@ public class ApiResource {
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
+    @Transactional
     @Path("/party")
-    public List<Party> getParties() {
-        return entityManager.createQuery("SELECT p FROM Party p", Party.class).getResultList();
+    public Response getParties() {
+        List <Party> result;
+        result = entityManager.createQuery("SELECT u FROM Party u", Party.class).getResultList();
+        logger.info(result.get(1));
+        logger.info(Response.ok().entity(result).build());
+        return Response.ok().entity(result).build();
     }
 
     @POST
@@ -175,11 +180,9 @@ public class ApiResource {
     @Produces(MediaType.APPLICATION_JSON)
     @Path("/party/attend/{id}")
     public Response attendParty (@PathParam("id") Long party_id) {
-		//Long userId = Long.valueOf(jwt.getSubject());
-        //logger.log(Logger.Level.INFO, "attendParty " + userId);
         PartyAttendees pa = new PartyAttendees(Party.getPartyById(party_id, entityManager), User.getUserById(1L, entityManager));
         entityManager.persist(pa);
-
+        logger.info(pa.getId());
         return Response.status(Response.Status.CREATED).build();
     }
 }

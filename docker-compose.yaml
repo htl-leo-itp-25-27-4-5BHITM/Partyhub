@@ -10,6 +10,9 @@ services:
       - POSTGRES_PASSWORD=demo
       - POSTGRES_USER=demo
       - POSTGRES_DB=demo
+volumes:
+  postgres:
+
 #  keycloak:
 #      container_name: keycloak
 #      image: quay.io/keycloak/keycloak:24.0.5
@@ -26,6 +29,3 @@ services:
 #        - "8081:8080"
 #      volumes:
 #        - ./keycloak/realm-export.json:/opt/keycloak/data/import/realm-export.json:ro
-volumes:
-  postgres:
-

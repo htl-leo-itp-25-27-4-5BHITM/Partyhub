@@ -1,5 +1,6 @@
 package at.htl.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.inject.Inject;
 import jakarta.persistence.*;
 
@@ -9,6 +10,7 @@ import jakarta.persistence.*;
 public class Category{
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+            @JsonIgnore
     Long id;
     String name;
 
