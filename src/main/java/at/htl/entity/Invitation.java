@@ -5,7 +5,7 @@ import jakarta.persistence.*;
 @Entity
 @Table(name = "party_invitation")
 @TableGenerator(name = "party_invitation")
-public class PartyInvitation {
+public class Invitation {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -46,11 +46,11 @@ public class PartyInvitation {
     private Long party_id;
     private Long user2_id;
 
-    public PartyInvitation() {
+    public Invitation() {
 
     }
 
-    public PartyInvitation(Long user1_id, Long user2_id, Long party_id) {
+    public Invitation(Long user1_id, Long user2_id, Long party_id) {
         setUser1_id(user1_id);
         setUser2_id(user2_id);
         setParty_id(party_id);

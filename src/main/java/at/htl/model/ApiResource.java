@@ -2,19 +2,14 @@ package at.htl.model;
 
 import at.htl.entity.*;
 import io.quarkus.security.identity.SecurityIdentity;
-import jakarta.annotation.security.RolesAllowed;
 import jakarta.enterprise.context.ApplicationScoped;
-import jakarta.enterprise.context.RequestScoped;
 import jakarta.inject.Inject;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 import jakarta.transaction.Transactional;
 import jakarta.ws.rs.*;
-import jakarta.ws.rs.core.Context;
-import jakarta.ws.rs.core.HttpHeaders;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
-import org.eclipse.microprofile.jwt.Claims;
 import org.eclipse.microprofile.jwt.JsonWebToken;
 import org.jboss.logging.Logger;
 import org.jboss.resteasy.reactive.NoCache;
@@ -24,7 +19,6 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.time.Instant;
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
@@ -77,7 +71,7 @@ public class ApiResource {
     @Path("/media/{party}")
     public List<Media> getImages(@PathParam("party") long partyId) {
         List<Media> result = new ArrayList<>();
-        boolean access = entityManager.createQuery("SELECT user FROM PartyAttendees WHERE party.id=" + partyId).getResultList().stream().findFirst().isPresent();
+        boolean access = entityManager.createQuery("SELECT user FROM Attendees WHERE party.id=" + partyId).getResultList().stream().findFirst().isPresent();
         if (access) {
             result = entityManager.createQuery("SELECT url FROM Media WHERE party.id=" + partyId).getResultList();
         }
@@ -112,19 +106,6 @@ public class ApiResource {
 
     }
 
-    @POST
-    @Transactional
-    @Consumes(MediaType.MULTIPART_FORM_DATA)
-    @Produces(MediaType.APPLICATION_JSON)
-    @Path("/party/add")
-    public Response addParty(@FormParam("category_id") Long category_id, @FormParam("time_start") LocalDateTime start, @FormParam("time_end")LocalDateTime end, @FormParam("max_people") int max_people, @FormParam("min_age")  int min_age, @FormParam("max_age") int max_age) {
-        Party party = new Party(User.getUserById(1L, entityManager), Category.getCategoryById(category_id, entityManager), "testTitle", start, end, max_people, min_age, max_age, "TestDescription", 0.0, 0.0, 1.0);
-        logger.log(Logger.Level.INFO, "addParty");
-        logger.info(party.toString());
-        entityManager.persist(party);
-        return Response.ok().build();
-    }
-
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     @Transactional
@@ -135,6 +116,41 @@ public class ApiResource {
         logger.info(result.get(1));
         logger.info(Response.ok().entity(result).build());
         return Response.ok().entity(result).build();
+    }
+
+    @POST
+    @Transactional
+    @Consumes(MediaType.MULTIPART_FORM_DATA)
+    @Produces(MediaType.APPLICATION_JSON)
+    @Path("/party/add")
+    public Response addParty(Party party) {
+        logger.info(party.toString());
+        entityManager.persist(party);
+        return Response.ok().build();
+    }
+    @DELETE
+    @Transactional
+    @Produces(MediaType.APPLICATION_JSON)
+    @Path("/party/{id}")
+    public Response removeParty(@PathParam("id") Long id) {
+        logger.info("removeParty");
+        Party party = entityManager.find(Party.class, id);
+        if (party == null) {
+            return Response.status(Response.Status.NOT_FOUND).build();
+        }
+        Long hostId = 1L;   // TODO: replace with actual authenticated user id
+        Long matches = entityManager.createQuery(
+                        "SELECT COUNT(p) FROM Party p WHERE p.id = :id AND p.host_user.id = :hostId",
+                        Long.class)
+                .setParameter("id", id)
+                .setParameter("hostId", hostId)
+                .getSingleResult();
+
+        logger.info(party);
+        if (matches != null && matches > 0) {
+            entityManager.remove(party);
+            return Response.ok().build();
+        }        return Response.status(Response.Status.FORBIDDEN).build();
     }
     @POST
     @Produces(MediaType.APPLICATION_JSON)
@@ -150,7 +166,7 @@ public class ApiResource {
                     .setParameter("filterParam", likePattern)
                     .getResultList();
         } else if (filterType.equals("description")) {
-            String query = "SELECT p FROM Party p WHERE p.category_id = :categoryId";
+            String query = "SELECT p FROM Party p WHERE p.category.id = :categoryId";
             return entityManager.createQuery(query, Party.class)
                     .setParameter("categoryId", Integer.parseInt(filterParam.trim()))
                     .getResultList();
@@ -190,12 +206,13 @@ public class ApiResource {
                 .getResultList();
     }
 
+
     @POST
     @Transactional
     @Produces(MediaType.APPLICATION_JSON)
-    @Path("/party/attend/{id}")
+    @Path("/party/{id}/attend")
     public Response attendParty (@PathParam("id") Long party_id) {
-        PartyAttendees pa = new PartyAttendees(Party.getPartyById(party_id, entityManager), User.getUserById(1L, entityManager));
+        Attendees pa = new Attendees(Party.getPartyById(party_id, entityManager), User.getUserById(1L, entityManager));
         entityManager.persist(pa);
         logger.info(pa.getId());
         return Response.status(Response.Status.CREATED).build();

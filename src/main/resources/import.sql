@@ -74,8 +74,7 @@ INSERT INTO  party_attendees (party_id, user_id) VALUES
                                                      (1, 3),
                                                      (2, 1),
                                                      (3, 4),
-                                                     (4, 1),
-                                                     (5, 3);
+                                                     (4, 1);
 
 
 INSERT INTO party_media (party_id, user_id, url) VALUES

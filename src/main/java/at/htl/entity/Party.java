@@ -1,10 +1,11 @@
 package at.htl.entity;
 
-import com.fasterxml.jackson.annotation.JsonInclude;
 import jakarta.persistence.*;
 import org.hibernate.annotations.CreationTimestamp;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 @TableGenerator(name = "party")
@@ -16,38 +17,40 @@ public class Party {
     private Long id;
     @ManyToOne
     private User host_user;
+    private String title;
+    private String description;
+    private Double fee;
     @ManyToOne
     @JoinColumn(name = "category_id", nullable = false)
     private Category category;
-    private String title;
     private LocalDateTime time_start;
     private LocalDateTime time_end;
     private int max_people;
     private int min_age;
     private int max_age;
-    private String description;
+    @Column(nullable = true)
+    private String website;
     private Double latitude;
     private Double longitude;
-    private Double fee;
     @CreationTimestamp
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime created_at;
 
-    public Party() {}
+    @OneToMany(mappedBy = "party",
+            cascade = CascadeType.ALL,
+            orphanRemoval = true,
+            fetch = FetchType.LAZY)
+    private List<User> attendees = new ArrayList<>();
+    @OneToMany(mappedBy = "party",
+            cascade = CascadeType.ALL,
+            orphanRemoval = true,
+            fetch = FetchType.LAZY)
+    private List<Media> media = new ArrayList<>();
 
-    public Party(User host_user, Category category, String title, LocalDateTime time_start, LocalDateTime time_end, int max_people, int min_age, int max_age, String description, Double latitude, Double longitude, Double fee) {
-        this.host_user = host_user;
-        this.category = category;
-        this.title = title;
-        this.time_start = time_start;
-        this.time_end = time_end;
-        this.max_people = max_people;
-        this.min_age = min_age;
-        this.max_age = max_age;
-        this.description = description;
-        this.latitude = latitude;
-        this.longitude = longitude;
-        this.fee = fee;
+
+
+
+    public Party() {
     }
 
     @Override
@@ -73,6 +76,7 @@ public class Party {
     public static Party getPartyById(Long party_id, EntityManager entityManager) {
         return entityManager.find(Party.class, party_id);
     }
+
 
     public Long getId() {
         return id;
@@ -184,5 +188,29 @@ public class Party {
 
     public void setCreated_at(LocalDateTime created_at) {
         this.created_at = created_at;
+    }
+
+    public List<User> getAttendees() {
+        return attendees;
+    }
+
+    public void setAttendees(List<User> attendees) {
+        this.attendees = attendees;
+    }
+
+    public List<Media> getMedia() {
+        return media;
+    }
+
+    public void setMedia(List<Media> media) {
+        this.media = media;
+    }
+
+    public String getWebsite() {
+        return website;
+    }
+
+    public void setWebsite(String website) {
+        this.website = website;
     }
 }
