@@ -1,0 +1,133 @@
+/* Responsive profile styles */
+:root {
+	/* avatar size = 50% of viewport width, but don't exceed 300px on large screens */
+	--avatar-size: min(50vw, 300px);
+}
+
+/* Basic page reset */
+* { box-sizing: border-box; }
+html, body { margin: 0; padding: 0; font-family: Arial, Helvetica, sans-serif; }
+
+#profileContainer {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	gap: 12px;
+	padding: 16px;
+}
+
+/* make the picture container the desired size so the img can fill it */
+#profilePicture {
+	width: var(--avatar-size);
+	height: var(--avatar-size);
+	display: block;
+}
+
+#profilePicture img {
+	width: 100%;
+	height: 100%;
+	border-radius: 50%; /* makes the image circular */
+	object-fit: cover;   /* crop/cover so the face fills the circle */
+	display: block;
+	border: 3px solid #ffffff; /* subtle border */
+	box-shadow: 0 4px 12px rgba(0,0,0,0.12);
+}
+
+/* center username and keep it readable on mobile */
+#username p {
+	margin: 0;
+	font-size: 1.05rem;
+	font-weight: 600;
+	text-align: center;
+}
+
+/* Utility: ensure search and other parts don't overflow on small screens */
+/* give the search bar more horizontal breathing room */
+/* increase horizontal breathing room */
+#searchBar { width: 100%; display:flex; gap:8px; justify-content:center; padding:14px 36px; }
+
+/* styled search box: semi-transparent purple rounded container with icon and separator */
+.searchBox {
+	display: flex;
+	align-items: center;
+	width: 100%;
+	max-width: 420px; /* narrower to create more side margin */
+	margin: 0 auto; /* center more precisely */
+	background: rgba(79,59,154,0.9); /* #4F3B9A with slight transparency */
+	padding: 10px 18px; /* a touch more horizontal padding */
+	border-radius: 999px; /* pill shape */
+	gap: 10px;
+}
+
+.searchBox .searchIcon { display:flex; align-items:center; justify-content:center; width:24px; height:24px; }
+.searchBox .searchIcon svg { display:block; }
+
+.searchBox .separator { width:1px; height:22px; background: rgba(255,255,255,0.28); border-radius:1px; }
+
+.searchBox input[type="text"] {
+	border: none;
+	outline: none;
+	background: transparent;
+	color: #fff;
+	font-size: 0.95rem;
+	flex: 1 1 auto;
+	padding: 4px 0;
+}
+
+/* placeholder text white-ish */
+.searchBox input::placeholder { color: rgba(255,255,255,0.9); }
+
+#searchInput { max-width: none; }
+
+/* Profile stats: display three boxes side-by-side with number above label */
+#profileDetails {
+	width: 100%;
+	max-width: 520px;
+	display: flex;
+	justify-content: center;
+	gap: 12px;
+	margin-top: 6px;
+}
+
+#profileDetails > div {
+	flex: 1 1 0;
+	min-width: 80px;
+	padding: 6px 4px;
+	text-align: center;
+	background: transparent; /* no background */
+	border-radius: 0; /* no rounded box */
+	box-shadow: none; /* no shadow */
+}
+
+/* number on top */
+#profileDetails > div::before {
+	content: attr(data-count);
+	display: block;
+	font-size: 1.05rem;
+	font-weight: 700;
+	color: #111;
+	margin-bottom: 2px;
+}
+
+/* label under number */
+#followingCount::after { content: "Following"; display:block; font-size:0.85rem; color:#666; }
+#followersCount::after { content: "Followers"; display:block; font-size:0.85rem; color:#666; }
+#postsCount::after { content: "Posts"; display:block; font-size:0.85rem; color:#666; }
+
+/* For accessibility: if JS fills numbers into elements, set data-count attribute accordingly.
+	 Fallback: show empty or 0 if not set */
+@media (max-width: 420px) {
+	#profileDetails > div { padding: 8px 6px; min-width: 64px; }
+}
+
+/* ensure the search box still fits on very small screens */
+@media (max-width: 380px) {
+	#searchBar { padding: 10px 12px; }
+	.searchBox { max-width: 100%; padding: 8px 10px; }
+}
+
+/* On very large screens, prefer a slightly smaller avatar than 50vw */
+@media (min-width: 900px) {
+	:root { --avatar-size: 220px; }
+}
+

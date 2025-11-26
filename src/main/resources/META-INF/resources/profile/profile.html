@@ -4,8 +4,48 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Profile</title>
+    <link rel="stylesheet" href="../">
+    <link rel="stylesheet" href="./profile.css">
+    <script src="./profile.js" defer></script>
 </head>
 <body>
-    
+    <div id="searchBar">
+        <div class="searchBox">
+            <!-- magnifier icon (inline SVG) -->
+            <span class="searchIcon" aria-hidden="true">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" focusable="false">
+                    <path d="M11 19a8 8 0 1 1 0-16 8 8 0 0 1 0 16z" stroke="white" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+                    <path d="M21 21l-4.35-4.35" stroke="white" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+            </span>
+
+            <div class="separator"></div>
+
+            <input type="text" id="searchInput" placeholder="Search usernames..." aria-label="Search usernames" />
+        </div>
+    </div>
+
+    <div id="profileContainer">
+        <div id="profilePicture">
+            <img src="./profilePicture/IMG_0840.JPG" alt="Profile Picture">
+        </div>
+
+        <div id="username">
+            <p>@partyMausViki</p>
+        </div>
+
+        <div id="profileDetails">
+            <!-- sample numbers added for demonstration; JS can replace these dynamically -->
+            <div id="followingCount" data-count="45"></div>
+            <div id="followersCount" data-count="128"></div>
+            <div id="postsCount" data-count="9"></div>
+        </div>
+
+        <div id="actionButton">
+            <div id="editAccount"></div>
+            <div id="followAccount"></div>
+            <div id="unfollowAccount"></div>
+        </div>
+    </div>
 </body>
 </html>
