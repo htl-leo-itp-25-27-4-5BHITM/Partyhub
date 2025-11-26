@@ -1,137 +1,96 @@
-body {
-  background: linear-gradient(135deg, #1a1040 0%, #2d1b4e 100%);
-  min-height: 100vh;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 20px;
-  font-family: luckiestGuy, sans-serif;
-}
+/* Form layout styling to match the provided image.
+   Only CSS changes here; datepicker scripts and input IDs are untouched. */
 
-.container {
-  width: 100%;
-  max-width: 500px;
-  position: relative;
-}
-
-.back-button {
-  position: absolute;
-  left: 0;
-  top: 20px;
-  background: none;
-  border: none;
-  color: white;
-  font-size: 36px;
-  cursor: pointer;
-  width: 50px;
-  height: 50px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: transform 0.2s;
-}
-
-.back-button:hover {
-  transform: scale(1.1);
-}
-
-.form-container {
-  padding: 40px 20px 20px;
-}
-
-.form-group {
-  margin-bottom: 30px;
-  position: relative;
-}
-
-.form-group.with-arrow {
-  position: relative;
-}
-
-.form-label {
-  display: block;
-  color: #a8a8c8;
-  font-size: 20px;
-  margin-bottom: 8px;
-  font-weight: bold;
-  letter-spacing: 1px;
-}
-
-.form-input {
-  width: 100%;
-  background-color: transparent;
-  color: white;
-  border: none;
-  border-bottom: 3px solid white;
-  padding: 12px 0;
-  font-family: luckiestGuy, sans-serif;
-  font-size: 16px;
-  outline: none;
+/* Base input reset */
+input {
+  padding: 0;
+  margin: 0;
   box-sizing: border-box;
-  transition: border-color 0.3s;
+  cursor: text;
 }
 
-.form-input:focus {
-  border-bottom-color: #a8a8c8;
+/* Center the form on the page and constrain width */
+form[action="/api/party/add"] {
+  width: 92%;
+  max-width: 420px;
+  margin: 18px auto;
+  padding-top: 20px;
 }
 
-.form-input::placeholder {
-  color: rgba(255, 255, 255, 0.3);
-}
-
-.form-group.with-arrow .form-input {
-  padding-right: 40px;
-}
-
-.arrow {
-  position: absolute;
-  right: 0;
-  bottom: 12px;
+/* NAME (the first input) should be centered horizontally */
+form[action="/api/party/add"] > input[type="text"]:first-of-type {
+  display: block;
+  margin: 8px auto 28px auto;
+  width: 60%;
+  text-align: center;
+  background: transparent;
+  border: none;
+  border-bottom: 3px solid #ffffff;
+  padding: 4px 0 2px 0;
   color: white;
-  font-size: 24px;
-  pointer-events: none;
+  font-family: luckiestGuy, sans-serif;
+  font-size: 22px;
 }
 
-.form-group.with-arrow {
-  background-color: rgba(80, 40, 120, 0.4);
-  border-radius: 20px;
-  padding: 15px 20px;
-}
-
-.form-group.with-arrow .form-label {
-  margin-bottom: 5px;
-}
-
-.form-group.with-arrow .form-input {
-  border-bottom: none;
-}
-
-.submit-button {
-  width: 100%;
-  margin-top: 40px;
-  padding: 15px;
-  background-color: rgba(80, 40, 120, 0.6);
+/* All other inputs: left aligned, stacked with larger gaps */
+form[action="/api/party/add"] div input,
+form[action="/api/party/add"] input[type="number"],
+form[action="/api/party/add"] input[type="url"] {
+  display: block;
+  width: 80%;
+  margin: 8px 0 40px 0; /* space between inputs */
+  background: transparent;
+  border: none;
+  border-bottom: 3px solid #ffffff;
+  padding: 2px 0 2px 0; /* placeholder closer to the line */
   color: white;
-  border: 2px solid white;
-  border-radius: 10px;
   font-family: luckiestGuy, sans-serif;
   font-size: 18px;
-  font-weight: bold;
-  cursor: pointer;
-  transition: all 0.3s;
 }
 
-.submit-button:hover {
-  background-color: rgba(80, 40, 120, 0.8);
-  transform: scale(1.02);
+/* Ensure time inputs (datepicker) keep same IDs and remain interactive */
+#time_start,
+#time_end {
+  /* keep same visual treatment as other inputs */
+  display: block;
+  width: 80%;
+  margin: 8px 0 40px 0;
+  background: transparent;
+  border: none;
+  border-bottom: 3px solid #ffffff;
+  padding: 2px 0 2px 0;
+  color: white;
+  font-family: luckiestGuy, sans-serif;
+  font-size: 18px;
 }
 
-/* Input Kalender Anpassungen */
-input {
-  padding-right: -2%;
+/* Placeholder style — larger, label-like appearance */
+form[action="/api/party/add"] input::placeholder {
+  color: rgba(255, 255, 255, 0.35);
+  font-family: luckiestGuy, sans-serif;
+  font-size: 20px;
 }
 
-/* Flatpickr Popup leicht tweaken */
+/* Submit button style to match image tone */
+form[action="/api/party/add"] button[type="submit"] {
+  display: block;
+  width: 80%;
+  margin: 16px 0 40px 0;
+  padding: 12px 10px;
+  background: var(--secondary-color, #4f3b9a);
+  color: white;
+  border-radius: 10px;
+  border: none;
+  font-family: luckiestGuy, sans-serif;
+  font-size: 18px;
+}
+
+/* Flatpickr popup font tweak (unchanged behavior) */
 .flatpickr-calendar {
   font-family: luckiestGuy, sans-serif;
+}
+
+/* Ensure flatpickr input class doesn't override our spacing */
+.flatpickr-input {
+  padding: 2px 0 2px 0 !important;
 }
