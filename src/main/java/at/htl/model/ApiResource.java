@@ -26,6 +26,7 @@ import java.util.List;
 @Consumes(MediaType.APPLICATION_JSON)
 public class ApiResource {
 
+    EntityManager em;
     @Inject
     JsonWebToken jwt;
 
@@ -110,9 +111,13 @@ public class ApiResource {
     @POST
     @Transactional
     @Produces(MediaType.APPLICATION_JSON)
-    @Path("/party/attend/{id}/{user}")
-    public Response attendParty(@PathParam("id") Long party_id, @PathParam("user") User user) {
-        return partyRepo.attendParty(party_id, user);
+    @Path("/party/attend/{partyId}/{userId}")
+    public Response attendParty(@PathParam("partyId") Long partyId, @PathParam("userId") Long userId) {
+        User user = em.find(User.class, userId);
+        if (user == null) {
+            return Response.status(Response.Status.NOT_FOUND).entity("User not found").build();
+        }
+        return partyRepo.attendParty(partyId, user);
     }
 
     @PUT
