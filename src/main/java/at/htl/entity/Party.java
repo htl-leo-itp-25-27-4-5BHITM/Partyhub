@@ -26,16 +26,19 @@ public class Party {
     private int min_age;
     private int max_age;
     private String description;
-    private Double latitude;
-    private Double longitude;
+
     private Double fee;
     @CreationTimestamp
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime created_at;
 
+    @ManyToOne
+    Location location;
+
     public Party() {}
 
-    public Party(User host_user, Category category, String title, LocalDateTime time_start, LocalDateTime time_end, int max_people, int min_age, int max_age, String description, Double latitude, Double longitude, Double fee) {
+    public Party(Long id, User host_user, Category category, String title, LocalDateTime time_start, LocalDateTime time_end, int max_people, int min_age, int max_age, String description, Double fee, LocalDateTime created_at, Location location) {
+        this.id = id;
         this.host_user = host_user;
         this.category = category;
         this.title = title;
@@ -45,9 +48,9 @@ public class Party {
         this.min_age = min_age;
         this.max_age = max_age;
         this.description = description;
-        this.latitude = latitude;
-        this.longitude = longitude;
         this.fee = fee;
+        this.created_at = created_at;
+        this.location = location;
     }
 
     @Override
@@ -63,12 +66,12 @@ public class Party {
                 ", min_age=" + min_age +
                 ", max_age=" + max_age +
                 ", description='" + description + '\'' +
-                ", latitude=" + latitude +
-                ", longitude=" + longitude +
                 ", fee=" + fee +
                 ", created_at=" + created_at +
+                ", location=" + location +
                 '}';
     }
+
 
     public static Party getPartyById(Long party_id, EntityManager entityManager) {
         return entityManager.find(Party.class, party_id);
@@ -154,20 +157,12 @@ public class Party {
         this.description = description;
     }
 
-    public Double getLatitude() {
-        return latitude;
+    public Location getLocation() {
+        return location;
     }
 
-    public void setLatitude(Double latitude) {
-        this.latitude = latitude;
-    }
-
-    public Double getLongitude() {
-        return longitude;
-    }
-
-    public void setLongitude(Double longitude) {
-        this.longitude = longitude;
+    public void setLocation(Location location) {
+        this.location = location;
     }
 
     public Double getFee() {
