@@ -24,7 +24,9 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.time.Instant;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -134,24 +136,37 @@ public class ApiResource {
         logger.info(Response.ok().entity(result).build());
         return Response.ok().entity(result).build();
     }
-
     @POST
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.MULTIPART_FORM_DATA)
     @Path("/party/filter")
-    public List<Party> filterParty(@QueryParam("filter") String filterType, @FormParam("param")  String filterParam) {
-        logger.log(Logger.Level.INFO, filterType + " filter" +  filterParam);
-        String query;
-        if(filterType.equals("content")){
-            query = "SELECT p FROM Party p WHERE LOWER( p.title) LIKE lower(:filterParam) OR lower(p.description) LIKE lower(:filterParam)";
-        } else{
+    public List<Party> filterParty(@QueryParam("filter") String filterType, @FormParam("param") String filterParam) {
+        logger.log(Logger.Level.INFO, filterType + " filter" + filterParam);
+
+        if (filterType.equals("title")) {
+            String query = "SELECT p FROM Party p WHERE LOWER(p.title) LIKE lower(:filterParam) OR lower(p.description) LIKE lower(:filterParam)";
+            String likePattern = "%" + filterParam.trim() + "%";
+            return entityManager.createQuery(query, Party.class)
+                    .setParameter("filterParam", likePattern)
+                    .getResultList();
+        } else if (filterType.equals("description")) {
+            String query = "SELECT p FROM Party p WHERE p.category_id = :categoryId";
+            return entityManager.createQuery(query, Party.class)
+                    .setParameter("categoryId", Integer.parseInt(filterParam.trim()))
+                    .getResultList();
+        }
+
+        else if (filterType.equals("date")) {
+            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd-MM-yyyy HH:mm:ss");
+            LocalDateTime dateTime = LocalDateTime.parse(filterParam.trim(), formatter);
+            String query = "SELECT p FROM Party p WHERE p.time_start = :filterParam";
+            return entityManager.createQuery(query, Party.class)
+                    .setParameter("filterParam", dateTime)
+                    .getResultList();
+        }
+        else {
             return null;
         }
-        String likePattern = "%" + filterParam.trim() + "%";
-        return entityManager.createQuery(query,
-                Party.class)
-        .setParameter("filterParam", likePattern)
-        .getResultList();
     }
 
     @GET
