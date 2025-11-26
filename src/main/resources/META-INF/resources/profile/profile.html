@@ -40,25 +40,28 @@
             <div id="followersCount" data-count="128"></div>
             <div id="postsCount" data-count="9"></div>
         </div>
-
-        <!-- additional sections under the stats -->
-        <div id="profileSubsections">
-            <section id="myPosts">
-                <h3>Meine Beiträge</h3>
-                <p class="muted">Keine Beiträge vorhanden</p>
-            </section>
-
-            <section id="favorites">
-                <h3>Favoriten</h3>
-                <p class="muted">Noch nichts favorisiert</p>
-            </section>
-        </div>
-
         <div id="actionButton">
-            <div id="editAccount"></div>
-            <div id="followAccount"></div>
-            <div id="unfollowAccount"></div>
+            <button id="editAccountBtn" class="edit-account-btn">Edit Account</button>
         </div>
+
+                <!-- Tab-System für Beiträge und Favoriten -->
+                <div id="profileTabs">
+                    <div class="tab-buttons">
+                        <button id="tabPosts" class="tab-btn active">Beiträge</button>
+                        <button id="tabFavorites" class="tab-btn">Favoriten</button>
+                    </div>
+                                <div class="tab-underline"></div>
+                                <div class="tab-content" style="background:none; box-shadow:none; border-radius:0; padding-top:18px;">
+                                                <section id="tabContentPosts" class="tab-section">
+                                                    <p class="muted">Keine Beiträge vorhanden</p>
+                                                </section>
+                                                <section id="tabContentFavorites" class="tab-section" style="display:none;">
+                                                    <p class="muted">Noch nichts favorisiert</p>
+                                                </section>
+                                </div>
+                </div>
+
+        
     </div>
 </body>
 </html>

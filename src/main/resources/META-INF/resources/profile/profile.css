@@ -1,44 +1,148 @@
+/* Edit Account Button */
+.edit-account-btn {
+	width: 90vw;
+	max-width: 420px;
+	background: #FF2E63;
+	color: #fff;
+	font-size: 1.1rem;
+	font-weight: 600;
+	border: none;
+	border-radius: 999px;
+	padding: 12px 0;
+	margin: 16px auto 0 auto;
+	cursor: pointer;
+	box-shadow: none;
+	transition: background 0.2s;
+	display: block;
+	text-align: center;
+}
+.edit-account-btn:active {
+	background: #e02657;
+}
+/* Tabs für Beiträge und Favoriten */
+#profileTabs {
+	width: 100%;
+	max-width: 520px;
+	margin: 18px auto 0 auto;
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+}
+.tab-buttons {
+	display: flex;
+	justify-content: center;
+	gap: 40px;
+	margin-bottom: 0;
+}
+.tab-btn {
+	background: rgba(79,59,154,0.9);
+	color: #fff;
+	border: none;
+	border-radius: 16px 16px 0 0;
+	padding: 8px 24px;
+	font-size: 1rem;
+	cursor: pointer;
+	font-weight: 600;
+	transition: background 0.2s, color 0.2s;
+}
+.tab-btn.active {
+	background: #fff;
+	color: #4F3B9A;
+}
+.tab-content {
+	width: 100%;
+	min-height: 60px;
+	background: none;
+	border-radius: 0;
+	box-shadow: none;
+	padding: 18px 0 0 0;
+	box-sizing: border-box;
+}
+
+.tab-underline {
+	width: 100%;
+	height: 0;
+	border-bottom: 1.2px solid #fff;
+	margin-top: 0;
+	margin-bottom: 0;
+	position: relative;
+	z-index: 1;
+}
+.tab-section {
+	text-align: left;
+}
 @font-face {
     font-family: 'fontnormal';
     src: url(../fonts/Lunasima-Regular.ttf);
-};
+}
 
-/* Responsive profile styles */
 :root {
-  /* avatar size = 50% of viewport width, but don't exceed 200px on large screens */
-  --avatar-size: min(50vw, 200px);
+	/* avatar size = 32vw, max 110px */
+	--avatar-size: min(34vw, 130px);
 }
 
 /* Basic page reset */
 * { box-sizing: border-box; }
-html, body { margin: 0; padding: 0; font-family: Arial, Helvetica, sans-serif; }
-
-#profileContainer {
-	display: flex;
-	flex-direction: column;
-	align-items: center;
-	gap: 12px;
-	padding: 16px;
+html, body {
+	margin: 0;
+	padding: 0;
+	font-family: Arial, Helvetica, sans-serif;
+	color: #fff;
 }
 
-/* ensure avatar stays centered and doesn't push layout */
-#profilePicture { display:flex; align-items:center; justify-content:center; }
+.dark-text {
+	color: #111 !important;
+}
 
-/* make the picture container the desired size so the img can fill it */
+#profileContainer {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  padding: 16px;
+  justify-content: center;
+}
+
+#searchBar {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 14px 0;
+}
+
+.searchBox {
+  display: flex;
+  align-items: center;
+  width: 90vw;
+  max-width: 420px;
+  margin: 0 auto;
+  background: rgba(79,59,154,0.9);
+  padding: 10px 18px;
+  border-radius: 999px;
+  gap: 10px;
+  box-sizing: border-box;
+}
+
 #profilePicture {
-	width: var(--avatar-size);
-	height: var(--avatar-size);
-	display: block;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: var(--avatar-size);
+  height: var(--avatar-size);
+  aspect-ratio: 1 / 1;
+  box-sizing: content-box;
+  background: transparent;
 }
 
 #profilePicture img {
-	width: 100%;
-	height: 100%;
-	border-radius: 50%; /* makes the image circular */
-	object-fit: cover;   /* crop/cover so the face fills the circle */
-	display: block;
-	border: 3px solid #ffffff; /* subtle border */
-	box-shadow: 0 4px 12px rgba(0,0,0,0.12);
+	width: 90%;
+	height: 90%;
+  border-radius: 50%;
+  object-fit: cover;
+  object-position: center 32%;
+  display: block;
+  box-shadow: 0 8px 20px rgba(255,255,255,0.06) inset, 0 6px 18px rgba(0,0,0,0.18);
 }
 
 /* center username and keep it readable on mobile */
@@ -47,6 +151,8 @@ html, body { margin: 0; padding: 0; font-family: Arial, Helvetica, sans-serif; }
 	font-size: 1.05rem;
 	font-weight: 600;
 	text-align: center;
+	color: #fff; /* make username white */
+	text-shadow: 0 2px 4px rgba(0,0,0,0.35);
 }
 
 /* Utility: ensure search and other parts don't overflow on small screens */
@@ -116,14 +222,15 @@ html, body { margin: 0; padding: 0; font-family: Arial, Helvetica, sans-serif; }
 	display: block;
 	font-size: 1.05rem;
 	font-weight: 700;
-	color: #111;
+	color: #fff; /* numbers white */
 	margin-bottom: 2px;
+	text-shadow: 0 1px 0 rgba(0,0,0,0.3);
 }
 
 /* label under number */
-#followingCount::after { content: "Following"; display:block; font-size:0.85rem; color:#666; }
-#followersCount::after { content: "Followers"; display:block; font-size:0.85rem; color:#666; }
-#postsCount::after { content: "Posts"; display:block; font-size:0.85rem; color:#666; }
+#followingCount::after { content: "Following"; display:block; font-size:0.85rem; color:#fff; opacity:0.9; }
+#followersCount::after { content: "Followers"; display:block; font-size:0.85rem; color:#fff; opacity:0.9; }
+#postsCount::after { content: "Posts"; display:block; font-size:0.85rem; color:#fff; opacity:0.9; }
 
 /* For accessibility: if JS fills numbers into elements, set data-count attribute accordingly.
 	 Fallback: show empty or 0 if not set */
@@ -158,6 +265,11 @@ html, body { margin: 0; padding: 0; font-family: Arial, Helvetica, sans-serif; }
 	text-align: left;
 }
 
-#profileSubsections h3 { margin: 0 0 6px 0; font-size: 1rem; }
-#profileSubsections .muted { margin: 0; color: #666; font-size: 0.9rem; }
+#profileSubsections h3 { margin: 0 0 6px 0; font-size: 1rem; color: #fff; }
+.muted {
+	margin: 0;
+	color: #bdbdbd;
+	font-size: 0.97rem;
+	text-align: center;
+}
 
