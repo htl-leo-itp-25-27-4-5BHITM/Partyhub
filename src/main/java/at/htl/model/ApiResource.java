@@ -1,5 +1,6 @@
 package at.htl.model;
 
+import at.htl.control.PartyRepository;
 import at.htl.entity.*;
 import io.quarkus.security.identity.SecurityIdentity;
 import jakarta.annotation.security.RolesAllowed;
@@ -44,8 +45,11 @@ public class ApiResource {
     @Inject
     SecurityIdentity identity;
 
-    @PersistenceContext
+    //@PersistenceContext
     EntityManager entityManager;
+
+    @Inject
+    PartyRepository partyRepo;
 
     @GET
     @Path("/users/me")
@@ -117,7 +121,7 @@ public class ApiResource {
     @Consumes(MediaType.MULTIPART_FORM_DATA)
     @Produces(MediaType.APPLICATION_JSON)
     @Path("/party/add")
-    public Response addParty(@FormParam("category_id") Long category_id, @FormParam("time_start") LocalDateTime start, @FormParam("time_end")LocalDateTime end, @FormParam("max_people") int max_people, @FormParam("min_age")  int min_age, @FormParam("max_age") int max_age) {
+    public Response addParty(@FormParam("category_id") Long category_id, @FormParam("time_start") LocalDateTime start, @FormParam("time_end") LocalDateTime end, @FormParam("max_people") int max_people, @FormParam("min_age") int min_age, @FormParam("max_age") int max_age) {
         Party party = new Party(User.getUserById(1L, entityManager), Category.getCategoryById(category_id, entityManager), "testTitle", start, end, max_people, min_age, max_age, "TestDescription");
         logger.log(Logger.Level.INFO, "addParty");
         logger.info(party.toString());
@@ -130,12 +134,13 @@ public class ApiResource {
     @Transactional
     @Path("/party")
     public Response getParties() {
-        List <Party> result;
+        List<Party> result;
         result = entityManager.createQuery("SELECT u FROM Party u", Party.class).getResultList();
         logger.info(result.get(1));
         logger.info(Response.ok().entity(result).build());
         return Response.ok().entity(result).build();
     }
+
     @POST
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.MULTIPART_FORM_DATA)
@@ -150,21 +155,18 @@ public class ApiResource {
                     .setParameter("filterParam", likePattern)
                     .getResultList();
         } else if (filterType.equals("description")) {
-            String query = "SELECT p FROM Party p WHERE p.category_id = :categoryId";
+            String query = "SELECT p FROM Party p WHERE p.category = :categoryId";
             return entityManager.createQuery(query, Party.class)
                     .setParameter("categoryId", Integer.parseInt(filterParam.trim()))
                     .getResultList();
-        }
-
-        else if (filterType.equals("date")) {
+        } else if (filterType.equals("date")) {
             DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd-MM-yyyy HH:mm:ss");
             LocalDateTime dateTime = LocalDateTime.parse(filterParam.trim(), formatter);
             String query = "SELECT p FROM Party p WHERE p.time_start = :filterParam";
             return entityManager.createQuery(query, Party.class)
                     .setParameter("filterParam", dateTime)
                     .getResultList();
-        }
-        else {
+        } else {
             return null;
         }
     }
@@ -176,11 +178,9 @@ public class ApiResource {
         String query;
         if (sort.equals("asc")) {
             query = "SELECT p FROM Party p ORDER BY p.time_start ASC, p.time_end ASC";
-        }
-        else if (sort.equals("desc")) {
+        } else if (sort.equals("desc")) {
             query = "SELECT p FROM Party p ORDER BY p.time_start DESC, p.time_end DESC";
-        }
-        else{
+        } else {
             logger.log(Logger.Level.ERROR, "sort not supported");
             return null;
         }
@@ -194,10 +194,39 @@ public class ApiResource {
     @Transactional
     @Produces(MediaType.APPLICATION_JSON)
     @Path("/party/attend/{id}")
-    public Response attendParty (@PathParam("id") Long party_id) {
+    public Response attendParty(@PathParam("id") Long party_id) {
         PartyAttendees pa = new PartyAttendees(Party.getPartyById(party_id, entityManager), User.getUserById(1L, entityManager));
         entityManager.persist(pa);
         logger.info(pa.getId());
         return Response.status(Response.Status.CREATED).build();
+    }
+
+    @PUT
+    @Path("/party/{id}")
+    @Consumes(MediaType.MULTIPART_FORM_DATA)
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response updateParty(
+            @PathParam("id") Long partyId,
+            @FormParam("category_id") Long categoryId,
+            @FormParam("time_start") LocalDateTime start,
+            @FormParam("time_end") LocalDateTime end,
+            @FormParam("max_people") Integer maxPeople,
+            @FormParam("min_age") Integer minAge,
+            @FormParam("max_age") Integer maxAge,
+            @FormParam("title") String title,
+            @FormParam("description") String description
+    ) {
+        Party updatedParty = partyRepo.updateParty(partyId, categoryId, start, end, maxPeople, minAge, maxAge, title, description);
+
+        if (updatedParty == null) {
+            return Response.status(Response.Status.NOT_FOUND)
+                    .entity("Party with ID " + partyId + " not found.")
+                    .build();
+        }
+
+        logger.log(Logger.Level.INFO, "updateParty");
+        logger.info(updatedParty.toString());
+
+        return Response.ok(updatedParty).build();
     }
 }
