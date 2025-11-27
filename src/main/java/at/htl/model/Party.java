@@ -1,5 +1,6 @@
 package at.htl.model;
 
+import at.htl.dto.PartyCreateDto;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import org.hibernate.annotations.CreationTimestamp;
@@ -24,7 +25,7 @@ public class Party {
     private String description;
     private Double fee;
     @ManyToOne
-    @JoinColumn(name = "category_id", nullable = false)
+    @JoinColumn(name = "category_id")
     private Category category;
     private LocalDateTime time_start;
     private LocalDateTime time_end;
@@ -57,27 +58,6 @@ public class Party {
 
     public Party() {
     }
-
-    @Override
-    public String toString() {
-        return "Party{" +
-                "id=" + id +
-                ", host_user=" + host_user +
-                ", category=" + category +
-                ", title='" + title + '\'' +
-                ", time_start=" + time_start +
-                ", time_end=" + time_end +
-                ", max_people=" + max_people +
-                ", min_age=" + min_age +
-                ", max_age=" + max_age +
-                ", description='" + description + '\'' +
-                ", latitude=" + latitude +
-                ", longitude=" + longitude +
-                ", fee=" + fee +
-                ", created_at=" + created_at +
-                '}';
-    }
-
 
 
     public Long getId() {

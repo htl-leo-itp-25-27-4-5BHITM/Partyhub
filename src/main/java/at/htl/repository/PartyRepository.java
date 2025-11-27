@@ -1,5 +1,6 @@
 package at.htl.repository;
 
+import at.htl.dto.PartyCreateDto;
 import at.htl.model.Party;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
@@ -23,19 +24,39 @@ public class PartyRepository {
     @Inject
     Logger logger;
 
-    public Response getParties() {
+    @Inject
+    GenericRepository genericRepository;
+
+    @Inject
+    UserRepository userRepository;
+
+    public List<Party> getParties() {
         List<Party> result;
         result = entityManager.createQuery("SELECT u FROM Party u", Party.class).getResultList();
         logger.info(result.get(1));
-        logger.info(Response.ok().entity(result).build());
-        return Response.ok().entity(result).build();
+        return result;
     }
 
-    public Response addParty(Party party) {
-        logger.info(party.toString());
+    public Response addParty(PartyCreateDto partyCreateDto) {
+        Party party = new Party();
+        party.setTitle(partyCreateDto.title());
+        party.setDescription(partyCreateDto.description());
+        party.setFee(partyCreateDto.fee());
+        party.setTime_start(LocalDateTime.parse(partyCreateDto.time_start()));
+        party.setTime_end(LocalDateTime.parse(partyCreateDto.time_end()));
+        party.setWebsite(partyCreateDto.website());
+        party.setLatitude(partyCreateDto.latitude());
+        party.setLongitude(partyCreateDto.longitude());
+        party.setCreated_at(LocalDateTime.now());
+        party.setMax_age(partyCreateDto.max_age());
+        party.setMin_age(partyCreateDto.min_age());
+        // TODO: Use current user
+        party.setHost_user(userRepository.getUser(1L));
+        party.setCategory(genericRepository.getCategoryById(partyCreateDto.category_id()));
         entityManager.persist(party);
-        return Response.ok().build();
+        return  Response.ok(party).build();
     }
+
     public Response removeParty( Long id) {
         logger.info("removeParty");
         Party party = entityManager.find(Party.class, id);
@@ -54,8 +75,33 @@ public class PartyRepository {
         if (matches != null && matches > 0) {
             entityManager.remove(party);
             return Response.ok().build();
-        }        return Response.status(Response.Status.FORBIDDEN).build();
+        }
+        return Response.status(Response.Status.FORBIDDEN).build();
     }
+
+    public Response updateParty(Long id, PartyCreateDto partyCreateDto) {
+        Party party= entityManager.find(Party.class, id);
+        if (party == null) {
+            return Response.status(Response.Status.NOT_FOUND).build();
+        }
+
+        party.setTitle(partyCreateDto.title());
+        party.setDescription(partyCreateDto.description());
+        party.setFee(partyCreateDto.fee());
+        party.setTime_start(LocalDateTime.parse(partyCreateDto.time_start()));
+        party.setTime_end(LocalDateTime.parse(partyCreateDto.time_end()));
+        party.setWebsite(partyCreateDto.website());
+        party.setLatitude(partyCreateDto.latitude());
+        party.setLongitude(partyCreateDto.longitude());
+        party.setCreated_at(LocalDateTime.now());
+        party.setMax_age(partyCreateDto.max_age());
+        party.setMin_age(partyCreateDto.min_age());
+        party.setCategory(genericRepository.getCategoryById(partyCreateDto.category_id()));
+
+        entityManager.persist(party);
+        return Response.ok().entity(party).build();
+    }
+
     public Response filterParty( String filterType,  String filterParam) {
         List<Party> result;
         logger.log(Logger.Level.INFO, filterType + " filter" + filterParam);
@@ -105,7 +151,7 @@ public class PartyRepository {
                 .getResultList()).build();
     }
 
-    public Response getPartyById(Long party_id) {
-        return Response.ok().entity( entityManager.find(Party.class, party_id)).build();
+    public Party getPartyById(Long party_id) {
+        return entityManager.find(Party.class, party_id);
     }
 }

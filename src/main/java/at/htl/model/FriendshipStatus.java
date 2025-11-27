@@ -11,11 +11,9 @@ public class FriendshipStatus {
     private Long status_id;
     @Column(name = "status_name")
     private String name;
-    public FriendshipStatus(String name){
-        setName(name);
-    }
 
     public FriendshipStatus(){}
+
     public String getName() {
         return name;
     }

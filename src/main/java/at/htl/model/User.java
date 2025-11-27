@@ -19,10 +19,6 @@ public class User {
         this.email = jwt.getClaim("email");
     }
 
-    public static User getUserById(Long id, EntityManager entityManager){
-        return entityManager.find(User.class, id);
-    }
-
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;

@@ -1,5 +1,6 @@
 package at.htl.resource;
 
+import at.htl.dto.PartyCreateDto;
 import at.htl.model.Party;
 import at.htl.repository.PartyRepository;
 import jakarta.enterprise.context.ApplicationScoped;
@@ -14,13 +15,6 @@ import org.jboss.logging.Logger;
 @ApplicationScoped
 @Path("/api/party")
 public class PartyResource {
-
-    @Inject
-    EntityManager entityManager;
-
-    @Inject
-    Logger logger;
-
     @Inject
     PartyRepository partyRepository;
 
@@ -29,30 +23,41 @@ public class PartyResource {
     @Path("/")
     @Transactional
     public Response getParties() {
-        return partyRepository.getParties();
+        return Response.ok().entity( partyRepository.getParties()).build();
     }
 
     @POST
     @Transactional
-    @Consumes(MediaType.MULTIPART_FORM_DATA)
+    @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     @Path("/add")
-    public Response addParty(Party party) {
-        return partyRepository.addParty(party);
+    public Response addParty(PartyCreateDto partyCreateDto) {
+        return partyRepository.addParty(partyCreateDto);
     }
+
     @GET
     @Transactional
     @Produces(MediaType.APPLICATION_JSON)
     @Path("/{id}")
     public Response getSingleParty(@PathParam("id") Long id) {
-        return partyRepository.getPartyById(id);
+        return Response.ok().entity(partyRepository.getPartyById(id)).build();
     }
+
     @DELETE
     @Transactional
     @Produces(MediaType.APPLICATION_JSON)
     @Path("/{id}")
     public Response removeParty(@PathParam("id") Long id) {
         return partyRepository.removeParty(id);
+    }
+
+    @POST
+    @Transactional
+    @Produces(MediaType.APPLICATION_JSON)
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Path("/{id}")
+    public Response updateParty(@PathParam("id") Long id, PartyCreateDto partyCreateDto) {
+        return partyRepository.updateParty(id, partyCreateDto);
     }
 
     @POST

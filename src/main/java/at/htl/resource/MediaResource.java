@@ -9,13 +9,8 @@ import jakarta.transaction.Transactional;
 import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
-import org.jboss.logging.Logger;
-import org.jboss.resteasy.reactive.multipart.FileUpload;
 
 import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Paths;
-import java.time.Instant;
 import java.util.List;
 
 @ApplicationScoped
@@ -27,12 +22,13 @@ public class MediaResource {
 
     @GET
     @Path("/{party}")
+    @Produces(MediaType.APPLICATION_JSON)
     public List<Media> getImages(@PathParam("party") long partyId) {
         return mediaRepository.getImages(partyId);
     }
 
     @POST
-    @Path("/upload/{partyId}")
+    @Path("/{partyId}/upload")
     @Consumes(MediaType.MULTIPART_FORM_DATA)
     @Produces(MediaType.APPLICATION_JSON)
     @Transactional
