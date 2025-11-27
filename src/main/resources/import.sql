@@ -1,4 +1,4 @@
-INSERT INTO user_account (name, email) VALUES
+INSERT INTO users(name, email) VALUES
                                            ('Alice Johnson', 'alice.johnson@example.com'),
                                            ('Bob Smith', 'bob.smith@example.com'),
                                            ('Charlie Brown', 'charlie.brown@example.com'),
@@ -69,7 +69,7 @@ INSERT INTO party (
  41.878113, -87.629799,
  '2025-10-05 16:30:00',0);
 
-INSERT INTO  party_attendees (party_id, user_id) VALUES
+INSERT INTO  party_user (party_id, user_id) VALUES
                                                      (1, 2),
                                                      (1, 3),
                                                      (2, 1),
@@ -77,7 +77,7 @@ INSERT INTO  party_attendees (party_id, user_id) VALUES
                                                      (4, 1);
 
 
-INSERT INTO party_media (party_id, user_id, url) VALUES
+INSERT INTO media (party_id, user_id, url) VALUES
                                                      (1, 1, 'http://example.com/images/party1.jpg'),
                                                      (2, 2, 'http://example.com/images/party2.jpg'),
                                                      (3, 3, 'http://example.com/images/party3.jpg'),

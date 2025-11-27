@@ -1,11 +1,13 @@
-package at.htl.entity;
+package at.htl.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import org.hibernate.annotations.CreationTimestamp;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 
 @Entity
 @TableGenerator(name = "party")
@@ -15,7 +17,8 @@ public class Party {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "host_user_id")
     private User host_user;
     private String title;
     private String description;
@@ -39,16 +42,18 @@ public class Party {
     @OneToMany(mappedBy = "party",
             cascade = CascadeType.ALL,
             orphanRemoval = true,
-            fetch = FetchType.LAZY)
-    private List<User> attendees = new ArrayList<>();
-    @OneToMany(mappedBy = "party",
-            cascade = CascadeType.ALL,
-            orphanRemoval = true,
-            fetch = FetchType.LAZY)
+            fetch = FetchType.EAGER)
+    @JsonIgnore
     private List<Media> media = new ArrayList<>();
 
-
-
+    @JsonIgnore
+    @ManyToMany
+    @JoinTable(
+            name = "party_user",
+            joinColumns = @JoinColumn(name = "party_id"),
+            inverseJoinColumns = @JoinColumn(name = "user_id")
+    )
+    private Set<User> users;
 
     public Party() {
     }
@@ -73,9 +78,6 @@ public class Party {
                 '}';
     }
 
-    public static Party getPartyById(Long party_id, EntityManager entityManager) {
-        return entityManager.find(Party.class, party_id);
-    }
 
 
     public Long getId() {
@@ -189,17 +191,16 @@ public class Party {
     public void setCreated_at(LocalDateTime created_at) {
         this.created_at = created_at;
     }
-
-    public List<User> getAttendees() {
-        return attendees;
-    }
-
-    public void setAttendees(List<User> attendees) {
-        this.attendees = attendees;
-    }
-
     public List<Media> getMedia() {
         return media;
+    }
+
+    public Set<User> getUsers() {
+        return users;
+    }
+
+    public void setUsers(Set<User> users) {
+        this.users = users;
     }
 
     public void setMedia(List<Media> media) {

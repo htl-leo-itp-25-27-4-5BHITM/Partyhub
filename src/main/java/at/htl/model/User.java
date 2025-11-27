@@ -1,12 +1,17 @@
-package at.htl.entity;
+package at.htl.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import org.eclipse.microprofile.jwt.JsonWebToken;
 
-@Entity
-@Table(name="user_account")
-@TableGenerator(name="user_account")
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Set;
 
+@Entity
+@Table(name="users")
+@TableGenerator(name="users")
+@Inheritance(strategy = InheritanceType.JOINED)
 public class User {
     public User(){}
     public User(JsonWebToken jwt) {
@@ -23,6 +28,12 @@ public class User {
     private Long id;
     private String name;
     private String email;
+    @Column(nullable = true)
+    private String biography;
+
+    @ManyToMany(mappedBy = "users")
+    @JsonIgnore
+    private Set<Party> party;
 
     public Long getId() {
         return id;
@@ -37,4 +48,21 @@ public class User {
 
     public String getEmail() { return email; }
     public void setEmail(String email) { this.email = email; }
+
+    public String getBiography() {
+        return biography;
+    }
+
+    public void setBiography(String biography) {
+        this.biography = biography;
+    }
+
+    public Set<Party> getParty() {
+        return party;
+    }
+
+    public void setParty(Set<Party> party) {
+        this.party = party;
+    }
 }
+
