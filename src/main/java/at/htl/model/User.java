@@ -1,5 +1,6 @@
 package at.htl.model;
 
+import at.htl.dto.InvitationDto;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import org.eclipse.microprofile.jwt.JsonWebToken;

@@ -8,7 +8,7 @@ import jakarta.persistence.EntityManager;
 import java.util.List;
 
 @ApplicationScoped
-public class GenericRepository {
+public class CategoryRepository {
 
     @Inject
     EntityManager entityManager;

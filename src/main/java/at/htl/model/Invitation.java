@@ -1,6 +1,9 @@
 package at.htl.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
+
+import java.util.Set;
 
 @Entity
 @Table(name = "invitation")
@@ -18,11 +21,13 @@ public class Invitation {
         this.id = id;
     }
 
-    @OneToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "id")
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "sender_id")
     private User sender;
-    @OneToOne
-    @JoinColumn(name = "id")
+
+    @JsonIgnore
+    @ManyToOne
+    @JoinColumn(name = "recipient_id")
     private User recipient;
     @ManyToOne
     @JoinColumn(name = "party_id")

@@ -2,14 +2,13 @@ package at.htl.repository;
 
 import at.htl.dto.PartyCreateDto;
 import at.htl.model.Party;
+import at.htl.model.User;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import jakarta.persistence.EntityManager;
-import jakarta.transaction.Transactional;
-import jakarta.ws.rs.*;
-import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 import org.jboss.logging.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -18,6 +17,7 @@ import java.util.List;
 @ApplicationScoped
 public class PartyRepository {
 
+    private static final org.slf4j.Logger log = LoggerFactory.getLogger(PartyRepository.class);
     @Inject
     EntityManager entityManager;
 
@@ -25,7 +25,7 @@ public class PartyRepository {
     Logger logger;
 
     @Inject
-    GenericRepository genericRepository;
+    CategoryRepository categoryRepository;
 
     @Inject
     UserRepository userRepository;
@@ -52,7 +52,7 @@ public class PartyRepository {
         party.setMin_age(partyCreateDto.min_age());
         // TODO: Use current user
         party.setHost_user(userRepository.getUser(1L));
-        party.setCategory(genericRepository.getCategoryById(partyCreateDto.category_id()));
+        party.setCategory(categoryRepository.getCategoryById(partyCreateDto.category_id()));
         entityManager.persist(party);
         return  Response.ok(party).build();
     }
@@ -96,7 +96,7 @@ public class PartyRepository {
         party.setCreated_at(LocalDateTime.now());
         party.setMax_age(partyCreateDto.max_age());
         party.setMin_age(partyCreateDto.min_age());
-        party.setCategory(genericRepository.getCategoryById(partyCreateDto.category_id()));
+        party.setCategory(categoryRepository.getCategoryById(partyCreateDto.category_id()));
 
         entityManager.persist(party);
         return Response.ok().entity(party).build();
@@ -153,5 +153,15 @@ public class PartyRepository {
 
     public Party getPartyById(Long party_id) {
         return entityManager.find(Party.class, party_id);
+    }
+
+    public Response attendParty(Long id){
+        // TODO: Use current user
+        Party party = entityManager.find(Party.class, id);
+        User user = userRepository.getUser(1L);
+        party.getUsers().add(user);
+        entityManager.persist(party);
+        logger.info(party);
+        return Response.ok().build();
     }
 }

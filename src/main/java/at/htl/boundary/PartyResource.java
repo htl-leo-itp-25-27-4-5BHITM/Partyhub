@@ -1,16 +1,13 @@
-package at.htl.resource;
+package at.htl.boundary;
 
 import at.htl.dto.PartyCreateDto;
-import at.htl.model.Party;
 import at.htl.repository.PartyRepository;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
-import jakarta.persistence.EntityManager;
 import jakarta.transaction.Transactional;
 import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
-import org.jboss.logging.Logger;
 
 @ApplicationScoped
 @Path("/api/party")
@@ -73,5 +70,13 @@ public class PartyResource {
     @Path("/sort")
     public Response sortParty(@QueryParam("sort") String sort) {
         return partyRepository.sortParty(sort);
+    }
+
+    @POST
+    @Produces(MediaType.APPLICATION_JSON)
+    @Transactional
+    @Path("/{id}/attend")
+    public Response attendParty(@PathParam("id") Long partyId) {
+        return partyRepository.attendParty(partyId);
     }
 }

@@ -1,7 +1,7 @@
-package at.htl.resource;
+package at.htl.boundary;
 
 import at.htl.model.Category;
-import at.htl.repository.GenericRepository;
+import at.htl.repository.CategoryRepository;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.GET;
@@ -14,22 +14,22 @@ import java.util.List;
 
 @Path("/api")
 @ApplicationScoped
-public class GenericResource {
+public class CategoryResource {
 
     @Inject
-    GenericRepository genericRepository;
+    CategoryRepository categoryRepository;
 
     @GET
     @Path("/category")
     @Produces(MediaType.APPLICATION_JSON)
     public List<Category> getCategory() {
-        return genericRepository.getCategory();
+        return categoryRepository.getCategory();
     }
 
     @GET
     @Path("/category/{id}")
     @Produces(MediaType.APPLICATION_JSON)
     public Category getCategoryById(@PathParam("id") Long category_id) {
-        return genericRepository.getCategoryById(category_id);
+        return categoryRepository.getCategoryById(category_id);
     }
 }

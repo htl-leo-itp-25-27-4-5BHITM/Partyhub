@@ -19,7 +19,6 @@ import java.nio.file.Paths;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Set;
 
 @ApplicationScoped
 public class MediaRepository {
@@ -51,7 +50,7 @@ public class MediaRepository {
                 .isEmpty();
 
         if (access) {
-            result = entityManager.createQuery("SELECT url FROM Media WHERE party.id=" + partyId).getResultList();
+            result = entityManager.createQuery("SELECT url FROM Media WHERE party.id=" + partyId, Media.class).getResultList();
         }
         return result;
     }
