@@ -1,4 +1,12 @@
-INSERT INTO users(name, email) VALUES
+INSERT INTO location (id, longitude, latitude) VALUES
+                                                   (1, 15.42, 48.21),
+                                                   (2, 16.37, 48.20),
+                                                   (3, 14.29, 48.30),
+                                                   (4, 13.04, 47.80),
+(5, 14.04, 48.80);
+ALTER SEQUENCE location_id_seq RESTART WITH 6;
+
+INSERT INTO users (name, email) VALUES
                                            ('Alice Johnson', 'alice.johnson@example.com'),
                                            ('Bob Smith', 'bob.smith@example.com'),
                                            ('Charlie Brown', 'charlie.brown@example.com'),
@@ -24,8 +32,7 @@ INSERT INTO party (
     min_age,
     max_age,
     description,
-    latitude,
-    longitude,
+    location_id,
     created_at,
     fee
 ) VALUES
@@ -34,7 +41,7 @@ INSERT INTO party (
  '2025-12-07 19:00:00', '2025-12-07 23:00:00',
  12, 21, 35,
  'Board games, snacks, and a relaxed vibe. Bring your favorite game!',
- 40.712776, -74.005974,
+ 1,
  '2025-10-01 08:15:00',0),
 
 -- 2️⃣ Sunrise mountain hike
@@ -42,7 +49,7 @@ INSERT INTO party (
  '2025-11-30 05:30:00', '2025-11-30 10:30:00',
  8, 18, 45,
  'Meet at the trailhead for a sunrise hike up Eagle Peak. Moderate difficulty.',
- 34.052235, -118.243683,
+ 2,
  '2025-10-02 12:40:00',0),
 
 -- 3️⃣ Intro to Python workshop
@@ -50,7 +57,7 @@ INSERT INTO party (
  '2025-12-15 14:00:00', '2025-12-15 17:00:00',
  20, 16, 60,
  'Hands‑on Python basics. No prior experience required. Laptops provided.',
- 51.507351, -0.127758,
+ 3,
  '2025-10-03 09:05:00',0),
 
 -- 4️⃣ Italian dinner party
@@ -58,7 +65,7 @@ INSERT INTO party (
  '2025-12-20 19:30:00', '2025-12-20 22:30:00',
  6, 25, 50,
  'Homemade pasta, wine, and good conversation. RSVP by Dec15.',
- 48.856613, 2.352222,
+ 4,
  '2025-10-04 14:22:00',0),
 
 -- 5️⃣ Kids craft afternoon
@@ -66,25 +73,9 @@ INSERT INTO party (
  '2025-12-05 13:00:00', '2025-12-05 15:00:00',
  10, 5, 12,
  'Paint, glue, and glitter! All materials supplied. Parents welcome.',
- 41.878113, -87.629799,
+ 5,
  '2025-10-05 16:30:00',0);
-
-INSERT INTO  party_user (party_id, user_id) VALUES
-                                                     (1, 2),
-                                                     (1, 3),
-                                                     (2, 1),
-                                                     (3, 4),
-                                                     (4, 1);
-
-
-INSERT INTO media (party_id, user_id, url) VALUES
-                                                     (1, 1, 'http://example.com/images/party1.jpg'),
-                                                     (2, 2, 'http://example.com/images/party2.jpg'),
-                                                     (3, 3, 'http://example.com/images/party3.jpg'),
-                                                     (4, 4, 'http://example.com/images/party4.jpg'),
-                                                     (5, 5, 'http://example.com/images/party5.jpg');
-
-INSERT INTO friendship_status (status_id, status_name) VALUES
+INSERT INTO friendship_status (id, name) VALUES
                                                            (1,  'following'),
                                                            (2,  'pending'),
                                                            (3,  'blocked');
@@ -93,3 +84,9 @@ INSERT INTO friendship (user1_id, user2_id, status_id) VALUES
                                                         (2, 3, 2),
                                                         (1, 3, 3),
                                                         (4, 5, 1);
+INSERT INTO media (party_id, user_id, url) VALUES
+                                                     (1, 1, 'http://example.com/images/party1.jpg'),
+                                                     (2, 2, 'http://example.com/images/party2.jpg'),
+                                                     (3, 3, 'http://example.com/images/party3.jpg'),
+                                                     (4, 4, 'http://example.com/images/party4.jpg'),
+                                                     (5, 5, 'http://example.com/images/party5.jpg');

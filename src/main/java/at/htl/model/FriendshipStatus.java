@@ -7,9 +7,9 @@ import jakarta.persistence.*;
 @Table(name="friendship_status")
 public class FriendshipStatus {
     @Id
-    @Column(name = "status_id")
+    @Column(name = "id")
     private Long status_id;
-    @Column(name = "status_name")
+    @Column(name = "name")
     private String name;
 
     public FriendshipStatus(){}
@@ -29,5 +29,6 @@ public class FriendshipStatus {
     public void setStatus_id(Long status_id) {
         this.status_id = status_id;
     }
+
 
 }

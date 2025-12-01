@@ -1,6 +1,7 @@
 package at.htl.repository;
 
 import at.htl.dto.PartyCreateDto;
+import at.htl.model.Location;
 import at.htl.model.Party;
 import at.htl.model.User;
 import jakarta.enterprise.context.ApplicationScoped;
@@ -25,6 +26,9 @@ public class PartyRepository {
     Logger logger;
 
     @Inject
+    LocationRepository locationRepository;
+
+    @Inject
     CategoryRepository categoryRepository;
 
     @Inject
@@ -33,7 +37,6 @@ public class PartyRepository {
     public List<Party> getParties() {
         List<Party> result;
         result = entityManager.createQuery("SELECT u FROM Party u", Party.class).getResultList();
-        logger.info(result.get(1));
         return result;
     }
 
@@ -41,7 +44,6 @@ public class PartyRepository {
         Party party = partyCreateDtoToParty(partyCreateDto);
         // TODO: Use current user
         party.setHost_user(userRepository.getUser(1L));
-        party.setCategory(categoryRepository.getCategoryById(partyCreateDto.category_id()));
         entityManager.persist(party);
         return  Response.ok(party).build();
     }
@@ -77,6 +79,7 @@ public class PartyRepository {
         Party updatedParty = partyCreateDtoToParty(partyCreateDto);
         updatedParty.setId(id);
         updatedParty.setHost_user(userRepository.getUser(1L));
+        logger.info(updatedParty.getCategory().getName());
 
         entityManager.merge(updatedParty);
         return Response.ok().entity(updatedParty).build();
@@ -153,8 +156,18 @@ public class PartyRepository {
         party.setTime_start(LocalDateTime.parse(partyCreateDto.time_start()));
         party.setTime_end(LocalDateTime.parse(partyCreateDto.time_end()));
         party.setWebsite(partyCreateDto.website());
-        party.setLatitude(partyCreateDto.latitude());
-        party.setLongitude(partyCreateDto.longitude());
+
+        Location location = locationRepository.findByLatitudeAndLongitude(partyCreateDto.latitude(), partyCreateDto.longitude());
+        if (location != null) {
+            party.setLocation(location);
+        }else {
+            Location newLocation = new Location();
+            newLocation.setLatitude(partyCreateDto.latitude());
+            newLocation.setLongitude(partyCreateDto.longitude());
+            entityManager.persist(newLocation);
+            party.setLocation(newLocation);
+        }
+
         party.setMax_age(partyCreateDto.max_age());
         party.setMin_age(partyCreateDto.min_age());
         party.setCategory(categoryRepository.getCategoryById(partyCreateDto.category_id()));

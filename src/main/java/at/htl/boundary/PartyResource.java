@@ -2,15 +2,19 @@ package at.htl.boundary;
 
 import at.htl.dto.MediaDto;
 import at.htl.dto.PartyCreateDto;
+import at.htl.model.Location;
 import at.htl.model.Media;
+import at.htl.repository.LocationRepository;
 import at.htl.repository.MediaRepository;
 import at.htl.repository.PartyRepository;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
+import jakarta.persistence.EntityManager;
 import jakarta.transaction.Transactional;
 import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
+import org.jboss.logging.Logger;
 
 import java.io.IOException;
 import java.util.List;
@@ -59,6 +63,7 @@ public class PartyResource {
     @POST
     @Transactional
     @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
     @Path("/{id}")
     public Response updateParty(@PathParam("id") Long id, PartyCreateDto partyCreateDto) {
         return partyRepository.updateParty(id, partyCreateDto);
@@ -90,8 +95,8 @@ public class PartyResource {
     @GET
     @Path("/{id}/media")
     @Produces(MediaType.APPLICATION_JSON)
-    public List<MediaDto> getImages(@PathParam("id") long partyId) {
-        return mediaRepository.getImages(partyId);
+    public Response getImages(@PathParam("id") long partyId) {
+        return Response.ok().entity( mediaRepository.getImages(partyId)).build();
     }
 
     @POST

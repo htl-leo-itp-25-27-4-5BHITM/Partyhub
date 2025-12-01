@@ -10,7 +10,6 @@ import jakarta.persistence.*;
 public class Category{
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @JsonIgnore
     Long id;
     String name;
 
@@ -25,7 +24,6 @@ public class Category{
         this.id = id;
     }
 
-    @JsonIgnore
     public String getName() {
         return name;
     }

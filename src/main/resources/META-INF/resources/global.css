@@ -1,0 +1,109 @@
+@font-face {
+  font-family: luckiestGuy;
+  src: url(./fonts/LuckiestGuy-Regular.ttf);
+}
+
+@font-face {
+  font-family: lanasima;
+  src: url(./fonts/Lunasima-Regular.ttf);
+}
+
+body {
+  background-color: #1a1040;
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  padding: 0;
+  margin: 0;
+}
+
+a{
+  text-decoration: none;
+  color: inherit;
+}
+
+/* Design for Labels */
+.input_fields {
+  background-color: #1a1040;
+  color: white;
+  border-left: none;
+  border-right: none;
+  border-top: none;
+  border-bottom: #ffffff solid 3px;
+  padding-bottom: 0.1%;
+  padding-top: 8%;
+  font-size: 100%;
+}
+
+:root {
+
+  /* Primary, Secondary, Accent colors */
+  --primary-color: #1a1040;
+  /*#2f27ce*/
+  --secondary-color: #4f3b9a;
+  /*#575757*/
+  --accent-color: #ff2e63;
+  /*#DA4F00*/
+  --secondary-color-blue: #3ec1f3;
+  --accent-color-green: #56f27c;
+
+  /* Fonts */
+  --font-family: "Montserrat", sans-serif;
+
+  /* Margin */
+  --margin-xxs: 0.25rem;
+  --margin-xs: 0.5rem;
+  --margin-s: 0.75rem;
+  --margin-m: 1rem;
+  --margin-l: 1.25rem;
+  --margin-xl: 1.75rem;
+  --margin-xxl: 2.5rem;
+  --margin-xxxl: 5rem;
+
+  /* Padding */
+  --padding-xxs: 0.25rem;
+  --padding-xs: 0.5rem;
+  --padding-s: 0.75rem;
+  --padding-m: 1rem;
+  --padding-l: 1.25rem;
+  --padding-xl: 1.75rem;
+  --padding-xxl: 2.5rem;
+
+  /* font size */
+  --font-size-xxs: 0.75rem;
+  --font-size-xs: 0.875rem;
+  --font-size-s: 1rem;
+  --font-size-sm: 1.125rem;
+  --font-size-m: 1.25rem;
+  --font-size-l: 1.5rem;
+  --font-size-xl: 2rem;
+  --font-size-xxl: 3rem;
+  --font-size-xxxl: 4rem;
+  --font-size-xxxxl: 6rem;
+  --font-size-xxxxxl: 8rem;
+  --font-size-xxxxxxl: 10rem;
+
+  --side-padding: 5vw;
+
+  /* screen max width **/
+  --screen-sm: 576px;
+  --screen-md: 768px;
+  --screen-lg: 992px;
+  --screen-xl: 1200px;
+  --screen-xxl: 1400px;
+
+  /* Border Radius */
+  --border-radius-s: 4px;
+  --border-radius-m: 8px;
+  --border-radius-l: 12px;
+  --border-radius-xl: 16px;
+
+  /* Footer */
+  --height-footer: 200px;
+
+}

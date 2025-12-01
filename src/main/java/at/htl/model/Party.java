@@ -1,7 +1,10 @@
 package at.htl.model;
 
-import at.htl.dto.PartyCreateDto;
+import at.htl.model.Category;
+import at.htl.model.Location;
+import at.htl.model.User;
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonInclude;
 import jakarta.persistence.*;
 import org.hibernate.annotations.CreationTimestamp;
 
@@ -18,28 +21,23 @@ public class Party {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "host_user_id")
-    private User host_user;
-    private String title;
-    private String description;
-    private Double fee;
     @ManyToOne
-    @JoinColumn(name = "category_id")
+    private User host_user;
+    @ManyToOne
+    @JoinColumn(name = "category_id", nullable = false)
     private Category category;
+    private String title;
     private LocalDateTime time_start;
     private LocalDateTime time_end;
     private int max_people;
     private int min_age;
     private int max_age;
-    @Column(nullable = true)
     private String website;
-    private Double latitude;
-    private Double longitude;
+    private String description;
+    private Double fee;
     @CreationTimestamp
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime created_at;
-
     @OneToMany(mappedBy = "party",
             cascade = CascadeType.ALL,
             orphanRemoval = true,
@@ -56,9 +54,11 @@ public class Party {
     )
     private Set<User> users;
 
-    public Party() {
-    }
+    @ManyToOne
+    @JoinColumn(name = "location_id", nullable = false)
+    Location location;
 
+    public Party() {}
 
     public Long getId() {
         return id;
@@ -140,22 +140,6 @@ public class Party {
         this.description = description;
     }
 
-    public Double getLatitude() {
-        return latitude;
-    }
-
-    public void setLatitude(Double latitude) {
-        this.latitude = latitude;
-    }
-
-    public Double getLongitude() {
-        return longitude;
-    }
-
-    public void setLongitude(Double longitude) {
-        this.longitude = longitude;
-    }
-
     public Double getFee() {
         return fee;
     }
@@ -171,8 +155,13 @@ public class Party {
     public void setCreated_at(LocalDateTime created_at) {
         this.created_at = created_at;
     }
+
     public List<Media> getMedia() {
         return media;
+    }
+
+    public void setMedia(List<Media> media) {
+        this.media = media;
     }
 
     public Set<User> getUsers() {
@@ -183,8 +172,12 @@ public class Party {
         this.users = users;
     }
 
-    public void setMedia(List<Media> media) {
-        this.media = media;
+    public Location getLocation() {
+        return location;
+    }
+
+    public void setLocation(Location location) {
+        this.location = location;
     }
 
     public String getWebsite() {

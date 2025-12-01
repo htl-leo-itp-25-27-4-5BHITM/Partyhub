@@ -8,7 +8,6 @@ import jakarta.persistence.*;
 public class Media {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "media_id")
     private Long id;
     @ManyToOne
     @JoinColumn(name = "party_id")
