@@ -124,3 +124,126 @@
   border-bottom: 3px solid #ffffff !important;
   color: #ffffff !important;
 }
+
+/* Visibility Section */
+.field-visibility {
+  margin-top: 10px;
+}
+
+/* Button */
+.visibility-btn {
+  width: 100%;
+  padding: 10px 14px;
+  background: #4f3b9a;
+  color: white;
+  border-radius: 16px;
+  border: none;
+  font-family: luckiestGuy, sans-serif;
+  font-size: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  cursor: pointer;
+}
+
+.visibility-btn .arrow {
+  font-size: 22px;
+  transition: transform 0.2s ease;
+}
+
+.visibility-btn.open .arrow {
+  transform: rotate(90deg);
+}
+
+/* PANEL */
+.visibility-panel {
+  margin-top: 16px;
+  display: none;
+}
+
+.visibility-panel.open {
+  display: block;
+}
+
+/* USER LIST BOX (scrollable) */
+.user-list {
+  max-height: 320px;
+  overflow-y: auto;
+  padding-right: 6px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+/* Scrollbar hübsch machen */
+.user-list::-webkit-scrollbar {
+  width: 6px;
+}
+
+.user-list::-webkit-scrollbar-thumb {
+  background: #4f3b9a;
+  border-radius: 3px;
+}
+
+/* USER CARD */
+.user-card {
+  background: #ffffff;
+  border-radius: 18px;
+  padding: 10px 14px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+/* Avatar + Name */
+.user-left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.user-avatar {
+  width: 44px;
+  height: 44px;
+  border-radius: 9999px;
+  background: #f2b35c;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: luckiestGuy, sans-serif;
+  font-size: 18px;
+  color: #1a1040;
+}
+
+.user-name {
+  font-family: luckiestGuy, sans-serif;
+  font-size: 16px;
+  color: #1a1040;
+}
+
+/* Checkbox */
+.user-select input {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.user-select .checkmark {
+  width: 24px;
+  height: 24px;
+  border-radius: 9999px;
+  border: 2px solid #4f3b9a;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.user-select input:checked + .checkmark {
+  background: #4f3b9a;
+  color: white;
+}
+
+.user-select input:checked + .checkmark::after {
+  content: "✓";
+  font-size: 14px;
+}

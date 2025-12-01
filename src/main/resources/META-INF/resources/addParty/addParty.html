@@ -25,7 +25,6 @@
   <body>
     <main class="add-party-page">
       <section class="party-card">
-
         <div class="card-top">
           <span class="back-arrow">‹</span>
         </div>
@@ -66,13 +65,19 @@
             <input type="text" name="location" />
           </div>
 
-          <!-- VISIBILITY -->
-          <div class="field">
-            <div class="field-label">Visibility</div>
-            <button type="button" class="visibility-btn">
-              Public
+          <!-- VISIBILITY SECTION -->
+          <div class="field field-visibility">
+            <button type="button" class="visibility-btn" id="visibilityToggle">
+              <span class="visibility-text">only chosen people</span>
               <span class="arrow">›</span>
             </button>
+
+            <!-- NEUE DYNAMISCHE USER-LIST BOX -->
+            <div class="visibility-panel" id="visibilityPanel">
+              <div class="user-list" id="userList">
+                <!-- Users werden später hier rein geladen -->
+              </div>
+            </div>
           </div>
 
           <!-- ENTRY COSTS -->
