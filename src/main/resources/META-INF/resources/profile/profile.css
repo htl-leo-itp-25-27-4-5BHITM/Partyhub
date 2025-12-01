@@ -447,3 +447,104 @@ body {
     font-size: 0.97rem;
     text-align: center;
 }
+
+/* Party card grid + card styling (leicht heller für Buttons/Boxen) */
+.party-grid {
+    width: 100%;
+    max-width: 520px;
+    margin: 12px auto 0;
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr)); /* genau 2 Spalten nebeneinander */
+    gap: 10px;
+    box-sizing: border-box;
+    padding: 4px;
+}
+
+.party-card {
+    background: rgba(255,255,255,0.06);
+    border-radius: 10px;
+    padding: 8px 6px 10px; /* etwas mehr Platz unten */
+    box-shadow: 0 4px 12px rgba(0,0,0,0.12);
+    color: #fff;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start; /* body wird mit margin-top: auto nach unten gedrückt */
+    aspect-ratio: 1 / 1;
+    overflow: visible; /* Inhalte nicht abschneiden */
+    border: 1px solid rgba(255,255,255,0.04);
+    font-size: 0.92rem;
+}
+
+/* Header: name left, actions right, Icons immer auf einer Linie mit der Überschrift */
+.party-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center; /* wichtig: vertikal zentriert, damit Icons neben Text bleiben */
+    gap: 8px;
+}
+
+/* Name soll in einer Zeile bleiben und Platz für Icons freigeben */
+.party-name {
+    margin: 0;
+    font-size: 0.9rem;
+    font-weight: 700;
+    line-height: 1;
+    color: #fff;
+    min-width: 0; /* erlaubt korrektes Shrinken im Flex-Layout */
+    white-space: nowrap; /* keine Zeilenumbrüche */
+    overflow: hidden;
+    text-overflow: ellipsis; /* bei zu langer Überschrift abschneiden */
+    padding-right: 6px;
+}
+
+/* actions nebeneinander (kleiner Abstand beibehalten) */
+.party-actions {
+    display: flex;
+    gap: 6px;
+    align-items: center;
+}
+
+/* Body: am unteren Rand der Karte platzieren und Inhalte sichtbar lassen */
+.party-body {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    justify-content: center;
+    align-items: flex-end;
+    margin-top: auto; /* schiebt body an den unteren Rand der Karte */
+    z-index: 1;
+}
+
+/* Info-Box: genügend Platz und kleinere Höhe, damit nichts abgeschnitten wird */
+.info-box {
+    min-width: 0;
+    flex: 1 1 48%;
+    background: rgba(255,255,255,0.03);
+    border-radius: 8px;
+    padding: 6px 6px;
+    text-align: center;
+    box-sizing: border-box;
+    border: 1px solid rgba(255,255,255,0.02);
+    margin-top: 6px;
+}
+
+.info-value {
+    font-weight: 700;
+    font-size: 0.88rem;
+    color: #fff;
+}
+
+.info-label {
+    font-size: 0.72rem;
+    color: rgba(255,255,255,0.7);
+    margin-top: 3px;
+}
+
+/* responsive: sehr schmale Geräte -> 1 Spalte */
+@media (max-width: 360px) {
+    .party-grid {
+        grid-template-columns: 1fr;
+    }
+    .icon-btn { width: 28px; height: 28px; }
+    .party-card { padding: 8px; }
+}

@@ -121,7 +121,56 @@
             <div class="tab-underline"></div>
             <div class="tab-content" style="background:none; box-shadow:none; border-radius:0; padding-top:18px;">
                 <section id="tabContentPartys" class="tab-section" style="display:none;">
-                    <p class="muted">Keine Partys vorhanden</p>
+                    <p class="muted no-parties">Keine Partys vorhanden</p>
+
+                    <!-- template für eine party-card; wird per JS geklont -->
+                    <template id="party-template">
+                        <article class="party-card" data-id="">
+                            <header class="party-header">
+                                <h4 class="party-name">Party Name</h4>
+                                <div class="party-actions">
+                                    <button class="icon-btn edit-btn" aria-label="Edit party" title="Edit">
+                                        <!-- edit pencil -->
+                                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"
+                                            focusable="false">
+                                            <path d="M3 21v-3.75L14.06 6.19l3.75 3.75L6.75 21H3z" stroke="currentColor" stroke-width="1.4"
+                                                stroke-linecap="round" stroke-linejoin="round"/>
+                                            <path d="M18.37 5.63l.0001-.0001a2 2 0 0 0 0-2.83 2 2 0 0 0-2.83 0L14 4.32" stroke="currentColor" stroke-width="1.4"
+                                                stroke-linecap="round" stroke-linejoin="round"/>
+                                        </svg>
+                                    </button>
+                                    <button class="icon-btn delete-btn" aria-label="Delete party" title="Delete">
+                                        <!-- trash -->
+                                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"
+                                            focusable="false">
+                                            <path d="M3 6h18" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/>
+                                            <path d="M8 6v12a2 2 0 0 0 2 2h4a2 2 0 0 0 2-2V6" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"
+                                                stroke-linejoin="round"/>
+                                            <path d="M10 11v6M14 11v6" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/>
+                                        </svg>
+                                    </button>
+                                </div>
+                            </header>
+
+                            <div class="party-body">
+                                <div class="info-box">
+                                    <div class="info-value">Datum</div>
+                                    <div class="info-label">Datum</div>
+                                </div>
+                                <div class="info-box">
+                                    <div class="info-value">Uhrzeit</div>
+                                    <div class="info-label">Uhrzeit</div>
+                                </div>
+                                <div class="info-box">
+                                    <div class="info-value">Ort</div>
+                                    <div class="info-label">Ort</div>
+                                </div>
+                            </div>
+                        </article>
+                    </template>
+
+                    <!-- leere grid - wird per JS befüllt -->
+                    <div class="party-grid" aria-live="polite"></div>
                 </section>
                 <section id="tabContentPosts" class="tab-section">
                     <p class="muted">Keine Beiträge vorhanden</p>
