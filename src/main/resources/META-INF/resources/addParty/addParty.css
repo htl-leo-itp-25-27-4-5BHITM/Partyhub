@@ -8,7 +8,7 @@
   background-color: #1a1040;
 }
 
-/* Karte in der Mitte */
+/* Karte */
 .party-card {
   background-color: #1a1040;
   width: 340px;
@@ -16,7 +16,7 @@
   padding: 32px 24px 40px;
 }
 
-/* Back-Arrow */
+/* Back arrow */
 .card-top {
   display: flex;
   align-items: center;
@@ -27,7 +27,6 @@
   font-size: 28px;
   color: #ffffff;
   cursor: pointer;
-  line-height: 1;
 }
 
 /* Formular */
@@ -35,7 +34,7 @@
   width: 100%;
 }
 
-/* Allgemeine Felder */
+/* Feld */
 .field {
   margin-bottom: 22px;
 }
@@ -56,7 +55,7 @@
   text-align: center;
 }
 
-/* Inputs */
+/* Input Linien */
 .field input {
   width: 100%;
   background: transparent;
@@ -69,12 +68,11 @@
   outline: none;
 }
 
-/* Placeholder ausblenden */
 .field input::placeholder {
   color: transparent;
 }
 
-/* Submit-Button */
+/* Submit */
 .submit-btn {
   width: 100%;
   margin-top: 24px;
@@ -91,6 +89,27 @@
 
 .submit-btn:hover {
   filter: brightness(1.05);
+}
+
+/* Visibility Button */
+.visibility-btn {
+  width: 100%;
+  padding: 10px;
+  background: #4f3b9a;
+  color: white;
+  border-radius: 12px;
+  border: none;
+  font-family: luckiestGuy, sans-serif;
+  font-size: 18px;
+  text-align: left;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  cursor: pointer;
+}
+
+.visibility-btn .arrow {
+  font-size: 22px;
 }
 
 /* Flatpickr Styling */
