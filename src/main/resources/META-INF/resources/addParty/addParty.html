@@ -8,7 +8,7 @@
     <link href="../global.css" rel="stylesheet" />
     <link rel="stylesheet" href="./addParty.css" />
 
-    <!-- Flatpickr Styles -->
+    <!-- Flatpickr -->
     <link
       rel="stylesheet"
       href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css"
@@ -17,49 +17,102 @@
       rel="stylesheet"
       href="https://cdn.jsdelivr.net/npm/flatpickr/dist/themes/dark.css"
     />
+
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr" defer></script>
+    <script src="./addParty.js" defer></script>
   </head>
+
   <body>
-    <form action="/api/party/add" method="post" enctype="multipart/form-data">
-      <input type="text" name="title" placeholder="Name" />
+    <main class="add-party-page">
+      <section class="party-card">
+        <div class="card-top">
+          <span class="back-arrow">‹</span>
+        </div>
 
-      <div>
-        <!-- WICHTIG: type="text", NICHT datetime-local -->
-        <input
-          id="time_start"
-          type="text"
-          name="time_start"
-          placeholder="START"
-        />
-        <input
-          id="time_end"
-          type="text"
-          name="time_end"
-          placeholder="Ende"
-        />
-        <input type="number" name="max_people" placeholder="Max People" />
-        <input type="number" name="min_age" placeholder="Min Alter" />
-        <input type="number" name="max_age" placeholder="Max Alter" />
-      </div>
+        <form
+          action="/api/party/add"
+          method="post"
+          enctype="multipart/form-data"
+          class="party-form"
+        >
+          <!-- NAME -->
+          <div class="field field-name">
+            <div class="field-label field-label-center">Name</div>
+            <input type="text" name="title" />
+          </div>
 
-      <button type="submit">Submit</button>
-    </form>
+          <!-- DESCRIPTION -->
+          <div class="field">
+            <div class="field-label">Description</div>
+            <input type="text" name="description" />
+          </div>
 
-    <!-- Flatpickr Script -->
-    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
-    <script>
-      flatpickr("#time_start", {
-        enableTime: true,
-        dateFormat: "d.m.Y H:i",
-        time_24hr: true,
-        minuteIncrement: 15,
-      });
+          <!-- DATE -->
+          <div class="field">
+            <div class="field-label">Date / Begin Time</div>
+            <input id="time_start" type="text" name="time_start" />
+          </div>
 
-      flatpickr("#time_end", {
-        enableTime: true,
-        dateFormat: "d.m.Y H:i",
-        time_24hr: true,
-        minuteIncrement: 15,
-      });
-    </script>
+          <!-- END TIME -->
+          <div class="field">
+            <div class="field-label">End Time</div>
+            <input id="time_end" type="text" name="time_end" />
+          </div>
+
+          <!-- LOCATION -->
+          <div class="field">
+            <div class="field-label">Location</div>
+            <input type="text" name="location" />
+          </div>
+
+          <!-- VISIBILITY SECTION -->
+          <div class="field field-visibility">
+            <button type="button" class="visibility-btn" id="visibilityToggle">
+              <span class="visibility-text">only chosen people</span>
+              <span class="arrow">›</span>
+            </button>
+
+            <!-- NEUE DYNAMISCHE USER-LIST BOX -->
+            <div class="visibility-panel" id="visibilityPanel">
+              <div class="user-list" id="userList">
+                <!-- Users werden später hier rein geladen -->
+              </div>
+            </div>
+          </div>
+
+          <!-- ENTRY COSTS -->
+          <div class="field">
+            <div class="field-label">Entry Costs</div>
+            <input type="number" name="entry_costs" />
+          </div>
+
+          <!-- THEME -->
+          <div class="field">
+            <div class="field-label">Theme</div>
+            <input type="text" name="theme" />
+          </div>
+
+          <!-- MIN AGE -->
+          <div class="field">
+            <div class="field-label">Min Age</div>
+            <input type="number" name="min_age" />
+          </div>
+
+          <!-- MAX AGE -->
+          <div class="field">
+            <div class="field-label">Max Age</div>
+            <input type="number" name="max_age" />
+          </div>
+
+          <!-- WEBSITE -->
+          <div class="field">
+            <div class="field-label">Website</div>
+            <input type="url" name="website" />
+          </div>
+
+          <button type="submit" class="submit-btn">Submit</button>
+        </form>
+      </section>
+    </main>
   </body>
 </html>
