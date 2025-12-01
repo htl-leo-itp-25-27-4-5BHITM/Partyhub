@@ -1,76 +1,107 @@
-/* Base input reset */
-input {
-  padding: 0;
-  margin: 0;
-  box-sizing: border-box;
-  cursor: text;
+/* Seite ausrichten */
+.add-party-page {
+  min-height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  padding: 24px 0;
+  background-color: #1a1040;
 }
 
-/* Form */
-form[action="/api/party/add"] {
-  width: 92%;
-  max-width: 420px;
-  margin: 18px auto;
-  padding-top: 20px;
+/* Karte in der Mitte */
+.party-card {
+  background-color: #1a1040;
+  width: 340px;
+  max-width: 90vw;
+  padding: 32px 24px 40px;
 }
 
-/* Name-Feld */
-form[action="/api/party/add"] > input[type="text"]:first-of-type {
-  display: block;
-  margin: 8px auto 28px auto;
-  width: 60%;
+/* Back-Arrow */
+.card-top {
+  display: flex;
+  align-items: center;
+  margin-bottom: 24px;
+}
+
+.back-arrow {
+  font-size: 28px;
+  color: #ffffff;
+  cursor: pointer;
+  line-height: 1;
+}
+
+/* Formular */
+.party-form {
+  width: 100%;
+}
+
+/* Allgemeine Felder */
+.field {
+  margin-bottom: 22px;
+}
+
+.field-label {
+  font-family: luckiestGuy, sans-serif;
+  font-size: 18px;
+  color: #f2e9ff;
+  margin-bottom: 4px;
+}
+
+/* Name oben zentriert */
+.field-name {
+  margin-bottom: 32px;
+}
+
+.field-label-center {
   text-align: center;
+}
+
+/* Inputs */
+.field input {
+  width: 100%;
   background: transparent;
   border: none;
   border-bottom: 3px solid #ffffff;
   padding: 4px 0 2px 0;
   color: white;
   font-family: luckiestGuy, sans-serif;
-  font-size: 22px;
-}
-
-/* Alle anderen Inputs */
-form[action="/api/party/add"] div input,
-form[action="/api/party/add"] input[type="number"],
-form[action="/api/party/add"] input[type="url"] {
-  display: block;
-  width: 80%;
-  margin: 8px 0 40px 0;
-  background: transparent;
-  border: none;
-  border-bottom: 3px solid #ffffff;
-  padding: 2px 0 2px 0;
-  color: white;
-  font-family: luckiestGuy, sans-serif;
   font-size: 18px;
+  outline: none;
 }
 
-/* Placeholder */
-form[action="/api/party/add"] input::placeholder {
-  color: rgba(255, 255, 255, 0.35);
-  font-family: luckiestGuy, sans-serif;
-  font-size: 20px;
+/* Placeholder ausblenden */
+.field input::placeholder {
+  color: transparent;
 }
 
-/* Button */
-form[action="/api/party/add"] button[type="submit"] {
-  display: block;
-  width: 80%;
-  margin: 16px 0 40px 0;
+/* Submit-Button */
+.submit-btn {
+  width: 100%;
+  margin-top: 24px;
   padding: 12px 10px;
-  background: var(--secondary-color, #4f3b9a);
+  background: #4f3b9a;
   color: white;
   border-radius: 10px;
   border: none;
   font-family: luckiestGuy, sans-serif;
   font-size: 18px;
+  text-transform: uppercase;
+  cursor: pointer;
 }
 
-/* Flatpickr Style */
+.submit-btn:hover {
+  filter: brightness(1.05);
+}
+
+/* Flatpickr Styling */
 .flatpickr-calendar {
   font-family: luckiestGuy, sans-serif;
 }
 
 .flatpickr-input {
-  padding: 2px 0 2px 0 !important;
+  padding: 4px 0 2px 0 !important;
+  background: transparent !important;
+  border: none !important;
+  border-bottom: 3px solid #ffffff !important;
+  color: #ffffff !important;
 }

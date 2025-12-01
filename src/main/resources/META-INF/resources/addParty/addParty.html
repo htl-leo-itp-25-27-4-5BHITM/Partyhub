@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Add Party</title>
 
-    <!-- Deine Styles -->
+    <!-- Global + Local Styles -->
     <link href="../global.css" rel="stylesheet" />
     <link rel="stylesheet" href="./addParty.css" />
 
@@ -25,28 +25,58 @@
   </head>
 
   <body>
-    <form action="/api/party/add" method="post" enctype="multipart/form-data">
-      <input type="text" name="title" placeholder="Name" />
+    <main class="add-party-page">
+      <section class="party-card">
 
-      <div>
-        <input
-          id="time_start"
-          type="text"
-          name="time_start"
-          placeholder="START"
-        />
-        <input
-          id="time_end"
-          type="text"
-          name="time_end"
-          placeholder="Ende"
-        />
-        <input type="number" name="max_people" placeholder="Max People" />
-        <input type="number" name="min_age" placeholder="Min Alter" />
-        <input type="number" name="max_age" placeholder="Max Alter" />
-      </div>
+        <div class="card-top">
+          <span class="back-arrow">‹</span>
+        </div>
 
-      <button type="submit">Submit</button>
-    </form>
+        <form
+          action="/api/party/add"
+          method="post"
+          enctype="multipart/form-data"
+          class="party-form"
+        >
+          <!-- NAME -->
+          <div class="field field-name">
+            <div class="field-label field-label-center">Name</div>
+            <input type="text" name="title" />
+          </div>
+
+          <!-- DATE + BEGIN TIME -->
+          <div class="field">
+            <div class="field-label">Date / Begin Time</div>
+            <input id="time_start" type="text" name="time_start" />
+          </div>
+
+          <!-- END TIME -->
+          <div class="field">
+            <div class="field-label">End Time</div>
+            <input id="time_end" type="text" name="time_end" />
+          </div>
+
+          <!-- MAX PEOPLE -->
+          <div class="field">
+            <div class="field-label">Max People</div>
+            <input type="number" name="max_people" />
+          </div>
+
+          <!-- MIN AGE -->
+          <div class="field">
+            <div class="field-label">Min Age</div>
+            <input type="number" name="min_age" />
+          </div>
+
+          <!-- MAX AGE -->
+          <div class="field">
+            <div class="field-label">Max Age</div>
+            <input type="number" name="max_age" />
+          </div>
+
+          <button type="submit" class="submit-btn">Submit</button>
+        </form>
+      </section>
+    </main>
   </body>
 </html>
