@@ -24,14 +24,14 @@ public class InvitationResource {
         return invitationRepository.invite(invitationDto);
     }
 
-    @POST
+    @GET
     @Produces(MediaType.APPLICATION_JSON)
     @Path("/rec")
     public Response getReceivedInvites(){
         return Response.ok().entity(invitationRepository.getReceivedInvites()).build();
     }
 
-    @POST
+    @GET
     @Produces(MediaType.APPLICATION_JSON)
     @Path("/inv")
     public Response getSentInvites(){

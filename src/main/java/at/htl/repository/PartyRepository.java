@@ -38,18 +38,7 @@ public class PartyRepository {
     }
 
     public Response addParty(PartyCreateDto partyCreateDto) {
-        Party party = new Party();
-        party.setTitle(partyCreateDto.title());
-        party.setDescription(partyCreateDto.description());
-        party.setFee(partyCreateDto.fee());
-        party.setTime_start(LocalDateTime.parse(partyCreateDto.time_start()));
-        party.setTime_end(LocalDateTime.parse(partyCreateDto.time_end()));
-        party.setWebsite(partyCreateDto.website());
-        party.setLatitude(partyCreateDto.latitude());
-        party.setLongitude(partyCreateDto.longitude());
-        party.setCreated_at(LocalDateTime.now());
-        party.setMax_age(partyCreateDto.max_age());
-        party.setMin_age(partyCreateDto.min_age());
+        Party party = partyCreateDtoToParty(partyCreateDto);
         // TODO: Use current user
         party.setHost_user(userRepository.getUser(1L));
         party.setCategory(categoryRepository.getCategoryById(partyCreateDto.category_id()));
@@ -79,27 +68,18 @@ public class PartyRepository {
         return Response.status(Response.Status.FORBIDDEN).build();
     }
 
+    // TODO: Check permission before updating
     public Response updateParty(Long id, PartyCreateDto partyCreateDto) {
-        Party party= entityManager.find(Party.class, id);
+        Party party = entityManager.find(Party.class, id);
         if (party == null) {
             return Response.status(Response.Status.NOT_FOUND).build();
         }
+        Party updatedParty = partyCreateDtoToParty(partyCreateDto);
+        updatedParty.setId(id);
+        updatedParty.setHost_user(userRepository.getUser(1L));
 
-        party.setTitle(partyCreateDto.title());
-        party.setDescription(partyCreateDto.description());
-        party.setFee(partyCreateDto.fee());
-        party.setTime_start(LocalDateTime.parse(partyCreateDto.time_start()));
-        party.setTime_end(LocalDateTime.parse(partyCreateDto.time_end()));
-        party.setWebsite(partyCreateDto.website());
-        party.setLatitude(partyCreateDto.latitude());
-        party.setLongitude(partyCreateDto.longitude());
-        party.setCreated_at(LocalDateTime.now());
-        party.setMax_age(partyCreateDto.max_age());
-        party.setMin_age(partyCreateDto.min_age());
-        party.setCategory(categoryRepository.getCategoryById(partyCreateDto.category_id()));
-
-        entityManager.persist(party);
-        return Response.ok().entity(party).build();
+        entityManager.merge(updatedParty);
+        return Response.ok().entity(updatedParty).build();
     }
 
     public Response filterParty( String filterType,  String filterParam) {
@@ -163,5 +143,23 @@ public class PartyRepository {
         entityManager.persist(party);
         logger.info(party);
         return Response.ok().build();
+    }
+
+    private Party partyCreateDtoToParty(PartyCreateDto partyCreateDto) {
+        Party party = new Party();
+        party.setTitle(partyCreateDto.title());
+        party.setDescription(partyCreateDto.description());
+        party.setFee(partyCreateDto.fee());
+        party.setTime_start(LocalDateTime.parse(partyCreateDto.time_start()));
+        party.setTime_end(LocalDateTime.parse(partyCreateDto.time_end()));
+        party.setWebsite(partyCreateDto.website());
+        party.setLatitude(partyCreateDto.latitude());
+        party.setLongitude(partyCreateDto.longitude());
+        party.setMax_age(partyCreateDto.max_age());
+        party.setMin_age(partyCreateDto.min_age());
+        party.setCategory(categoryRepository.getCategoryById(partyCreateDto.category_id()));
+
+        party.setCreated_at(LocalDateTime.now());
+        return party;
     }
 }

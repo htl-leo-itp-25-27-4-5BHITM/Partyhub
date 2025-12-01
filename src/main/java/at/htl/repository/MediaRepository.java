@@ -1,14 +1,11 @@
 package at.htl.repository;
 
+import at.htl.dto.MediaDto;
 import at.htl.model.Media;
-import at.htl.model.Party;
-import at.htl.model.User;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import jakarta.persistence.EntityManager;
-import jakarta.transaction.Transactional;
 import jakarta.ws.rs.*;
-import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 import org.jboss.logging.Logger;
 import org.jboss.resteasy.reactive.multipart.FileUpload;
@@ -19,6 +16,7 @@ import java.nio.file.Paths;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @ApplicationScoped
 public class MediaRepository {
@@ -32,10 +30,9 @@ public class MediaRepository {
     @Inject
     Logger logger;
 
-    public List<Media> getImages(long partyId) {
+    public List<MediaDto> getImages(long partyId) {
         // TODO: Use current user
         Long userId = 4L;
-        List<Media> result = new ArrayList<>();
         boolean access = !entityManager.createQuery(
                         "SELECT p.id " +
                                 "FROM Party p " +
@@ -48,9 +45,11 @@ public class MediaRepository {
                 .setParameter("userId", userId)
                 .getResultList()
                 .isEmpty();
-
+        logger.info(access);
+        List<MediaDto> result = new ArrayList<>();
         if (access) {
-            result = entityManager.createQuery("SELECT url FROM Media WHERE party.id=" + partyId, Media.class).getResultList();
+            List<Media> mediaList = entityManager.createQuery("SELECT m FROM Media m WHERE m.party.id=:partyId", Media.class).setParameter("partyId", partyId).getResultList();
+            result = mediaList.stream().map(this::toMediaDto).collect(Collectors.toList());
         }
         return result;
     }
@@ -76,6 +75,14 @@ public class MediaRepository {
     public static class FileUploadInput {
         @FormParam("file")
         public List<FileUpload> file;
+    }
+
+    private MediaDto toMediaDto(Media media) {
+        return new MediaDto(
+                media.getId(),
+                media.getUser().getId(),
+                media.getUrl()
+        );
     }
 
 }

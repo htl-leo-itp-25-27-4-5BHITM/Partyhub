@@ -1,6 +1,9 @@
 package at.htl.boundary;
 
+import at.htl.dto.MediaDto;
 import at.htl.dto.PartyCreateDto;
+import at.htl.model.Media;
+import at.htl.repository.MediaRepository;
 import at.htl.repository.PartyRepository;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
@@ -9,11 +12,16 @@ import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 
+import java.io.IOException;
+import java.util.List;
+
 @ApplicationScoped
 @Path("/api/party")
 public class PartyResource {
     @Inject
     PartyRepository partyRepository;
+    @Inject
+    MediaRepository mediaRepository;
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
@@ -50,7 +58,6 @@ public class PartyResource {
 
     @POST
     @Transactional
-    @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
     @Path("/{id}")
     public Response updateParty(@PathParam("id") Long id, PartyCreateDto partyCreateDto) {
@@ -78,5 +85,21 @@ public class PartyResource {
     @Path("/{id}/attend")
     public Response attendParty(@PathParam("id") Long partyId) {
         return partyRepository.attendParty(partyId);
+    }
+
+    @GET
+    @Path("/{id}/media")
+    @Produces(MediaType.APPLICATION_JSON)
+    public List<MediaDto> getImages(@PathParam("id") long partyId) {
+        return mediaRepository.getImages(partyId);
+    }
+
+    @POST
+    @Path("/{id}/media/upload")
+    @Consumes(MediaType.MULTIPART_FORM_DATA)
+    @Produces(MediaType.APPLICATION_JSON)
+    @Transactional
+    public Response upload(MediaRepository.FileUploadInput input, @PathParam("id") long partyId) throws IOException {
+        return mediaRepository.upload(input, partyId);
     }
 }
