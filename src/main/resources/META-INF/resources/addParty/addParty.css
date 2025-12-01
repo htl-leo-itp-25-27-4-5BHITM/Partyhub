@@ -1,6 +1,3 @@
-/* Form layout styling to match the provided image.
-   Only CSS changes here; datepicker scripts and input IDs are untouched. */
-
 /* Base input reset */
 input {
   padding: 0;
@@ -9,7 +6,7 @@ input {
   cursor: text;
 }
 
-/* Center the form on the page and constrain width */
+/* Form */
 form[action="/api/party/add"] {
   width: 92%;
   max-width: 420px;
@@ -17,7 +14,7 @@ form[action="/api/party/add"] {
   padding-top: 20px;
 }
 
-/* NAME (the first input) should be centered horizontally */
+/* Name-Feld */
 form[action="/api/party/add"] > input[type="text"]:first-of-type {
   display: block;
   margin: 8px auto 28px auto;
@@ -32,26 +29,10 @@ form[action="/api/party/add"] > input[type="text"]:first-of-type {
   font-size: 22px;
 }
 
-/* All other inputs: left aligned, stacked with larger gaps */
+/* Alle anderen Inputs */
 form[action="/api/party/add"] div input,
 form[action="/api/party/add"] input[type="number"],
 form[action="/api/party/add"] input[type="url"] {
-  display: block;
-  width: 80%;
-  margin: 8px 0 40px 0; /* space between inputs */
-  background: transparent;
-  border: none;
-  border-bottom: 3px solid #ffffff;
-  padding: 2px 0 2px 0; /* placeholder closer to the line */
-  color: white;
-  font-family: luckiestGuy, sans-serif;
-  font-size: 18px;
-}
-
-/* Ensure time inputs (datepicker) keep same IDs and remain interactive */
-#time_start,
-#time_end {
-  /* keep same visual treatment as other inputs */
   display: block;
   width: 80%;
   margin: 8px 0 40px 0;
@@ -64,14 +45,14 @@ form[action="/api/party/add"] input[type="url"] {
   font-size: 18px;
 }
 
-/* Placeholder style — larger, label-like appearance */
+/* Placeholder */
 form[action="/api/party/add"] input::placeholder {
   color: rgba(255, 255, 255, 0.35);
   font-family: luckiestGuy, sans-serif;
   font-size: 20px;
 }
 
-/* Submit button style to match image tone */
+/* Button */
 form[action="/api/party/add"] button[type="submit"] {
   display: block;
   width: 80%;
@@ -85,12 +66,11 @@ form[action="/api/party/add"] button[type="submit"] {
   font-size: 18px;
 }
 
-/* Flatpickr popup font tweak (unchanged behavior) */
+/* Flatpickr Style */
 .flatpickr-calendar {
   font-family: luckiestGuy, sans-serif;
 }
 
-/* Ensure flatpickr input class doesn't override our spacing */
 .flatpickr-input {
   padding: 2px 0 2px 0 !important;
 }

@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Add Party</title>
 
+    <!-- Deine Styles -->
     <link href="../global.css" rel="stylesheet" />
     <link rel="stylesheet" href="./addParty.css" />
 
@@ -17,13 +18,17 @@
       rel="stylesheet"
       href="https://cdn.jsdelivr.net/npm/flatpickr/dist/themes/dark.css"
     />
+
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr" defer></script>
+    <script src="./addParty.js" defer></script>
   </head>
+
   <body>
     <form action="/api/party/add" method="post" enctype="multipart/form-data">
       <input type="text" name="title" placeholder="Name" />
 
       <div>
-        <!-- WICHTIG: type="text", NICHT datetime-local -->
         <input
           id="time_start"
           type="text"
@@ -43,23 +48,5 @@
 
       <button type="submit">Submit</button>
     </form>
-
-    <!-- Flatpickr Script -->
-    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
-    <script>
-      flatpickr("#time_start", {
-        enableTime: true,
-        dateFormat: "d.m.Y H:i",
-        time_24hr: true,
-        minuteIncrement: 15,
-      });
-
-      flatpickr("#time_end", {
-        enableTime: true,
-        dateFormat: "d.m.Y H:i",
-        time_24hr: true,
-        minuteIncrement: 15,
-      });
-    </script>
   </body>
 </html>
