@@ -32,7 +32,6 @@
         <form
           action="/api/party/add"
           method="post"
-          enctype="multipart/form-data"
           class="party-form"
         >
           <!-- NAME -->
@@ -50,13 +49,13 @@
           <!-- DATE -->
           <div class="field">
             <div class="field-label">Date / Begin Time</div>
-            <input id="time_start" type="text" name="time_start" />
+            <input id="time_start" type="datetime-local" name="time_start" />
           </div>
 
           <!-- END TIME -->
           <div class="field">
             <div class="field-label">End Time</div>
-            <input id="time_end" type="text" name="time_end" />
+            <input id="time_end" type="datetime-local" name="time_end" />
           </div>
 
           <!-- LOCATION -->

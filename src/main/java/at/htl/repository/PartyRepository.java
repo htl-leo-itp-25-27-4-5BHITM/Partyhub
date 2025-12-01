@@ -34,6 +34,8 @@ public class PartyRepository {
     @Inject
     UserRepository userRepository;
 
+    private static final DateTimeFormatter INPUT_FORMATTER = DateTimeFormatter.ofPattern("dd.MM.yyyy HH:mm");
+
     public List<Party> getParties() {
         List<Party> result;
         result = entityManager.createQuery("SELECT u FROM Party u", Party.class).getResultList();
@@ -153,8 +155,8 @@ public class PartyRepository {
         party.setTitle(partyCreateDto.title());
         party.setDescription(partyCreateDto.description());
         party.setFee(partyCreateDto.fee());
-        party.setTime_start(LocalDateTime.parse(partyCreateDto.time_start()));
-        party.setTime_end(LocalDateTime.parse(partyCreateDto.time_end()));
+        party.setTime_start(LocalDateTime.parse(partyCreateDto.time_start(), INPUT_FORMATTER));
+        party.setTime_end(LocalDateTime.parse(partyCreateDto.time_end(), INPUT_FORMATTER));
         party.setWebsite(partyCreateDto.website());
 
         Location location = locationRepository.findByLatitudeAndLongitude(partyCreateDto.latitude(), partyCreateDto.longitude());
