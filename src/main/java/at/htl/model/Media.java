@@ -1,23 +1,24 @@
-package at.htl.entity;
+package at.htl.model;
 
 import jakarta.persistence.*;
 
 @Entity
-@TableGenerator(name="party_media")
-@Table(name="party_media")
+@TableGenerator(name="media")
+@Table(name="media")
 public class Media {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "media_id")
     private Long id;
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne
+    @JoinColumn(name = "party_id")
     private Party party;
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne
     private User user;
     @Column(name = "url")
     private String url;
 
     public Media() {
+
     }
 
     public Media(Party party, User user, String url) {

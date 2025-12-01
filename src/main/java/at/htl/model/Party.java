@@ -1,14 +1,23 @@
-package at.htl.entity;
+package at.htl.model;
 
+import at.htl.model.Category;
+import at.htl.model.Location;
+import at.htl.model.User;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonInclude;
 import jakarta.persistence.*;
 import org.hibernate.annotations.CreationTimestamp;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Set;
 
 @Entity
 @TableGenerator(name = "party")
 @Table(name = "party")
 public class Party {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -23,62 +32,33 @@ public class Party {
     private int max_people;
     private int min_age;
     private int max_age;
+    private String website;
     private String description;
-
     private Double fee;
     @CreationTimestamp
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime created_at;
+    @OneToMany(mappedBy = "party",
+            cascade = CascadeType.ALL,
+            orphanRemoval = true,
+            fetch = FetchType.EAGER)
+    @JsonIgnore
+    private List<Media> media = new ArrayList<>();
+
+    @JsonIgnore
+    @ManyToMany
+    @JoinTable(
+            name = "party_user",
+            joinColumns = @JoinColumn(name = "party_id"),
+            inverseJoinColumns = @JoinColumn(name = "user_id")
+    )
+    private Set<User> users;
 
     @ManyToOne
-
+    @JoinColumn(name = "location_id", nullable = false)
     Location location;
 
-    public Party() {
-    }
-
-    public Party(Long id, User host_user, Category category, String title, LocalDateTime time_start, LocalDateTime time_end, int max_people, int min_age, int max_age, String description, Double fee, LocalDateTime created_at, Location location) {
-        this.id = id;
-        this.host_user = host_user;
-        this.category = category;
-        this.title = title;
-        this.time_start = time_start;
-        this.time_end = time_end;
-        this.max_people = max_people;
-        this.min_age = min_age;
-        this.max_age = max_age;
-        this.description = description;
-        this.fee = fee;
-        this.created_at = created_at;
-        this.location = location;
-    }
-
-    public Party(User userById, Category categoryById, String testTitle, LocalDateTime start, LocalDateTime end, int maxPeople, int minAge, int maxAge, String testDescription) {
-            
-    }
-
-    @Override
-    public String toString() {
-        return "Party{" +
-                "id=" + id +
-                ", host_user=" + host_user +
-                ", category=" + category +
-                ", title='" + title + '\'' +
-                ", time_start=" + time_start +
-                ", time_end=" + time_end +
-                ", max_people=" + max_people +
-                ", min_age=" + min_age +
-                ", max_age=" + max_age +
-                ", description='" + description + '\'' +
-                ", fee=" + fee +
-                ", created_at=" + created_at +
-                ", location=" + location +
-                '}';
-    }
-
-    public static Party getPartyById(Long party_id, EntityManager entityManager) {
-        return entityManager.find(Party.class, party_id);
-    }
+    public Party() {}
 
     public Long getId() {
         return id;
@@ -160,14 +140,6 @@ public class Party {
         this.description = description;
     }
 
-    public Location getLocation() {
-        return location;
-    }
-
-    public void setLocation(Location location) {
-        this.location = location;
-    }
-
     public Double getFee() {
         return fee;
     }
@@ -182,5 +154,37 @@ public class Party {
 
     public void setCreated_at(LocalDateTime created_at) {
         this.created_at = created_at;
+    }
+
+    public List<Media> getMedia() {
+        return media;
+    }
+
+    public void setMedia(List<Media> media) {
+        this.media = media;
+    }
+
+    public Set<User> getUsers() {
+        return users;
+    }
+
+    public void setUsers(Set<User> users) {
+        this.users = users;
+    }
+
+    public Location getLocation() {
+        return location;
+    }
+
+    public void setLocation(Location location) {
+        this.location = location;
+    }
+
+    public String getWebsite() {
+        return website;
+    }
+
+    public void setWebsite(String website) {
+        this.website = website;
     }
 }

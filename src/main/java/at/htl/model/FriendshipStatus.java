@@ -1,4 +1,4 @@
-package at.htl.entity;
+package at.htl.model;
 
 import jakarta.persistence.*;
 
@@ -7,15 +7,13 @@ import jakarta.persistence.*;
 @Table(name="friendship_status")
 public class FriendshipStatus {
     @Id
-    @Column(name = "status_id")
+    @Column(name = "id")
     private Long status_id;
-    @Column(name = "status_name")
+    @Column(name = "name")
     private String name;
-    public FriendshipStatus(String name){
-        setName(name);
-    }
 
     public FriendshipStatus(){}
+
     public String getName() {
         return name;
     }

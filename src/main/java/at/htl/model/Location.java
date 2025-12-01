@@ -1,10 +1,15 @@
-package at.htl.entity;
+package at.htl.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
+import at.htl.model.Party;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @Entity
+@TableGenerator(name="location")
+@Table(name="location")
 public class Location {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -12,18 +17,15 @@ public class Location {
     double longitude;
     double latitude;
 
-    @OneToMany
-    List<Party> partyList;
-
     public Location() {
     }
 
-    public Long getLocation_id() {
+    public Long getId() {
         return id;
     }
 
-    public void setLocation_id(Long location_id) {
-        this.id = location_id;
+    public void setId(Long id) {
+        this.id = id;
     }
 
     public double getLongitude() {
@@ -40,13 +42,5 @@ public class Location {
 
     public void setLatitude(double latitude) {
         this.latitude = latitude;
-    }
-
-    public List<Party> getPartyList() {
-        return partyList;
-    }
-
-    public void setPartyList(List<Party> partyList) {
-        this.partyList = partyList;
     }
 }

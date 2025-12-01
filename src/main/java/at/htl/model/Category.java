@@ -1,7 +1,7 @@
-package at.htl.entity;
+package at.htl.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import jakarta.inject.Inject;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.persistence.*;
 
 @Entity
@@ -10,18 +10,11 @@ import jakarta.persistence.*;
 public class Category{
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-            @JsonIgnore
     Long id;
     String name;
 
-    public Category(){
-        this.id = null;
-        this.name = null;
-    }
+    public Category(){}
 
-    public static Category getCategoryById(Long category_id, EntityManager entityManager) {
-        return entityManager.find(Category.class, category_id);
-    }
 
     public Long getId() {
         return id;
