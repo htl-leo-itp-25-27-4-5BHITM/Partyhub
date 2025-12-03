@@ -27,8 +27,6 @@ public class PartyRepository {
     @Inject CategoryRepository categoryRepository;
     @Inject UserRepository userRepository;
 
-    private static final DateTimeFormatter INPUT_FORMATTER = DateTimeFormatter.ofPattern("dd.MM.yyyy HH:mm");
-
     public List<Party> getParties() {
         List<Party> result;
         result = entityManager.createQuery("SELECT u FROM Party u", Party.class).getResultList();
@@ -172,14 +170,19 @@ public class PartyRepository {
         logger.info(party);
         return Response.ok().build();
     }
-
+    private static final DateTimeFormatter PARTY_DTF = DateTimeFormatter.ofPattern("dd.MM.yyyy HH:mm");
     private Party partyCreateDtoToParty(PartyCreateDto partyCreateDto) {
         Party party = new Party();
         party.setTitle(partyCreateDto.title());
         party.setDescription(partyCreateDto.description());
         party.setFee(partyCreateDto.fee());
-        party.setTime_start(LocalDateTime.parse(partyCreateDto.time_start() ));
-        party.setTime_end(LocalDateTime.parse(partyCreateDto.time_end()));
+        try {
+            party.setTime_start(LocalDateTime.parse(partyCreateDto.time_start(), PARTY_DTF));
+            party.setTime_end(LocalDateTime.parse(partyCreateDto.time_end(), PARTY_DTF));
+        } catch (DateTimeParseException e) {
+            throw new IllegalArgumentException(
+                    "Invalid date‑time format. Expected 'dd.MM.yyyy HH:mm'.", e);
+        }
         party.setWebsite(partyCreateDto.website());
 
         Location location = locationRepository.findByLatitudeAndLongitude(partyCreateDto.latitude(), partyCreateDto.longitude());

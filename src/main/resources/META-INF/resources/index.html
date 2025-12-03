@@ -103,44 +103,8 @@
         </div>
     </div>
 
-
-    <h1 class="mt-5 text-black">Add Party</h1>
-    <div class="card mb-4">
-        <div class="card-body">
-            <form action="/api/party/add" method="post" enctype="multipart/form-data" class="row g-3">
-
-                <div class="col-md-4">
-                    <input type="number" name="category_id" class="form-control" placeholder="Category ID">
-                </div>
-                <div class="col-md-4">
-                    <input type="datetime-local" name="time_start" class="form-control">
-                </div>
-                <div class="col-md-4">
-                    <input type="datetime-local" name="time_end" class="form-control">
-                </div>
-
-                <div class="col-md-4">
-                    <input type="number" name="max_people" class="form-control" placeholder="Max people">
-                </div>
-                <div class="col-md-4">
-                    <input type="number" name="min_age" class="form-control" placeholder="Min age">
-                </div>
-                <div class="col-md-4">
-                    <input type="number" name="max_age" class="form-control" placeholder="Max age">
-                </div>
-
-                <div class="col-12">
-                    <button type="submit" class="btn btn-success mt-2">Submit</button>
-                </div>
-
-            </form>
-        </div>
-    </div>
-
-
     <h1 class="mt-5 text-black">Geolocation:</h1>
     <div id="demo" class="p-3 bg-white border rounded"></div>
-
 </div>
 
 </body>
