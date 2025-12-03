@@ -72,14 +72,15 @@ body{
 /* kleine Korrektur: Abstand damit Inhalte nicht direkt unter Username liegen */
 .notif-list { margin-top: 38px; }
 
-/* Card */
+/* Card: etwas hellerer Hintergrund, kein sichtbarer Rand - nur Schatten für Abgrenzung */
 .notif-card {
-  background: rgba(255,255,255,0.02);
+  background: rgba(255,255,255,0.05); /* deutlich heller als vorher (0.02) */
   border-radius:10px;
   padding:10px;
   display:block;
   transition:opacity .18s ease, transform .18s ease;
-  border:1px solid rgba(255,255,255,0.03);
+  border: none; /* Border entfernt */
+  box-shadow: 0 2px 10px rgba(0,0,0,0.25), 0 0 0 1px rgba(255,255,255,0.02); /* Schatten + subtiler "Outline"-Effekt */
 }
 
 /* Row: Avatar links, Text mittig, Actions rechts */
@@ -194,4 +195,90 @@ body{
   font-size:0.72rem; /* verkleinert von 0.78rem */
   color:rgba(255,255,255,0.6);
   margin-top:4px;
+}
+
+/* Toast notification (Rückmeldung bei Accept/Dismiss) — modernes Design */
+.toast-container {
+  position: fixed;
+  bottom: 24px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 9999;
+  pointer-events: none;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  align-items: center;
+}
+
+.toast {
+  background: rgba(255,255,255,0.08);
+  backdrop-filter: blur(12px);
+  color: #fff;
+  padding: 12px 18px;
+  border-radius: 12px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  box-shadow: 0 6px 20px rgba(0,0,0,0.35), 0 0 0 1px rgba(255,255,255,0.08);
+  opacity: 0;
+  transform: translateY(16px) scale(0.95);
+  animation: toast-pop-in 0.25s cubic-bezier(0.34,1.56,0.64,1) forwards, 
+             toast-fade-out 0.3s ease 2.2s forwards;
+  pointer-events: auto;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 240px;
+}
+
+/* Icon im Toast (links) */
+.toast-icon {
+  flex-shrink: 0;
+  width: 20px;
+  height: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.toast-icon svg {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+/* Success Toast (grüner Akzent) */
+.toast.success {
+  background: linear-gradient(135deg, rgba(86,242,124,0.15) 0%, rgba(86,242,124,0.05) 100%);
+  border: 1px solid rgba(86,242,124,0.25);
+}
+
+.toast.success .toast-icon svg {
+  color: var(--accent);
+  stroke: var(--accent);
+}
+
+/* Error Toast (roter Akzent) */
+.toast.error {
+  background: linear-gradient(135deg, rgba(255,46,99,0.15) 0%, rgba(255,46,99,0.05) 100%);
+  border: 1px solid rgba(255,46,99,0.25);
+}
+
+.toast.error .toast-icon svg {
+  color: var(--danger);
+  stroke: var(--danger);
+}
+
+@keyframes toast-pop-in {
+  to { 
+    opacity: 1; 
+    transform: translateY(0) scale(1); 
+  }
+}
+
+@keyframes toast-fade-out {
+  to { 
+    opacity: 0; 
+    transform: translateY(-8px) scale(0.96); 
+  }
 }
