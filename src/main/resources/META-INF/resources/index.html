@@ -6,6 +6,7 @@
     <title>Demo Quarkus Static Site</title>
     <link href="global.css" rel="stylesheet">
 
+    <script src="script.js" defer></script>
     <style>
         body {
            color: white;
@@ -16,7 +17,6 @@
 
 <body class="bg-light">
 
-<script src="script.js" defer></script>
 
 <div class="container py-4">
 
@@ -29,10 +29,9 @@
                 <div class="col-md-4">
                     <label for="filter" class="form-label">Filter type</label>
                     <select id="filter" name="filter" class="form-select">
-                        <option value="title">Title</option>
-                        <option value="Date">Date</option>
                         <option value="Category">Category</option>
-                        <option value="Party">Party</option>
+                        <option value="Content">Content</option>
+                        <option value="Date">Date</option>
                     </select>
                 </div>
 

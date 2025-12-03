@@ -2,6 +2,7 @@ async function fetchUsers() {
     try {
         const response = await fetch('http://localhost:8080/api/users');
         const users = await response.json();
+        console.log("users:"  + users)
         const userTableBody = document.getElementById('userTable').querySelector('tbody');
         userTableBody.innerHTML = '';
         users.forEach(user => {
@@ -14,31 +15,6 @@ async function fetchUsers() {
         });
     } catch (error) {
         console.error('Error fetching users:', error);
-    }
-}
-
-
-async function fetchParties() {
-    try {
-        const response = await fetch('http://localhost:8080/api/party');
-        const parties = await response.json();
-        const partyTableBody = document.getElementById('partyTable').querySelector('tbody');
-        partyTableBody.innerHTML = '';
-        parties.forEach(party => {
-            const row = `<tr>
-                    <td>${party.party_id}</td>
-                    <td>${party.title}</td>
-                    <td>${party.category_id}</td>
-                    <td>${party.time_start}</td>
-                    <td>${party.time_end}</td>
-                    <td>${party.max_people}</td>
-                    <td>${party.min_age}</td>
-                    <td>${party.max_age}</td>
-                </tr>`;
-            partyTableBody.insertAdjacentHTML('beforeend', row);
-        });
-    } catch (error) {
-        console.error('Error fetching parties:', error);
     }
 }
 
@@ -81,41 +57,6 @@ async function loadMedia(){
 }
 loadMedia()
 
-
-async function fetchFilteredParties(filterType, filterParam) {
-    const url = `/party/filter?filter=${encodeURIComponent(filterType)}`;
-
-    const formData = new FormData();
-    formData.append('param', filterParam);
-
-    const response = await fetch(url, {
-        method: 'POST',
-        body: formData
-    });
-
-    if (!response.ok) throw new Error(`HTTP ${response.status}`);
-    return response.json();
-}
-async function fetchUsers() {
-    try {
-        const response = await fetch('http://localhost:8080/api/users');
-        const users = await response.json();
-        const userTableBody = document.getElementById('userTable').querySelector('tbody');
-        userTableBody.innerHTML = '';
-        users.forEach(user => {
-            const row = `<tr>
-                    <td>${user.id}</td>
-                    <td>${user.name}</td>
-                    <td>${user.email}</td>
-                </tr>`;
-            userTableBody.insertAdjacentHTML('beforeend', row);
-        });
-    } catch (error) {
-        console.error('Error fetching users:', error);
-    }
-}
-
-
 async function fetchParties() {
     try {
         const response = await fetch('http://localhost:8080/api/party');
@@ -124,7 +65,7 @@ async function fetchParties() {
         partyTableBody.innerHTML = '';
         parties.forEach(party => {
             const row = `<tr>
-                    <td>${party.party_id}</td>
+                    <td>${party.id}</td>
                     <td>${party.title}</td>
                     <td>${party.category_id}</td>
                     <td>${party.time_start}</td>
@@ -138,86 +79,29 @@ async function fetchParties() {
     } catch (error) {
         console.error('Error fetching parties:', error);
     }
-}
-
-
-fetchUsers();
-fetchParties();
-const x = document.getElementById("demo");
-
-function getLocation() {
-    navigator.geolocation.getCurrentPosition((pos) => showPosition(pos), () => {
-        x.innerHTML = "Geolocation is not supported by this browser.";
-    });
-}
-
-function showPosition(position) {
-    x.innerHTML = "Latitude: " + position.coords.latitude +
-        "<br>Longitude: " + position.coords.longitude;
-}
-
-getLocation()
-
-function addFile() {
-    const input = document.createElement('input');
-    input.type = 'file';
-    input.name = 'file';
-    document.querySelector('form div').appendChild(input);
-}
-
-async function loadMedia(){
-    const input = document.getElementById("media_test");
-    const response = await fetch('http://localhost:8080/api/media/1');
-    const media = await response.json();
-    console.log(media)
-    media.forEach(element => {
-        console.log(element)
-        let mediaImg = document.createElement("img")
-        mediaImg.src = `./uploads/party1/${element}`
-        input.appendChild(mediaImg)
-    });
-}
-loadMedia()
-
-
-async function fetchFilteredParties(filterType, filterParam) {
-    const url = `/party/filter?filter=${encodeURIComponent(filterType)}`;
-
-    const formData = new FormData();
-    formData.append('param', filterParam);
-
-    const response = await fetch(url, {
-        method: 'POST',
-        body: formData
-    });
-
-    if (!response.ok) throw new Error(`HTTP ${response.status}`);
-    return response.json();
 }
 document.getElementById('filterForm').addEventListener('submit', async e => {
     e.preventDefault();
 
     const filter = document.getElementById('filter').value;
     const param = document.getElementById('param').value;
-    const formData = new FormData();
-    formData.append('param', param);
 
-    const url = `api/party/filter?filter=${encodeURIComponent(filter)}`;
+    const payload = {
+        filterType: filter,
+        value: param
+    };
 
     try {
-        const response = await fetch(url, {
+        const response = await fetch('/api/party/', {
             method: 'POST',
-            body: formData
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify(payload)
         });
 
-        if (!response.ok) throw new Error(`HTTP ${response.status}`);
-
-        const data = await response.json();
-        document.getElementById('output').textContent =
-            JSON.stringify(data, null, 2);
-
+        if (!response.ok) throw new Error(`Status ${response.status}`);
+        const result = await response.json();
+        console.log('Server reply:', result);
     } catch (err) {
-        document.getElementById('output').textContent =
-            `Error: ${err.message}`;
+        console.error('Submit failed:', err);
     }
 });

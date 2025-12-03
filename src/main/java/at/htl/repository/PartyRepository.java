@@ -105,15 +105,9 @@ public class PartyRepository {
     }
 
     private List<Party> findByCategory(String param) {
-        int categoryId;
-        try {
-            categoryId = Integer.parseInt(param.trim());
-        } catch (NumberFormatException e) {
-            throw new BadRequestException("Invalid category id");
-        }
-        String jpql = "SELECT p FROM Party p WHERE p.category.id = :catId";
+        String jpql = "SELECT p FROM Party p WHERE p.category.name = :param";
         return entityManager.createQuery(jpql, Party.class)
-                .setParameter("catId", categoryId)
+                .setParameter("param", param)
                 .getResultList();
     }
 
