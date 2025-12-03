@@ -1,0 +1,38 @@
+# ------------------------------------------------------------
+# Quarkus / Java-App Service
+# ------------------------------------------------------------
+apiVersion: v1
+kind: Service
+metadata:
+  name: backend
+spec:
+  type: NodePort
+  ports:
+    - port: 8080
+      targetPort: 8080
+  selector:
+    app: backend
+---
+# ------------------------------------------------------------
+# Quarkus / Java-App Deployment
+# ------------------------------------------------------------
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: backend
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: backend
+  template:
+    metadata:
+      labels:
+        app: backend
+    spec:
+      containers:
+        - name: backend
+          image: ghcr.io/htl-leo-itp-25-27-4-5bhitm/partyhub-app:latest
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 8080
