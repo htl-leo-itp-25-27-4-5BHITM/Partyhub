@@ -247,3 +247,8 @@
   content: "✓";
   font-size: 14px;
 }
+
+input::placeholder {
+  color: #ffffff; /* helle Lila-Farbe wie im Figma vibes */
+  opacity: 1;     /* Safari fix */
+}

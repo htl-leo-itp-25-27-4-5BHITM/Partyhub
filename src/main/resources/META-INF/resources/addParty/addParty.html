@@ -29,21 +29,25 @@
           <span class="back-arrow">‹</span>
         </div>
 
-        <form
-          action="/api/party/add"
-          method="post"
-          class="party-form"
-        >
+        <form action="/api/party/add" method="post" class="party-form">
           <!-- NAME -->
           <div class="field field-name">
             <div class="field-label field-label-center">Name</div>
-            <input type="text" name="title" />
+            <input
+              type="text"
+              name="title"
+              placeholder="Name (z.B. Birthday Party)"
+            />
           </div>
 
           <!-- DESCRIPTION -->
           <div class="field">
             <div class="field-label">Description</div>
-            <input type="text" name="description" />
+            <input
+              type="text"
+              name="description"
+              placeholder="Kurzbeschreibung (z.B. Motto, Stimmung)"
+            />
           </div>
 
           <!-- DATE -->
@@ -61,7 +65,11 @@
           <!-- LOCATION -->
           <div class="field">
             <div class="field-label">Location</div>
-            <input type="text" name="location" />
+            <input
+              type="text"
+              name="location"
+              placeholder="Ort (z.B. Club XYZ)"
+            />
           </div>
 
           <!-- VISIBILITY SECTION -->
@@ -82,31 +90,47 @@
           <!-- ENTRY COSTS -->
           <div class="field">
             <div class="field-label">Entry Costs</div>
-            <input type="number" name="entry_costs" />
+            <input
+              type="number"
+              name="entry_costs"
+              placeholder="Eintritt (z.B. 5)"
+            />
           </div>
 
           <!-- THEME -->
           <div class="field">
             <div class="field-label">Theme</div>
-            <input type="text" name="theme" />
+            <input type="text" name="theme" placeholder="Thema (z.B. 90s)" />
           </div>
 
           <!-- MIN AGE -->
           <div class="field">
             <div class="field-label">Min Age</div>
-            <input type="number" name="min_age" />
+            <input
+              type="number"
+              name="min_age"
+              placeholder="Mindestalter (z.B. 18)"
+            />
           </div>
 
           <!-- MAX AGE -->
           <div class="field">
             <div class="field-label">Max Age</div>
-            <input type="number" name="max_age" />
+            <input
+              type="number"
+              name="max_age"
+              placeholder="Höchstalter (optional)"
+            />
           </div>
 
           <!-- WEBSITE -->
           <div class="field">
             <div class="field-label">Website</div>
-            <input type="url" name="website" />
+            <input
+              type="url"
+              name="website"
+              placeholder="https://example.com (optional)"
+            />
           </div>
 
           <button type="submit" class="submit-btn">Submit</button>
