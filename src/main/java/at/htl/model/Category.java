@@ -15,7 +15,6 @@ public class Category{
 
     public Category(){}
 
-
     public Long getId() {
         return id;
     }

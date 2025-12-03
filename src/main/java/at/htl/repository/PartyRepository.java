@@ -1,5 +1,6 @@
 package at.htl.repository;
 
+import at.htl.dto.FilterDto;
 import at.htl.dto.PartyCreateDto;
 import at.htl.model.Location;
 import at.htl.model.Party;
@@ -7,32 +8,24 @@ import at.htl.model.User;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import jakarta.persistence.EntityManager;
+import jakarta.ws.rs.BadRequestException;
 import jakarta.ws.rs.core.Response;
 import org.jboss.logging.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
 import java.util.List;
 
 @ApplicationScoped
 public class PartyRepository {
 
-    private static final org.slf4j.Logger log = LoggerFactory.getLogger(PartyRepository.class);
-    @Inject
-    EntityManager entityManager;
+    @Inject EntityManager entityManager;
+    @Inject Logger logger;
 
-    @Inject
-    Logger logger;
-
-    @Inject
-    LocationRepository locationRepository;
-
-    @Inject
-    CategoryRepository categoryRepository;
-
-    @Inject
-    UserRepository userRepository;
+    @Inject LocationRepository locationRepository;
+    @Inject CategoryRepository categoryRepository;
+    @Inject UserRepository userRepository;
 
     private static final DateTimeFormatter INPUT_FORMATTER = DateTimeFormatter.ofPattern("dd.MM.yyyy HH:mm");
 
@@ -47,7 +40,7 @@ public class PartyRepository {
         // TODO: Use current user
         party.setHost_user(userRepository.getUser(1L));
         entityManager.persist(party);
-        return  Response.ok(party).build();
+        return  Response.ok().build();
     }
 
     public Response removeParty( Long id) {
@@ -63,8 +56,6 @@ public class PartyRepository {
                 .setParameter("id", id)
                 .setParameter("hostId", hostId)
                 .getSingleResult();
-
-        logger.info(party);
         if (matches != null && matches > 0) {
             entityManager.remove(party);
             return Response.ok().build();
@@ -86,36 +77,74 @@ public class PartyRepository {
         entityManager.merge(updatedParty);
         return Response.ok().entity(updatedParty).build();
     }
+    public Response filterParty(FilterDto req) {
+        List<Party> result = switch (req.filterType().toLowerCase()) {
+            case "content"      -> findByTitleOrDescription(req.value());
+            case "category" -> findByCategory(req.value());
+            case "date"       ->findByDateRange(req.start(), req.end());
+            default -> null;
+        };
 
-    public Response filterParty( String filterType,  String filterParam) {
-        List<Party> result;
-        logger.log(Logger.Level.INFO, filterType + " filter" + filterParam);
-
-        if (filterType.equals("title")) {
-            String query = "SELECT p FROM Party p WHERE LOWER(p.title) LIKE lower(:filterParam) OR lower(p.description) LIKE lower(:filterParam)";
-            String likePattern = "%" + filterParam.trim() + "%";
-            result = entityManager.createQuery(query, Party.class)
-                    .setParameter("filterParam", likePattern)
-                    .getResultList();
-        } else if (filterType.equals("description")) {
-            String query = "SELECT p FROM Party p WHERE p.category.id = :categoryId";
-            result=  entityManager.createQuery(query, Party.class)
-                    .setParameter("categoryId", Integer.parseInt(filterParam.trim()))
-                    .getResultList();
-        }
-
-        else if (filterType.equals("date")) {
-            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd-MM-yyyy HH:mm:ss");
-            LocalDateTime dateTime = LocalDateTime.parse(filterParam.trim(), formatter);
-            String query = "SELECT p FROM Party p WHERE p.time_start = :filterParam";
-            result = entityManager.createQuery(query, Party.class)
-                    .setParameter("filterParam", dateTime)
-                    .getResultList();
-        }
-        else {
+        if (result == null) {
             return Response.status(Response.Status.BAD_REQUEST).build();
         }
-        return Response.ok().entity(result).build();
+        return Response.ok(result).build();
+    }
+
+    private List<Party> findByTitleOrDescription(String param) {
+        String like = "%" + param.trim().toLowerCase() + "%";
+        String jpql =
+        """
+        SELECT p FROM Party p
+        WHERE LOWER(p.title) LIKE :like
+           OR LOWER(p.description) LIKE :like
+        """;
+        return entityManager.createQuery(jpql, Party.class)
+                .setParameter("like", like)
+                .getResultList();
+    }
+
+    private List<Party> findByCategory(String param) {
+        int categoryId;
+        try {
+            categoryId = Integer.parseInt(param.trim());
+        } catch (NumberFormatException e) {
+            throw new BadRequestException("Invalid category id");
+        }
+        String jpql = "SELECT p FROM Party p WHERE p.category.id = :catId";
+        return entityManager.createQuery(jpql, Party.class)
+                .setParameter("catId", categoryId)
+                .getResultList();
+    }
+
+    private List<Party> findByDateRange(String startStr, String endStr) {
+        if (startStr == null || endStr == null) {
+            throw new BadRequestException("Both 'start' and 'end' must be provided for DATE filter");
+        }
+
+        LocalDateTime start;
+        LocalDateTime end;
+        try {
+            start = LocalDateTime.parse(startStr.trim());
+            end   = LocalDateTime.parse(endStr.trim());
+        } catch (DateTimeParseException e) {
+            logger.info(e.getMessage());
+            throw new BadRequestException("Invalid date format – expected ISO‑8601 (yyyy-MM-dd'T'HH:mm:ss)");
+        }
+
+        if (end.isBefore(start)) {
+            throw new BadRequestException("'end' must be after 'start'");
+        }
+
+        String jpql = """
+        SELECT p FROM Party p
+        WHERE p.time_start BETWEEN :start AND :end
+        """;
+
+        return entityManager.createQuery(jpql, Party.class)
+                .setParameter("start", start)
+                .setParameter("end",   end)
+                .getResultList();
     }
 
     public Response sortParty( String sort) {
@@ -155,8 +184,8 @@ public class PartyRepository {
         party.setTitle(partyCreateDto.title());
         party.setDescription(partyCreateDto.description());
         party.setFee(partyCreateDto.fee());
-        party.setTime_start(LocalDateTime.parse(partyCreateDto.time_start(), INPUT_FORMATTER));
-        party.setTime_end(LocalDateTime.parse(partyCreateDto.time_end(), INPUT_FORMATTER));
+        party.setTime_start(LocalDateTime.parse(partyCreateDto.time_start() ));
+        party.setTime_end(LocalDateTime.parse(partyCreateDto.time_end()));
         party.setWebsite(partyCreateDto.website());
 
         Location location = locationRepository.findByLatitudeAndLongitude(partyCreateDto.latitude(), partyCreateDto.longitude());

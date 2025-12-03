@@ -64,17 +64,17 @@ users.forEach((user) => {
     e.preventDefault();
 
     const payload = {
-    title:        e.target.title.value,
-    description:  e.target.description.value,
-    time_start:   e.target.time_start.value,
-    time_end:     e.target.time_end.value,
+        title:        e.target.title.value,
+        description:  e.target.description.value,
+        time_start:   e.target.time_start.value,
+        time_end:     e.target.time_end.value,
         longitude: 1.0,
         latitude: 1.0,
-    fee:  Number(e.target.entry_costs.value) || 0,
-    category_id:        1,
-    min_age:      Number(e.target.min_age.value) || null,
-    max_age:      Number(e.target.max_age.value) || null,
-    website:      e.target.website.value
+        fee:  Number(e.target.entry_costs.value) || 0,
+        category_id:        1,
+        min_age:      Number(e.target.min_age.value) || null,
+        max_age:      Number(e.target.max_age.value) || null,
+        website:      e.target.website.value
 };
 
     try {

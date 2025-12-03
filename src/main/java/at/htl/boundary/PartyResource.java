@@ -1,23 +1,17 @@
 package at.htl.boundary;
 
-import at.htl.dto.MediaDto;
+import at.htl.dto.FilterDto;
 import at.htl.dto.PartyCreateDto;
-import at.htl.model.Location;
-import at.htl.model.Media;
-import at.htl.repository.LocationRepository;
 import at.htl.repository.MediaRepository;
 import at.htl.repository.PartyRepository;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
-import jakarta.persistence.EntityManager;
 import jakarta.transaction.Transactional;
 import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
-import org.jboss.logging.Logger;
 
 import java.io.IOException;
-import java.util.List;
 
 @ApplicationScoped
 @Path("/api/party")
@@ -71,10 +65,10 @@ public class PartyResource {
 
     @POST
     @Produces(MediaType.APPLICATION_JSON)
-    @Consumes(MediaType.MULTIPART_FORM_DATA)
-    @Path("/filter")
-    public Response filterParty(@QueryParam("filter") String filterType, @FormParam("param") String filterParam) {
-        return partyRepository.filterParty(filterType, filterParam);
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Path("/")
+    public Response filterParty(FilterDto filterDto) {
+        return partyRepository.filterParty(filterDto);
     }
 
     @GET
