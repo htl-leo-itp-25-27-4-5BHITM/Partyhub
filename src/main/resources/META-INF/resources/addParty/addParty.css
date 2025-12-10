@@ -6,7 +6,7 @@
   align-items: flex-start;
   padding: 24px 0;
   background-color: #1a1040;
-  font-family: 'Lunasima-Regular', sans-serif;
+  font-family: "Lunasima-Regular", sans-serif;
 }
 
 /* Karte */
@@ -41,7 +41,7 @@
 }
 
 .field-label {
-  font-family: 'Lunasima-Regular', sans-serif;
+  font-family: "Lunasima-Regular", sans-serif;
   font-size: 18px;
   color: #f2e9ff;
   margin-bottom: 4px;
@@ -64,18 +64,24 @@
   border-bottom: 3px solid #ffffff;
   padding: 4px 0 2px 0;
   color: white;
-  font-family: 'Lunasima-Regular', sans-serif;
+  font-family: "Lunasima-Regular", sans-serif;
   font-size: 18px;
   outline: none;
 }
 
 .field input::placeholder {
-  color: rgba(255,255,255,0.65); /* muted white for placeholders */
+  color: rgba(255, 255, 255, 0.65); /* muted white for placeholders */
   font-size: 14px;
   opacity: 1; /* ensure visible on Safari */
 }
-.field input::-webkit-input-placeholder { color: rgba(255,255,255,0.65); font-size: 14px; }
-.field input:-ms-input-placeholder { color: rgba(255,255,255,0.65); font-size: 14px; }
+.field input::-webkit-input-placeholder {
+  color: rgba(255, 255, 255, 0.65);
+  font-size: 14px;
+}
+.field input:-ms-input-placeholder {
+  color: rgba(255, 255, 255, 0.65);
+  font-size: 14px;
+}
 
 /* Submit */
 .submit-btn {
@@ -86,7 +92,7 @@
   color: white;
   border-radius: 10px;
   border: none;
-  font-family: 'Lunasima-Regular', sans-serif;
+  font-family: "Lunasima-Regular", sans-serif;
   font-size: 18px;
   text-transform: uppercase;
   cursor: pointer;
@@ -104,7 +110,7 @@
   color: white;
   border-radius: 12px;
   border: none;
-  font-family: 'Lunasima-Regular', sans-serif;
+  font-family: "Lunasima-Regular", sans-serif;
   font-size: 18px;
   text-align: left;
   display: flex;
@@ -119,7 +125,7 @@
 
 /* Flatpickr Styling */
 .flatpickr-calendar {
-  font-family: 'Lunasima-Regular', sans-serif;
+  font-family: "Lunasima-Regular", sans-serif;
 }
 
 .flatpickr-input {
@@ -143,7 +149,7 @@
   color: white;
   border-radius: 16px;
   border: none;
-  font-family: 'Lunasima-Regular', sans-serif;
+  font-family: "Lunasima-Regular", sans-serif;
   font-size: 18px;
   display: flex;
   align-items: center;
@@ -215,13 +221,13 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  font-family: 'Lunasima-Regular', sans-serif;
+  font-family: "Lunasima-Regular", sans-serif;
   font-size: 18px;
   color: #1a1040;
 }
 
 .user-name {
-  font-family: 'Lunasima-Regular', sans-serif;
+  font-family: "Lunasima-Regular", sans-serif;
   font-size: 16px;
   color: #1a1040;
 }
@@ -255,17 +261,29 @@
 
 /* Global placeholder fallback */
 input::placeholder {
-  color: rgba(255,255,255,0.65);
+  color: rgba(255, 255, 255, 0.65);
   font-size: 14px;
   opacity: 1;
 }
-input::-webkit-input-placeholder { color: rgba(255,255,255,0.65); font-size: 14px; }
-input:-ms-input-placeholder { color: rgba(255,255,255,0.65); font-size: 14px; }
+input::-webkit-input-placeholder {
+  color: rgba(255, 255, 255, 0.65);
+  font-size: 14px;
+}
+input:-ms-input-placeholder {
+  color: rgba(255, 255, 255, 0.65);
+  font-size: 14px;
+}
 
 /* Flatpickr input placeholder */
 .flatpickr-input::placeholder {
-  color: rgba(255,255,255,0.65);
+  color: rgba(255, 255, 255, 0.65);
   font-size: 14px;
 }
-.flatpickr-input::-webkit-input-placeholder { color: rgba(255,255,255,0.65); font-size: 14px; }
-.flatpickr-input:-ms-input-placeholder { color: rgba(255,255,255,0.65); font-size: 14px; }
+.flatpickr-input::-webkit-input-placeholder {
+  color: rgba(255, 255, 255, 0.65);
+  font-size: 14px;
+}
+.flatpickr-input:-ms-input-placeholder {
+  color: rgba(255, 255, 255, 0.65);
+  font-size: 14px;
+}
