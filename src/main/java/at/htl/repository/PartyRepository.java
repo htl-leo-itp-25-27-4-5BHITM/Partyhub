@@ -26,6 +26,8 @@ public class PartyRepository {
     @Inject LocationRepository locationRepository;
     @Inject CategoryRepository categoryRepository;
     @Inject UserRepository userRepository;
+    private static final DateTimeFormatter PARTY_DTF = DateTimeFormatter.ofPattern("dd.MM.yyyy HH:mm");
+
 
     public List<Party> getParties() {
         List<Party> result;
@@ -170,7 +172,6 @@ public class PartyRepository {
         logger.info(party);
         return Response.ok().build();
     }
-    private static final DateTimeFormatter PARTY_DTF = DateTimeFormatter.ofPattern("dd.MM.yyyy HH:mm");
     private Party partyCreateDtoToParty(PartyCreateDto partyCreateDto) {
         Party party = new Party();
         party.setTitle(partyCreateDto.title());
