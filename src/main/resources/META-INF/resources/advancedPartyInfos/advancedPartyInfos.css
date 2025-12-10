@@ -77,7 +77,16 @@ body {
   display: inline-flex;
   align-items: center;
   padding-bottom: 6px;
+  color: #fff; /* ensure icon appears white */
 }
+
+/* lock svg styling */
+.party-title .lock svg,
+.party-title .lock svg * {
+  stroke: currentColor;
+  fill: none;
+}
+.party-title .lock svg { width: 1.05em; height: 1.05em; vertical-align: middle; }
 
 .meta-row {
   text-align: center;
