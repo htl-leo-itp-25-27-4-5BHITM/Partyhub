@@ -1,5 +1,7 @@
 package at.htl.repository;
 
+// PartyRepository: verwaltet Party-Entities und RSVP-Logik
+
 import at.htl.dto.FilterDto;
 import at.htl.dto.PartyCreateDto;
 import at.htl.model.Location;
@@ -8,6 +10,8 @@ import at.htl.model.User;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import jakarta.persistence.EntityManager;
+import jakarta.persistence.PersistenceException;
+import jakarta.transaction.Transactional;
 import jakarta.ws.rs.BadRequestException;
 import jakarta.ws.rs.core.Response;
 import org.jboss.logging.Logger;
@@ -163,15 +167,87 @@ public class PartyRepository {
         return entityManager.find(Party.class, party_id);
     }
 
-    public Response attendParty(Long id){
-        // TODO: Use current user
+    @Transactional
+    public Response attendParty(Long id, Long userId){
+        if (userId == null) {
+            userId = 1L;
+        }
         Party party = entityManager.find(Party.class, id);
-        User user = userRepository.getUser(1L);
-        party.getUsers().add(user);
-        entityManager.persist(party);
-        logger.info(party);
-        return Response.ok().build();
+        if (party == null) {
+            return Response.status(Response.Status.NOT_FOUND).build();
+        }
+        User user = userRepository.getUser(userId);
+        if (user == null) {
+            return Response.status(Response.Status.BAD_REQUEST).entity("User not found").build();
+        }
+
+        // ensure users collection
+        if (party.getUsers() == null) {
+            party.setUsers(new java.util.HashSet<>());
+        }
+
+        if (party.getUsers().contains(user)) {
+            // already attending, idempotent
+            return Response.noContent().build();
+        }
+
+        try {
+            party.getUsers().add(user);
+            entityManager.merge(party);
+            return Response.noContent().build();
+        } catch (PersistenceException e) {
+            logger.error("Error while attending party: " + e.getMessage());
+            // treat as idempotent
+            return Response.noContent().build();
+        }
     }
+
+    @Transactional
+    public Response unattendParty(Long id, Long userId){
+        if (userId == null) {
+            userId = 1L;
+        }
+        Party party = entityManager.find(Party.class, id);
+        if (party == null) {
+            return Response.status(Response.Status.NOT_FOUND).build();
+        }
+        User user = userRepository.getUser(userId);
+        if (user == null) {
+            return Response.status(Response.Status.BAD_REQUEST).entity("User not found").build();
+        }
+
+        if (party.getUsers() == null || !party.getUsers().contains(user)) {
+            // not attending, idempotent
+            return Response.noContent().build();
+        }
+
+        party.getUsers().remove(user);
+        entityManager.merge(party);
+        return Response.noContent().build();
+    }
+
+    @Transactional
+    public Response attendStatus(Long id, Long userId){
+        if (userId == null) {
+            userId = 1L;
+        }
+        Party party = entityManager.find(Party.class, id);
+        if (party == null) {
+            return Response.status(Response.Status.NOT_FOUND).build();
+        }
+        boolean attending = false;
+        int count = 0;
+        if (party.getUsers() != null) {
+            count = party.getUsers().size();
+            User user = userRepository.getUser(userId);
+            if (user != null) {
+                attending = party.getUsers().contains(user);
+            }
+        }
+        java.util.Map<String, Object> result = java.util.Map.of("attending", attending, "count", count);
+        return Response.ok(result).build();
+    }
+
     private Party partyCreateDtoToParty(PartyCreateDto partyCreateDto) {
         Party party = new Party();
         party.setTitle(partyCreateDto.title());
@@ -204,4 +280,6 @@ public class PartyRepository {
         party.setCreated_at(LocalDateTime.now());
         return party;
     }
+
+
 }
