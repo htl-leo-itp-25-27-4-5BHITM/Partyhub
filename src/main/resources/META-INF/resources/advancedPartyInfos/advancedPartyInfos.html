@@ -1,11 +1,70 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Infopage</title>
-</head>
-<body>
-    
-</body>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Party Info</title>
+
+    <link href="../global.css" rel="stylesheet" />
+    <link href="./advancedPartyInfos.css" rel="stylesheet" />
+  </head>
+  <body>
+    <main class="party-info-root">
+      <section class="party-card">
+        <div class="card-top">
+          <button class="back-btn" aria-label="Back">‹</button>
+          <h1 class="party-title">
+            Hausi bei Zoe <span class="lock">🔒</span>
+          </h1>
+        </div>
+
+        <div class="meta-row">
+          <span>152 Fotos</span>
+          <span class="sep">|</span>
+          <span>Ansfelden</span>
+          <span class="sep">|</span>
+          <span>08.07.2025</span>
+        </div>
+
+        <p class="description">
+          Ich feiere am 08.07 meinen Geburtstag. Ich lade euch alle herzlich ein
+          kommt so viele wie wollen und nehmt alles mit was euer Herz begehrt.
+        </p>
+
+        <a
+          class="website"
+          href="https://www.lj-sierning-schiedlberg.at/tanz-in-der-halle/"
+          target="_blank"
+          rel="noopener"
+          >https://www.lj-sierning-schiedlberg.at/tanz-in-der-halle/</a
+        >
+
+        <div class="info-lines">
+          <div class="info-item"><strong>Theme:</strong> Vikings</div>
+          <div class="info-item"><strong>Begin Time:</strong> 21:00</div>
+          <div class="info-item"><strong>End Time:</strong> 04:00</div>
+          <div class="info-item"><strong>Age restriction:</strong> 16+</div>
+        </div>
+
+        <button class="photos-btn">Photos <span class="arrow">›</span></button>
+
+        <div class="invited-section">
+          <button class="invited-toggle">
+            Invited Members <span class="arrow">›</span>
+          </button>
+
+          <ul class="invited-list" aria-hidden="true">
+            <li class="invited-item accepted">
+              partymausViki <span class="status ok">✔︎</span>
+            </li>
+            <li class="invited-item declined">
+              evapartying <span class="status no">✖︎</span>
+            </li>
+          </ul>
+        </div>
+      </section>
+    </main>
+
+    <script src="./advancedPartyInfos.js"></script>
+  </body>
 </html>
