@@ -161,17 +161,24 @@
           });
 
           dismissBtn.addEventListener('click', () => {
-            card.style.opacity = '0';
-            card.style.transform = 'translateY(6px)';
-
-            // Rückmeldung: Benachrichtigung gelöscht
-            showToast('Benachrichtigung entfernt', 'error');
-
-            setTimeout(() => {
-              const idx = data.findIndex(d=>d.id==item.id);
-              if (idx>-1) data.splice(idx,1);
-              render();
-            }, 180);
+            if (item.type === 'invite') {
+              // For invites: show rejected badge
+              const rejected = document.createElement('div');
+              rejected.className = 'rejected-badge';
+              rejected.innerHTML = '<svg viewBox="0 0 24 24" width="14" height="14" fill="none" aria-hidden="true"><path d="M18 6L6 18M6 6l12 12" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg><span>abgelehnt</span>';
+              actions.replaceWith(rejected);
+              showToast('Einladung abgelehnt', 'error');
+            } else {
+              // For informational items (views/likes): remove the notification from the list
+              card.style.opacity = '0';
+              card.style.transform = 'translateY(6px)';
+              showToast('Benachrichtigung entfernt', 'error');
+              setTimeout(() => {
+                const idx = data.findIndex(d=>d.id==item.id);
+                if (idx>-1) data.splice(idx,1);
+                render();
+              }, 180);
+            }
           });
 
           // neue Einträge oben

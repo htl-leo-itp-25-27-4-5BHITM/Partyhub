@@ -1,3 +1,8 @@
+@font-face {
+  font-family: 'handmade';
+  src: url(../fonts/Lunasima-Regular.ttf);
+}
+
 /* zentriertes Panel */
 :root {
   --panel-width: min(520px, 94vw);
@@ -10,8 +15,10 @@
 
 body{
   margin:0;
-  font-family: Arial, Helvetica, sans-serif;
-  background: linear-gradient(180deg,#141220 0%, #1c1a2b 100%);
+  font-family: handmade;
+  /* Use the same background as the card to avoid white gaps when scrolling */
+  background: var(--card-bg);
+  background-color: var(--card-bg);
   color:#fff;
   min-height:100vh;
   display:block;
@@ -20,14 +27,21 @@ body{
   padding-right:24px;
 }
 
+/* Ensure the root html element uses the same background and fills viewport */
+html {
+  background: var(--card-bg);
+  background-color: var(--card-bg);
+  min-height: 100%;
+}
+
 /* Panel: keine Box mehr, nicht fixed, liste fließt die seite runter */
-.notif-wrap { width:100%; display:block; }
+.notif-wrap { width:100%; display:block; background: var(--card-bg); }
 .notif-panel {
   width:100%;
   max-width: none;
   position: static;            /* nicht fixed */
   margin: 0;
-  background: transparent;     /* keine Box-Farbe */
+  background: var(--card-bg);  /* gleiche Grundfarbe */
   border-radius: 0;
   padding:0;                   /* Titel entfernt, kein extra padding */
   box-shadow: none;
@@ -60,21 +74,16 @@ body{
   font-size: 1.2rem;    /* größer */
   pointer-events: auto;
   display: inline-block; /* bleibt inline in Flow */
-  margin-top: 16px;     /* mehr Abstand oberhalb */
-  margin-bottom: 2px;   /* viel weniger Abstand unterhalb */
+  margin-top: 8px;     /* kleiner Abstand oberhalb */
+  margin-bottom: 6px;   /* reduziert Abstand unterhalb */
 }
 
-/* Liste: sehr kleinen Abstand direkt unter dem Titel */
-.notif-list {
-  margin-top: 2px; /* sehr knapp unter dem Titel */
-}
-
-/* kleine Korrektur: Abstand damit Inhalte nicht direkt unter Username liegen */
-.notif-list { margin-top: 38px; }
+/* Liste: kompakter Abstand direkt unter dem Titel */
+.notif-list { margin-top: 6px; }
 
 /* Card: etwas hellerer Hintergrund, kein sichtbarer Rand - nur Schatten für Abgrenzung */
 .notif-card {
-  background: rgba(255,255,255,0.05); /* deutlich heller als vorher (0.02) */
+  background: rgba(255,255,255,0.06); /* subtiler Kontrast auf var(--card-bg) */
   border-radius:10px;
   padding:10px;
   display:block;
@@ -122,8 +131,8 @@ body{
 /* make actions align to right */
 .notif-actions { flex: 0 0 auto; }
 
-/* distance from fixed username */
-.notif-list { margin-top: 48px; }
+/* distance from fixed username (consolidated) */
+/* .notif-list margin controlled above */
 
 /* Actions (Buttons nebeneinander) */
 .notif-actions {
@@ -154,10 +163,31 @@ body{
 }
 .btn-accept:hover { background: rgba(86,242,124,0.18); transform:translateY(-2px); }
 
+/* Make sure the accept icon itself uses the accent color even before clicking */
+.btn-accept svg,
+.btn-accept svg * {
+  stroke: currentColor;
+  fill: none;
+}
+
+/* More specific selector to mirror .notif-actions .btn-dismiss */
+.notif-actions .btn-accept {
+  background: rgba(86,242,124,0.12);
+  color: var(--accent);
+}
+
 /* Dismiss button: rot */
-.btn-dismiss {
+.notif-actions .btn-dismiss {
+  /* more specific selector so it overrides .notif-actions button color */
   background: rgba(255,46,99,0.08);
   color: var(--danger);
+}
+
+/* Ensure SVG strokes/fills inside dismiss buttons inherit the button color */
+.btn-dismiss svg,
+.btn-dismiss svg * {
+  stroke: currentColor;
+  fill: none; /* keep icons outlined unless they explicitly set a fill */
 }
 .btn-dismiss:hover { background: rgba(255,46,99,0.12); transform:translateY(-2px); }
 
@@ -174,6 +204,33 @@ body{
   font-size:0.80rem; /* leicht kleiner */
 }
 
+/* Ensure the check SVG in accepted-badge uses the accent color */
+.accepted-badge svg,
+.accepted-badge svg * {
+  stroke: currentColor;
+  fill: none;
+}
+
+/* Rejected badge (ersetzt Buttons beim Ablehnen) */
+.rejected-badge {
+  display:inline-flex;
+  gap:8px;
+  align-items:center;
+  padding:6px 8px;
+  border-radius:999px;
+  background: rgba(255,46,99,0.12);
+  color: var(--danger);
+  font-weight:700;
+  font-size:0.80rem;
+}
+
+/* Ensure the X SVG in rejected-badge uses the danger color */
+.rejected-badge svg,
+.rejected-badge svg * {
+  stroke: currentColor;
+  fill: none;
+}
+
 /* kleine Hilfsklasse für leeren Zustand */
 .muted { color:rgba(255,255,255,0.6); text-align:center; padding:18px 6px; }
 
@@ -186,7 +243,7 @@ body{
 
 .notif-message {
   font-weight:700;
-  font-size:0.88rem; /* verkleinert von 0.95rem */
+  font-size:0.84rem; /* leicht kleiner */
   white-space:normal;
   color:#fff;
 }
