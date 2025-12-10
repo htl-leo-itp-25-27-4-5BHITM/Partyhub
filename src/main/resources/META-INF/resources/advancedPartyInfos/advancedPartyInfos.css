@@ -127,9 +127,25 @@ body {
   margin: 28px 0 18px 0;
   cursor: pointer;
 }
+.photos-btn { position: relative; }
+.photos-btn {
+  position: relative;
+  /* leave space for the arrow so text doesn't flow underneath */
+  padding-right: 44px;
+}
 .photos-btn .arrow {
-  margin-left: 10px;
-  font-size: 26px;
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  width: 28px;
+  height: 28px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transform: translateY(-50%);
+  transform-origin: center center;
+  transition: transform 0.18s ease;
+  z-index: 2; /* sit above the text */
 }
 
 .invited-section {
@@ -147,16 +163,47 @@ body {
   font-size: 22px;
   cursor: pointer;
 }
+.invited-toggle { position: relative; padding-right: 44px; }
 .invited-toggle .arrow {
-  margin-left: auto;
-  display: inline-block;
-  transform-origin: 50% 50%;
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  width: 28px;
+  height: 28px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transform: translateY(-50%) rotate(0deg);
+  transform-origin: center center;
   will-change: transform;
-  transform: rotate(0deg);
   transition: transform 0.18s ease;
+  z-index: 2;
 }
 .invited-section.open .invited-toggle .arrow {
+  /* keep container fixed; rotate the inner svg instead */
+  transform: translateY(-50%);
+}
+
+.invited-section.open .invited-toggle .arrow svg {
   transform: rotate(90deg);
+}
+
+/* rotate photos svg when a class 'open' is added to photos-btn (no JS by default) */
+.photos-btn.open .arrow svg {
+  transform: rotate(90deg);
+}
+
+/* Ensure arrow svgs are centered and rotate smoothly in place */
+.photos-btn .arrow svg,
+.invited-toggle .arrow svg {
+  width: 16px;
+  height: 16px;
+  display: block;
+  transform-origin: center center;
+  transform: rotate(0deg);
+  transition: transform 320ms cubic-bezier(.2,.9,.2,1);
+  transform-style: preserve-3d;
+  backface-visibility: hidden;
 }
 
 .invited-list {
@@ -188,6 +235,14 @@ body {
 .invited-item.declined .status {
   color: #e53935;
 }
+
+/* Ensure inline status svgs inherit the status color and size */
+.invited-item .status svg,
+.invited-item .status svg * {
+  stroke: currentColor;
+  fill: none;
+}
+.invited-item .status svg { width: 1em; height: 1em; display: inline-block; vertical-align: middle; }
 
 /* small responsive tweaks */
 @media (max-width: 420px) {
