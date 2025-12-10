@@ -69,7 +69,8 @@
 }
 
 .field input::placeholder {
-  color: transparent;
+  color: #ffffff; /* make placeholders visible */
+  opacity: 1; /* ensure visible on Safari */
 }
 
 /* Submit */

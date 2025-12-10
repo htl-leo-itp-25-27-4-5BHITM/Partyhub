@@ -15,10 +15,6 @@ public class UserRepository {
     @Inject
     EntityManager em;
 
-    @Inject
-    SecurityIdentity identity;
-    @Inject
-    JsonWebToken jwt;
 
     public UserRepository() {
 
