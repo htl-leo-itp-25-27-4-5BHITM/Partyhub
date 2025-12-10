@@ -15,7 +15,6 @@ public class UserRepository {
     @Inject
     EntityManager em;
 
-
     public UserRepository() {
 
     }
