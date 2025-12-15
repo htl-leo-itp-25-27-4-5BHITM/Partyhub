@@ -1,7 +1,5 @@
 package at.htl.repository;
 
-// PartyRepository: verwaltet Party-Entities und RSVP-Logik
-
 import at.htl.dto.FilterDto;
 import at.htl.dto.PartyCreateDto;
 import at.htl.model.Location;
@@ -24,6 +22,8 @@ import java.util.List;
 @ApplicationScoped
 public class PartyRepository {
 
+    final Long DEFAULT_USER_ID = 1L;
+
     @Inject EntityManager entityManager;
     @Inject Logger logger;
 
@@ -42,7 +42,7 @@ public class PartyRepository {
     public Response addParty(PartyCreateDto partyCreateDto) {
         Party party = partyCreateDtoToParty(partyCreateDto);
         // TODO: Use current user
-        party.setHost_user(userRepository.getUser(1L));
+        party.setHost_user(userRepository.getUser(DEFAULT_USER_ID));
         entityManager.persist(party);
         return  Response.ok().build();
     }
@@ -53,12 +53,12 @@ public class PartyRepository {
         if (party == null) {
             return Response.status(Response.Status.NOT_FOUND).build();
         }
-        Long hostId = 1L;   // TODO: replace with actual authenticated user id
+
         Long matches = entityManager.createQuery(
                         "SELECT COUNT(p) FROM Party p WHERE p.id = :id AND p.host_user.id = :hostId",
                         Long.class)
                 .setParameter("id", id)
-                .setParameter("hostId", hostId)
+                .setParameter("hostId", DEFAULT_USER_ID) // TODO: replace with actual authenticated user id
                 .getSingleResult();
         if (matches != null && matches > 0) {
             entityManager.remove(party);
@@ -75,7 +75,7 @@ public class PartyRepository {
         }
         Party updatedParty = partyCreateDtoToParty(partyCreateDto);
         updatedParty.setId(id);
-        updatedParty.setHost_user(userRepository.getUser(1L));
+        updatedParty.setHost_user(userRepository.getUser(DEFAULT_USER_ID));
         logger.info(updatedParty.getCategory().getName());
 
         entityManager.merge(updatedParty);
@@ -168,56 +168,39 @@ public class PartyRepository {
     }
 
     @Transactional
-    public Response attendParty(Long id, Long userId){
-        if (userId == null) {
-            userId = 1L;
-        }
+    public Response attendParty(Long id){
         Party party = entityManager.find(Party.class, id);
         if (party == null) {
             return Response.status(Response.Status.NOT_FOUND).build();
         }
-        User user = userRepository.getUser(userId);
+        User user = userRepository.getUser(DEFAULT_USER_ID);
         if (user == null) {
             return Response.status(Response.Status.BAD_REQUEST).entity("User not found").build();
         }
-
-        // ensure users collection
-        if (party.getUsers() == null) {
-            party.setUsers(new java.util.HashSet<>());
-        }
-
         if (party.getUsers().contains(user)) {
-            // already attending, idempotent
-            return Response.noContent().build();
+            return Response.status(Response.Status.CONFLICT).build();
         }
-
         try {
             party.getUsers().add(user);
-            entityManager.merge(party);
+            entityManager.persist(party);
             return Response.noContent().build();
         } catch (PersistenceException e) {
             logger.error("Error while attending party: " + e.getMessage());
-            // treat as idempotent
             return Response.noContent().build();
         }
     }
 
-    @Transactional
-    public Response unattendParty(Long id, Long userId){
-        if (userId == null) {
-            userId = 1L;
-        }
+    public Response unattendParty(Long id){
         Party party = entityManager.find(Party.class, id);
         if (party == null) {
             return Response.status(Response.Status.NOT_FOUND).build();
         }
-        User user = userRepository.getUser(userId);
+        User user = userRepository.getUser(DEFAULT_USER_ID);
         if (user == null) {
             return Response.status(Response.Status.BAD_REQUEST).entity("User not found").build();
         }
 
         if (party.getUsers() == null || !party.getUsers().contains(user)) {
-            // not attending, idempotent
             return Response.noContent().build();
         }
 
@@ -226,11 +209,7 @@ public class PartyRepository {
         return Response.noContent().build();
     }
 
-    @Transactional
-    public Response attendStatus(Long id, Long userId){
-        if (userId == null) {
-            userId = 1L;
-        }
+    public Response attendStatus(Long id){
         Party party = entityManager.find(Party.class, id);
         if (party == null) {
             return Response.status(Response.Status.NOT_FOUND).build();
@@ -239,7 +218,7 @@ public class PartyRepository {
         int count = 0;
         if (party.getUsers() != null) {
             count = party.getUsers().size();
-            User user = userRepository.getUser(userId);
+            User user = userRepository.getUser(DEFAULT_USER_ID);
             if (user != null) {
                 attending = party.getUsers().contains(user);
             }

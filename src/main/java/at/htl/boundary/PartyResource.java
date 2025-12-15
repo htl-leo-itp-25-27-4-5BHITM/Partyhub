@@ -16,7 +16,6 @@ import java.io.IOException;
 @ApplicationScoped
 @Path("/api/party")
 public class PartyResource {
-    // PartyResource endpoints for party management
     @Inject
     PartyRepository partyRepository;
     @Inject
@@ -83,23 +82,23 @@ public class PartyResource {
     @Produces(MediaType.APPLICATION_JSON)
     @Transactional
     @Path("/{id}/attend")
-    public Response attendParty(@PathParam("id") Long partyId, @HeaderParam("X-User-Id") Long userId) {
-        return partyRepository.attendParty(partyId, userId);
+    public Response attendParty(@PathParam("id") Long partyId) {
+        return partyRepository.attendParty(partyId);
     }
 
     @DELETE
     @Produces(MediaType.APPLICATION_JSON)
     @Transactional
     @Path("/{id}/attend")
-    public Response unattendParty(@PathParam("id") Long partyId, @HeaderParam("X-User-Id") Long userId) {
-        return partyRepository.unattendParty(partyId, userId);
+    public Response unattendParty(@PathParam("id") Long partyId) {
+        return partyRepository.unattendParty(partyId);
     }
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     @Path("/{id}/attend/status")
-    public Response attendStatus(@PathParam("id") Long partyId, @HeaderParam("X-User-Id") Long userId) {
-        return partyRepository.attendStatus(partyId, userId);
+    public Response attendStatus(@PathParam("id") Long partyId) {
+        return partyRepository.attendStatus(partyId);
     }
 
     @GET
