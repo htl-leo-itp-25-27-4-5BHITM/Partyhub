@@ -1,5 +1,6 @@
 package at.htl.repository;
 
+import at.htl.boundary.PartyResource;
 import at.htl.dto.FilterDto;
 import at.htl.dto.PartyCreateDto;
 import at.htl.model.Location;
@@ -10,6 +11,7 @@ import jakarta.inject.Inject;
 import jakarta.persistence.EntityManager;
 import jakarta.ws.rs.BadRequestException;
 import jakarta.ws.rs.core.Response;
+import jakarta.ws.rs.core.UriBuilder;
 import org.jboss.logging.Logger;
 
 import java.time.LocalDateTime;
@@ -27,6 +29,8 @@ public class PartyRepository {
     @Inject CategoryRepository categoryRepository;
     @Inject UserRepository userRepository;
 
+    private static final DateTimeFormatter PARTY_DTF = DateTimeFormatter.ofPattern("dd.MM.yyyy HH:mm");
+
     public List<Party> getParties() {
         List<Party> result;
         result = entityManager.createQuery("SELECT u FROM Party u", Party.class).getResultList();
@@ -38,7 +42,7 @@ public class PartyRepository {
         // TODO: Use current user
         party.setHost_user(userRepository.getUser(1L));
         entityManager.persist(party);
-        return  Response.ok().build();
+        return Response.created(UriBuilder.fromMethod(PartyResource.class, "addParty").build()).build();
     }
 
     public Response removeParty( Long id) {
@@ -56,7 +60,7 @@ public class PartyRepository {
                 .getSingleResult();
         if (matches != null && matches > 0) {
             entityManager.remove(party);
-            return Response.ok().build();
+            return Response.status(204).entity(party).build();
         }
         return Response.status(Response.Status.FORBIDDEN).build();
     }
@@ -75,8 +79,8 @@ public class PartyRepository {
         entityManager.merge(updatedParty);
         return Response.ok().entity(updatedParty).build();
     }
-    public Response filterParty(FilterDto req) {
-        List<Party> result = switch (req.filterType().toLowerCase()) {
+    public Response filterParty(String filter, FilterDto req) {
+        List<Party> result = switch (filter.toLowerCase()) {
             case "content"      -> findByTitleOrDescription(req.value());
             case "category" -> findByCategory(req.value());
             case "date"       ->findByDateRange(req.start(), req.end());
@@ -117,11 +121,11 @@ public class PartyRepository {
         LocalDateTime start;
         LocalDateTime end;
         try {
-            start = LocalDateTime.parse(startStr.trim());
-            end   = LocalDateTime.parse(endStr.trim());
+            start = LocalDateTime.parse(startStr.trim(), PARTY_DTF);
+            end   = LocalDateTime.parse(endStr.trim(), PARTY_DTF);
         } catch (DateTimeParseException e) {
             logger.info(e.getMessage());
-            throw new BadRequestException("Invalid date format – expected ISO‑8601 (yyyy-MM-dd'T'HH:mm:ss)");
+            throw new BadRequestException("Invalid date format");
         }
 
         if (end.isBefore(start)) {
@@ -170,7 +174,6 @@ public class PartyRepository {
         logger.info(party);
         return Response.ok().build();
     }
-    private static final DateTimeFormatter PARTY_DTF = DateTimeFormatter.ofPattern("dd.MM.yyyy HH:mm");
     private Party partyCreateDtoToParty(PartyCreateDto partyCreateDto) {
         Party party = new Party();
         party.setTitle(partyCreateDto.title());

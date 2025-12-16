@@ -11,8 +11,6 @@ import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 
-import java.io.IOException;
-
 @ApplicationScoped
 @Path("/api/party")
 public class PartyResource {
@@ -42,7 +40,7 @@ public class PartyResource {
     @Transactional
     @Produces(MediaType.APPLICATION_JSON)
     @Path("/{id}")
-    public Response getSingleParty(@PathParam("id") Long id) {
+    public Response getParty(@PathParam("id") Long id) {
         return Response.ok().entity(partyRepository.getPartyById(id)).build();
     }
 
@@ -66,9 +64,9 @@ public class PartyResource {
     @POST
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
-    @Path("/")
-    public Response filterParty(FilterDto filterDto) {
-        return partyRepository.filterParty(filterDto);
+    @Path("/filter")
+    public Response filterParty(@QueryParam("filter") String filter, FilterDto filterDto) {
+        return partyRepository.filterParty(filter, filterDto);
     }
 
     @GET
@@ -98,7 +96,7 @@ public class PartyResource {
     @Consumes(MediaType.MULTIPART_FORM_DATA)
     @Produces(MediaType.APPLICATION_JSON)
     @Transactional
-    public Response upload(MediaRepository.FileUploadInput input, @PathParam("id") long partyId) throws IOException {
+    public Response upload(MediaRepository.FileUploadInput input, @PathParam("id") long partyId) {
         return mediaRepository.upload(input, partyId);
     }
 }

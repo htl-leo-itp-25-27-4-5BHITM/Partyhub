@@ -54,11 +54,15 @@ public class MediaRepository {
         return result;
     }
 
-    public Response upload(FileUploadInput input, long partyId) throws IOException {
+    public Response upload(FileUploadInput input, long partyId) {
         // TODO: Sanitize uploads
         logger.log(Logger.Level.DEBUG, "upload");
         String uploadDir = "src/main/resources/uploads/party" + partyId + "/";
-        Files.createDirectories(Paths.get(uploadDir));
+        try {
+            Files.createDirectories(Paths.get(uploadDir));
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
         for (FileUpload file : input.file) {
             // TODO: Use correct media path for db
             // TODO: Use current user
@@ -66,7 +70,11 @@ public class MediaRepository {
             entityManager.persist(media);
             java.nio.file.Path uploadedFile = file.uploadedFile();
             java.nio.file.Path targetLocation = Paths.get(uploadDir, Instant.now().toString() + file.fileName());
-            Files.move(uploadedFile, targetLocation);
+            try {
+                Files.move(uploadedFile, targetLocation);
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
             logger.log(Logger.Level.INFO, "File saved to: " + targetLocation);
         }
         return Response.ok().build();
