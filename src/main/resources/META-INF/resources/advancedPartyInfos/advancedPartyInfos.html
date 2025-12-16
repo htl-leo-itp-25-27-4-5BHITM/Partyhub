@@ -1,11 +1,70 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Infopage</title>
-</head>
-<body>
-    
-</body>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Party Info</title>
+
+    <link href="../global.css" rel="stylesheet" />
+    <link href="./advancedPartyInfos.css" rel="stylesheet" />
+  </head>
+  <body>
+    <main class="party-info-root">
+      <section class="party-card">
+        <div class="card-top">
+          <button class="back-btn" aria-label="Back">‹</button>
+          <h1 class="party-title">
+            Hausi bei Zoe <span class="lock" aria-hidden="true"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" aria-hidden="true"><rect x="3" y="10" width="18" height="11" rx="2" stroke="currentColor" stroke-width="1.6"/><path d="M7 10V7a5 5 0 0 1 10 0v3" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+          </h1>
+        </div>
+
+        <div class="meta-row">
+          <span>152 Fotos</span>
+          <span class="sep">|</span>
+          <span>Ansfelden</span>
+          <span class="sep">|</span>
+          <span>08.07.2025</span>
+        </div>
+
+        <p class="description">
+          Ich feiere am 08.07 meinen Geburtstag. Ich lade euch alle herzlich ein
+          kommt so viele wie wollen und nehmt alles mit was euer Herz begehrt.
+        </p>
+
+        <a
+          class="website"
+          href="https://www.lj-sierning-schiedlberg.at/tanz-in-der-halle/"
+          target="_blank"
+          rel="noopener"
+          >https://www.lj-sierning-schiedlberg.at/tanz-in-der-halle/</a
+        >
+
+        <div class="info-lines">
+          <div class="info-item"><strong>Theme:</strong> Vikings</div>
+          <div class="info-item"><strong>Begin Time:</strong> 21:00</div>
+          <div class="info-item"><strong>End Time:</strong> 04:00</div>
+          <div class="info-item"><strong>Age restriction:</strong> 16+</div>
+        </div>
+
+  <button class="photos-btn">Photos <span class="arrow"><svg viewBox="0 0 24 24" width="14" height="14" aria-hidden="true"><path d="M9 6l6 6-6 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" fill="none"/></svg></span></button>
+
+        <div class="invited-section">
+          <button class="invited-toggle">
+            Invited Members <span class="arrow"><svg viewBox="0 0 24 24" width="14" height="14" aria-hidden="true"><path d="M9 6l6 6-6 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" fill="none"/></svg></span>
+          </button>
+
+          <ul class="invited-list" aria-hidden="true">
+            <li class="invited-item accepted">
+              partymausViki <span class="status ok"><svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true" fill="none"><path d="M20 6L9 17l-5-5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+            </li>
+            <li class="invited-item declined">
+              evapartying <span class="status no"><svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true" fill="none"><path d="M18 6L6 18M6 6l12 12" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+            </li>
+          </ul>
+        </div>
+      </section>
+    </main>
+
+    <script src="./advancedPartyInfos.js"></script>
+  </body>
 </html>

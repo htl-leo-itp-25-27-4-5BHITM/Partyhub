@@ -84,6 +84,21 @@ public class PartyResource {
         return partyRepository.attendParty(partyId);
     }
 
+    @DELETE
+    @Produces(MediaType.APPLICATION_JSON)
+    @Transactional
+    @Path("/{id}/attend")
+    public Response unattendParty(@PathParam("id") Long partyId) {
+        return partyRepository.unattendParty(partyId);
+    }
+
+    @GET
+    @Produces(MediaType.APPLICATION_JSON)
+    @Path("/{id}/attend/status")
+    public Response attendStatus(@PathParam("id") Long partyId) {
+        return partyRepository.attendStatus(partyId);
+    }
+
     @GET
     @Path("/{id}/media")
     @Produces(MediaType.APPLICATION_JSON)

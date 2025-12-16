@@ -59,7 +59,7 @@ loadMedia()
 
 async function fetchParties() {
     try {
-        const response = await fetch('http://localhost:8080/api/party');
+        const response = await fetch('/api/party');
         const parties = await response.json();
         const partyTableBody = document.getElementById('partyTable').querySelector('tbody');
         partyTableBody.innerHTML = '';
@@ -73,11 +73,60 @@ async function fetchParties() {
                     <td>${party.max_people}</td>
                     <td>${party.min_age}</td>
                     <td>${party.max_age}</td>
+                    <td>
+                        <button class="btn btn-sm btn-success" onclick="attendParty(${party.id})">Anmelden</button>
+                        <button class="btn btn-sm btn-danger" onclick="unattendParty(${party.id})">Abmelden</button>
+                    </td>
                 </tr>`;
             partyTableBody.insertAdjacentHTML('beforeend', row);
         });
     } catch (error) {
         console.error('Error fetching parties:', error);
+    }
+}
+
+async function attendParty(partyId) {
+    const userId = document.getElementById('currentUserId').value || '1';
+    try {
+        const res = await fetch(`/api/party/${partyId}/attend`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-User-Id': userId
+            }
+        });
+        if (!res.ok) {
+            console.error('Attend failed', res.status);
+            alert('Anmelden fehlgeschlagen: ' + res.status);
+            return;
+        }
+        // refresh parties
+        await fetchParties();
+    } catch (err) {
+        console.error('Attend error', err);
+        alert('Fehler beim Anmelden');
+    }
+}
+
+async function unattendParty(partyId) {
+    const userId = document.getElementById('currentUserId').value || '1';
+    try {
+        const res = await fetch(`/api/party/${partyId}/attend`, {
+            method: 'DELETE',
+            headers: {
+                'X-User-Id': userId
+            }
+        });
+        if (!res.ok) {
+            console.error('Unattend failed', res.status);
+            alert('Abmelden fehlgeschlagen: ' + res.status);
+            return;
+        }
+        // refresh parties
+        await fetchParties();
+    } catch (err) {
+        console.error('Unattend error', err);
+        alert('Fehler beim Abmelden');
     }
 }
 document.getElementById('filterForm').addEventListener('submit', async e => {

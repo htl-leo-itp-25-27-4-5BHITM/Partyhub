@@ -1,3 +1,8 @@
+@font-face {
+  font-family: 'handmade';
+  src: url(../fonts/Lunasima-Regular.ttf);
+}
+
 /* zentriertes Panel */
 :root {
   --panel-width: min(520px, 94vw);
@@ -10,8 +15,10 @@
 
 body{
   margin:0;
-  font-family: Arial, Helvetica, sans-serif;
-  background: linear-gradient(180deg,#141220 0%, #1c1a2b 100%);
+  font-family: handmade;
+  /* Use the same background as the card to avoid white gaps when scrolling */
+  background: var(--card-bg);
+  background-color: var(--card-bg);
   color:#fff;
   min-height:100vh;
   display:block;
@@ -20,14 +27,21 @@ body{
   padding-right:24px;
 }
 
+/* Ensure the root html element uses the same background and fills viewport */
+html {
+  background: var(--card-bg);
+  background-color: var(--card-bg);
+  min-height: 100%;
+}
+
 /* Panel: keine Box mehr, nicht fixed, liste fließt die seite runter */
-.notif-wrap { width:100%; display:block; }
+.notif-wrap { width:100%; display:block; background: var(--card-bg); }
 .notif-panel {
   width:100%;
   max-width: none;
   position: static;            /* nicht fixed */
   margin: 0;
-  background: transparent;     /* keine Box-Farbe */
+  background: var(--card-bg);  /* gleiche Grundfarbe */
   border-radius: 0;
   padding:0;                   /* Titel entfernt, kein extra padding */
   box-shadow: none;
@@ -60,26 +74,22 @@ body{
   font-size: 1.2rem;    /* größer */
   pointer-events: auto;
   display: inline-block; /* bleibt inline in Flow */
-  margin-top: 16px;     /* mehr Abstand oberhalb */
-  margin-bottom: 2px;   /* viel weniger Abstand unterhalb */
+  margin-top: 8px;     /* kleiner Abstand oberhalb */
+  margin-bottom: 6px;   /* reduziert Abstand unterhalb */
 }
 
-/* Liste: sehr kleinen Abstand direkt unter dem Titel */
-.notif-list {
-  margin-top: 2px; /* sehr knapp unter dem Titel */
-}
+/* Liste: kompakter Abstand direkt unter dem Titel */
+.notif-list { margin-top: 6px; }
 
-/* kleine Korrektur: Abstand damit Inhalte nicht direkt unter Username liegen */
-.notif-list { margin-top: 38px; }
-
-/* Card */
+/* Card: etwas hellerer Hintergrund, kein sichtbarer Rand - nur Schatten für Abgrenzung */
 .notif-card {
-  background: rgba(255,255,255,0.02);
+  background: rgba(255,255,255,0.06); /* subtiler Kontrast auf var(--card-bg) */
   border-radius:10px;
   padding:10px;
   display:block;
   transition:opacity .18s ease, transform .18s ease;
-  border:1px solid rgba(255,255,255,0.03);
+  border: none; /* Border entfernt */
+  box-shadow: 0 2px 10px rgba(0,0,0,0.25), 0 0 0 1px rgba(255,255,255,0.02); /* Schatten + subtiler "Outline"-Effekt */
 }
 
 /* Row: Avatar links, Text mittig, Actions rechts */
@@ -121,8 +131,8 @@ body{
 /* make actions align to right */
 .notif-actions { flex: 0 0 auto; }
 
-/* distance from fixed username */
-.notif-list { margin-top: 48px; }
+/* distance from fixed username (consolidated) */
+/* .notif-list margin controlled above */
 
 /* Actions (Buttons nebeneinander) */
 .notif-actions {
@@ -153,10 +163,31 @@ body{
 }
 .btn-accept:hover { background: rgba(86,242,124,0.18); transform:translateY(-2px); }
 
+/* Make sure the accept icon itself uses the accent color even before clicking */
+.btn-accept svg,
+.btn-accept svg * {
+  stroke: currentColor;
+  fill: none;
+}
+
+/* More specific selector to mirror .notif-actions .btn-dismiss */
+.notif-actions .btn-accept {
+  background: rgba(86,242,124,0.12);
+  color: var(--accent);
+}
+
 /* Dismiss button: rot */
-.btn-dismiss {
+.notif-actions .btn-dismiss {
+  /* more specific selector so it overrides .notif-actions button color */
   background: rgba(255,46,99,0.08);
   color: var(--danger);
+}
+
+/* Ensure SVG strokes/fills inside dismiss buttons inherit the button color */
+.btn-dismiss svg,
+.btn-dismiss svg * {
+  stroke: currentColor;
+  fill: none; /* keep icons outlined unless they explicitly set a fill */
 }
 .btn-dismiss:hover { background: rgba(255,46,99,0.12); transform:translateY(-2px); }
 
@@ -173,6 +204,33 @@ body{
   font-size:0.80rem; /* leicht kleiner */
 }
 
+/* Ensure the check SVG in accepted-badge uses the accent color */
+.accepted-badge svg,
+.accepted-badge svg * {
+  stroke: currentColor;
+  fill: none;
+}
+
+/* Rejected badge (ersetzt Buttons beim Ablehnen) */
+.rejected-badge {
+  display:inline-flex;
+  gap:8px;
+  align-items:center;
+  padding:6px 8px;
+  border-radius:999px;
+  background: rgba(255,46,99,0.12);
+  color: var(--danger);
+  font-weight:700;
+  font-size:0.80rem;
+}
+
+/* Ensure the X SVG in rejected-badge uses the danger color */
+.rejected-badge svg,
+.rejected-badge svg * {
+  stroke: currentColor;
+  fill: none;
+}
+
 /* kleine Hilfsklasse für leeren Zustand */
 .muted { color:rgba(255,255,255,0.6); text-align:center; padding:18px 6px; }
 
@@ -185,7 +243,7 @@ body{
 
 .notif-message {
   font-weight:700;
-  font-size:0.88rem; /* verkleinert von 0.95rem */
+  font-size:0.84rem; /* leicht kleiner */
   white-space:normal;
   color:#fff;
 }
@@ -194,4 +252,98 @@ body{
   font-size:0.72rem; /* verkleinert von 0.78rem */
   color:rgba(255,255,255,0.6);
   margin-top:4px;
+}
+
+/* Toast notification (Rückmeldung bei Accept/Dismiss) — modernes Design */
+.toast-container {
+  position: fixed;
+  bottom: 24px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 9999;
+  pointer-events: none;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  align-items: center;
+}
+
+.toast {
+  background: rgba(255,255,255,0.08);
+  backdrop-filter: blur(12px);
+  color: #fff;
+  padding: 12px 18px;
+  border-radius: 12px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  box-shadow: 0 6px 20px rgba(0,0,0,0.35), 0 0 0 1px rgba(255,255,255,0.08);
+  opacity: 0;
+  transform: translateY(16px) scale(0.95);
+  animation: toast-pop-in 0.25s cubic-bezier(0.34,1.56,0.64,1) forwards, 
+             toast-fade-out 0.3s ease 2.2s forwards;
+  pointer-events: auto;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 240px;
+}
+
+/* Icon im Toast (links) */
+.toast-icon {
+  flex-shrink: 0;
+  width: 20px;
+  height: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.toast-icon svg {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+/* Success Toast (grüner Akzent) */
+.toast.success {
+  background: linear-gradient(135deg, rgba(86,242,124,0.15) 0%, rgba(86,242,124,0.05) 100%);
+  border: 1px solid rgba(86,242,124,0.25);
+}
+
+.toast.success .toast-icon svg {
+  color: var(--accent);
+  stroke: var(--accent);
+}
+
+/* Error Toast (roter Akzent) */
+.toast.error {
+  background: linear-gradient(135deg, rgba(255,46,99,0.15) 0%, rgba(255,46,99,0.05) 100%);
+  border: 1px solid rgba(255,46,99,0.25);
+}
+
+.toast.error .toast-icon svg {
+  color: var(--danger);
+  stroke: var(--danger);
+}
+
+@keyframes toast-pop-in {
+  to { 
+    opacity: 1; 
+    transform: translateY(0) scale(1); 
+  }
+}
+
+@keyframes toast-fade-out {
+  to { 
+    opacity: 0; 
+    transform: translateY(-8px) scale(0.96); 
+  }
+}
+
+input::placeholder {
+  color: rgba(255,255,255,0.75); /* sichtbar auf dunklem BG */
+  opacity: 1; /* einige Browser reduzieren sonst */
+}
+input {
+  color: #fff; /* eigentlicher Text */
 }
