@@ -11,12 +11,9 @@ import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 
-import java.io.IOException;
-
 @ApplicationScoped
 @Path("/api/party")
 public class PartyResource {
-    // PartyResource endpoints for party management
     @Inject
     PartyRepository partyRepository;
     @Inject
@@ -43,7 +40,7 @@ public class PartyResource {
     @Transactional
     @Produces(MediaType.APPLICATION_JSON)
     @Path("/{id}")
-    public Response getSingleParty(@PathParam("id") Long id) {
+    public Response getParty(@PathParam("id") Long id) {
         return Response.ok().entity(partyRepository.getPartyById(id)).build();
     }
 
@@ -67,9 +64,9 @@ public class PartyResource {
     @POST
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
-    @Path("/")
-    public Response filterParty(FilterDto filterDto) {
-        return partyRepository.filterParty(filterDto);
+    @Path("/filter")
+    public Response filterParty(@QueryParam("filter") String filter, FilterDto filterDto) {
+        return partyRepository.filterParty(filter, filterDto);
     }
 
     @GET
@@ -83,23 +80,23 @@ public class PartyResource {
     @Produces(MediaType.APPLICATION_JSON)
     @Transactional
     @Path("/{id}/attend")
-    public Response attendParty(@PathParam("id") Long partyId, @HeaderParam("X-User-Id") Long userId) {
-        return partyRepository.attendParty(partyId, userId);
+    public Response attendParty(@PathParam("id") Long partyId) {
+        return partyRepository.attendParty(partyId);
     }
 
     @DELETE
     @Produces(MediaType.APPLICATION_JSON)
     @Transactional
     @Path("/{id}/attend")
-    public Response unattendParty(@PathParam("id") Long partyId, @HeaderParam("X-User-Id") Long userId) {
-        return partyRepository.unattendParty(partyId, userId);
+    public Response leaveParty(@PathParam("id") Long partyId) {
+        return partyRepository.leaveParty(partyId);
     }
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     @Path("/{id}/attend/status")
-    public Response attendStatus(@PathParam("id") Long partyId, @HeaderParam("X-User-Id") Long userId) {
-        return partyRepository.attendStatus(partyId, userId);
+    public Response attendStatus(@PathParam("id") Long partyId) {
+        return partyRepository.attendStatus(partyId);
     }
 
     @GET
@@ -114,7 +111,7 @@ public class PartyResource {
     @Consumes(MediaType.MULTIPART_FORM_DATA)
     @Produces(MediaType.APPLICATION_JSON)
     @Transactional
-    public Response upload(MediaRepository.FileUploadInput input, @PathParam("id") long partyId) throws IOException {
+    public Response upload(MediaRepository.FileUploadInput input, @PathParam("id") long partyId) {
         return mediaRepository.upload(input, partyId);
     }
 }

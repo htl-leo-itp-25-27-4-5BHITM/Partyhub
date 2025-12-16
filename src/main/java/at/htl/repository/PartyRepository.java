@@ -1,7 +1,6 @@
 package at.htl.repository;
 
-// PartyRepository: verwaltet Party-Entities und RSVP-Logik
-
+import at.htl.boundary.PartyResource;
 import at.htl.dto.FilterDto;
 import at.htl.dto.PartyCreateDto;
 import at.htl.model.Location;
@@ -11,9 +10,9 @@ import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceException;
-import jakarta.transaction.Transactional;
 import jakarta.ws.rs.BadRequestException;
 import jakarta.ws.rs.core.Response;
+import jakarta.ws.rs.core.UriBuilder;
 import org.jboss.logging.Logger;
 
 import java.time.LocalDateTime;
@@ -24,14 +23,17 @@ import java.util.List;
 @ApplicationScoped
 public class PartyRepository {
 
+    // TODO: replace with actual authenticated user id
+    final Long DEFAULT_USER_ID = 1L;
+
     @Inject EntityManager entityManager;
     @Inject Logger logger;
 
     @Inject LocationRepository locationRepository;
     @Inject CategoryRepository categoryRepository;
     @Inject UserRepository userRepository;
-    private static final DateTimeFormatter PARTY_DTF = DateTimeFormatter.ofPattern("dd.MM.yyyy HH:mm");
 
+    private static final DateTimeFormatter PARTY_DTF = DateTimeFormatter.ofPattern("dd.MM.yyyy HH:mm");
 
     public List<Party> getParties() {
         List<Party> result;
@@ -42,9 +44,9 @@ public class PartyRepository {
     public Response addParty(PartyCreateDto partyCreateDto) {
         Party party = partyCreateDtoToParty(partyCreateDto);
         // TODO: Use current user
-        party.setHost_user(userRepository.getUser(1L));
+        party.setHost_user(userRepository.getUser(DEFAULT_USER_ID));
         entityManager.persist(party);
-        return  Response.ok().build();
+        return Response.created(UriBuilder.fromMethod(PartyResource.class, "addParty").build()).build();
     }
 
     public Response removeParty( Long id) {
@@ -53,16 +55,15 @@ public class PartyRepository {
         if (party == null) {
             return Response.status(Response.Status.NOT_FOUND).build();
         }
-        Long hostId = 1L;   // TODO: replace with actual authenticated user id
         Long matches = entityManager.createQuery(
                         "SELECT COUNT(p) FROM Party p WHERE p.id = :id AND p.host_user.id = :hostId",
                         Long.class)
                 .setParameter("id", id)
-                .setParameter("hostId", hostId)
+                .setParameter("hostId", DEFAULT_USER_ID) // TODO: replace with actual authenticated user id
                 .getSingleResult();
         if (matches != null && matches > 0) {
             entityManager.remove(party);
-            return Response.ok().build();
+            return Response.status(204).entity(party).build();
         }
         return Response.status(Response.Status.FORBIDDEN).build();
     }
@@ -75,14 +76,14 @@ public class PartyRepository {
         }
         Party updatedParty = partyCreateDtoToParty(partyCreateDto);
         updatedParty.setId(id);
-        updatedParty.setHost_user(userRepository.getUser(1L));
+        updatedParty.setHost_user(userRepository.getUser(DEFAULT_USER_ID));
         logger.info(updatedParty.getCategory().getName());
 
         entityManager.merge(updatedParty);
         return Response.ok().entity(updatedParty).build();
     }
-    public Response filterParty(FilterDto req) {
-        List<Party> result = switch (req.filterType().toLowerCase()) {
+    public Response filterParty(String filter, FilterDto req) {
+        List<Party> result = switch (filter.toLowerCase()) {
             case "content"      -> findByTitleOrDescription(req.value());
             case "category" -> findByCategory(req.value());
             case "date"       ->findByDateRange(req.start(), req.end());
@@ -123,11 +124,11 @@ public class PartyRepository {
         LocalDateTime start;
         LocalDateTime end;
         try {
-            start = LocalDateTime.parse(startStr.trim());
-            end   = LocalDateTime.parse(endStr.trim());
+            start = LocalDateTime.parse(startStr.trim(), PARTY_DTF);
+            end   = LocalDateTime.parse(endStr.trim(), PARTY_DTF);
         } catch (DateTimeParseException e) {
             logger.info(e.getMessage());
-            throw new BadRequestException("Invalid date format – expected ISO‑8601 (yyyy-MM-dd'T'HH:mm:ss)");
+            throw new BadRequestException("Invalid date format");
         }
 
         if (end.isBefore(start)) {
@@ -167,57 +168,39 @@ public class PartyRepository {
         return entityManager.find(Party.class, party_id);
     }
 
-    @Transactional
-    public Response attendParty(Long id, Long userId){
-        if (userId == null) {
-            userId = 1L;
-        }
+    public Response attendParty(Long id){
         Party party = entityManager.find(Party.class, id);
         if (party == null) {
             return Response.status(Response.Status.NOT_FOUND).build();
         }
-        User user = userRepository.getUser(userId);
+        User user = userRepository.getUser(DEFAULT_USER_ID);
         if (user == null) {
             return Response.status(Response.Status.BAD_REQUEST).entity("User not found").build();
         }
-
-        // ensure users collection
-        if (party.getUsers() == null) {
-            party.setUsers(new java.util.HashSet<>());
-        }
-
         if (party.getUsers().contains(user)) {
-            // already attending, idempotent
-            return Response.noContent().build();
+            return Response.status(Response.Status.CONFLICT).build();
         }
-
         try {
             party.getUsers().add(user);
-            entityManager.merge(party);
+            entityManager.persist(party);
             return Response.noContent().build();
         } catch (PersistenceException e) {
             logger.error("Error while attending party: " + e.getMessage());
-            // treat as idempotent
             return Response.noContent().build();
         }
     }
 
-    @Transactional
-    public Response unattendParty(Long id, Long userId){
-        if (userId == null) {
-            userId = 1L;
-        }
+    public Response leaveParty(Long id){
         Party party = entityManager.find(Party.class, id);
         if (party == null) {
             return Response.status(Response.Status.NOT_FOUND).build();
         }
-        User user = userRepository.getUser(userId);
+        User user = userRepository.getUser(DEFAULT_USER_ID);
         if (user == null) {
             return Response.status(Response.Status.BAD_REQUEST).entity("User not found").build();
         }
 
         if (party.getUsers() == null || !party.getUsers().contains(user)) {
-            // not attending, idempotent
             return Response.noContent().build();
         }
 
@@ -226,11 +209,7 @@ public class PartyRepository {
         return Response.noContent().build();
     }
 
-    @Transactional
-    public Response attendStatus(Long id, Long userId){
-        if (userId == null) {
-            userId = 1L;
-        }
+    public Response attendStatus(Long id){
         Party party = entityManager.find(Party.class, id);
         if (party == null) {
             return Response.status(Response.Status.NOT_FOUND).build();
@@ -239,7 +218,7 @@ public class PartyRepository {
         int count = 0;
         if (party.getUsers() != null) {
             count = party.getUsers().size();
-            User user = userRepository.getUser(userId);
+            User user = userRepository.getUser(DEFAULT_USER_ID);
             if (user != null) {
                 attending = party.getUsers().contains(user);
             }
@@ -258,7 +237,7 @@ public class PartyRepository {
             party.setTime_end(LocalDateTime.parse(partyCreateDto.time_end(), PARTY_DTF));
         } catch (DateTimeParseException e) {
             throw new IllegalArgumentException(
-                    "Invalid date‑time format. Expected 'dd.MM.yyyy HH:mm'.", e);
+                    "Invalid date‑time format", e);
         }
         party.setWebsite(partyCreateDto.website());
 
@@ -280,6 +259,4 @@ public class PartyRepository {
         party.setCreated_at(LocalDateTime.now());
         return party;
     }
-
-
 }

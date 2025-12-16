@@ -6,6 +6,7 @@
 2. Sprint: 05.11.2025
 3. Sprint: 19.11.2025
 4. Sprint: 03.12.2025
+5. Sprint: 17.12.2025
 
 ## Run Locally
 
@@ -21,10 +22,10 @@ Go to the project directory
   cd Partyhub
 ```
 
-Start the server
+Setup for local development
 
 ```bash
-  ./deploy.sh
+  ./deploy-local.sh
 ```
 
 Open the Website in your Browser
@@ -39,7 +40,8 @@ Open the Website in your Browser
    http://localhost:8080/q/swagger-ui/ 
 ```
 
-## Figma https://www.figma.com/design/kw6GNgxb9VgPkAxHW1AveI/Untitled?node-id=0-1&p=f&t=H4mPfGOefZ6HzJKc-0
+## Figma 
+[PartyHub Figma](https://www.figma.com/design/kw6GNgxb9VgPkAxHW1AveI/Untitled?node-id=0-1&p=f&t=H4mPfGOefZ6HzJKc-0)
 
 ## Screenshots
 

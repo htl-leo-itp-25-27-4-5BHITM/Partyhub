@@ -9,7 +9,7 @@ import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 
-@Path("/api/invite")
+@Path("/api/invites")
 @ApplicationScoped
 public class InvitationResource {
     @Inject
@@ -39,7 +39,9 @@ public class InvitationResource {
     }
 
     @DELETE
-    @Path("/invite/{id}")
+    @Produces(MediaType.APPLICATION_JSON)
+    @Path("/{id}")
+    @Transactional
     public Response deleteInvite(@PathParam("id") Long id){
         return invitationRepository.deleteInvite(id);
     }
