@@ -90,3 +90,5 @@ INSERT INTO media (party_id, user_id, url) VALUES
                                                      (3, 3, 'http://example.com/images/party3.jpg'),
                                                      (4, 4, 'http://example.com/images/party4.jpg'),
                                                      (5, 5, 'http://example.com/images/party5.jpg');
+INSERT INTO invitation(party_id, recipient_id, sender_id) VALUES (1, 2, 1),
+                                                                 (2, 1, 2);

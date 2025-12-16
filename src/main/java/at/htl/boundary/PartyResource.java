@@ -88,8 +88,8 @@ public class PartyResource {
     @Produces(MediaType.APPLICATION_JSON)
     @Transactional
     @Path("/{id}/attend")
-    public Response unattendParty(@PathParam("id") Long partyId) {
-        return partyRepository.unattendParty(partyId);
+    public Response leaveParty(@PathParam("id") Long partyId) {
+        return partyRepository.leaveParty(partyId);
     }
 
     @GET

@@ -1,6 +1,4 @@
 #!/usr/bin/env bash
-echo ">> Pulling latest code"
-
 echo ">> Building project"
 chmod +x mvnw
 ./mvnw clean install package

@@ -50,7 +50,7 @@ public class ApiTest {
         String randomSortKey = "desc";
 
         given()
-                .when().get("/api/party/sort?" + randomSortKey)
+                .when().get("/api/party/sort?sort=" + randomSortKey)
                 .then()
                 .statusCode(200)
                 .body(not(emptyArray()));
@@ -114,7 +114,7 @@ public class ApiTest {
         given()
                 .when().post("/api/party/" + id + "/attend")
                 .then()
-                .statusCode(200);
+                .statusCode(204);
     }
 
 
@@ -126,7 +126,7 @@ public class ApiTest {
         given()
                 .when().delete("/api/party/" + id + "/attend")
                 .then()
-                .statusCode(200);
+                .statusCode(204);
     }
 
     @Test

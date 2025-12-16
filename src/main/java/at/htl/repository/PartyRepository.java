@@ -10,7 +10,6 @@ import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceException;
-import jakarta.transaction.Transactional;
 import jakarta.ws.rs.BadRequestException;
 import jakarta.ws.rs.core.Response;
 import jakarta.ws.rs.core.UriBuilder;
@@ -170,7 +169,6 @@ public class PartyRepository {
     }
 
     public Response attendParty(Long id){
-        // TODO: Use current user
         Party party = entityManager.find(Party.class, id);
         if (party == null) {
             return Response.status(Response.Status.NOT_FOUND).build();
@@ -192,7 +190,7 @@ public class PartyRepository {
         }
     }
 
-    public Response unattendParty(Long id){
+    public Response leaveParty(Long id){
         Party party = entityManager.find(Party.class, id);
         if (party == null) {
             return Response.status(Response.Status.NOT_FOUND).build();
@@ -239,7 +237,7 @@ public class PartyRepository {
             party.setTime_end(LocalDateTime.parse(partyCreateDto.time_end(), PARTY_DTF));
         } catch (DateTimeParseException e) {
             throw new IllegalArgumentException(
-                    "Invalid date‑time format. Expected 'dd.MM.yyyy HH:mm'.", e);
+                    "Invalid date‑time format", e);
         }
         party.setWebsite(partyCreateDto.website());
 
