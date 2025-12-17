@@ -50,7 +50,6 @@ public class PartyRepository {
     }
 
     public Response removeParty( Long id) {
-        logger.info("removeParty");
         Party party = entityManager.find(Party.class, id);
         if (party == null) {
             return Response.status(Response.Status.NOT_FOUND).build();
@@ -61,6 +60,7 @@ public class PartyRepository {
                 .setParameter("id", id)
                 .setParameter("hostId", DEFAULT_USER_ID) // TODO: replace with actual authenticated user id
                 .getSingleResult();
+        logger.info(matches.toString());
         if (matches != null && matches > 0) {
             entityManager.remove(party);
             return Response.status(204).entity(party).build();
