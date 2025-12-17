@@ -5,6 +5,7 @@ import at.htl.model.Location;
 import at.htl.model.User;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
+import jakarta.annotation.Nullable;
 import jakarta.persistence.*;
 import org.hibernate.annotations.CreationTimestamp;
 
@@ -46,13 +47,18 @@ public class Party {
     private List<Media> media = new ArrayList<>();
 
     @JsonIgnore
-    @ManyToMany(cascade = CascadeType.REMOVE)
+    @ManyToMany
     @JoinTable(
             name = "party_user",
             joinColumns = @JoinColumn(name = "party_id"),
             inverseJoinColumns = @JoinColumn(name = "user_id")
     )
     private Set<User> users;
+
+    @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.EAGER)
+    @JoinColumn(name = "party_id",  nullable = true)
+    private Set<Invitation> invitations;
+
 
     @ManyToOne
     @JoinColumn(name = "location_id", nullable = false)
@@ -186,5 +192,13 @@ public class Party {
 
     public void setWebsite(String website) {
         this.website = website;
+    }
+
+    public Set<Invitation> getInvitations() {
+        return invitations;
+    }
+
+    public void setInvitations(Set<Invitation> invitations) {
+        this.invitations = invitations;
     }
 }

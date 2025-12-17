@@ -178,11 +178,11 @@ public class PartyRepository {
             return Response.status(Response.Status.BAD_REQUEST).entity("User not found").build();
         }
         if (party.getUsers().contains(user)) {
-            return Response.status(Response.Status.CONFLICT).build();
+            return Response.status(Response.Status.CONFLICT).entity("User is also Host-User").build();
         }
         try {
             party.getUsers().add(user);
-            entityManager.persist(party);
+            entityManager.merge(party);
             return Response.noContent().build();
         } catch (PersistenceException e) {
             logger.error("Error while attending party: " + e.getMessage());
@@ -201,12 +201,14 @@ public class PartyRepository {
         }
 
         if (party.getUsers() == null || !party.getUsers().contains(user)) {
-            return Response.noContent().build();
+            // User is not attending
+            return Response.status(404).build();
         }
 
         party.getUsers().remove(user);
         entityManager.merge(party);
-        return Response.noContent().build();
+        logger.info(party.getUsers().toString());
+        return Response.ok().entity(party).build();
     }
 
     public Response attendStatus(Long id){
