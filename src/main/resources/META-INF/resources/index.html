@@ -1,19 +1,31 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Home</title>
-    <link rel="stylesheet" href="./index.css" />
-  </head>
-  <body>
-    <main class="page-content">
-      <!-- Page content goes here -->
-    </main>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Demo Quarkus Static Site</title>
+    <link href="global.css" rel="stylesheet">
+
+<!--    <script src="script.js" defer></script>-->
+    <script src="backend-functions.js" defer></script>
+    <style>
+        body {
+           color: white;
+        }
+    </style>
+    
+</head>
+
+<body class="bg-light">
+
+
+<div class="container py-4">
+
+    <h2 class="mb-3 text-black">Filter Parties</h2>
 
     <!-- Bottom navigation bar -->
     <nav class="bottom-nav" role="navigation" aria-label="Bottom navigation">
-      <a class="nav-btn" href="./homepage/homepage.html" aria-label="Home">
+      <button class="nav-btn" aria-label="Map">
         <svg
           class="nav-icon icon--pink"
           width="28"
@@ -30,13 +42,9 @@
             stroke-linecap="round"
           />
         </svg>
-      </a>
+      </button>
 
-      <a
-        class="nav-btn"
-        href="./listPartys/listPartys.html"
-        aria-label="List Parties"
-      >
+      <button class="nav-btn" aria-label="Gallery">
         <svg
           class="nav-icon icon--green"
           width="28"
@@ -63,13 +71,9 @@
             stroke-linejoin="round"
           />
         </svg>
-      </a>
+      </button>
 
-      <a
-        class="nav-btn"
-        href="./notifications/notifications.html"
-        aria-label="Notifications"
-      >
+      <button class="nav-btn" aria-label="Notifications">
         <svg
           class="nav-icon icon--pink"
           width="28"
@@ -90,9 +94,9 @@
             stroke-linejoin="round"
           />
         </svg>
-      </a>
+      </button>
 
-      <a class="nav-btn" href="./profile/profile.html" aria-label="Profile">
+      <button class="nav-btn" aria-label="Profile">
         <svg
           class="nav-icon icon--pink"
           width="28"
@@ -116,7 +120,7 @@
             stroke-linejoin="round"
           />
         </svg>
-      </a>
+      </button>
     </nav>
   </body>
 </html>
