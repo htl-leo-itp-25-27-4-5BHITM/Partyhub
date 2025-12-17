@@ -6,12 +6,12 @@ INSERT INTO location (id, longitude, latitude) VALUES
 (5, 14.04, 48.80);
 ALTER SEQUENCE location_id_seq RESTART WITH 6;
 
-INSERT INTO users (name, email) VALUES
-                                           ('Alice Johnson', 'alice.johnson@example.com'),
-                                           ('Bob Smith', 'bob.smith@example.com'),
-                                           ('Charlie Brown', 'charlie.brown@example.com'),
-                                           ('Daisy Miller', 'daisy.miller@example.com'),
-                                           ('Eve Davis', 'eve.davis@example.com');
+INSERT INTO users (name, email, profile_picture) VALUES
+                                           ('Alice Johnson', 'alice.johnson@example.com', 'profile_picture1.jpg'),
+                                           ('Bob Smith', 'bob.smith@example.com', 'profile_picture2.jpg'),
+                                           ('Charlie Brown', 'charlie.brown@example.com', 'profile_picture3.jpg'),
+                                           ('Daisy Miller', 'daisy.miller@example.com', 'profile_picture4.jpg' ),
+                                           ('Eve Davis', 'eve.davis@example.com', 'profile_picture5.jpg' );
 
 INSERT INTO category (name) VALUES
                                          ('Birthday Party'),

@@ -1,0 +1,87 @@
+/* Bottom navigation styles for index page */
+:root {
+  --nav-height: 92px; /* increased for larger touch targets */
+  --nav-bg: #160a35; /* deep purple */
+  --nav-elev: rgba(0, 0, 0, 0.35);
+  --accent-pink: #ff2e63;
+  --accent-green: #56f27c;
+}
+
+/* ensure page content doesn't get hidden behind the fixed nav */
+body {
+  padding-bottom: var(--nav-height);
+}
+
+.bottom-nav {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: var(--nav-height);
+  background: linear-gradient(180deg, var(--nav-bg), #1b0f3a);
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+  box-shadow: 0 -8px 20px var(--nav-elev);
+  z-index: 999;
+}
+
+.nav-btn {
+  background: transparent;
+  border: none;
+  padding: 12px; /* larger hit area */
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  text-decoration: none;
+  color: inherit;
+}
+
+.nav-icon {
+  display: block;
+  width: 44px;
+  height: 44px;
+}
+
+/* Make strokes thicker for a bolder look */
+.nav-icon path,
+.nav-icon rect,
+.nav-icon circle,
+.nav-icon line,
+.nav-icon polyline {
+  stroke-width: 1.8; /* override inline values to make icons visually thicker */
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+/* color variants */
+.nav-icon.icon--pink {
+  color: var(--accent-pink);
+}
+.nav-icon.icon--green {
+  color: var(--accent-green);
+}
+
+/* active state */
+.nav-btn:active .nav-icon,
+.nav-btn:focus .nav-icon {
+  transform: scale(0.95);
+  opacity: 0.95;
+}
+
+/* small screens: slightly reduce nav height */
+@media (max-width: 420px) {
+  :root {
+    --nav-height: 78px;
+  }
+  .nav-icon {
+    width: 38px;
+    height: 38px;
+  }
+}
+
+/* Ensure main page content wrapper doesn't collide visually */
+.page-content {
+  min-height: calc(100vh - var(--nav-height));
+}

@@ -18,6 +18,8 @@ public class User {
     public User(JsonWebToken jwt) {
         this.name = jwt.getName();
         this.email = jwt.getClaim("email");
+        // default profile image filename (stored without path)
+        this.profileImage = "profile_picture3.jpg";
     }
 
     @Id
@@ -27,6 +29,10 @@ public class User {
     private String email;
     @Column(nullable = true)
     private String biography;
+
+    // new field for profile image filename (only filename)
+    @Column(name = "profile_picture", nullable = true)
+    private String profileImage;
 
     @ManyToMany(mappedBy = "users")
     @JsonIgnore
@@ -61,5 +67,20 @@ public class User {
     public void setParty(Set<Party> party) {
         this.party = party;
     }
-}
 
+    public String getProfileImage() {
+        return profileImage;
+    }
+
+    public void setProfileImage(String profileImage) {
+        this.profileImage = profileImage;
+    }
+
+    @PrePersist
+    @PreUpdate
+    private void ensureProfileImage() {
+        if (this.profileImage == null || this.profileImage.isBlank()) {
+            this.profileImage = "profile_picture3.jpg";
+        }
+    }
+}
