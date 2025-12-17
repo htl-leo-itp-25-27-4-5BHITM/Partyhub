@@ -29,7 +29,7 @@ public class Invitation {
     @ManyToOne
     @JoinColumn(name = "recipient_id")
     private User recipient;
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY, cascade = CascadeType.ALL)
     @JoinColumn(name = "party_id")
     private Party party;
 
