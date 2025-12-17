@@ -23,90 +23,104 @@
 
     <h2 class="mb-3 text-black">Filter Parties</h2>
 
-    <div class="card mb-4">
-        <div class="card-body">
-            <form id="filterForm" class="row g-3">
+    <!-- Bottom navigation bar -->
+    <nav class="bottom-nav" role="navigation" aria-label="Bottom navigation">
+      <button class="nav-btn" aria-label="Map">
+        <svg
+          class="nav-icon icon--pink"
+          width="28"
+          height="28"
+          viewBox="0 0 24 24"
+          fill="none"
+          xmlns="http://www.w3.org/2000/svg"
+        >
+          <path
+            d="M3 6.5L8 4l7 2.5 6-2.5v11l-6 2.5L10 15 3 17.5v-11z"
+            stroke="currentColor"
+            stroke-width="1.2"
+            stroke-linejoin="round"
+            stroke-linecap="round"
+          />
+        </svg>
+      </button>
 
-                <div class="col-md-4">
-                    <label for="filter" class="form-label">Filter type</label>
-                    <select id="filter" name="filter" class="form-select">
-                        <option value="Category">Category</option>
-                        <option value="Content">Content</option>
-                        <option value="Date">Date</option>
-                    </select>
-                </div>
+      <button class="nav-btn" aria-label="Gallery">
+        <svg
+          class="nav-icon icon--green"
+          width="28"
+          height="28"
+          viewBox="0 0 24 24"
+          fill="none"
+          xmlns="http://www.w3.org/2000/svg"
+        >
+          <rect
+            x="3"
+            y="3"
+            width="18"
+            height="18"
+            rx="3"
+            stroke="currentColor"
+            stroke-width="1.2"
+          />
+          <circle cx="8.5" cy="8.5" r="1.8" fill="currentColor" />
+          <path
+            d="M21 21l-6-6-5 5"
+            stroke="currentColor"
+            stroke-width="1.2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          />
+        </svg>
+      </button>
 
-                <div class="col-md-6">
-                    <label for="param" class="form-label">Search term</label>
-                    <input type="text" id="param" name="param" class="form-control" placeholder="e.g. music" required>
-                </div>
+      <button class="nav-btn" aria-label="Notifications">
+        <svg
+          class="nav-icon icon--pink"
+          width="28"
+          height="28"
+          viewBox="0 0 24 24"
+          fill="none"
+          xmlns="http://www.w3.org/2000/svg"
+        >
+          <path
+            d="M12 22a2.5 2.5 0 0 0 2.45-2H9.55A2.5 2.5 0 0 0 12 22z"
+            fill="currentColor"
+          />
+          <path
+            d="M18 8a6 6 0 10-12 0v5l-2 2v1h16v-1l-2-2V8z"
+            stroke="currentColor"
+            stroke-width="1.2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          />
+        </svg>
+      </button>
 
-                <div class="col-md-2 d-flex align-items-end">
-                    <button type="submit" class="btn btn-secondary w-100">Search</button>
-                </div>
-
-            </form>
-        </div>
-    </div>
-
-    <h3 class="mb-3 text-black">Result</h3>
-    <pre id="output" class="p-3 bg-dark text-light rounded"></pre>
-
-    <a href="./homepage/homepage.html" class="btn btn-link px-0 mt-3">Homepage</a>
-
-
-    <h2 class="mt-5 text-black">Users</h2>
-    <div class="table-responsive">
-        <table id="userTable" class="table table-striped table-hover">
-            <thead class="table-primary">
-            <tr>
-                <th>User ID</th>
-                <th>Name</th>
-                <th>Email</th>
-            </tr>
-            </thead>
-            <tbody></tbody>
-        </table>
-    </div>
-
-
-    <h2 class="mt-5 text-black">Parties</h2>
-    <div class="table-responsive">
-        <table id="partyTable" class="table table-striped table-hover">
-            <thead class="table-primary">
-            <tr>
-                <th>Party ID</th>
-                <th>Party Title</th>
-                <th>Category ID</th>
-                <th>Date start</th>
-                <th>Date end</th>
-                <th>Max people</th>
-                <th>Min age</th>
-                <th>Max age</th>
-            </tr>
-            </thead>
-            <tbody></tbody>
-        </table>
-    </div>
-
-
-    <h1 class="mt-5 text-black">File Upload</h1>
-    <div class="card mb-4">
-        <div class="card-body">
-            <form action="/api/media/upload/1" method="post" enctype="multipart/form-data">
-                <div class="mb-3">
-                    <input type="file" name="file" class="form-control">
-                </div>
-
-                <button onclick="addFile(); return false;" class="btn btn-outline-primary me-2">Add file</button>
-                <button type="submit" class="btn btn-primary">Submit</button>
-            </form>
-        </div>
-    </div>
-
-    <h1 class="mt-5 text-black">Geolocation:</h1>
-    <div id="demo" class="p-3 bg-white border rounded"></div>
-</div>
-
-</body>
+      <button class="nav-btn" aria-label="Profile">
+        <svg
+          class="nav-icon icon--pink"
+          width="28"
+          height="28"
+          viewBox="0 0 24 24"
+          fill="none"
+          xmlns="http://www.w3.org/2000/svg"
+        >
+          <circle
+            cx="12"
+            cy="8.5"
+            r="3"
+            stroke="currentColor"
+            stroke-width="1.2"
+          />
+          <path
+            d="M4 20a8 8 0 0 1 16 0"
+            stroke="currentColor"
+            stroke-width="1.2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          />
+        </svg>
+      </button>
+    </nav>
+  </body>
 </html>
