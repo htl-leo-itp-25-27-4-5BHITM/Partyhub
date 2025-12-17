@@ -1,550 +1,574 @@
 /* Mobile Navbar am unteren Rand */
 #mobileNavbar {
-    position: fixed;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    width: 100vw;
-    background: rgba(34, 30, 54, 0.98);
-    box-shadow: 0 -2px 16px rgba(0,0,0,0.12);
-    z-index: 100;
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  width: 100vw;
+  background: rgba(34, 30, 54, 0.98);
+  box-shadow: 0 -2px 16px rgba(0, 0, 0, 0.12);
+  z-index: 100;
 }
 
 .navbar-list {
-    display: flex;
-    justify-content: space-around;
-    align-items: center;
-    margin: 0;
-    padding: 0 0 2px 0;
-    list-style: none;
-    height: 56px;
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+  margin: 0;
+  padding: 0 0 2px 0;
+  list-style: none;
+  height: 56px;
 }
 
 .navbar-btn {
-    background: none;
-    border: none;
-    padding: 0;
-    margin: 0;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 44px;
-    height: 44px;
-    border-radius: 50%;
-    color: #fff;
-    transition: background 0.18s, color 0.18s;
-    cursor: pointer;
+  background: none;
+  border: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  color: #fff;
+  transition: background 0.18s, color 0.18s;
+  cursor: pointer;
 }
 
 .navbar-btn:active,
 .navbar-btn:focus {
-    background: rgba(79, 59, 154, 0.18);
-    color: #4F3B9A;
+  background: rgba(79, 59, 154, 0.18);
+  color: #4f3b9a;
 }
 
 /* Navbar-Icons größer */
 #mobileNavbar svg {
-    width: 32px;
-    height: 32px;
-    display: block;
+  width: 32px;
+  height: 32px;
+  display: block;
 }
 
 /* Aktives Icon: grün */
 .navbar-btn.active svg {
-    color: #56F27C;
-    stroke: #56F27C;
-    fill: #56F27C;
+  color: #56f27c;
+  stroke: #56f27c;
+  fill: #56f27c;
 }
 .tab-btn .tab-icon svg {
-    stroke: #fff;
-    fill: #fff;
-    transition: stroke 0.2s, fill 0.2s;
+  stroke: #fff;
+  fill: #fff;
+  transition: stroke 0.2s, fill 0.2s;
 }
 
 /* Party-Popper Icon: normal weiß, aktiv dunkel */
 #tabPartys.tab-btn .tab-icon svg {
-    stroke: #fff;
-    fill: #fff;
+  stroke: #fff;
+  fill: #fff;
 }
 
 #tabPartys.tab-btn.active .tab-icon svg {
-    stroke: #1C274C;
-    fill: #1C274C;
+  stroke: #1c274c;
+  fill: #1c274c;
 }
 
 .tab-btn.active .tab-icon svg {
-    stroke: #4F3B9A;
-    fill: #4F3B9A;
+  stroke: #4f3b9a;
+  fill: #4f3b9a;
 }
 
 .tab-icon {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    height: 24px;
-    width: 24px;
-    margin: 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 24px;
+  width: 24px;
+  margin: 0 auto;
 }
 
 .tab-btn svg {
-    width: 24px;
-    height: 24px;
-    display: block;
+  width: 24px;
+  height: 24px;
+  display: block;
 }
 
 /* Edit Account Button */
 .edit-account-btn {
-    width: 90vw;
-    max-width: 420px;
-    background: #FF2E63;
-    color: #fff;
-    font-size: 1.1rem;
-    font-weight: 600;
-    border: none;
-    border-radius: 999px;
-    padding: 12px 0;
-    margin: 16px auto 0 auto;
-    cursor: pointer;
-    box-shadow: none;
-    transition: background 0.2s;
-    display: block;
-    text-align: center;
+  width: 90vw;
+  max-width: 420px;
+  background: #ff2e63;
+  color: #fff;
+  font-size: 1.1rem;
+  font-weight: 600;
+  border: none;
+  border-radius: 999px;
+  padding: 12px 0;
+  margin: 16px auto 0 auto;
+  cursor: pointer;
+  box-shadow: none;
+  transition: background 0.2s;
+  display: block;
+  text-align: center;
 }
 
 .edit-account-btn:active {
-    background: #e02657;
+  background: #e02657;
 }
 
 /* Tabs für Beiträge und Favoriten */
 #profileTabs {
-    width: 100%;
-    max-width: 520px;
-    margin: 18px auto 0 auto;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
+  width: 100%;
+  max-width: 520px;
+  margin: 18px auto 0 auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
 }
 
 .tab-buttons {
-    display: flex;
-    justify-content: center;
-    gap: 18px;
-    margin-bottom: 0;
+  display: flex;
+  justify-content: center;
+  gap: 18px;
+  margin-bottom: 0;
 }
 
 .tab-btn {
-    background: rgba(79, 59, 154, 0.9);
-    color: #fff;
-    border: none;
-    border-radius: 16px 16px 0 0;
-    padding: 8px 24px;
-    font-size: 1rem;
-    cursor: pointer;
-    font-weight: 600;
-    transition: background 0.2s, color 0.2s;
+  background: rgba(79, 59, 154, 0.9);
+  color: #fff;
+  border: none;
+  border-radius: 16px 16px 0 0;
+  padding: 8px 24px;
+  font-size: 1rem;
+  cursor: pointer;
+  font-weight: 600;
+  transition: background 0.2s, color 0.2s;
 }
 
 .tab-btn.active {
-    background: #fff;
-    color: #4F3B9A;
+  background: #fff;
+  color: #4f3b9a;
 }
 
 .tab-content {
-    width: 100%;
-    min-height: 60px;
-    background: none;
-    border-radius: 0;
-    box-shadow: none;
-    padding: 18px 0 0 0;
-    box-sizing: border-box;
+  width: 100%;
+  min-height: 60px;
+  background: none;
+  border-radius: 0;
+  box-shadow: none;
+  padding: 18px 0 0 0;
+  box-sizing: border-box;
 }
 
 .tab-underline {
-    width: 100%;
-    height: 0;
-    border-bottom: 1.2px solid #fff;
-    margin-top: 0;
-    margin-bottom: 0;
-    position: relative;
-    z-index: 1;
+  width: 100%;
+  height: 0;
+  border-bottom: 1.2px solid #fff;
+  margin-top: 0;
+  margin-bottom: 0;
+  position: relative;
+  z-index: 1;
 }
 
 .tab-section {
-    text-align: left;
+  text-align: left;
 }
 
 @font-face {
-    font-family: 'fontnormal';
-    src: url(../fonts/Lunasima-Regular.ttf);
+  font-family: "fontnormal";
+  src: url(../fonts/Lunasima-Regular.ttf);
 }
 
 :root {
-    /* avatar size = 32vw, max 110px */
-    --avatar-size: min(34vw, 130px);
+  /* avatar size = 32vw, max 110px */
+  --avatar-size: min(34vw, 130px);
 }
 
 /* Basic page reset */
 * {
-    box-sizing: border-box;
+  box-sizing: border-box;
 }
 
 html,
 body {
-    margin: 0;
-    padding: 0;
-    font-family: Arial, Helvetica, sans-serif;
-    color: #fff;
+  margin: 0;
+  padding: 0;
+  font-family: Arial, Helvetica, sans-serif;
+  color: #fff;
 }
 
 .dark-text {
-    color: #111 !important;
+  color: #111 !important;
 }
 
 #profileContainer {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 12px;
-    padding: 16px;
-    justify-content: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  padding: 16px;
+  justify-content: center;
 }
 
 #searchBar {
-    width: 100%;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    margin-top: 18px;
-    padding: 14px 0;
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-top: 18px;
+  padding: 14px 0;
 }
 
 .searchBox {
-    display: flex;
-    align-items: center;
-    width: 90vw;
-    max-width: 420px;
-    margin: 0 auto;
-    background: rgba(79, 59, 154, 0.9);
-    padding: 10px 18px;
-    border-radius: 999px;
-    gap: 10px;
-    box-sizing: border-box;
+  display: flex;
+  align-items: center;
+  width: 90vw;
+  max-width: 420px;
+  margin: 0 auto;
+  background: rgba(79, 59, 154, 0.9);
+  padding: 10px 18px;
+  border-radius: 999px;
+  gap: 10px;
+  box-sizing: border-box;
 }
 
 #profilePicture {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: var(--avatar-size);
-    height: var(--avatar-size);
-    aspect-ratio: 1 / 1;
-    box-sizing: content-box;
-    background: transparent;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: var(--avatar-size);
+  height: var(--avatar-size);
+  aspect-ratio: 1 / 1;
+  box-sizing: content-box;
+  background: transparent;
 }
 
 #profilePicture img {
-    width: 90%;
-    height: 90%;
-    border-radius: 50%;
-    object-fit: cover;
-    object-position: center 32%;
-    display: block;
-    box-shadow: 0 8px 20px rgba(255, 255, 255, 0.06) inset, 0 6px 18px rgba(0, 0, 0, 0.18);
+  width: 90%;
+  height: 90%;
+  border-radius: 50%;
+  object-fit: cover;
+  object-position: center 32%;
+  display: block;
+  box-shadow: 0 8px 20px rgba(255, 255, 255, 0.06) inset,
+    0 6px 18px rgba(0, 0, 0, 0.18);
 }
 
 /* center username and keep it readable on mobile */
 #username p {
-    margin: 0;
-    font-size: 1.05rem;
-    font-weight: 600;
-    text-align: center;
-    color: #fff;
-    /* make username white */
-    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.35);
+  margin: 0;
+  font-size: 1.05rem;
+  font-weight: 600;
+  text-align: center;
+  color: #fff;
+  /* make username white */
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.35);
 }
 
 /* Utility: ensure search and other parts don't overflow on small screens */
 /* give the search bar more horizontal breathing room */
 /* increase horizontal breathing room */
 #searchBar {
-    width: 100%;
-    display: flex;
-    gap: 8px;
-    justify-content: center;
-    padding: 14px 36px;
+  width: 100%;
+  display: flex;
+  gap: 8px;
+  justify-content: center;
+  padding: 14px 36px;
 }
 
 /* styled search box: semi-transparent purple rounded container with icon and separator */
 .searchBox {
-    display: flex;
-    align-items: center;
-    width: 100%;
-    max-width: 420px;
-    /* narrower to create more side margin */
-    margin: 0 auto;
-    /* center more precisely */
-    background: rgba(79, 59, 154, 0.9);
-    /* #4F3B9A with slight transparency */
-    padding: 10px 18px;
-    /* a touch more horizontal padding */
-    border-radius: 999px;
-    /* pill shape */
-    gap: 10px;
+  display: flex;
+  align-items: center;
+  width: 100%;
+  max-width: 420px;
+  /* narrower to create more side margin */
+  margin: 0 auto;
+  /* center more precisely */
+  background: rgba(79, 59, 154, 0.9);
+  /* #4F3B9A with slight transparency */
+  padding: 10px 18px;
+  /* a touch more horizontal padding */
+  border-radius: 999px;
+  /* pill shape */
+  gap: 10px;
 }
 
 .searchBox .searchIcon {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 24px;
-    height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
 }
 
 .searchBox .searchIcon svg {
-    display: block;
+  display: block;
 }
 
 .searchBox .separator {
-    width: 1px;
-    height: 22px;
-    background: rgba(255, 255, 255, 0.28);
-    border-radius: 1px;
+  width: 1px;
+  height: 22px;
+  background: rgba(255, 255, 255, 0.28);
+  border-radius: 1px;
 }
 
 .searchBox input[type="text"] {
-    border: none;
-    outline: none;
-    background: transparent;
-    color: #fff;
-    font-size: 0.95rem;
-    flex: 1 1 auto;
-    padding: 4px 0;
+  border: none;
+  outline: none;
+  background: transparent;
+  color: #fff;
+  font-size: 0.95rem;
+  flex: 1 1 auto;
+  padding: 4px 0;
 }
 
 /* placeholder text white-ish */
 .searchBox input::placeholder {
-    color: rgba(255, 255, 255, 0.9);
+  color: rgba(255, 255, 255, 0.9);
 }
 
 #searchInput {
-    max-width: none;
-    font-family: fontnormal !important;
+  max-width: none;
+  font-family: fontnormal !important;
 }
 
 /* Profile stats: display three boxes side-by-side with number above label */
 #profileDetails {
-    width: 100%;
-    max-width: 520px;
-    display: flex;
-    justify-content: center;
-    gap: 12px;
-    margin-top: 6px;
+  width: 100%;
+  max-width: 520px;
+  display: flex;
+  justify-content: center;
+  gap: 12px;
+  margin-top: 6px;
 }
 
-#profileDetails>div {
-    flex: 1 1 0;
-    min-width: 80px;
-    padding: 6px 4px;
-    text-align: center;
-    background: transparent;
-    /* no background */
-    border-radius: 0;
-    /* no rounded box */
-    box-shadow: none;
-    /* no shadow */
+#profileDetails > div {
+  flex: 1 1 0;
+  min-width: 80px;
+  padding: 6px 4px;
+  text-align: center;
+  background: transparent;
+  /* no background */
+  border-radius: 0;
+  /* no rounded box */
+  box-shadow: none;
+  /* no shadow */
 }
 
 /* number on top */
-#profileDetails>div::before {
-    content: attr(data-count);
-    display: block;
-    font-size: 1.05rem;
-    font-weight: 700;
-    color: #fff;
-    /* numbers white */
-    margin-bottom: 2px;
-    text-shadow: 0 1px 0 rgba(0, 0, 0, 0.3);
+#profileDetails > div::before {
+  content: attr(data-count);
+  display: block;
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: #fff;
+  /* numbers white */
+  margin-bottom: 2px;
+  text-shadow: 0 1px 0 rgba(0, 0, 0, 0.3);
 }
 
 /* label under number */
 #followingCount::after {
-    content: "Following";
-    display: block;
-    font-size: 0.85rem;
-    color: #fff;
-    opacity: 0.9;
+  content: "Following";
+  display: block;
+  font-size: 0.85rem;
+  color: #fff;
+  opacity: 0.9;
 }
 
 #followersCount::after {
-    content: "Followers";
-    display: block;
-    font-size: 0.85rem;
-    color: #fff;
-    opacity: 0.9;
+  content: "Followers";
+  display: block;
+  font-size: 0.85rem;
+  color: #fff;
+  opacity: 0.9;
 }
 
 #postsCount::after {
-    content: "Posts";
-    display: block;
-    font-size: 0.85rem;
-    color: #fff;
-    opacity: 0.9;
+  content: "Posts";
+  display: block;
+  font-size: 0.85rem;
+  color: #fff;
+  opacity: 0.9;
 }
 
 /* For accessibility: if JS fills numbers into elements, set data-count attribute accordingly.
 	 Fallback: show empty or 0 if not set */
 @media (max-width: 420px) {
-    #profileDetails>div {
-        padding: 8px 6px;
-        min-width: 64px;
-    }
+  #profileDetails > div {
+    padding: 8px 6px;
+    min-width: 64px;
+  }
+}
+
+/* Ensure shared bottom navigation is visible on this page
+   (override in case page-specific rules hide or lower its z-index) */
+.bottom-nav {
+  display: flex !important;
+  position: fixed !important;
+  left: 0 !important;
+  right: 0 !important;
+  bottom: 0 !important;
+  z-index: 10000 !important;
+}
+
+.bottom-nav .nav-btn {
+  text-decoration: none;
 }
 
 /* ensure the search box still fits on very small screens */
 @media (max-width: 380px) {
-    #searchBar {
-        padding: 10px 12px;
-    }
+  #searchBar {
+    padding: 10px 12px;
+  }
 
-    .searchBox {
-        max-width: 100%;
-        padding: 8px 10px;
-    }
+  .searchBox {
+    max-width: 100%;
+    padding: 8px 10px;
+  }
 }
 
 /* On very large screens, prefer a slightly smaller avatar than 50vw */
 @media (min-width: 900px) {
-    :root {
-        --avatar-size: 200px;
-    }
+  :root {
+    --avatar-size: 200px;
+  }
 }
 
 /* subsections under profile details */
 #profileSubsections {
-    width: 100%;
-    max-width: 520px;
-    display: flex;
-    gap: 18px;
-    margin-top: 10px;
-    justify-content: space-between;
+  width: 100%;
+  max-width: 520px;
+  display: flex;
+  gap: 18px;
+  margin-top: 10px;
+  justify-content: space-between;
 }
 
 #profileSubsections section {
-    flex: 1 1 0;
-    padding: 8px;
-    text-align: left;
+  flex: 1 1 0;
+  padding: 8px;
+  text-align: left;
 }
 
 #profileSubsections h3 {
-    margin: 0 0 6px 0;
-    font-size: 1rem;
-    color: #fff;
+  margin: 0 0 6px 0;
+  font-size: 1rem;
+  color: #fff;
 }
 
 .muted {
-    margin: 0;
-    color: #bdbdbd;
-    font-size: 0.97rem;
-    text-align: center;
+  margin: 0;
+  color: #bdbdbd;
+  font-size: 0.97rem;
+  text-align: center;
 }
 
 /* Party card grid + card styling (leicht heller für Buttons/Boxen) */
 .party-grid {
-    width: 100%;
-    max-width: 520px;
-    margin: 12px auto 0;
-    display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr)); /* genau 2 Spalten nebeneinander */
-    gap: 10px;
-    box-sizing: border-box;
-    padding: 4px;
+  width: 100%;
+  max-width: 520px;
+  margin: 12px auto 0;
+  display: grid;
+  grid-template-columns: repeat(
+    2,
+    minmax(0, 1fr)
+  ); /* genau 2 Spalten nebeneinander */
+  gap: 10px;
+  box-sizing: border-box;
+  padding: 4px;
 }
 
 .party-card {
-    background: rgba(255,255,255,0.06);
-    border-radius: 10px;
-    padding: 8px 6px 10px; /* etwas mehr Platz unten */
-    box-shadow: 0 4px 12px rgba(0,0,0,0.12);
-    color: #fff;
-    display: flex;
-    flex-direction: column;
-    justify-content: flex-start; /* body wird mit margin-top: auto nach unten gedrückt */
-    aspect-ratio: 1 / 1;
-    overflow: visible; /* Inhalte nicht abschneiden */
-    border: 1px solid rgba(255,255,255,0.04);
-    font-size: 0.92rem;
+  background: rgba(255, 255, 255, 0.06);
+  border-radius: 10px;
+  padding: 8px 6px 10px; /* etwas mehr Platz unten */
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
+  color: #fff;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start; /* body wird mit margin-top: auto nach unten gedrückt */
+  aspect-ratio: 1 / 1;
+  overflow: visible; /* Inhalte nicht abschneiden */
+  border: 1px solid rgba(255, 255, 255, 0.04);
+  font-size: 0.92rem;
 }
 
 /* Header: name left, actions right, Icons immer auf einer Linie mit der Überschrift */
 .party-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center; /* wichtig: vertikal zentriert, damit Icons neben Text bleiben */
-    gap: 8px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center; /* wichtig: vertikal zentriert, damit Icons neben Text bleiben */
+  gap: 8px;
 }
 
 /* Name soll in einer Zeile bleiben und Platz für Icons freigeben */
 .party-name {
-    margin: 0;
-    font-size: 0.9rem;
-    font-weight: 700;
-    line-height: 1;
-    color: #fff;
-    min-width: 0; /* erlaubt korrektes Shrinken im Flex-Layout */
-    white-space: nowrap; /* keine Zeilenumbrüche */
-    overflow: hidden;
-    text-overflow: ellipsis; /* bei zu langer Überschrift abschneiden */
-    padding-right: 6px;
+  margin: 0;
+  font-size: 0.9rem;
+  font-weight: 700;
+  line-height: 1;
+  color: #fff;
+  min-width: 0; /* erlaubt korrektes Shrinken im Flex-Layout */
+  white-space: nowrap; /* keine Zeilenumbrüche */
+  overflow: hidden;
+  text-overflow: ellipsis; /* bei zu langer Überschrift abschneiden */
+  padding-right: 6px;
 }
 
 /* actions nebeneinander (kleiner Abstand beibehalten) */
 .party-actions {
-    display: flex;
-    gap: 6px;
-    align-items: center;
+  display: flex;
+  gap: 6px;
+  align-items: center;
 }
 
 /* Body: am unteren Rand der Karte platzieren und Inhalte sichtbar lassen */
 .party-body {
-    display: flex;
-    gap: 8px;
-    flex-wrap: wrap;
-    justify-content: center;
-    align-items: flex-end;
-    margin-top: auto; /* schiebt body an den unteren Rand der Karte */
-    z-index: 1;
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-items: flex-end;
+  margin-top: auto; /* schiebt body an den unteren Rand der Karte */
+  z-index: 1;
 }
 
 /* Info-Box: genügend Platz und kleinere Höhe, damit nichts abgeschnitten wird */
 .info-box {
-    min-width: 0;
-    flex: 1 1 48%;
-    background: rgba(255,255,255,0.03);
-    border-radius: 8px;
-    padding: 6px 6px;
-    text-align: center;
-    box-sizing: border-box;
-    border: 1px solid rgba(255,255,255,0.02);
-    margin-top: 6px;
+  min-width: 0;
+  flex: 1 1 48%;
+  background: rgba(255, 255, 255, 0.03);
+  border-radius: 8px;
+  padding: 6px 6px;
+  text-align: center;
+  box-sizing: border-box;
+  border: 1px solid rgba(255, 255, 255, 0.02);
+  margin-top: 6px;
 }
 
 .info-value {
-    font-weight: 700;
-    font-size: 0.88rem;
-    color: #fff;
+  font-weight: 700;
+  font-size: 0.88rem;
+  color: #fff;
 }
 
 .info-label {
-    font-size: 0.72rem;
-    color: rgba(255,255,255,0.7);
-    margin-top: 3px;
+  font-size: 0.72rem;
+  color: rgba(255, 255, 255, 0.7);
+  margin-top: 3px;
 }
 
 /* responsive: sehr schmale Geräte -> 1 Spalte */
 @media (max-width: 360px) {
-    .party-grid {
-        grid-template-columns: 1fr;
-    }
-    .icon-btn { width: 28px; height: 28px; }
-    .party-card { padding: 8px; }
+  .party-grid {
+    grid-template-columns: 1fr;
+  }
+  .icon-btn {
+    width: 28px;
+    height: 28px;
+  }
+  .party-card {
+    padding: 8px;
+  }
 }
