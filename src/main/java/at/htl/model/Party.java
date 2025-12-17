@@ -46,7 +46,7 @@ public class Party {
     private List<Media> media = new ArrayList<>();
 
     @JsonIgnore
-    @ManyToMany
+    @ManyToMany(cascade = CascadeType.REMOVE)
     @JoinTable(
             name = "party_user",
             joinColumns = @JoinColumn(name = "party_id"),

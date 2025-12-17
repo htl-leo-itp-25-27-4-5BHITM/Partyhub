@@ -38,7 +38,7 @@ INSERT INTO party (
 ) VALUES
 -- 1️⃣ Weekend game night
 ( 1, 5, 'Saturday Game Night',
- '2025-12-07 19:00:00', '2025-12-07 23:00:00',
+ '07.12.2025 19:00', '07.12.2025 23:00',
  12, 21, 35,
  'Board games, snacks, and a relaxed vibe. Bring your favorite game!',
  1,
@@ -46,7 +46,7 @@ INSERT INTO party (
 
 -- 2️⃣ Sunrise mountain hike
 ( 2, 3, 'Mountain Hike – Sunrise',
- '2025-11-30 05:30:00', '2025-11-30 10:30:00',
+ '07.12.2025 05:30', '07.12.2025 10:30',
  8, 18, 45,
  'Meet at the trailhead for a sunrise hike up Eagle Peak. Moderate difficulty.',
  2,
@@ -54,7 +54,7 @@ INSERT INTO party (
 
 -- 3️⃣ Intro to Python workshop
 ( 3, 2, 'Intro to Python Coding',
- '2025-12-15 14:00:00', '2025-12-15 17:00:00',
+ '07.12.2025 14:00', '07.12.2025 17:00',
  20, 16, 60,
  'Hands‑on Python basics. No prior experience required. Laptops provided.',
  3,
@@ -62,7 +62,7 @@ INSERT INTO party (
 
 -- 4️⃣ Italian dinner party
 ( 4, 1, 'Italian Dinner Party',
- '2025-12-20 19:30:00', '2025-12-20 22:30:00',
+ '07.12.2025 19:30', '07.12.2025 22:30',
  6, 25, 50,
  'Homemade pasta, wine, and good conversation. RSVP by Dec15.',
  4,
@@ -70,7 +70,7 @@ INSERT INTO party (
 
 -- 5️⃣ Kids craft afternoon
 ( 5, 4, 'Kids Craft Afternoon',
- '2025-12-05 13:00:00', '2025-12-05 15:00:00',
+ '07.12.2025 13:00', '07.12.2025 15:00',
  10, 5, 12,
  'Paint, glue, and glitter! All materials supplied. Parents welcome.',
  5,
