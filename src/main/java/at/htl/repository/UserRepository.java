@@ -7,6 +7,7 @@ import jakarta.inject.Inject;
 import jakarta.persistence.EntityManager;
 import jakarta.ws.rs.core.Response;
 import org.eclipse.microprofile.jwt.JsonWebToken;
+import jakarta.transaction.Transactional;
 
 import java.util.List;
 
@@ -35,6 +36,7 @@ public class UserRepository {
         return res.isEmpty() ? null : res.get(0);
     }
 
+    @Transactional
     public User save(User user) {
         if (user.getId() == null) {
             em.persist(user);
@@ -44,6 +46,7 @@ public class UserRepository {
         }
     }
 
+    @Transactional
     public User createOrUpdateByEmail(String name, String email) {
         User user = findByEmail(email);
         if (user == null) {
