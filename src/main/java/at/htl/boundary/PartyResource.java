@@ -10,6 +10,7 @@ import jakarta.transaction.Transactional;
 import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
+import org.jboss.logging.Logger;
 
 @ApplicationScoped
 @Path("/api/party")
@@ -18,6 +19,8 @@ public class PartyResource {
     PartyRepository partyRepository;
     @Inject
     MediaRepository mediaRepository;
+    @Inject
+    Logger logger;
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
@@ -33,6 +36,7 @@ public class PartyResource {
     @Produces(MediaType.APPLICATION_JSON)
     @Path("/add")
     public Response addParty(PartyCreateDto partyCreateDto) {
+        logger.info(partyCreateDto);
         return partyRepository.addParty(partyCreateDto);
     }
 
