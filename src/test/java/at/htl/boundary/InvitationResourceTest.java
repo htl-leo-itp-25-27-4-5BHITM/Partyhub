@@ -47,7 +47,7 @@ class InvitationResourceTest {
     @Test
     void deleteInvite() {
         given()
-                .when().delete("/api/invites/2")
+                .when().delete("/api/invites/3")
                 .then()
                 .statusCode(200);
     }

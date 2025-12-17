@@ -22,11 +22,11 @@ public class ApiTest {
         String partyPayload =
                 """ 
                   {
-                  "title": "Summer Picnic",
-                  "description": "A casual get‑together in the park.",
-                  "fee": 1,
-                  "time_start": "15.07.2025 12:00",
-                  "time_end": "15.07.2025 16:00",
+                  "title": "Yet Another Summer Picnic",
+                  "description": "Casual get‑together in the park.",
+                  "fee": 3,
+                  "time_start": "16.07.2025 12:00",
+                  "time_end": "16.07.2025 16:00",
                   "max_people": 30,
                   "min_age": 12,
                   "max_age": 65,
@@ -54,6 +54,23 @@ public class ApiTest {
                 .then()
                 .statusCode(200)
                 .body(not(emptyArray()));
+    }
+
+    @Test
+    public void testFilterPartiesByContent() {
+        String payload =
+                """ 
+                          {
+                          "value": "a"
+                        }
+                        """;
+
+        given()
+                .contentType("application/json")
+                .body(payload)
+                .when().post("/api/party/filter?filter=content")
+                .then()
+                .statusCode(200).body(not(emptyArray()));
     }
 
     @Test

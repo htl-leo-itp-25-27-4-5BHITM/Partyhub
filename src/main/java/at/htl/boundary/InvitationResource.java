@@ -40,8 +40,8 @@ public class InvitationResource {
 
     @DELETE
     @Produces(MediaType.APPLICATION_JSON)
-    @Path("/{id}")
     @Transactional
+    @Path("/{id}")
     public Response deleteInvite(@PathParam("id") Long id){
         return invitationRepository.deleteInvite(id);
     }
