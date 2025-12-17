@@ -82,3 +82,65 @@ document.addEventListener('DOMContentLoaded', () => {
 
   render(samplePartys);
 });
+
+// --- dynamic profile image loader ---
+(function() {
+  function getQueryParam(name) {
+    const params = new URLSearchParams(window.location.search);
+    return params.get(name);
+  }
+
+  const userId = getQueryParam('id');
+  const img = document.getElementById('profileImg');
+  if (!img) return;
+
+  if (userId) {
+    // Start loading the generic profile-picture endpoint immediately to avoid alt text showing
+    img.src = '/api/users/' + encodeURIComponent(userId) + '/profile-picture';
+
+    // Then try to fetch the user to get stored profileImage filename and refine the request
+    fetch('/api/users/' + encodeURIComponent(userId))
+      .then(r => {
+        if (!r.ok) throw new Error('user not found');
+        return r.json();
+      })
+      .then(user => {
+        const name = user.profileImage || '';
+        if (name) {
+          const nameParam = '?name=' + encodeURIComponent(name);
+          // only change src if different to avoid reload
+          const newSrc = '/api/users/' + encodeURIComponent(userId) + '/profile-picture' + nameParam;
+          if (img.src !== newSrc) img.src = newSrc;
+        }
+      })
+      .catch(err => {
+        // ignore; we already set generic src
+      });
+
+    img.onerror = function() {
+      if (!this._triedFallback) {
+        this._triedFallback = 1;
+        this.src = '/api/users/' + encodeURIComponent(userId) + '/profile-picture?name=profile_picture3.jpg';
+      } else if (this._triedFallback === 1) {
+        this._triedFallback = 2;
+        this.src = '/api/users/' + encodeURIComponent(userId) + '/profile-picture?name=profile_picture1.jpg';
+      }
+    };
+  } else {
+    // no user id provided: try to load first user so page still shows a profile image
+    fetch('/api/users/')
+      .then(r => r.ok ? r.json() : Promise.reject('no users'))
+      .then(list => {
+        if (Array.isArray(list) && list.length > 0) {
+          const u = list[0];
+          const uid = u.id;
+          const name = u.profileImage || '';
+          const nameParam = name ? '?name=' + encodeURIComponent(name) : '';
+          img.src = '/api/users/' + encodeURIComponent(uid) + '/profile-picture' + nameParam;
+        }
+      })
+      .catch(() => {
+        // keep default img
+      });
+  }
+})();
