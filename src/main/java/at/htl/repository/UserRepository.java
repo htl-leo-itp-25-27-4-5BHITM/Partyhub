@@ -27,4 +27,36 @@ public class UserRepository {
         return em.find(User.class, id);
     }
 
+    public User findByEmail(String email) {
+        List<User> res = em.createQuery("SELECT u FROM User u WHERE u.email = :email", User.class)
+                .setParameter("email", email)
+                .setMaxResults(1)
+                .getResultList();
+        return res.isEmpty() ? null : res.get(0);
+    }
+
+    public User save(User user) {
+        if (user.getId() == null) {
+            em.persist(user);
+            return user;
+        } else {
+            return em.merge(user);
+        }
+    }
+
+    public User createOrUpdateByEmail(String name, String email) {
+        User user = findByEmail(email);
+        if (user == null) {
+            user = new User();
+            user.setName(name);
+            user.setEmail(email);
+            // default profile image will be set by entity lifecycle
+            save(user);
+        } else {
+            user.setName(name);
+            save(user);
+        }
+        return user;
+    }
+
 }
