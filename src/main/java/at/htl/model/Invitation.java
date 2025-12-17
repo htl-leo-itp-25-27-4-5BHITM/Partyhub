@@ -24,12 +24,11 @@ public class Invitation {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "sender_id")
     private User sender;
-
     @JsonIgnore
     @ManyToOne
     @JoinColumn(name = "recipient_id")
     private User recipient;
-    @ManyToOne(fetch = FetchType.LAZY, cascade = CascadeType.ALL)
+    @ManyToOne
     @JoinColumn(name = "party_id")
     private Party party;
 
