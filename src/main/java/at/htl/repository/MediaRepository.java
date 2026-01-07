@@ -30,9 +30,10 @@ public class MediaRepository {
     @Inject
     Logger logger;
 
+    // TODO: Use current user
+    final Long DEFAULT_USER_ID = 1L;
+
     public List<MediaDto> getImages(long partyId) {
-        // TODO: Use current user
-        Long userId = 4L;
         boolean access = !entityManager.createQuery(
                         "SELECT p.id " +
                                 "FROM Party p " +
@@ -42,7 +43,7 @@ public class MediaRepository {
                                 "      OR u.id = :userId )",
                         Long.class)
                 .setParameter("partyId", partyId)
-                .setParameter("userId", userId)
+                .setParameter("userId", DEFAULT_USER_ID)
                 .getResultList()
                 .isEmpty();
         logger.info(access);
@@ -66,7 +67,7 @@ public class MediaRepository {
         for (FileUpload file : input.file) {
             // TODO: Use correct media path for db
             // TODO: Use current user
-            Media media = new Media(partyRepository.getPartyById(partyId), userRepository.getUser(1L), file.fileName());
+            Media media = new Media(partyRepository.getPartyById(partyId), userRepository.getUser(DEFAULT_USER_ID), file.fileName());
             entityManager.persist(media);
             java.nio.file.Path uploadedFile = file.uploadedFile();
             java.nio.file.Path targetLocation = Paths.get(uploadDir, Instant.now().toString() + file.fileName());
