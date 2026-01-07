@@ -53,15 +53,28 @@ public class UserResource {
         if (profile == null || profile.isBlank()) {
             profile = user.getProfileImage();
         }
+        // fallback to a sensible default filename (stored as filename only)
         if (profile == null || profile.isBlank()) {
-            profile = "images/profilbild1.jpg";
+            profile = "profile_picture3.jpg";
         }
-        // normalize path to classpath resource
+        // normalize path to classpath resource (resources/images/...)
         String path = profile.startsWith("/") ? profile.substring(1) : profile;
+        // if somebody passed just a filename, prefix with images/
         if (!path.startsWith("images/")) {
             path = "images/" + path;
         }
         InputStream is = Thread.currentThread().getContextClassLoader().getResourceAsStream(path);
+        if (is == null) {
+            // try some common fallbacks if requested file not found
+            String[] fallbacks = new String[]{"images/profile_picture3.jpg", "images/profile_picture1.jpg"};
+            for (String fb : fallbacks) {
+                is = Thread.currentThread().getContextClassLoader().getResourceAsStream(fb);
+                if (is != null) {
+                    path = fb;
+                    break;
+                }
+            }
+        }
         if (is == null) {
             return Response.status(Response.Status.NOT_FOUND).build();
         }

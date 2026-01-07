@@ -19,7 +19,7 @@ public class User {
         this.name = jwt.getName();
         this.email = jwt.getClaim("email");
         // default profile image filename (stored without path)
-        this.profileImage = "profile_picture3.jpg";
+        this.profileImage = "profile_picture.jpg";
     }
 
     @Id
