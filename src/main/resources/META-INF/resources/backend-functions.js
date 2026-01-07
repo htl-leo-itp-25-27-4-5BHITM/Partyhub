@@ -151,7 +151,6 @@ async function deleteParty(partyId) {
     }
 }
 
-deleteParty(1)
 
 // Attend a party
 async function attendParty(partyId) {
