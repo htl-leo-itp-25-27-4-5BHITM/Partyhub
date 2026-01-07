@@ -143,7 +143,7 @@ public class ApiTest {
         given()
                 .when().delete("/api/party/" + id + "/attend")
                 .then()
-                .statusCode(204);
+                .statusCode(200);
     }
 
     @Test

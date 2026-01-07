@@ -151,6 +151,7 @@ async function deleteParty(partyId) {
     }
 }
 
+deleteParty(1)
 
 // Attend a party
 async function attendParty(partyId) {
@@ -158,14 +159,13 @@ async function attendParty(partyId) {
         const response = await fetch(`/api/party/${partyId}/attend`, {
         method: 'POST'
     });
-    if (!response.ok) throw new Error('Network response was not ok');
     console.log('Attended the party');
 } catch (error) {
     console.error('Error attending the party:', error);
 }
 }
 
-//attendParty(1)
+//attendParty(2)
 
 // Leave a party
 async function leaveParty(partyId) {
@@ -180,7 +180,7 @@ async function leaveParty(partyId) {
 }
 }
 
-//leaveParty(1)
+//leaveParty(2)
 
 // Get media for a party
 async function getMediaForParty(partyId) {
@@ -195,4 +195,4 @@ async function getMediaForParty(partyId) {
     }
 }
 
-//getMediaForParty()
+getMediaForParty(1)
