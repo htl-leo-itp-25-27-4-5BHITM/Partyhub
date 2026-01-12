@@ -40,7 +40,6 @@ public class UserResource {
         return Response.ok(user).build();
     }
 
-    // new endpoint to serve profile picture by user id
     @GET
     @Path("/{id}/profile-picture")
     @Produces({"image/jpeg", "image/png", "image/gif"})
@@ -56,7 +55,7 @@ public class UserResource {
         if (profile == null || profile.isBlank()) {
             profile = "images/profilbild1.jpg";
         }
-        // normalize path to classpath resource
+
         String path = profile.startsWith("/") ? profile.substring(1) : profile;
         if (!path.startsWith("images/")) {
             path = "images/" + path;

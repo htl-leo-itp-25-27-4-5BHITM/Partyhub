@@ -26,6 +26,6 @@ volumes:
 #        KC_DB_USERNAME: demo
 #        KC_DB_PASSWORD: demo
 #      ports:
-#        - "8081:8080"a
+#        - "8081:8080"
 #      volumes:
 #        - ./keycloak/realm-export.json:/opt/keycloak/data/import/realm-export.json:ro

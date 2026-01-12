@@ -15,7 +15,7 @@ public class Friendship {
     @Id
     @Column(name = "user2_id")
     Long user2_id;
-    @ManyToOne(/*fetch = FetchType.LAZY*/)
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "status_id", nullable = false)
     FriendshipStatus status;
 

@@ -55,6 +55,7 @@ public class Party {
     )
     private Set<User> users;
 
+    @JsonIgnore
     @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.EAGER)
     @JoinColumn(name = "party_id",  nullable = true)
     private Set<Invitation> invitations;

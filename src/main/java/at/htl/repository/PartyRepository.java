@@ -60,7 +60,6 @@ public class PartyRepository {
                 .setParameter("id", id)
                 .setParameter("hostId", DEFAULT_USER_ID) // TODO: replace with actual authenticated user id
                 .getSingleResult();
-        logger.info(matches.toString());
         if (matches != null && matches > 0) {
             entityManager.remove(party);
             return Response.status(204).entity(party).build();
@@ -77,7 +76,6 @@ public class PartyRepository {
         Party updatedParty = partyCreateDtoToParty(partyCreateDto);
         updatedParty.setId(id);
         updatedParty.setHost_user(userRepository.getUser(DEFAULT_USER_ID));
-        logger.info(updatedParty.getCategory().getName());
 
         entityManager.merge(updatedParty);
         return Response.ok().entity(updatedParty).build();
@@ -127,7 +125,7 @@ public class PartyRepository {
             start = LocalDateTime.parse(startStr.trim(), PARTY_DTF);
             end   = LocalDateTime.parse(endStr.trim(), PARTY_DTF);
         } catch (DateTimeParseException e) {
-            logger.info(e.getMessage());
+            logger.log(Logger.Level.ERROR, e.getMessage());
             throw new BadRequestException("Invalid date format");
         }
 
@@ -201,13 +199,11 @@ public class PartyRepository {
         }
 
         if (party.getUsers() == null || !party.getUsers().contains(user)) {
-            // User is not attending
             return Response.status(404).build();
         }
 
         party.getUsers().remove(user);
         entityManager.merge(party);
-        logger.info(party.getUsers().toString());
         return Response.ok().entity(party).build();
     }
 

@@ -1,9 +1,10 @@
 #!/usr/bin/env bash
+echo ">> Starting database"
+docker-compose up -d;
+
 echo ">> Building project"
 chmod +x mvnw
 ./mvnw clean install package
 
-echo ">> Starting"
-docker-compose up -d
+echo ">> Starting quarkus"
 ./mvnw quarkus:dev
-

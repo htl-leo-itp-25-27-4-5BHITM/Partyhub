@@ -1,23 +1,28 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: backend
+  name: quarkus
 spec:
   replicas: 1
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 1
+      maxSurge: 1
   selector:
     matchLabels:
-      app: backend
+      app: quarkus
   template:
     metadata:
       labels:
-        app: backend
+        app: quarkus
     spec:
       containers:
-        - name: backend
+        - name: quarkus
           env:
           - name: QUARKUS_PROFILE
             value: prod
-          image: ghcr.io/htl-leo-itp-25-27-4-5bhitm/partyhub-app:latest
+          image: ghcr.io/htl-leo-itp-25-27-4-5bhitm/partyhub-quarkus:latest
           imagePullPolicy: Always
           ports:
             - containerPort: 8080
@@ -25,11 +30,11 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
-  name: backend
+  name: quarkus
 spec:
   type: NodePort
   ports:
     - port: 8080
       targetPort: 8080
   selector:
-    app: backend
+    app: quarkus
