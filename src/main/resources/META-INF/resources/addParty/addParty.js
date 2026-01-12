@@ -130,6 +130,35 @@ document.addEventListener("DOMContentLoaded", () => {
   };
 
   // ------------------------------
+  // createParty helper (uses the example you provided)
+  // Accepts a partyPayload object and sends it to /api/party/add
+  // ------------------------------
+  async function createParty(partyPayload) {
+    try {
+      const response = await fetch("/api/party/add", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(partyPayload),
+      });
+
+      if (response.status === 201 || response.ok) {
+        // print returned entity when available
+        const data = await response.json().catch(() => null);
+        console.log("Party created successfully!", data || response.status);
+        return { ok: true, data };
+      } else {
+        console.error("Error creating party:", response.status);
+        return { ok: false, status: response.status };
+      }
+    } catch (error) {
+      console.error("Network error:", error);
+      return { ok: false, error };
+    }
+  }
+
+  // ------------------------------
   // Form Submit mit Validierungen
   // ------------------------------
   const form = document.querySelector(".party-form");
@@ -247,16 +276,24 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     // ------------------------------
-    // Payload zusammenstellen
+    // Payload zusammenstellen (Backend erwartet dd.MM.yyyy HH:mm)
     // ------------------------------
+    const formatToBackend = (d) => {
+      if (!d || !(d instanceof Date)) return null;
+      const pad = (n) => String(n).padStart(2, "0");
+      return `${pad(d.getDate())}.${pad(d.getMonth() + 1)}.${d.getFullYear()} ${pad(
+        d.getHours()
+      )}:${pad(d.getMinutes())}`;
+    };
+
     const payload = {
       title,
       description,
-      time_start: startDate.toISOString(), // ISO an Backend
-      time_end: endDate.toISOString(),
-      longitude: 1.0, // Platzhalter — Backend/Geocoding getrennt behandeln
-      latitude: 1.0,
-      category_id: 1,
+      time_start: formatToBackend(startDate) || null,
+      time_end: formatToBackend(endDate) || null,
+      longitude: form.longitude?.value ? Number(form.longitude.value) : 16.3738,
+      latitude: form.latitude?.value ? Number(form.latitude.value) : 48.2082,
+      category_id: form.category_id?.value ? Number(form.category_id.value) : 2,
       website: website || null,
       visible_users: visibleUsers,
     };
@@ -277,24 +314,15 @@ document.addEventListener("DOMContentLoaded", () => {
     // ------------------------------
     // Abschicken: gleiche Logik wie vorher, aber mit Validierung
     // ------------------------------
-    try {
-      const response = await fetch("/api/party/add", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
-      });
-
-      if (!response.ok) throw new Error(`Status ${response.status}`);
-      const result = await response.json();
-      console.log("Server reply:", result);
+    // Call the new helper which uses your example createParty implementation
+    const result = await createParty(payload);
+    if (result.ok) {
       alert("Party erfolgreich erstellt.");
-      // Optional: umleiten oder Formular zurücksetzen
-      // window.location.href = '/';
-    } catch (err) {
-      console.error("Submit failed:", err);
-      showError(
-        "Senden der Party fehlgeschlagen. Bitte versuche es später erneut."
-      );
+      // optionally reset
+      // form.reset();
+    } else {
+      showError("Senden der Party fehlgeschlagen. Bitte versuche es später erneut.");
     }
   });
 });
+// end of file
