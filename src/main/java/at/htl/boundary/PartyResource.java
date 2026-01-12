@@ -2,6 +2,7 @@ package at.htl.boundary;
 
 import at.htl.dto.FilterDto;
 import at.htl.dto.PartyCreateDto;
+import at.htl.model.Party;
 import at.htl.repository.MediaRepository;
 import at.htl.repository.PartyRepository;
 import jakarta.enterprise.context.ApplicationScoped;
@@ -19,8 +20,6 @@ public class PartyResource {
     PartyRepository partyRepository;
     @Inject
     MediaRepository mediaRepository;
-    @Inject
-    Logger logger;
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
@@ -36,7 +35,6 @@ public class PartyResource {
     @Produces(MediaType.APPLICATION_JSON)
     @Path("/add")
     public Response addParty(PartyCreateDto partyCreateDto) {
-
         logger.info(partyCreateDto);
         return partyRepository.addParty(partyCreateDto);
     }
@@ -46,7 +44,11 @@ public class PartyResource {
     @Produces(MediaType.APPLICATION_JSON)
     @Path("/{id}")
     public Response getParty(@PathParam("id") Long id) {
-        return Response.ok().entity(partyRepository.getPartyById(id)).build();
+        Party party = partyRepository.getPartyById(id);
+        if (party == null) {
+            return Response.status(Response.Status.NOT_FOUND).build();
+        }
+        return Response.ok().entity(party).build();
     }
 
     @DELETE

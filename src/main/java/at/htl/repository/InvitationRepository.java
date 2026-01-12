@@ -6,7 +6,9 @@ import at.htl.model.User;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import jakarta.persistence.EntityManager;
+import jakarta.ws.rs.core.Configuration;
 import jakarta.ws.rs.core.Response;
+import org.jboss.logging.Logger;
 
 import java.util.List;
 
@@ -18,8 +20,19 @@ public class InvitationRepository {
     PartyRepository partyRepository;
     @Inject
     UserRepository userRepository;
+    @Inject
+    Logger logger;
 
+    // TODO: Duplicate invitations replace the oldest invitation
     public Response invite(InvitationDto invitationDto){
+        boolean exists = !entityManager.createQuery(
+                        "select i from Invitation i where i.recipient.id = :recipientId and i.party.id = :partyId", Invitation.class)
+                .setParameter("recipientId", invitationDto.recipient())
+                .setParameter("partyId", invitationDto.partyId())
+                .getResultList().isEmpty();
+        if (exists){
+            return Response.status(Response.Status.CONFLICT).build();
+        }
         Invitation invitation = new Invitation();
         invitation.setParty(partyRepository.getPartyById(invitationDto.partyId()));
         invitation.setRecipient(userRepository.getUser(invitationDto.recipient()));

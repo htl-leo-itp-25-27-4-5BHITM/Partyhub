@@ -1,3 +1,4 @@
+// Party-functions
 // Create Party in party-Table
 // DateTimeFormat needs to be the same
 async function createParty() {
@@ -35,12 +36,13 @@ async function createParty() {
     }
 }
 
-//createParty();
+createParty();
 
 // Fetch all parties
 async function getAllParties() {
     try {
         const response = await fetch('/api/party/');
+        console.log(response);
         if (!response.ok) throw new Error('Network response was not ok');
         const data = await response.json();
         console.log(data);
@@ -49,7 +51,7 @@ async function getAllParties() {
         console.error('Error fetching parties:', error);
     }
 }
-//getAllParties()
+getAllParties()
 
 // Sort parties
 async function sortParties(sortKey) {
@@ -64,7 +66,7 @@ async function sortParties(sortKey) {
     }
 }
 
-//sortParties("asc")
+sortParties("asc")
 
 // Filter parties by content
 async function filterParties(content) {
@@ -86,7 +88,7 @@ async function filterParties(content) {
     }
 }
 
-//filterParties("a")
+filterParties("a")
 
 // Get a party by ID
 async function getPartyById(partyId) {
@@ -101,7 +103,7 @@ async function getPartyById(partyId) {
     }
 }
 
-//getPartyById(1)
+getPartyById(2)
 
 // Update a party by ID
 async function updateParty(partyId) {
@@ -136,7 +138,7 @@ async function updateParty(partyId) {
     }
 }
 
-//updateParty(1)
+updateParty(2)
 
 // Delete a party by ID
 async function deleteParty(partyId) {
@@ -151,7 +153,8 @@ async function deleteParty(partyId) {
     }
 }
 
-deleteParty(1)
+// delete fails due to p1 not existing
+//deleteParty(1)
 
 // Attend a party
 async function attendParty(partyId) {
@@ -165,7 +168,7 @@ async function attendParty(partyId) {
 }
 }
 
-//attendParty(2)
+attendParty(2)
 
 // Leave a party
 async function leaveParty(partyId) {
@@ -180,7 +183,7 @@ async function leaveParty(partyId) {
 }
 }
 
-//leaveParty(2)
+leaveParty(2)
 
 // Get media for a party
 async function getMediaForParty(partyId) {
@@ -191,8 +194,129 @@ async function getMediaForParty(partyId) {
         console.log('Party media:', data);
         return data;
     } catch (error) {
-        console.error('Error fetching party media:', error);
+        console.error('Error fetching users:', error);
     }
 }
 
-getMediaForParty(1)
+getMediaForParty(2)
+
+// User-functions
+// Fetch all users
+async function getAllUsers() {
+    try {
+        const response = await fetch('/api/users/');
+        if (!response.ok) throw new Error('Network response was not ok');
+        const data = await response.json();
+        console.log(data);
+        return data;
+    } catch (error) {
+        console.error('Error fetching parties:', error);
+    }
+}
+
+getAllUsers()
+
+// Get user by id
+async function getUserById(id) {
+    try {
+        const response = await fetch('/api/users/' + id);
+        if (!response.ok) throw new Error('Network response was not ok');
+        const data = await response.json();
+        console.log(data);
+        return data;
+    } catch (error) {
+        console.error('Error fetching user:', error);
+    }
+}
+
+getUserById(2)
+
+// Get profile-picture by user id
+async function getProfilePicture(id) {
+    try {
+        const response = await fetch('/api/users/' + id + "/profile-picture");
+        console.log(response)
+        if (!response.ok) throw new Error('Network response was not ok');
+        const data = await response.json();
+        console.log(data);
+        return data;
+    } catch (error) {
+        console.error('Error fetching profile-picture:', error);
+    }
+}
+
+getProfilePicture(2)
+
+// Invite user to party using userId
+async function invite(recipient, partyId) {
+    const invitationPayload = {
+        recipient, partyId
+    };
+    try {
+        const response = await fetch(`/api/invites/`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(invitationPayload)
+        });
+        console.log('Invite:', response);
+        if (!response.ok) throw new Error('Network response was not ok');
+        console.log(response.ok)
+    } catch (error) {
+        console.error('Error during invitation:', error);
+    }
+}
+
+invite(3, 2)
+
+// Get users personally received invites
+async function getReceivedInvites() {
+    try {
+        const response = await fetch(`/api/invites/rec`);
+        console.log('Received Invites:', response);
+        if (!response.ok) throw new Error('Network response was not ok');
+        const data = await response.json();
+        console.log('Invite:', data);
+        return data;
+    } catch (error) {
+        console.error('Error fetching received invitation:', error);
+    }
+}
+
+//getReceivedInvites()
+
+// Get users personally received invites
+async function getSentInvites() {
+    try {
+        const response = await fetch(`/api/invites/inv`);
+        console.log('Sent Invites:', response);
+        if (!response.ok) throw new Error('Network response was not ok');
+        const data = await response.json();
+        console.log('Invite:', data);
+        return data;
+    } catch (error) {
+        console.error('Error fetching received invitation:', error);
+    }
+}
+
+//getSentInvites()
+
+// Delete users sent invites using invitation id
+async function deleteInvite(invitationId) {
+    try {
+        const response = await fetch(`/api/invites/` + invitationId, {
+            method: 'DELETE',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+        });
+        console.log('Invite:', response);
+        if (!response.ok) throw new Error('Network response was not ok');
+        console.log(response.ok)
+    } catch (error) {
+        console.error('Error during invitation:', error);
+    }
+}
+
+//deleteInvite(9)
