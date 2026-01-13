@@ -139,19 +139,31 @@ document.addEventListener("DOMContentLoaded", () => {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
+          Accept: "application/json",
         },
         body: JSON.stringify(partyPayload),
       });
 
-      if (response.status === 201 || response.ok) {
-        // print returned entity when available
-        const data = await response.json().catch(() => null);
-        console.log("Party created successfully!", data || response.status);
-        return { ok: true, data };
-      } else {
-        console.error("Error creating party:", response.status);
-        return { ok: false, status: response.status };
+      const location = response.headers.get("Location");
+      let data = null;
+      try {
+        data = await response.json();
+      } catch (_) {
+        // no json body
       }
+
+      if (response.ok || response.status === 201) {
+        console.log("Party created successfully!", { status: response.status, data, location });
+        return { ok: true, status: response.status, data, location };
+      }
+
+      // Try to read text for more informative error
+      let text = null;
+      try {
+        text = await response.text();
+      } catch (_) {}
+      console.error("Error creating party:", response.status, text || data);
+      return { ok: false, status: response.status, text, data };
     } catch (error) {
       console.error("Network error:", error);
       return { ok: false, error };
@@ -289,6 +301,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const payload = {
       title,
       description,
+      location: location || null, // Venue string
       time_start: formatToBackend(startDate) || null,
       time_end: formatToBackend(endDate) || null,
       longitude: form.longitude?.value ? Number(form.longitude.value) : 16.3738,
@@ -296,7 +309,14 @@ document.addEventListener("DOMContentLoaded", () => {
       category_id: form.category_id?.value ? Number(form.category_id.value) : 2,
       website: website || null,
       visible_users: visibleUsers,
+      theme: form.theme?.value ? String(form.theme.value).trim() : null,
     };
+
+    // optionales max_people falls vorhanden im Form
+    if (form.max_people?.value) {
+      const mp = Number(form.max_people.value);
+      if (!Number.isNaN(mp) && isFinite(mp) && mp > 0) payload.max_people = mp;
+    }
 
     // Min/Max Alter sind optional: nur hinzufügen, wenn der Benutzer sie ausgefüllt hat.
     if (minAge !== null && minAge !== undefined && minAge !== "") {
@@ -314,14 +334,41 @@ document.addEventListener("DOMContentLoaded", () => {
     // ------------------------------
     // Abschicken: gleiche Logik wie vorher, aber mit Validierung
     // ------------------------------
-    // Call the new helper which uses your example createParty implementation
-    const result = await createParty(payload);
-    if (result.ok) {
-      alert("Party erfolgreich erstellt.");
-      // optionally reset
-      // form.reset();
-    } else {
-      showError("Senden der Party fehlgeschlagen. Bitte versuche es später erneut.");
+    const submitBtn = form.querySelector(".submit-btn");
+    try {
+      if (submitBtn) {
+        submitBtn.disabled = true;
+        submitBtn.setAttribute("aria-busy", "true");
+      }
+
+      const result = await createParty(payload);
+      if (result.ok) {
+        alert("Party erfolgreich erstellt.");
+        // Wenn der Server einen Location-Header liefert, dorthin navigieren
+        if (result.location) {
+          window.location.href = result.location;
+          return;
+        }
+        // Falls die API das erstellte Objekt mit einer id zurückgibt, versuche redirect
+        if (result.data && (result.data.id || result.data.partyId)) {
+          const id = result.data.id || result.data.partyId;
+          window.location.href = `/party/${id}`;
+          return;
+        }
+        // Fallback: zur Party-Liste
+        window.location.href = "/listPartys/listPartys.html";
+      } else {
+        const msg =
+          (result.text && result.text.slice(0, 100)) ||
+          (result.data && JSON.stringify(result.data).slice(0, 200)) ||
+          "Senden der Party fehlgeschlagen. Bitte versuche es später erneut.";
+        showError(msg);
+      }
+    } finally {
+      if (submitBtn) {
+        submitBtn.disabled = false;
+        submitBtn.removeAttribute("aria-busy");
+      }
     }
   });
 });

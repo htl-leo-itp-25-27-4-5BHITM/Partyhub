@@ -8,6 +8,7 @@
     <link rel="stylesheet" href="../global.css">
     <link rel="stylesheet" href="./profile.css">
     <link rel="stylesheet" href="../index.css">
+    <script src="../backend-functions.js" defer></script>
     <script src="./profile.js" defer></script>
 </head>
 
@@ -124,6 +125,7 @@
             </div>
             <div class="tab-underline"></div>
             <div class="tab-content" style="background:none; box-shadow:none; border-radius:0; padding-top:18px;">
+                <!-- PARTYS (user erstellt) -->
                 <section id="tabContentPartys" class="tab-section" style="display:none;">
                     <p class="muted no-parties">Keine Partys vorhanden</p>
 
@@ -158,22 +160,39 @@
 
                             <div class="party-body">
                                 <div class="info-box">
-                                    <div class="info-value">Datum</div>
+                                    <div class="info-value party-date">Datum</div>
                                     <div class="info-label">Datum</div>
                                 </div>
                                 <div class="info-box">
-                                    <div class="info-value">Uhrzeit</div>
+                                    <div class="info-value party-time">Uhrzeit</div>
                                     <div class="info-label">Uhrzeit</div>
                                 </div>
                                 <div class="info-box">
-                                    <div class="info-value">Ort</div>
+                                    <div class="info-value party-location">Ort</div>
                                     <div class="info-label">Ort</div>
                                 </div>
                             </div>
-                        </template>
+                        </article>
+                    </template>
 
+                    <div id="partiesContainer"></div>
+                </section>
+
+                <!-- EIGENE BILDER -->
+                <section id="tabContentPosts" class="tab-section" style="display:none;">
+                    <p class="muted no-posts">Keine eigenen Fotos vorhanden</p>
+                    <div id="ownMediaGrid" class="media-grid"></div>
+                </section>
+
+                <!-- GELIKTE BILDER -->
+                <section id="tabContentFavorites" class="tab-section" style="display:none;">
+                    <p class="muted no-favs">Keine gelikten Fotos vorhanden</p>
+                    <div id="likedMediaGrid" class="media-grid"></div>
+                </section>
+            </div>
+
+        <!-- Shared Bottom Navigation -->
         <div id="navbarSpacer">
-                <!-- Shared Bottom Navigation -->
                 <nav class="bottom-nav" role="navigation" aria-label="Bottom navigation">
                     <a class="nav-btn" href="/homepage/homepage.html" aria-label="Home">
                         <svg class="nav-icon icon--pink" width="28" height="28" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
