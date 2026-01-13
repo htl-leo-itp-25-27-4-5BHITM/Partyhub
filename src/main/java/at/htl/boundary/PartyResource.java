@@ -20,6 +20,7 @@ public class PartyResource {
     PartyRepository partyRepository;
     @Inject
     MediaRepository mediaRepository;
+    @Inject Logger log;
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
@@ -35,6 +36,7 @@ public class PartyResource {
     @Produces(MediaType.APPLICATION_JSON)
     @Path("/add")
     public Response addParty(PartyCreateDto partyCreateDto) {
+        logger.info(partyCreateDto);
         return partyRepository.addParty(partyCreateDto);
     }
 
