@@ -286,11 +286,9 @@ body {
   width: 100%;
   max-width: 420px;
   margin: 0 auto;
-  /* center more precisely */
   background: rgba(79, 59, 154, 0.9);
   padding: 10px 18px;
   border-radius: 999px;
-  /* pill shape */
   gap: 10px;
 }
 
@@ -323,7 +321,6 @@ body {
   padding: 4px 0;
 }
 
-/* placeholder text white-ish */
 .searchBox input::placeholder {
   color: rgba(255, 255, 255, 0.9);
 }
@@ -349,18 +346,15 @@ body {
   text-align: center;
   background: transparent;
   border-radius: 0;
-  /* no rounded box */
   box-shadow: none;
 }
 
-/* number on top */
 #profileDetails > div::before {
   content: attr(data-count);
   display: block;
   font-size: 1.05rem;
   font-weight: 700;
   color: #fff;
-  /* numbers white */
   margin-bottom: 2px;
   text-shadow: 0 1px 0 rgba(0, 0, 0, 0.3);
 }
@@ -388,16 +382,6 @@ body {
   color: #fff;
   opacity: 0.9;
 }
-
-	 Fallback: show empty or 0 if not set */
-@media (max-width: 420px) {
-  #profileDetails > div {
-    padding: 8px 6px;
-    min-width: 64px;
-  }
-}
-
-   (override in case page-specific rules hide or lower its z-index) */
 .bottom-nav {
   display: flex !important;
   position: fixed !important;
@@ -422,7 +406,6 @@ body {
   }
 }
 
-/* Search Dropdown */
 .search-dropdown {
   position: absolute;
   top: 100%;
@@ -562,7 +545,7 @@ body {
   grid-template-columns: repeat(
     2,
     minmax(0, 1fr)
-  ); /* genau 2 Spalten nebeneinander */
+  );
   gap: 10px;
   box-sizing: border-box;
   padding: 4px;
@@ -571,27 +554,27 @@ body {
 .party-card {
   background: rgba(255, 255, 255, 0.06);
   border-radius: 10px;
-  padding: 8px 6px 10px; /* etwas mehr Platz unten */
+  padding: 8px 6px 10px;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
   color: #fff;
   display: flex;
   flex-direction: column;
   justify-content: flex-start;
   aspect-ratio: 1 / 1;
-  overflow: visible; /* Inhalte nicht abschneiden */
+  overflow: visible;
   border: 1px solid rgba(255, 255, 255, 0.04);
   font-size: 0.92rem;
 }
 
-/* Header: name left, actions right, Icons immer auf einer Linie mit der Überschrift */
+
 .party-header {
   display: flex;
   justify-content: space-between;
-  align-items: center; /* wichtig: vertikal zentriert, damit Icons neben Text bleiben */
+  align-items: center;
   gap: 8px;
 }
 
-/* Name soll in einer Zeile bleiben und Platz für Icons freigeben */
+
 .party-name {
   margin: 0;
   font-size: 0.9rem;
