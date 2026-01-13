@@ -20,20 +20,19 @@
         <div class="card-top">
           <button class="back-btn" aria-label="Back">‹</button>
           <h1 class="party-title">
-            Hausi bei Zoe <span class="lock" aria-hidden="true"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" aria-hidden="true"><rect x="3" y="10" width="18" height="11" rx="2" stroke="currentColor" stroke-width="1.6"/><path d="M7 10V7a5 5 0 0 1 10 0v3" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+            Loading party...
           </h1>
         </div>
 
         <div class="meta-row">
-          <span id="media-count">0 Fotos</span>
+          <span id="media-count"></span>
           <span class="sep">|</span>
-          <span id="location-display">Location TBA</span>
+          <span id="location-display"></span>
           <span class="sep">|</span>
-          <span id="party-date">Date TBA</span>
+          <span id="party-date"></span>
         </div>
 
         <p class="description" id="party-description">
-          Loading party details...
         </p>
 
         <a
@@ -45,20 +44,23 @@
           style="display: none;"></a>
 
         <div class="info-lines">
-          <div class="info-item"><strong>Theme:</strong> <span id="party-category">General</span></div>
-          <div class="info-item"><strong>When:</strong> <span id="party-time">TBA</span></div>
-          <div class="info-item"><strong>Age restriction:</strong> <span id="age-restriction">All ages</span></div>
-          <div class="info-item"><strong>Max attendees:</strong> <span id="max-attendees">Unlimited</span></div>
+          <div class="info-item"><strong>Theme:</strong> <span id="party-category"></span></div>
+          <div class="info-item"><strong>When:</strong> <span id="party-time"></span></div>
+          <div class="info-item"><strong>Age restriction:</strong> <span id="age-restriction"></span></div>
+          <div class="info-item"><strong>Max attendees:</strong> <span id="max-attendees"></span></div>
         </div>
 
-        <!-- Photo Previews Section -->
-        <div class="photo-previews" id="photoPreviews" style="display: none;">
-          <div class="preview-grid" id="previewGrid">
-            <!-- Preview images will be loaded here -->
-          </div>
-        </div>
+        <!-- Join Party Button -->
+        <button class="join-party-btn" id="joinPartyBtn" style="display: none;">
+          <span class="btn-text">Join Party</span>
+          <span class="btn-icon">
+            <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true">
+              <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" fill="currentColor"/>
+            </svg>
+          </span>
+        </button>
 
-  <button class="photos-btn">View Gallery <span class="arrow"><svg viewBox="0 0 24 24" width="14" height="14" aria-hidden="true"><path d="M9 6l6 6-6 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" fill="none"/></svg></span></button>
+        <button class="photos-btn">View Gallery <span class="arrow"><svg viewBox="0 0 24 24" width="14" height="14" aria-hidden="true"><path d="M9 6l6 6-6 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" fill="none"/></svg></span></button>
 
         <div class="invited-section">
           <button class="invited-toggle">

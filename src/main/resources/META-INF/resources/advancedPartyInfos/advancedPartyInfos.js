@@ -48,6 +48,17 @@ document.addEventListener("DOMContentLoaded", function () {
       window.history.back();
     });
   }
+
+  // Set up join party button
+  const joinBtn = document.getElementById("joinPartyBtn");
+  if (joinBtn) {
+    joinBtn.addEventListener("click", function () {
+      const partyId = urlParams.get('id');
+      if (partyId) {
+        handleJoinParty(partyId);
+      }
+    });
+  }
 });
 
 async function loadPartyDetails(partyId) {
@@ -60,9 +71,77 @@ async function loadPartyDetails(partyId) {
     const party = await response.json();
     updatePartyDisplay(party);
 
+    // Check attendance status after loading party details
+    await checkAttendanceStatus(partyId);
+
   } catch (error) {
     console.error('Error loading party details:', error);
     document.querySelector('.party-title').textContent = 'Error loading party';
+  }
+}
+
+async function checkAttendanceStatus(partyId) {
+  try {
+    const response = await fetch(`/api/party/${partyId}/attend/status`);
+    if (!response.ok) {
+      throw new Error('Failed to check attendance status');
+    }
+
+    const status = await response.json();
+    updateJoinButton(status.attending, status.count);
+
+  } catch (error) {
+    console.error('Error checking attendance status:', error);
+  }
+}
+
+function updateJoinButton(isAttending, attendeeCount) {
+  const joinBtn = document.getElementById('joinPartyBtn');
+  if (!joinBtn) return;
+
+  joinBtn.style.display = 'flex';
+
+  if (isAttending) {
+    joinBtn.classList.add('joined');
+    joinBtn.querySelector('.btn-text').textContent = 'Leave Party';
+    joinBtn.querySelector('.btn-icon svg').innerHTML =
+      '<path d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" fill="none"/>';
+  } else {
+    joinBtn.classList.remove('joined');
+    joinBtn.querySelector('.btn-text').textContent = 'Join Party';
+    joinBtn.querySelector('.btn-icon svg').innerHTML =
+      '<path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" fill="currentColor"/>';
+  }
+
+  // Update attendee count display (if you want to show it)
+  // You could add this to the meta row or somewhere else
+}
+
+async function handleJoinParty(partyId) {
+  const joinBtn = document.getElementById('joinPartyBtn');
+  if (!joinBtn) return;
+
+  const isCurrentlyJoined = joinBtn.classList.contains('joined');
+  const method = isCurrentlyJoined ? 'DELETE' : 'POST';
+
+  try {
+    const response = await fetch(`/api/party/${partyId}/attend`, {
+      method: method,
+      headers: {
+        'Content-Type': 'application/json'
+      }
+    });
+
+    if (response.ok) {
+      // Refresh attendance status
+      await checkAttendanceStatus(partyId);
+    } else {
+      console.error('Failed to update party attendance');
+      // You could show an error message to the user here
+    }
+
+  } catch (error) {
+    console.error('Error updating party attendance:', error);
   }
 }
 
@@ -74,7 +153,7 @@ async function updatePartyDisplay(party) {
     const lockIcon = titleElement.querySelector('.lock');
     if (lockIcon) lockIcon.remove();
 
-    titleElement.childNodes[0].textContent = party.title || 'Untitled Party';
+    titleElement.childNodes[0].textContent = party.title || 'Loading...';
   }
 
   // Update meta information
@@ -90,10 +169,6 @@ async function updatePartyDisplay(party) {
         const media = await mediaResponse.json();
         mediaCountElement.textContent = `${media.length} Fotos`;
 
-        // Show photo previews if there are photos
-        if (media.length > 0) {
-          displayPhotoPreviews(media, party.id);
-        }
       } else {
         mediaCountElement.textContent = '0 Fotos';
       }
@@ -123,7 +198,7 @@ async function updatePartyDisplay(party) {
   // Update description
   const descElement = document.getElementById('party-description');
   if (descElement) {
-    descElement.textContent = party.description || 'No description available.';
+    descElement.textContent = party.description || '';
   }
 
   // Update website
@@ -139,7 +214,7 @@ async function updatePartyDisplay(party) {
   // Update category
   const categoryElement = document.getElementById('party-category');
   if (categoryElement) {
-    categoryElement.textContent = party.category ? party.category.name : 'General';
+    categoryElement.textContent = party.category ? party.category.name : '';
   }
 
   // Update time information with time span formatting
@@ -186,50 +261,6 @@ async function updatePartyDisplay(party) {
   console.log('Party details updated:', party);
 }
 
-function displayPhotoPreviews(media, partyId) {
-  const previewContainer = document.getElementById('photoPreviews');
-  const previewGrid = document.getElementById('previewGrid');
-
-  if (!previewContainer || !previewGrid) return;
-
-  // Show up to 6 photos as previews for better visibility
-  const previewCount = Math.min(media.length, 6);
-  const previewMedia = media.slice(0, previewCount);
-
-  // Clear existing content
-  previewGrid.innerHTML = '';
-
-  // Create preview images
-  previewMedia.forEach((item, index) => {
-    const previewItem = document.createElement('div');
-    previewItem.className = 'preview-item';
-    previewItem.onclick = () => {
-      // Navigate to full gallery when clicking a preview
-      window.location.href = `/gallery/gallery.html?id=${partyId}`;
-    };
-
-    if (item.url && item.url.includes('http')) {
-      const img = document.createElement('img');
-      img.className = 'preview-image';
-      img.src = item.url;
-      img.alt = `Party photo preview ${index + 1}`;
-      img.loading = 'lazy';
-      img.onerror = () => {
-        // Fallback for broken images - simple colored background
-        previewItem.innerHTML = '<div class="preview-placeholder"></div>';
-      };
-      previewItem.appendChild(img);
-    } else {
-      // Placeholder for items without proper URLs - simple colored background
-      previewItem.innerHTML = '<div class="preview-placeholder"></div>';
-    }
-
-    previewGrid.appendChild(previewItem);
-  });
-
-  // Show the preview container
-  previewContainer.style.display = 'block';
-}
 
 // Helper functions for improved time formatting
 

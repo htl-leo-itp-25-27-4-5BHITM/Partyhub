@@ -1,4 +1,3 @@
-/* zentriertes Panel */
 :root {
   --panel-width: min(520px, 94vw);
   --accent: #56F27C;
@@ -7,21 +6,19 @@
 
 * { box-sizing: border-box; }
 
-/* Panel: keine Box mehr, nicht fixed, liste fließt die seite runter */
 .notif-panel {
   width:100%;
   max-width: none;
   position: static;            /* nicht fixed */
   margin: 0;
-  background: transparent;  /* use body background */
+  background: transparent;
   border-radius: 0;
-  padding:0;                   /* Titel entfernt, kein extra padding */
+  padding:0;
   box-shadow: none;
   border: 0;
   z-index: auto;
 }
 
-/* Liste: keine interne Scrollbox, Seite scrollt */
 .notif-list {
   display:flex;
   flex-direction:column;
@@ -29,10 +26,9 @@
   max-height: none;   /* kein Begrenzen */
   overflow: visible;  /* keine Scrollbar hier */
   padding:6px 0;
-  margin-top: 0; /* remove extra spacing reserved for a fixed username so notifications start directly under it */
+  margin-top: 0;
 }
 
-/* Username / Titel: nicht sticky, kleinerer Abstand darunter */
 .username-fixed {
   position: static;
   top: auto;
@@ -64,7 +60,6 @@
   box-shadow: 0 2px 10px rgba(0,0,0,0.25), 0 0 0 1px rgba(255,255,255,0.02); /* Schatten + subtiler "Outline"-Effekt */
 }
 
-/* Row: Avatar links, Text mittig, Actions rechts */
 .notif-row {
   display:flex;
   align-items:center;
@@ -104,7 +99,6 @@
 .notif-actions { flex: 0 0 auto; }
 
 /* distance from fixed username (consolidated) */
-/* .notif-list margin controlled above */
 
 /* Actions (Buttons nebeneinander) */
 .notif-actions {
@@ -128,41 +122,34 @@
   transition:transform .08s ease, background .12s ease;
 }
 
-/* Accept button: grün */
 .btn-accept {
   background: rgba(86,242,124,0.12);
   color: var(--accent);
 }
 .btn-accept:hover { background: rgba(86,242,124,0.18); transform:translateY(-2px); }
 
-/* Make sure the accept icon itself uses the accent color even before clicking */
 .btn-accept svg,
 .btn-accept svg * {
   stroke: currentColor;
   fill: none;
 }
 
-/* More specific selector to mirror .notif-actions .btn-dismiss */
 .notif-actions .btn-accept {
   background: rgba(86,242,124,0.12);
   color: var(--accent);
 }
 
-/* View Party button: blau */
 .btn-view-party {
   background: rgba(62, 193, 243, 0.12);
   color: #3ec1f3;
 }
 .btn-view-party:hover { background: rgba(62, 193, 243, 0.18); transform:translateY(-2px); }
 
-/* Dismiss button: rot */
 .notif-actions .btn-dismiss {
-  /* more specific selector so it overrides .notif-actions button color */
   background: rgba(255,46,99,0.08);
   color: var(--danger);
 }
 
-/* Ensure SVG strokes/fills inside dismiss buttons inherit the button color */
 .btn-dismiss svg,
 .btn-dismiss svg * {
   stroke: currentColor;
@@ -170,7 +157,6 @@
 }
 .btn-dismiss:hover { background: rgba(255,46,99,0.12); transform:translateY(-2px); }
 
-/* accepted badge (ersetzt buttons) */
 .accepted-badge {
   display:inline-flex;
   gap:8px;
@@ -184,14 +170,12 @@
   font-family: var(--font-body);
 }
 
-/* Ensure the check SVG in accepted-badge uses the accent color */
 .accepted-badge svg,
 .accepted-badge svg * {
   stroke: currentColor;
   fill: none;
 }
 
-/* Rejected badge (ersetzt Buttons beim Ablehnen) */
 .rejected-badge {
   display:inline-flex;
   gap:8px;
@@ -205,7 +189,6 @@
   font-family: var(--font-body);
 }
 
-/* Ensure the X SVG in rejected-badge uses the danger color */
 .rejected-badge svg,
 .rejected-badge svg * {
   stroke: currentColor;
@@ -215,11 +198,16 @@
 /* kleine Hilfsklasse für leeren Zustand */
 .muted { color:rgba(255,255,255,0.6); text-align:center; padding:18px 6px; font-family: var(--font-body); }
 
-/* responsive */
 @media (max-width:420px) {
   .notif-panel { padding:10px; }
   .notif-card { padding:10px; }
   .notif-actions button { padding:6px; border-radius:6px; }
+}
+
+@media (max-width: 480px) {
+  .page-title {
+    font-size: var(--font-size-xxl);
+  }
 }
 
 .notif-message {
@@ -237,7 +225,6 @@
   font-family: var(--font-body);
 }
 
-/* Toast notification (Rückmeldung bei Accept/Dismiss) — modernes Design */
 .toast-container {
   position: fixed;
   bottom: 24px;
@@ -272,7 +259,6 @@
   min-width: 240px;
 }
 
-/* Icon im Toast (links) */
 .toast-icon {
   flex-shrink: 0;
   width: 20px;
@@ -326,7 +312,7 @@
 
 input::placeholder {
   color: rgba(255,255,255,0.75); /* sichtbar auf dunklem BG */
-  opacity: 1; /* einige Browser reduzieren sonst */
+  opacity: 1;
 }
 input {
   color: #fff; /* eigentlicher Text */

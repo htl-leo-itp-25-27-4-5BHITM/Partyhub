@@ -112,7 +112,7 @@ public class PartyResource {
     @Path("/{id}/media")
     @Produces(MediaType.APPLICATION_JSON)
     public Response getImages(@PathParam("id") long partyId) {
-        return Response.ok().entity( mediaRepository.getImages(partyId)).build();
+        return Response.ok().entity(mediaRepository.getImages(partyId)).build();
     }
 
     @POST
@@ -123,4 +123,6 @@ public class PartyResource {
     public Response upload(MediaRepository.FileUploadInput input, @PathParam("id") long partyId) {
         return mediaRepository.upload(input, partyId);
     }
+
+
 }

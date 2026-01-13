@@ -11,6 +11,7 @@ import org.jboss.logging.Logger;
 import org.jboss.resteasy.reactive.multipart.FileUpload;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.time.Instant;
@@ -46,7 +47,6 @@ public class MediaRepository {
                 .setParameter("userId", DEFAULT_USER_ID)
                 .getResultList()
                 .isEmpty();
-        logger.info(access);
         List<MediaDto> result = new ArrayList<>();
         if (access) {
             List<Media> mediaList = entityManager.createQuery("SELECT m FROM Media m WHERE m.party.id=:partyId", Media.class).setParameter("partyId", partyId).getResultList();
@@ -65,12 +65,13 @@ public class MediaRepository {
             throw new RuntimeException(e);
         }
         for (FileUpload file : input.file) {
-            // TODO: Use correct media path for db
             // TODO: Use current user
-            Media media = new Media(partyRepository.getPartyById(partyId), userRepository.getUser(DEFAULT_USER_ID), file.fileName());
+            String timestampedFilename = Instant.now().toString() + "_" + file.fileName();
+            String relativePath = "party" + partyId + "/" + timestampedFilename;
+            Media media = new Media(partyRepository.getPartyById(partyId), userRepository.getUser(DEFAULT_USER_ID), relativePath);
             entityManager.persist(media);
             java.nio.file.Path uploadedFile = file.uploadedFile();
-            java.nio.file.Path targetLocation = Paths.get(uploadDir, Instant.now().toString() + file.fileName());
+            java.nio.file.Path targetLocation = Paths.get(uploadDir, timestampedFilename);
             try {
                 Files.move(uploadedFile, targetLocation);
             } catch (IOException e) {
@@ -93,12 +94,27 @@ public class MediaRepository {
                 media.getUrl()
         );
     }
+    public Response getImgByMediaId(@PathParam("id") long id) {
+        Media media = entityManager.find(Media.class, id);
+        String path;
+        //TODO:sanitize path
+        String pic = media.getUrl();
+        path = "src/main/resources/uploads/party" + media.getParty().getId() + "/" + pic;
+        try {
+            logger.info(Paths.get(path));
+            InputStream is = Files.newInputStream(Paths.get(path));
+            String lower = pic.toLowerCase();
+            String type = "application/octet-stream";
+            if (lower.endsWith(".jpg") || lower.endsWith(".jpeg")) type = "image/jpeg";
+            else if (lower.endsWith(".png")) type = "image/png";
+            else if (lower.endsWith(".gif")) type = "image/gif";
+            return Response.ok(is, type).build();
+        } catch (IOException e) {
+        }
+        return Response.status(Response.Status.NOT_FOUND).build();
+    }
 
-    /**
-     * Get the count of media uploaded by a specific user
-     * @param userId The ID of the user
-     * @return The number of media items uploaded by the user
-     */
+
     public long getMediaCountByUserId(Long userId) {
         return entityManager.createQuery(
                 "SELECT COUNT(m) FROM Media m WHERE m.user.id = :userId",

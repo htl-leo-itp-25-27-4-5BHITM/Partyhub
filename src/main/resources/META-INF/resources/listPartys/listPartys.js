@@ -1,4 +1,3 @@
-// List Parties Page JavaScript
 document.addEventListener('DOMContentLoaded', function() {
     loadAllParties();
 });
@@ -19,10 +18,8 @@ async function loadAllParties() {
             return;
         }
 
-        // Clear loading message
         container.innerHTML = '';
 
-        // Create party cards
         parties.forEach(party => {
             const partyCard = createPartyCard(party);
             container.appendChild(partyCard);
@@ -41,12 +38,10 @@ function createPartyCard(party) {
         window.location.href = `/advancedPartyInfos/advancedPartyInfos.html?id=${party.id}`;
     };
 
-    // Format date with improved formatting
     const partyDate = new Date(party.time_start);
     const formattedDate = formatPartyDateList(partyDate);
 
-    // Get location (party.location is coordinates object, so use placeholder for now)
-    const location = 'Location TBA'; // TODO: Implement reverse geocoding for coordinates
+    const location = 'Location TBA';
 
     card.innerHTML = `
         <header class="party-header-list">
@@ -82,7 +77,6 @@ function createPartyCard(party) {
     return card;
 }
 
-// Helper function for improved date formatting in party list
 function formatPartyDateList(date) {
     const now = new Date();
     const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());

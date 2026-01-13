@@ -134,12 +134,8 @@ public class UserResource {
             return Response.status(Response.Status.NOT_FOUND).build();
         }
         String pic = user.getProfileImage();
-
-        // Handle both old images/ path and new uploads/ path
         String path;
-        if (pic != null && pic.startsWith("uploads/")) {
-            // New uploaded files
-            path = "src/main/resources/" + pic;
+            path = "src/main/resources/uploads/profiles/" + pic;
             try {
                 InputStream is = Files.newInputStream(Paths.get(path));
                 String lower = pic.toLowerCase();
@@ -149,30 +145,8 @@ public class UserResource {
                 else if (lower.endsWith(".gif")) type = "image/gif";
                 return Response.ok(is, type).build();
             } catch (IOException e) {
-                // Fall back to default image
             }
-        }
-
-        // Handle old classpath resources
-        path = pic != null && pic.startsWith("/") ? pic.substring(1) : (pic != null ? pic : "images/default_profile-picture.jpg");
-        if (!path.startsWith("images/")) {
-            path = "images/" + path;
-        }
-        InputStream is = Thread.currentThread().getContextClassLoader().getResourceAsStream(path);
-        if (is == null) {
-            // Fall back to default image
-            is = Thread.currentThread().getContextClassLoader().getResourceAsStream("images/default_profile-picture.jpg");
-        }
-        if (is == null) {
             return Response.status(Response.Status.NOT_FOUND).build();
-        }
-        String lower = path.toLowerCase();
-        String type = "application/octet-stream";
-        if (lower.endsWith(".jpg") || lower.endsWith(".jpeg")) type = "image/jpeg";
-        else if (lower.endsWith(".png")) type = "image/png";
-        else if (lower.endsWith(".gif")) type = "image/gif";
-
-        return Response.ok(is, type).build();
     }
 
     @POST
@@ -186,46 +160,32 @@ public class UserResource {
                     .entity("{\"error\": \"No file provided\"}")
                     .build();
         }
-
-        // Validate file type
         String contentType = fileUpload.contentType();
         if (!contentType.startsWith("image/")) {
             return Response.status(Response.Status.BAD_REQUEST)
                     .entity("{\"error\": \"Only image files are allowed\"}")
                     .build();
         }
-
-        // Validate file size (max 5MB)
         if (fileUpload.size() > 5 * 1024 * 1024) {
             return Response.status(Response.Status.BAD_REQUEST)
                     .entity("{\"error\": \"File size must be less than 5MB\"}")
                     .build();
         }
-
-        // Check if user exists
         User user = userRepository.getUser(id);
         if (user == null) {
             return Response.status(Response.Status.NOT_FOUND)
                     .entity("{\"error\": \"User not found\"}")
                     .build();
         }
-
         try {
-            // Create uploads/profiles directory if it doesn't exist
             String uploadDir = "src/main/resources/uploads/profiles/";
             Files.createDirectories(Paths.get(uploadDir));
-
-            // Generate unique filename
             String originalFilename = fileUpload.fileName();
             String fileExtension = getFileExtension(originalFilename);
             String timestamp = Instant.now().toEpochMilli() + "";
             String newFilename = "profile_" + id + "_" + timestamp + fileExtension;
-
-            // Move uploaded file to target location
             java.nio.file.Path targetLocation = Paths.get(uploadDir, newFilename);
             Files.move(fileUpload.uploadedFile(), targetLocation);
-
-            // Update user's profile image in database
             user.setProfileImage("uploads/profiles/" + newFilename);
             userRepository.updateUser(id, new UserCreateDto(
                     user.getDisplayName(),
@@ -251,6 +211,6 @@ public class UserResource {
         if (lastDotIndex > 0) {
             return filename.substring(lastDotIndex);
         }
-        return ".jpg"; // default extension
+        return ".jpg";
     }
 }

@@ -51,14 +51,14 @@ INSERT INTO party_user (party_id, user_id) VALUES
 
 -- Insert Media data
 INSERT INTO media (id, party_id, user_id, url) VALUES
-(1, 1, 1, '/images/profile_picture1.jpg'),
-(2, 1, 2, '/images/profile_picture2.jpg'),
-(3, 2, 2, '/images/profile_picture3.jpg'),
-(4, 2, 4, '/images/profile_picture4.jpg'),
-(5, 3, 3, '/images/profile_picture5.jpg'),
-(6, 4, 4, '/images/default_profile-picture.jpg'),
-(7, 5, 5, '/uploads/party5/kunstausstellung.jpg'),
-(8, 5, 3, '/uploads/party5/galerie_innenraum.jpg');
+(1, 1, 1, 'profile_picture1.jpg'),
+(2, 1, 2, 'profile_picture2.jpg'),
+(3, 2, 2, 'profile_picture3.jpg'),
+(4, 2, 4, 'profile_picture4.jpg'),
+(5, 3, 3, 'profile_picture5.jpg'),
+(6, 4, 4, 'default_profile-picture.jpg'),
+(7, 5, 5, 'kunstausstellung.jpg'),
+(8, 5, 3, 'galerie_innenraum.jpg');
 
 -- Insert Invitation data - Einladungen für Events
 INSERT INTO invitation (id, sender_id, recipient_id, party_id) VALUES

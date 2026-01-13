@@ -1,4 +1,3 @@
-// Edit Profile Page JavaScript
 let selectedProfilePictureFile = null;
 
 document.addEventListener('DOMContentLoaded', function() {
@@ -6,7 +5,6 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 function initializeEditPage() {
-    // Get user ID from URL or local storage (you'll need to implement this based on your auth system)
     const userId = getCurrentUserId();
 
     if (!userId) {
@@ -20,10 +18,7 @@ function initializeEditPage() {
 }
 
 function getCurrentUserId() {
-    // TODO: Implement based on your authentication system
-    // This could be from localStorage, session, JWT token, etc.
-    // For now, return a hardcoded ID for testing
-    return 1; // Replace with actual user ID retrieval
+    return 1;
 }
 
 async function loadUserData(userId) {

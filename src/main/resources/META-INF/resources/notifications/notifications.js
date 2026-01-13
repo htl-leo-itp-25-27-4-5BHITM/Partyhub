@@ -1,11 +1,9 @@
 document.addEventListener("DOMContentLoaded", async () => {
     let data = [];
 
-    // Load invitations from API
     try {
         const invitations = await getReceivedInvites();
         if (invitations) {
-            // Transform invitations to notification format
             data = invitations.map(invitation => ({
                 id: invitation.id,
                 type: "invite",
@@ -14,28 +12,23 @@ document.addEventListener("DOMContentLoaded", async () => {
                 actorProfile: `/profile/profile.html?handle=${invitation.sender.distinctName}`,
                 party: invitation.party.title,
                 partyId: invitation.party.id,
-                time: "vor kurzem", // TODO: Calculate actual time difference
+                time: "vor kurzem",
                 invitationId: invitation.id
             }));
         }
     } catch (error) {
         console.error("Failed to load invitations:", error);
-        // Fallback to empty data
         data = [];
     }
-
-    // Rest of the existing code for rendering...
 
     const list = document.getElementById("notifList");
     const tpl = document.getElementById("notifTpl");
     const toastContainer = document.getElementById("toastContainer");
 
-    // Toast-Benachrichtigung mit Icon anzeigen
     function showToast(message, type = "success") {
         const toast = document.createElement("div");
         toast.className = `toast ${type}`;
 
-        // Icon je nach Typ (Success: Häkchen, Error: X)
         let iconSVG = "";
         if (type === "success") {
             iconSVG =
@@ -52,7 +45,6 @@ document.addEventListener("DOMContentLoaded", async () => {
 
         toastContainer.appendChild(toast);
 
-        // Auto-Remove nach Animation (2.5s)
         setTimeout(() => {
             toast.remove();
         }, 2500);
@@ -75,8 +67,6 @@ document.addEventListener("DOMContentLoaded", async () => {
             // set avatar image + profile link
             const avatarLink = clone.querySelector(".avatar-link");
             const avatarImg = clone.querySelector(".notif-avatar img");
-
-            // Use dynamic profile picture URL
             avatarImg.src = item.actorAvatar || "/images/default_profile-picture.jpg";
             avatarImg.alt = item.actorName
                 ? item.actorName + " Profilbild"
@@ -86,10 +76,8 @@ document.addEventListener("DOMContentLoaded", async () => {
             };
             avatarLink.href = item.actorProfile || "#";
 
-            // compose message
             let message = item.text || "";
             if (item.type === "invite") {
-                // "Du wurdest von X zu Y eingeladen"
                 message = `Du wurdest von ${item.actorName || "jemandem"} zu ${
                     item.party || "einem Event"
                 } eingeladen`;
@@ -117,15 +105,12 @@ document.addEventListener("DOMContentLoaded", async () => {
             }
 
             viewPartyBtn.addEventListener("click", () => {
-                // Navigate to the party details page
                 window.location.href = `/advancedPartyInfos/advancedPartyInfos.html?id=${item.partyId}`;
             });
 
             acceptBtn.addEventListener("click", async () => {
                 try {
-                    // Accept the invitation by attending the party
                     await attendParty(item.partyId);
-                    // Delete the invitation
                     await deleteInvite(item.invitationId);
                     console.log(await deleteInvite(item.invitationId));
                     console.log(item.invitationId);
@@ -136,12 +121,9 @@ document.addEventListener("DOMContentLoaded", async () => {
                         '<svg viewBox="0 0 24 24" width="14" height="14" fill="none" aria-hidden="true"><path d="M20 6L9 17l-5-5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg><span>angenommen</span>';
                     actions.replaceWith(badge);
 
-                    // Remove from data array and re-render to remove the invitation
                     const idx = data.findIndex((d) => d.id == item.id);
                     if (idx > -1) data.splice(idx, 1);
                     render();
-
-                    // Rückmeldung: Einladung erfolgreich angenommen
                     showToast("Einladung angenommen ✓", "success");
                 } catch (error) {
                     console.error("Error accepting invitation:", error);
@@ -152,17 +134,13 @@ document.addEventListener("DOMContentLoaded", async () => {
             dismissBtn.addEventListener("click", async () => {
                 if (item.type === "invite") {
                     try {
-                        // Delete the invitation when rejecting
                         await deleteInvite(item.invitationId);
-
-                        // For invites: show rejected badge
                         const rejected = document.createElement("div");
                         rejected.className = "rejected-badge";
                         rejected.innerHTML =
                             '<svg viewBox="0 0 24 24" width="14" height="14" fill="none" aria-hidden="true"><path d="M18 6L6 18M6 6l12 12" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg><span>abgelehnt</span>';
                         actions.replaceWith(rejected);
 
-                        // Remove from data array and re-render to remove the invitation
                         const idx = data.findIndex((d) => d.id == item.id);
                         if (idx > -1) data.splice(idx, 1);
                         render();
@@ -173,7 +151,6 @@ document.addEventListener("DOMContentLoaded", async () => {
                         showToast("Fehler beim Ablehnen der Einladung", "error");
                     }
                 } else {
-                    // For informational items (views/likes): remove the notification from the list
                     card.style.opacity = "0";
                     card.style.transform = "translateY(6px)";
                     showToast("Benachrichtigung entfernt", "error");
@@ -185,7 +162,6 @@ document.addEventListener("DOMContentLoaded", async () => {
                 }
             });
 
-            // neue Einträge oben
             list.prepend(clone);
         });
     }
@@ -193,7 +169,6 @@ document.addEventListener("DOMContentLoaded", async () => {
     render();
 });
 
-// Small script: highlight active nav button (notifications = green)
 function markActiveNav() {
     const nav = document.querySelector(".bottom-nav");
     if (!nav) return;
@@ -201,13 +176,11 @@ function markActiveNav() {
     links.forEach((a) => {
         const icon = a.querySelector(".nav-icon");
         if (!icon) return;
-        // default: pink
         icon.classList.remove("icon--green");
         icon.classList.add("icon--pink");
         a.classList.remove("active");
 
         const href = a.getAttribute("href") || "";
-        // mark notifications as active when URL points to notifications page
         if (href.includes("notifications")) {
             icon.classList.remove("icon--pink");
             icon.classList.add("icon--green");

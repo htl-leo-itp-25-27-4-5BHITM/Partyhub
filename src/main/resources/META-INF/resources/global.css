@@ -27,7 +27,7 @@ a{
   color: inherit;
 }
 
-/* Design for Labels */
+
 .input_fields {
   background-color: #1a1040;
   color: white;
@@ -42,7 +42,6 @@ a{
 
 :root {
 
-  /* Primary, Secondary, Accent colors */
   --primary-color: #1a1040;
   /*#2f27ce*/
   --secondary-color: #4f3b9a;
@@ -52,19 +51,19 @@ a{
   --secondary-color-blue: #3ec1f3;
   --accent-color-green: #56f27c;
 
-  /* Dark Background Colors */
-  --bg-primary: #1a1040; /* Main dark background */
-  --bg-secondary: #221a4d; /* Slightly lighter dark background */
-  --bg-tertiary: #2a2259; /* Card backgrounds */
-  --bg-surface: rgba(26, 16, 64, 0.95); /* Semi-transparent surfaces */
-  --bg-elevated: rgba(42, 34, 89, 0.98); /* Elevated elements */
 
-  /* Fonts */
+  --bg-primary: #1a1040;
+  --bg-secondary: #221a4d;
+  --bg-tertiary: #2a2259;
+  --bg-surface: rgba(26, 16, 64, 0.95);
+  --bg-elevated: rgba(42, 34, 89, 0.98);
+
+
   --font-family: "Montserrat", sans-serif;
   --font-display: luckiestGuy, cursive;
   --font-body: lanasima, serif;
 
-  /* Margin */
+
   --margin-xxs: 0.25rem;
   --margin-xs: 0.5rem;
   --margin-s: 0.75rem;
@@ -74,7 +73,7 @@ a{
   --margin-xxl: 2.5rem;
   --margin-xxxl: 5rem;
 
-  /* Padding */
+
   --padding-xxs: 0.25rem;
   --padding-xs: 0.5rem;
   --padding-s: 0.75rem;
@@ -83,7 +82,6 @@ a{
   --padding-xl: 1.75rem;
   --padding-xxl: 2.5rem;
 
-  /* font size */
   --font-size-xxs: 0.75rem;
   --font-size-xs: 0.875rem;
   --font-size-s: 1rem;
@@ -99,25 +97,24 @@ a{
 
   --side-padding: 5vw;
 
-  /* screen max width **/
   --screen-sm: 576px;
   --screen-md: 768px;
   --screen-lg: 992px;
   --screen-xl: 1200px;
   --screen-xxl: 1400px;
 
-  /* Border Radius */
+
   --border-radius-s: 4px;
   --border-radius-m: 8px;
   --border-radius-l: 12px;
   --border-radius-xl: 16px;
 
-  /* Footer */
+
   --height-footer: 200px;
 
 }
 
-/* Custom Font Classes */
+
 .font-display {
   font-family: var(--font-display);
 }
@@ -135,7 +132,6 @@ a{
   font-family: var(--font-body);
 }
 
-/* Dark Theme Background Classes */
 .bg-dark-primary {
   background-color: var(--bg-primary);
 }
@@ -156,7 +152,6 @@ a{
   background-color: var(--bg-elevated);
 }
 
-/* Override Bootstrap or other framework light backgrounds */
 .bg-light {
   background-color: var(--bg-primary) !important;
   color: #fff;

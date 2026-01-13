@@ -11,7 +11,7 @@
     <script src="../backend-functions.js" defer></script>
     <script src="./listPartys.js" defer></script>
   </head>
-  <body>
+  <body class="bg-light">
     <div class="app-shell">
       <!-- top-bar removed: bottom navigation used instead -->
 
@@ -19,6 +19,14 @@
         <header class="page-header">
           <h1 class="page-title font-heading">All Parties</h1>
           <p class="page-subtitle font-body-text">Discover amazing events near you</p>
+          <a href="/addParty/addParty.html" class="create-party-btn">
+            <span class="btn-text">Create New Party</span>
+            <span class="btn-icon">
+              <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true">
+                <path d="M12 4v16m8-8H4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+              </svg>
+            </span>
+          </a>
         </header>
 
         <!-- Parties List Container -->

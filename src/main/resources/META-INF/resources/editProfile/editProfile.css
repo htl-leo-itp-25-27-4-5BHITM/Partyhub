@@ -43,7 +43,7 @@
 
 .edit-container {
   padding: 24px;
-  padding-bottom: 120px; /* Space for bottom nav */
+  padding-bottom: 140px; /* Increased bottom padding for better mobile spacing */
 }
 
 .edit-form {
@@ -94,6 +94,7 @@
   padding: 12px 24px;
   border-radius: 24px;
   border: none;
+  font-family: 'lanasima', serif;
   font-weight: 600;
   cursor: pointer;
   transition: background 0.2s ease, transform 0.1s ease;
@@ -108,7 +109,6 @@
   transform: scale(0.95);
 }
 
-/* Form Groups */
 .form-group {
   margin-bottom: 20px;
 }
@@ -298,5 +298,3 @@
     width: 100%;
   }
 }
-
-/* Dark theme is now the default */

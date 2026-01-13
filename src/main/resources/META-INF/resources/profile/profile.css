@@ -180,11 +180,9 @@
 }
 
 :root {
-  /* avatar size = 32vw, max 110px */
   --avatar-size: min(34vw, 130px);
 }
 
-/* Basic page reset */
 * {
   box-sizing: border-box;
 }
@@ -255,7 +253,6 @@ body {
     0 6px 18px rgba(0, 0, 0, 0.18);
 }
 
-/* center username and keep it readable on mobile */
 #username p {
   margin: 0;
   font-size: 1.05rem;
@@ -273,7 +270,6 @@ body {
   margin-top: 4px;
 }
 
-/* Utility: ensure search and other parts don't overflow on small screens */
 /* give the search bar more horizontal breathing room */
 /* increase horizontal breathing room */
 #searchBar {
@@ -284,19 +280,15 @@ body {
   padding: 14px 36px;
 }
 
-/* styled search box: semi-transparent purple rounded container with icon and separator */
 .searchBox {
   display: flex;
   align-items: center;
   width: 100%;
   max-width: 420px;
-  /* narrower to create more side margin */
   margin: 0 auto;
   /* center more precisely */
   background: rgba(79, 59, 154, 0.9);
-  /* #4F3B9A with slight transparency */
   padding: 10px 18px;
-  /* a touch more horizontal padding */
   border-radius: 999px;
   /* pill shape */
   gap: 10px;
@@ -341,7 +333,6 @@ body {
   font-family: fontnormal !important;
 }
 
-/* Profile stats: display three boxes side-by-side with number above label */
 #profileDetails {
   width: 100%;
   max-width: 520px;
@@ -357,11 +348,9 @@ body {
   padding: 6px 4px;
   text-align: center;
   background: transparent;
-  /* no background */
   border-radius: 0;
   /* no rounded box */
   box-shadow: none;
-  /* no shadow */
 }
 
 /* number on top */
@@ -376,7 +365,6 @@ body {
   text-shadow: 0 1px 0 rgba(0, 0, 0, 0.3);
 }
 
-/* label under number */
 #followingCount::after {
   content: "Following";
   display: block;
@@ -401,7 +389,6 @@ body {
   opacity: 0.9;
 }
 
-/* For accessibility: if JS fills numbers into elements, set data-count attribute accordingly.
 	 Fallback: show empty or 0 if not set */
 @media (max-width: 420px) {
   #profileDetails > div {
@@ -410,7 +397,6 @@ body {
   }
 }
 
-/* Ensure shared bottom navigation is visible on this page
    (override in case page-specific rules hide or lower its z-index) */
 .bottom-nav {
   display: flex !important;
@@ -425,7 +411,6 @@ body {
   text-decoration: none;
 }
 
-/* ensure the search box still fits on very small screens */
 @media (max-width: 380px) {
   #searchBar {
     padding: 10px 12px;
@@ -535,14 +520,12 @@ body {
   background: rgba(255, 255, 255, 0.5);
 }
 
-/* On very large screens, prefer a slightly smaller avatar than 50vw */
 @media (min-width: 900px) {
   :root {
     --avatar-size: 200px;
   }
 }
 
-/* subsections under profile details */
 #profileSubsections {
   width: 100%;
   max-width: 520px;
@@ -571,7 +554,6 @@ body {
   text-align: center;
 }
 
-/* Party card grid + card styling (leicht heller für Buttons/Boxen) */
 .party-grid {
   width: 100%;
   max-width: 520px;
@@ -594,7 +576,7 @@ body {
   color: #fff;
   display: flex;
   flex-direction: column;
-  justify-content: flex-start; /* body wird mit margin-top: auto nach unten gedrückt */
+  justify-content: flex-start;
   aspect-ratio: 1 / 1;
   overflow: visible; /* Inhalte nicht abschneiden */
   border: 1px solid rgba(255, 255, 255, 0.04);
@@ -619,7 +601,7 @@ body {
   min-width: 0; /* erlaubt korrektes Shrinken im Flex-Layout */
   white-space: nowrap; /* keine Zeilenumbrüche */
   overflow: hidden;
-  text-overflow: ellipsis; /* bei zu langer Überschrift abschneiden */
+  text-overflow: ellipsis;
   padding-right: 6px;
 }
 
@@ -666,7 +648,6 @@ body {
   margin-top: 3px;
 }
 
-/* responsive: sehr schmale Geräte -> 1 Spalte */
 @media (max-width: 360px) {
   .party-grid {
     grid-template-columns: 1fr;
