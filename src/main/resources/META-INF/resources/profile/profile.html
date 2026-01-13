@@ -172,22 +172,33 @@
                                     <div class="info-label">Ort</div>
                                 </div>
                             </div>
+
+                            <!-- zusätzliche, anfänglich ausgeblendete Infos -->
+                            <div class="party-extra" style="display:none; padding-top:8px;">
+                                <div class="info-line"><strong>Max. People:</strong> <span class="party-people">—</span></div>
+                                <div class="info-line"><strong>Age:</strong> <span class="party-age">—</span></div>
+                                <div class="info-line"><strong>Fee:</strong> <span class="party-fee">—</span></div>
+                                <div class="info-line"><strong>Category:</strong> <span class="party-category">—</span></div>
+                                <div class="info-line"><strong>Created:</strong> <span class="party-created">—</span></div>
+                            </div>
                         </article>
                     </template>
 
-                    <div id="partiesContainer"></div>
+                    <!-- Grid: 2 Partys pro Reihe -->
+                    <div id="partiesContainer" style="display:grid; grid-template-columns: repeat(2, 1fr); gap:12px;"></div>
                 </section>
 
                 <!-- EIGENE BILDER -->
                 <section id="tabContentPosts" class="tab-section" style="display:none;">
                     <p class="muted no-posts">Keine eigenen Fotos vorhanden</p>
-                    <div id="ownMediaGrid" class="media-grid"></div>
+                    <!-- Bilder-Grid: einfache Styling-Vorgabe -->
+                    <div id="ownMediaGrid" class="media-grid" style="display:grid; grid-template-columns: repeat(3, 1fr); gap:8px;"></div>
                 </section>
 
                 <!-- GELIKTE BILDER -->
                 <section id="tabContentFavorites" class="tab-section" style="display:none;">
                     <p class="muted no-favs">Keine gelikten Fotos vorhanden</p>
-                    <div id="likedMediaGrid" class="media-grid"></div>
+                    <div id="likedMediaGrid" class="media-grid" style="display:grid; grid-template-columns: repeat(3, 1fr); gap:8px;"></div>
                 </section>
             </div>
 

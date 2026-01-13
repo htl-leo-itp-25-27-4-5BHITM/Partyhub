@@ -170,12 +170,111 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   }
 
+  // updateParty helper for edit mode
+  async function updateParty(partyId, partyPayload) {
+    try {
+      // prefer backend helper if available
+      if (window.backend && typeof window.backend.updateParty === "function") {
+        const data = await window.backend.updateParty(partyId, partyPayload);
+        return { ok: !!data, data };
+      }
+      const response = await fetch(`/api/party/${partyId}`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", Accept: "application/json" },
+        body: JSON.stringify(partyPayload),
+      });
+      let data = null;
+      try { data = await response.json(); } catch (_) {}
+      if (response.ok) return { ok: true, status: response.status, data };
+      return { ok: false, status: response.status, data };
+    } catch (error) {
+      console.error("Network error (update):", error);
+      return { ok: false, error };
+    }
+  }
+
   // ------------------------------
-  // Form Submit mit Validierungen
+  // Form element MUST be available before trying to load edit-mode data
   // ------------------------------
   const form = document.querySelector(".party-form");
   if (!form) return; // Form nicht gefunden -> nichts tun
 
+  // ------------------------------
+  // Edit mode: if ?id=.. present, load party and prefill form
+  // ------------------------------
+  const urlParams = new URLSearchParams(window.location.search);
+  const editPartyId = urlParams.get("id");
+  let isEditMode = false;
+  (async function tryLoadEdit() {
+    if (!editPartyId) return;
+    isEditMode = true;
+    const submitBtn = form.querySelector(".submit-btn");
+    if (submitBtn) submitBtn.textContent = "Update";
+
+    // helper to parse backend date format dd.MM.yyyy HH:mm
+    const parseFromBackend = (s) => {
+      if (!s || typeof s !== "string") return null;
+      const [datePart, timePart] = s.split(" ");
+      if (!datePart || !timePart) return null;
+      const [d, m, y] = datePart.split(".").map(Number);
+      const [h, min] = timePart.split(":").map(Number);
+      if ([d, m, y, h, min].some((v) => Number.isNaN(v))) return null;
+      return new Date(y, m - 1, d, h, min);
+    };
+
+    // fetch party via backend helper or direct fetch
+    let party = null;
+    try {
+      if (window.backend && typeof window.backend.getPartyById === "function") {
+        party = await window.backend.getPartyById(editPartyId);
+      } else {
+        const res = await fetch(`/api/party/${editPartyId}`);
+        if (res.ok) party = await res.json();
+      }
+    } catch (err) {
+      console.error("Error loading party for edit:", err);
+    }
+    if (!party) {
+      alert("Konnte Party nicht laden.");
+      return;
+    }
+
+    // populate form fields (guard checks)
+    form.title.value = party.title || form.title.value || "";
+    form.description.value = party.description || form.description.value || "";
+    if (party.location) form.location.value = party.location;
+    if (party.website) form.website.value = party.website;
+    if (party.fee !== undefined) form.entry_costs.value = party.fee;
+    if (party.min_age !== undefined) form.min_age.value = party.min_age;
+    if (party.max_age !== undefined) form.max_age.value = party.max_age;
+    if (party.theme !== undefined && form.theme) form.theme.value = party.theme;
+    if (party.max_people !== undefined && form.max_people) form.max_people.value = party.max_people;
+
+    // times into flatpickr
+    const sd = parseFromBackend(party.time_start || party.timeStart || party.start_time);
+    const ed = parseFromBackend(party.time_end || party.timeEnd || party.end_time);
+    if (sd) startPicker.setDate(sd, true);
+    if (ed) endPicker.setDate(ed, true);
+
+    // visible users: try to check matching checkboxes if any
+    if (Array.isArray(party.visible_users) && party.visible_users.length > 0) {
+      Array.from(form.querySelectorAll('input[name="visible_users"]')).forEach(inp => {
+        if (party.visible_users.includes(inp.value)) inp.checked = true;
+        else inp.checked = false;
+      });
+      // open panel to show selections
+      const panelEl = document.getElementById("visibilityPanel");
+      const toggle = document.getElementById("visibilityToggle");
+      if (panelEl && toggle) {
+        panelEl.classList.add("open");
+        toggle.classList.add("open");
+      }
+    }
+  })();
+
+  // ------------------------------
+  // Form Submit mit Validierungen
+  // ------------------------------
   form.addEventListener("submit", async (e) => {
     e.preventDefault();
 
@@ -341,28 +440,42 @@ document.addEventListener("DOMContentLoaded", () => {
         submitBtn.setAttribute("aria-busy", "true");
       }
 
-      const result = await createParty(payload);
-      if (result.ok) {
-        alert("Party erfolgreich erstellt.");
-        // Wenn der Server einen Location-Header liefert, dorthin navigieren
-        if (result.location) {
-          window.location.href = result.location;
-          return;
-        }
-        // Falls die API das erstellte Objekt mit einer id zurückgibt, versuche redirect
-        if (result.data && (result.data.id || result.data.partyId)) {
-          const id = result.data.id || result.data.partyId;
+      let result;
+      if (isEditMode && editPartyId) {
+        // Update flow
+        result = await updateParty(editPartyId, payload);
+        if (result.ok) {
+          alert("Party erfolgreich aktualisiert.");
+          // Try redirect to the updated party page if id known
+          const id = editPartyId;
           window.location.href = `/party/${id}`;
           return;
+        } else {
+          const msg = result.text || (result.data && JSON.stringify(result.data)) || "Aktualisierung fehlgeschlagen.";
+          showError(msg);
         }
-        // Fallback: zur Party-Liste
-        window.location.href = "/listPartys/listPartys.html";
       } else {
-        const msg =
-          (result.text && result.text.slice(0, 100)) ||
-          (result.data && JSON.stringify(result.data).slice(0, 200)) ||
-          "Senden der Party fehlgeschlagen. Bitte versuche es später erneut.";
-        showError(msg);
+        // Create flow
+        result = await createParty(payload);
+        if (result.ok) {
+          alert("Party erfolgreich erstellt.");
+          if (result.location) {
+            window.location.href = result.location;
+            return;
+          }
+          if (result.data && (result.data.id || result.data.partyId)) {
+            const id = result.data.id || result.data.partyId;
+            window.location.href = `/party/${id}`;
+            return;
+          }
+          window.location.href = "/listPartys/listPartys.html";
+        } else {
+          const msg =
+            (result.text && result.text.slice(0, 100)) ||
+            (result.data && JSON.stringify(result.data).slice(0, 200)) ||
+            "Senden der Party fehlgeschlagen. Bitte versuche es später erneut.";
+          showError(msg);
+        }
       }
     } finally {
       if (submitBtn) {

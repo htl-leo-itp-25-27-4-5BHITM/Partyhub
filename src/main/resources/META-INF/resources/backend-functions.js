@@ -234,6 +234,54 @@ async function deleteInvite(invitationId) {
     }
 }
 
+// Get parties created by a specific user (tries several endpoints, fallspezifisch)
+async function getPartiesByUser(userId) {
+    const candidates = [
+        `/api/users/${userId}/parties`,
+        `/api/party/user/${userId}`,
+        `/api/party?ownerId=${userId}`,
+        `/api/party?userId=${userId}`,
+        `/api/party/owner/${userId}`
+    ];
+    // try direct endpoints first
+    for (const u of candidates) {
+        try {
+            const res = await fetch(u);
+            if (!res.ok) {
+                console.debug(`getPartiesByUser: ${u} -> ${res.status}`);
+                continue;
+            }
+            const data = await res.json().catch(() => null);
+            // Accept several response shapes
+            if (Array.isArray(data)) return data;
+            if (data && Array.isArray(data.parties)) return data.parties;
+            if (data && Array.isArray(data.data)) return data.data;
+            if (data && Array.isArray(data.results)) return data.results;
+            // If object contains party-like items under other keys, attempt to find first array
+            if (data && typeof data === 'object') {
+                for (const k of Object.keys(data)) {
+                    if (Array.isArray(data[k])) return data[k];
+                }
+            }
+            if (Array.isArray(data)) return data;
+        } catch (err) {
+            console.debug(`getPartiesByUser: network error for ${u}`, err);
+        }
+    }
+
+    // fallback: fetch all parties and filter by common owner fields
+    try {
+        const all = await getAllParties();
+        if (!Array.isArray(all)) return null;
+        return all.filter(p => {
+            return p.ownerId == userId || p.creatorId == userId || p.userId == userId || p.owner == userId;
+        });
+    } catch (err) {
+        console.error('getPartiesByUser fallback failed', err);
+        return null;
+    }
+}
+
 // Expose functions on a namespace to be used by other scripts (profile.js etc.)
 window.backend = {
     createParty,
@@ -241,6 +289,7 @@ window.backend = {
     sortParties,
     filterParties,
     getPartyById,
+    getPartiesByUser, // <-- neu
     updateParty,
     deleteParty,
     attendParty,
