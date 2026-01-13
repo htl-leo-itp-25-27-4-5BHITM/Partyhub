@@ -142,32 +142,19 @@ async function updatePartyDisplay(party) {
     categoryElement.textContent = party.category ? party.category.name : 'General';
   }
 
-  // Update time information with improved formatting
-  const beginTimeElement = document.getElementById('begin-time');
-  const endTimeElement = document.getElementById('end-time');
+  // Update time information with time span formatting
+  const partyTimeElement = document.getElementById('party-time');
 
   if (party.time_start) {
     const startTime = new Date(party.time_start);
-    const startTimeStr = formatPartyTime(startTime);
+    const endTime = party.time_end ? new Date(party.time_end) : null;
+    const timeSpanStr = formatTimeSpan(startTime, endTime);
 
-    if (beginTimeElement) {
-      beginTimeElement.textContent = startTimeStr;
-    }
-
-    if (party.time_end) {
-      const endTime = new Date(party.time_end);
-      const endTimeStr = formatPartyTime(endTime);
-      const durationStr = calculateDuration(startTime, endTime);
-
-      if (endTimeElement) {
-        endTimeElement.textContent = `${endTimeStr} (${durationStr})`;
-      }
-    } else if (endTimeElement) {
-      endTimeElement.textContent = 'TBA';
+    if (partyTimeElement) {
+      partyTimeElement.textContent = timeSpanStr;
     }
   } else {
-    if (beginTimeElement) beginTimeElement.textContent = 'TBA';
-    if (endTimeElement) endTimeElement.textContent = 'TBA';
+    if (partyTimeElement) partyTimeElement.textContent = 'TBA';
   }
 
   // Update age restrictions
@@ -251,6 +238,8 @@ function formatPartyDate(date) {
   const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
   const tomorrow = new Date(today);
   tomorrow.setDate(tomorrow.getDate() + 1);
+  const yesterday = new Date(today);
+  yesterday.setDate(yesterday.getDate() - 1);
 
   const partyDate = new Date(date.getFullYear(), date.getMonth(), date.getDate());
 
@@ -258,9 +247,11 @@ function formatPartyDate(date) {
     return 'Today';
   } else if (isSameDay(partyDate, tomorrow)) {
     return 'Tomorrow';
+  } else if (isSameDay(partyDate, yesterday)) {
+    return 'Yesterday';
   } else {
     // Show day name and date
-    const dayName = date.toLocaleDateString('en-US', { weekday: 'long' });
+    const dayName = date.toLocaleDateString('en-US', { weekday: 'short' });
     const dateStr = date.toLocaleDateString('de-DE', {
       day: '2-digit',
       month: '2-digit',
@@ -276,6 +267,88 @@ function formatPartyTime(date) {
     minute: '2-digit',
     hour12: false
   });
+}
+
+function formatRelativeTime(date) {
+  const now = new Date();
+  const diffMs = date - now;
+  const diffHours = diffMs / (1000 * 60 * 60);
+  const diffMinutes = Math.abs(diffMs) / (1000 * 60);
+
+  // Future events
+  if (diffMs > 0) {
+    if (diffMinutes < 60) {
+      return `in ${Math.ceil(diffMinutes)} min`;
+    } else if (diffHours < 24) {
+      const hours = Math.floor(diffHours);
+      const minutes = Math.floor((diffHours - hours) * 60);
+      if (hours === 0) {
+        return `in ${minutes} min`;
+      } else if (minutes === 0) {
+        return `in ${hours}h`;
+      } else {
+        return `in ${hours}h ${minutes}m`;
+      }
+    } else if (diffHours < 48) {
+      return 'tomorrow';
+    } else {
+      const days = Math.floor(diffHours / 24);
+      return `in ${days} days`;
+    }
+  }
+  // Past events
+  else {
+    if (diffMinutes < 60) {
+      return `${Math.ceil(diffMinutes)} min ago`;
+    } else if (Math.abs(diffHours) < 24) {
+      const hours = Math.floor(Math.abs(diffHours));
+      const minutes = Math.floor((Math.abs(diffHours) - hours) * 60);
+      if (hours === 0) {
+        return `${minutes} min ago`;
+      } else if (minutes === 0) {
+        return `${hours}h ago`;
+      } else {
+        return `${hours}h ${minutes}m ago`;
+      }
+    } else {
+      const days = Math.floor(Math.abs(diffHours) / 24);
+      return `${days} days ago`;
+    }
+  }
+}
+
+function formatTimeSpan(startDate, endDate) {
+  const now = new Date();
+  const dateStr = formatPartyDate(startDate);
+  const startTimeStr = formatPartyTime(startDate);
+
+  let timeRange = startTimeStr;
+
+  // Add end time if available
+  if (endDate) {
+    const endTimeStr = formatPartyTime(endDate);
+    timeRange = `${startTimeStr} to ${endTimeStr}`;
+  } else {
+    timeRange = `${startTimeStr} onwards`;
+  }
+
+  // Add contextual information based on current time
+  let contextInfo = '';
+
+  // If party hasn't started yet
+  if (startDate > now) {
+    const relative = formatRelativeTime(startDate);
+    contextInfo = ` - ${relative}`;
+  }
+  // If party is ongoing
+  else if (startDate <= now && (!endDate || endDate > now)) {
+    const relative = formatRelativeTime(startDate);
+    contextInfo = ` - started ${relative}`;
+  }
+  // For past events, no additional context needed
+
+  // Combine date and time range with context
+  return `${dateStr} from ${timeRange}${contextInfo}`;
 }
 
 function calculateDuration(startDate, endDate) {

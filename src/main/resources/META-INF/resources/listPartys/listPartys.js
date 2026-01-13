@@ -41,13 +41,9 @@ function createPartyCard(party) {
         window.location.href = `/advancedPartyInfos/advancedPartyInfos.html?id=${party.id}`;
     };
 
-    // Format date
+    // Format date with improved formatting
     const partyDate = new Date(party.time_start);
-    const formattedDate = partyDate.toLocaleDateString('de-DE', {
-        day: '2-digit',
-        month: '2-digit',
-        year: 'numeric'
-    });
+    const formattedDate = formatPartyDateList(partyDate);
 
     // Get location (party.location is coordinates object, so use placeholder for now)
     const location = 'Location TBA'; // TODO: Implement reverse geocoding for coordinates
@@ -84,4 +80,35 @@ function createPartyCard(party) {
     `;
 
     return card;
+}
+
+// Helper function for improved date formatting in party list
+function formatPartyDateList(date) {
+    const now = new Date();
+    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    const tomorrow = new Date(today);
+    tomorrow.setDate(tomorrow.getDate() + 1);
+
+    const partyDate = new Date(date.getFullYear(), date.getMonth(), date.getDate());
+
+    if (isSameDay(partyDate, today)) {
+        return 'Today';
+    } else if (isSameDay(partyDate, tomorrow)) {
+        return 'Tomorrow';
+    } else {
+        // Show abbreviated day name and date
+        const dayName = date.toLocaleDateString('en-US', { weekday: 'short' });
+        const dateStr = date.toLocaleDateString('de-DE', {
+            day: '2-digit',
+            month: '2-digit',
+            year: 'numeric'
+        });
+        return `${dayName}, ${dateStr}`;
+    }
+}
+
+function isSameDay(date1, date2) {
+    return date1.getFullYear() === date2.getFullYear() &&
+           date1.getMonth() === date2.getMonth() &&
+           date1.getDate() === date2.getDate();
 }
