@@ -52,8 +52,17 @@ a{
   --secondary-color-blue: #3ec1f3;
   --accent-color-green: #56f27c;
 
+  /* Dark Background Colors */
+  --bg-primary: #1a1040; /* Main dark background */
+  --bg-secondary: #221a4d; /* Slightly lighter dark background */
+  --bg-tertiary: #2a2259; /* Card backgrounds */
+  --bg-surface: rgba(26, 16, 64, 0.95); /* Semi-transparent surfaces */
+  --bg-elevated: rgba(42, 34, 89, 0.98); /* Elevated elements */
+
   /* Fonts */
   --font-family: "Montserrat", sans-serif;
+  --font-display: luckiestGuy, cursive;
+  --font-body: lanasima, serif;
 
   /* Margin */
   --margin-xxs: 0.25rem;
@@ -106,4 +115,49 @@ a{
   /* Footer */
   --height-footer: 200px;
 
+}
+
+/* Custom Font Classes */
+.font-display {
+  font-family: var(--font-display);
+}
+
+.font-body {
+  font-family: var(--font-body);
+}
+
+.font-heading {
+  font-family: var(--font-display);
+  font-weight: normal;
+}
+
+.font-body-text {
+  font-family: var(--font-body);
+}
+
+/* Dark Theme Background Classes */
+.bg-dark-primary {
+  background-color: var(--bg-primary);
+}
+
+.bg-dark-secondary {
+  background-color: var(--bg-secondary);
+}
+
+.bg-dark-tertiary {
+  background-color: var(--bg-tertiary);
+}
+
+.bg-surface {
+  background-color: var(--bg-surface);
+}
+
+.bg-elevated {
+  background-color: var(--bg-elevated);
+}
+
+/* Override Bootstrap or other framework light backgrounds */
+.bg-light {
+  background-color: var(--bg-primary) !important;
+  color: #fff;
 }

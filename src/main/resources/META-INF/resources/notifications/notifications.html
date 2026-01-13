@@ -3,23 +3,31 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width,initial-scale=1" />
-    <link rel="stylesheet" href="./notifications.css" />
+    <title>Notifications</title>
+    <link rel="stylesheet" href="../global.css" />
     <link rel="stylesheet" href="../index.css" />
+    <link rel="stylesheet" href="./notifications.css" />
+    <script src="../nav.js" defer></script>
+    <script src="../backend-functions.js" defer></script>
+    <script src="./notifications.js" defer></script>
   </head>
-  <body>
-    <main class="notif-wrap" role="main">
-      <!-- Titel (früher Username) jetzt als simple Überschrift -->
-      <div class="username-fixed" aria-hidden="true">Notification Center</div>
+  <body class="bg-light">
+    <div class="app-shell">
+      <div class="container py-4">
+        <header class="page-header">
+          <h1 class="page-title font-heading">Notifications</h1>
+          <p class="page-subtitle font-body-text">Stay updated with your events</p>
+        </header>
 
-      <section
-        class="notif-panel"
-        aria-live="polite"
-        aria-label="Benachrichtigungen"
-      >
-        <!-- titel entfernt, Liste direkt -->
-        <div class="notif-list" id="notifList">
-          <!-- Items werden per JS eingefügt -->
-        </div>
+        <section
+          class="notif-panel"
+          aria-live="polite"
+          aria-label="Benachrichtigungen"
+        >
+          <!-- titel entfernt, Liste direkt -->
+          <div class="notif-list" id="notifList">
+            <!-- Items werden per JS eingefügt -->
+          </div>
 
         <!-- Template für eine Notification: jetzt mit klickbarem Avatar links -->
         <template id="notifTpl">
@@ -41,6 +49,34 @@
               </div>
 
               <div class="notif-actions" aria-hidden="false">
+                <button
+                  class="btn-view-party"
+                  aria-label="Party anzeigen"
+                  title="Party anzeigen"
+                >
+                  <svg
+                    viewBox="0 0 24 24"
+                    width="16"
+                    height="16"
+                    fill="none"
+                    aria-hidden="true"
+                  >
+                    <path
+                      d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0z"
+                      stroke="currentColor"
+                      stroke-width="2"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                    />
+                    <path
+                      d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
+                      stroke="currentColor"
+                      stroke-width="2"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                    />
+                  </svg>
+                </button>
                 <button
                   class="btn-accept"
                   aria-label="Einladung annehmen"
@@ -88,346 +124,9 @@
           </article>
         </template>
       </section>
-    </main>
 
-    <!-- Toast Container für Rückmeldungen -->
-    <div class="toast-container" id="toastContainer"></div>
-
-    <script>
-      document.addEventListener("DOMContentLoaded", () => {
-        const data = [
-          {
-            id: 20,
-            type: "invite",
-            actorName: "Lena",
-            actorAvatar: "./avatars/lena.jpg",
-            actorProfile: "../profile/lena.html",
-            party: "Summer Beats",
-            time: "vor 2 Std",
-          },
-          {
-            id: 19,
-            type: "view",
-            actorName: "Max",
-            actorAvatar: "./avatars/max.jpg",
-            actorProfile: "../profile/max.html",
-            time: "vor 3 Std",
-          },
-          {
-            id: 18,
-            type: "invite",
-            actorName: "Anna",
-            actorAvatar: "./avatars/anna.jpg",
-            actorProfile: "../profile/anna.html",
-            party: "AfterShow",
-            time: "vor 5 Std",
-          },
-          {
-            id: 17,
-            type: "invite",
-            actorName: "Tom",
-            actorAvatar: "./avatars/tom.jpg",
-            actorProfile: "../profile/tom.html",
-            party: "Sunset Rave",
-            time: "heute",
-          },
-          {
-            id: 16,
-            type: "view",
-            actorName: "Sara",
-            actorAvatar: "./avatars/sara.jpg",
-            actorProfile: "../profile/sara.html",
-            time: "heute",
-          },
-          {
-            id: 15,
-            type: "invite",
-            actorName: "Ben",
-            actorAvatar: "./avatars/ben.jpg",
-            actorProfile: "../profile/ben.html",
-            party: "Friday Night",
-            time: "gestern",
-          },
-          {
-            id: 14,
-            type: "view",
-            actorName: "Mia",
-            actorAvatar: "./avatars/mia.jpg",
-            actorProfile: "../profile/mia.html",
-            time: "gestern",
-          },
-          {
-            id: 13,
-            type: "invite",
-            actorName: "Oliver",
-            actorAvatar: "./avatars/oliver.jpg",
-            actorProfile: "../profile/oliver.html",
-            party: "Open Air",
-            time: "vor 2 Tagen",
-          },
-          {
-            id: 12,
-            type: "invite",
-            actorName: "Nina",
-            actorAvatar: "./avatars/nina.jpg",
-            actorProfile: "../profile/nina.html",
-            party: "Club Mix",
-            time: "vor 2 Tagen",
-          },
-          {
-            id: 11,
-            type: "view",
-            actorName: "Chris",
-            actorAvatar: "./avatars/chris.jpg",
-            actorProfile: "../profile/chris.html",
-            time: "vor 3 Tagen",
-          },
-          {
-            id: 10,
-            type: "invite",
-            actorName: "Eva",
-            actorAvatar: "./avatars/eva.jpg",
-            actorProfile: "../profile/eva.html",
-            party: "Afterparty",
-            time: "vor 3 Tagen",
-          },
-          {
-            id: 9,
-            type: "view",
-            actorName: "Luca",
-            actorAvatar: "./avatars/luca.jpg",
-            actorProfile: "../profile/luca.html",
-            time: "vor 4 Tagen",
-          },
-          {
-            id: 8,
-            type: "invite",
-            actorName: "Julia",
-            actorAvatar: "./avatars/julia.jpg",
-            actorProfile: "../profile/julia.html",
-            party: "Silent Disco",
-            time: "vor 5 Tagen",
-          },
-          {
-            id: 7,
-            type: "invite",
-            actorName: "Marco",
-            actorAvatar: "./avatars/marco.jpg",
-            actorProfile: "../profile/marco.html",
-            party: "Rooftop",
-            time: "vor 6 Tagen",
-          },
-          {
-            id: 6,
-            type: "view",
-            actorName: "Lea",
-            actorAvatar: "./avatars/lea.jpg",
-            actorProfile: "../profile/lea.html",
-            time: "vor 1 Woche",
-          },
-          {
-            id: 5,
-            type: "invite",
-            actorName: "Phil",
-            actorAvatar: "./avatars/phil.jpg",
-            actorProfile: "../profile/phil.html",
-            party: "Birthday Bash",
-            time: "vor 8 Tagen",
-          },
-          {
-            id: 4,
-            type: "view",
-            actorName: "Tom",
-            actorAvatar: "./avatars/tom.jpg",
-            actorProfile: "../profile/tom.html",
-            time: "vor 10 Tagen",
-          },
-          {
-            id: 3,
-            type: "invite",
-            actorName: "Zoe",
-            actorAvatar: "./avatars/zoe.jpg",
-            actorProfile: "../profile/zoe.html",
-            party: "New Year Warmup",
-            time: "vor 2 Wochen",
-          },
-          {
-            id: 2,
-            type: "view",
-            actorName: "Alex",
-            actorAvatar: "./avatars/alex.jpg",
-            actorProfile: "../profile/alex.html",
-            time: "vor 3 Wochen",
-          },
-          {
-            id: 1,
-            type: "invite",
-            actorName: "Nico",
-            actorAvatar: "./avatars/nico.jpg",
-            actorProfile: "../profile/nico.html",
-            party: "Secret Gig",
-            time: "vor 1 Monat",
-          },
-        ];
-
-        const list = document.getElementById("notifList");
-        const tpl = document.getElementById("notifTpl");
-        const toastContainer = document.getElementById("toastContainer");
-
-        // Toast-Benachrichtigung mit Icon anzeigen
-        function showToast(message, type = "success") {
-          const toast = document.createElement("div");
-          toast.className = `toast ${type}`;
-
-          // Icon je nach Typ (Success: Häkchen, Error: X)
-          let iconSVG = "";
-          if (type === "success") {
-            iconSVG =
-              '<svg viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2"/><path d="M8 12l2.5 2.5L16 9" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>';
-          } else if (type === "error") {
-            iconSVG =
-              '<svg viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2"/><path d="M15 9l-6 6M9 9l6 6" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>';
-          }
-
-          toast.innerHTML = `
-          <div class="toast-icon">${iconSVG}</div>
-          <span>${message}</span>
-        `;
-
-          toastContainer.appendChild(toast);
-
-          // Auto-Remove nach Animation (2.5s)
-          setTimeout(() => {
-            toast.remove();
-          }, 2500);
-        }
-
-        function render() {
-          list.innerHTML = "";
-          if (!data.length) {
-            const empty = document.createElement("p");
-            empty.className = "muted";
-            empty.textContent = "Keine Benachrichtigungen";
-            list.appendChild(empty);
-            return;
-          }
-          data.forEach((item) => {
-            const clone = tpl.content.cloneNode(true);
-            const card = clone.querySelector(".notif-card");
-            card.dataset.id = item.id;
-
-            // set avatar image + profile link
-            const avatarLink = clone.querySelector(".avatar-link");
-            const avatarImg = clone.querySelector(".notif-avatar img");
-
-            // Use the single image in ./images for every profile picture
-            avatarImg.src = "./images/profile.jpeg";
-            avatarImg.alt = item.actorName
-              ? item.actorName + " Profilbild"
-              : "Profilbild";
-            avatarLink.href = item.actorProfile || "#";
-
-            // compose message
-            let message = item.text || "";
-            if (item.type === "invite") {
-              // "Du wurdest von X zu Y eingeladen"
-              message = `Du wurdest von ${item.actorName || "jemandem"} zu ${
-                item.party || "einem Event"
-              } eingeladen`;
-            } else if (item.type === "view") {
-              message = `${
-                item.actorName || "Jemand"
-              } hat dein Profil angesehen`;
-            } else if (item.type === "like") {
-              message = `${
-                item.actorName || "Jemand"
-              } hat deinen Beitrag geliked`;
-            }
-
-            clone.querySelector(".notif-message").textContent = message;
-            clone.querySelector(".notif-time").textContent = item.time || "";
-
-            const actions = clone.querySelector(".notif-actions");
-            const acceptBtn = clone.querySelector(".btn-accept");
-            const dismissBtn = clone.querySelector(".btn-dismiss");
-
-            if (item.type !== "invite") acceptBtn.style.display = "none";
-
-            acceptBtn.addEventListener("click", () => {
-              const badge = document.createElement("div");
-              badge.className = "accepted-badge";
-              badge.innerHTML =
-                '<svg viewBox="0 0 24 24" width="14" height="14" fill="none" aria-hidden="true"><path d="M20 6L9 17l-5-5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg><span>angenommen</span>';
-              actions.replaceWith(badge);
-
-              // Rückmeldung: Einladung erfolgreich angenommen
-              showToast("Einladung angenommen ✓", "success");
-            });
-
-            dismissBtn.addEventListener("click", () => {
-              if (item.type === "invite") {
-                // For invites: show rejected badge
-                const rejected = document.createElement("div");
-                rejected.className = "rejected-badge";
-                rejected.innerHTML =
-                  '<svg viewBox="0 0 24 24" width="14" height="14" fill="none" aria-hidden="true"><path d="M18 6L6 18M6 6l12 12" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg><span>abgelehnt</span>';
-                actions.replaceWith(rejected);
-                showToast("Einladung abgelehnt", "error");
-              } else {
-                // For informational items (views/likes): remove the notification from the list
-                card.style.opacity = "0";
-                card.style.transform = "translateY(6px)";
-                showToast("Benachrichtigung entfernt", "error");
-                setTimeout(() => {
-                  const idx = data.findIndex((d) => d.id == item.id);
-                  if (idx > -1) data.splice(idx, 1);
-                  render();
-                }, 180);
-              }
-            });
-
-            // neue Einträge oben
-            list.prepend(clone);
-          });
-        }
-
-        render();
-      });
-    </script>
-
-    <!-- Small script: highlight active nav button (notifications = green) -->
-    <script>
-      function markActiveNav() {
-        const nav = document.querySelector(".bottom-nav");
-        if (!nav) return;
-        const links = nav.querySelectorAll(".nav-btn");
-        links.forEach((a) => {
-          const icon = a.querySelector(".nav-icon");
-          if (!icon) return;
-          // default: pink
-          icon.classList.remove("icon--green");
-          icon.classList.add("icon--pink");
-          a.classList.remove("active");
-
-          const href = a.getAttribute("href") || "";
-          // mark notifications as active when URL points to notifications page
-          if (href.includes("notifications")) {
-            icon.classList.remove("icon--pink");
-            icon.classList.add("icon--green");
-            a.classList.add("active");
-          }
-        });
-      }
-
-      if (document.readyState === "loading") {
-        document.addEventListener("DOMContentLoaded", markActiveNav);
-      } else {
-        markActiveNav();
-      }
-    </script>
-
-    <!-- Bottom navigation (same as index) -->
-    <nav class="bottom-nav" role="navigation" aria-label="Bottom navigation">
+      <!-- Bottom navigation -->
+      <nav class="bottom-nav" role="navigation" aria-label="Bottom navigation">
       <a class="nav-btn" href="/index.html" aria-label="Home">
         <svg
           class="nav-icon icon--pink"
@@ -453,7 +152,7 @@
         aria-label="List Parties"
       >
         <svg
-          class="nav-icon icon--green"
+          class="nav-icon icon--pink"
           width="28"
           height="28"
           viewBox="0 0 24 24"
@@ -533,5 +232,12 @@
         </svg>
       </a>
     </nav>
+    </div>
+    <!-- /.container -->
+    </div>
+    <!-- /.app-shell -->
+
+    <!-- Toast Container für Rückmeldungen -->
+    <div class="toast-container" id="toastContainer"></div>
   </body>
 </html>

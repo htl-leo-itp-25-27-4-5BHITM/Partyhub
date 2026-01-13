@@ -1,3 +1,25 @@
+/* Page Header Styling */
+.page-header {
+  text-align: center;
+  margin-bottom: 24px;
+  padding: 16px 0;
+}
+
+.page-title {
+  font-size: var(--font-size-xxxxl);
+  color: white;
+  margin: 0 0 8px 0;
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+  letter-spacing: 1px;
+}
+
+.page-subtitle {
+  font-size: var(--font-size-m);
+  color: rgba(255, 255, 255, 0.8);
+  margin: 0;
+  font-style: italic;
+}
+
 /* Bottom navigation styles for index page */
 :root {
   --nav-height: 96px; /* increased for larger touch targets */
@@ -12,7 +34,7 @@
 
 /* page background and base spacing */
 body {
-  background: #eef3f8; /* subtle pale background like screenshot */
+  background: var(--bg-primary); /* dark background */
   padding: 0;
 }
 
@@ -21,7 +43,7 @@ body {
   width: 100%;
   max-width: none;
   margin: 0; /* flush to viewport edges */
-  background: #ffffff;
+  background: var(--bg-secondary);
   border-radius: 0; /* no rounding so edges are flush */
   overflow: hidden;
   box-shadow: 0 14px 40px rgba(15, 12, 40, 0.12);

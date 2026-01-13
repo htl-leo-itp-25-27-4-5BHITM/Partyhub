@@ -8,6 +8,9 @@
     <link href="../global.css" rel="stylesheet" />
     <link href="./advancedPartyInfos.css" rel="stylesheet" />
     <link href="../index.css" rel="stylesheet" />
+    <script src="../nav.js" defer></script>
+    <script src="../backend-functions.js" defer></script>
+    <script src="./advancedPartyInfos.js" defer></script>
   </head>
   <body class="bg-light">
     <div class="app-shell">
@@ -22,34 +25,41 @@
         </div>
 
         <div class="meta-row">
-          <span>152 Fotos</span>
+          <span id="media-count">0 Fotos</span>
           <span class="sep">|</span>
-          <span>Ansfelden</span>
+          <span id="location-display">Location TBA</span>
           <span class="sep">|</span>
-          <span>08.07.2025</span>
+          <span id="party-date">Date TBA</span>
         </div>
 
-        <p class="description">
-          Ich feiere am 08.07 meinen Geburtstag. Ich lade euch alle herzlich ein
-          kommt so viele wie wollen und nehmt alles mit was euer Herz begehrt.
+        <p class="description" id="party-description">
+          Loading party details...
         </p>
 
         <a
           class="website"
-          href="https://www.lj-sierning-schiedlberg.at/tanz-in-der-halle/"
+          id="party-website"
+          href="#"
           target="_blank"
           rel="noopener"
-          >https://www.lj-sierning-schiedlberg.at/tanz-in-der-halle/</a
-        >
+          style="display: none;"></a>
 
         <div class="info-lines">
-          <div class="info-item"><strong>Theme:</strong> Vikings</div>
-          <div class="info-item"><strong>Begin Time:</strong> 21:00</div>
-          <div class="info-item"><strong>End Time:</strong> 04:00</div>
-          <div class="info-item"><strong>Age restriction:</strong> 16+</div>
+          <div class="info-item"><strong>Theme:</strong> <span id="party-category">General</span></div>
+          <div class="info-item"><strong>Begin Time:</strong> <span id="begin-time">TBA</span></div>
+          <div class="info-item"><strong>End Time:</strong> <span id="end-time">TBA</span></div>
+          <div class="info-item"><strong>Age restriction:</strong> <span id="age-restriction">All ages</span></div>
+          <div class="info-item"><strong>Max attendees:</strong> <span id="max-attendees">Unlimited</span></div>
         </div>
 
-  <button class="photos-btn">Photos <span class="arrow"><svg viewBox="0 0 24 24" width="14" height="14" aria-hidden="true"><path d="M9 6l6 6-6 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" fill="none"/></svg></span></button>
+        <!-- Photo Previews Section -->
+        <div class="photo-previews" id="photoPreviews" style="display: none;">
+          <div class="preview-grid" id="previewGrid">
+            <!-- Preview images will be loaded here -->
+          </div>
+        </div>
+
+  <button class="photos-btn">View Gallery <span class="arrow"><svg viewBox="0 0 24 24" width="14" height="14" aria-hidden="true"><path d="M9 6l6 6-6 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" fill="none"/></svg></span></button>
 
         <div class="invited-section">
           <button class="invited-toggle">
@@ -72,7 +82,7 @@
       </div>
 
       <nav class="bottom-nav" role="navigation" aria-label="Bottom navigation">
-        <a class="nav-btn" href="/homepage/homepage.html" aria-label="Home">
+        <a class="nav-btn" href="/index.html" aria-label="Home">
           <svg class="nav-icon icon--pink" width="28" height="28" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M3 6.5L8 4l7 2.5 6-2.5v11l-6 2.5L10 15 3 17.5v-11z" stroke="currentColor" stroke-width="1.2" stroke-linejoin="round" stroke-linecap="round"/></svg>
         </a>
         <a class="nav-btn" href="/listPartys/listPartys.html" aria-label="List Parties">

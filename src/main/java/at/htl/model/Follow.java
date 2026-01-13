@@ -3,10 +3,10 @@ package at.htl.model;
 import jakarta.persistence.*;
 
 @Entity
-@TableGenerator(name="friendship")
-@Table(name="friendship")
-public class Friendship {
-    public Friendship() {
+@TableGenerator(name="follow")
+@Table(name="follow")
+public class Follow {
+    public Follow() {
 
     }
     @Id
@@ -17,7 +17,7 @@ public class Friendship {
     Long user2_id;
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "status_id", nullable = false)
-    FriendshipStatus status;
+    FollowStatus status;
 
     public Long getUser1_id() {
         return user1_id;
@@ -35,11 +35,11 @@ public class Friendship {
         this.user2_id = user2_id;
     }
 
-    public FriendshipStatus getStatus() {
+    public FollowStatus getStatus() {
         return status;
     }
 
-    public void setStatus(FriendshipStatus status) {
+    public void setStatus(FollowStatus status) {
         this.status = status;
     }
 }

@@ -1,66 +1,87 @@
--- =============================================================================
--- 1. USERS (Müssen zuerst existieren für host_user_id)
--- =============================================================================
-INSERT INTO users (id, name, email, profile_picture, biography)
-VALUES
-    (1, 'Lukas', 'lukas@htl.at', 'profile_picture1.jpg', 'Gamer & Coder'),
-    (2, 'Anna', 'anna@htl.at', 'profile_picture2.jpg', 'Wanderlust'),
-    (3, 'Max', 'max@htl.at', 'profile_picture5.jpg', 'Hands-on Python basics.'),
-    (4, 'Carla', 'carla@htl.at', 'profile_picture3.jpg', 'Italian cuisine lover.'),
-    (5, 'Julia', 'julia@htl.at', 'profile_picture4.jpg', 'Kids Craft expert.')
-ON CONFLICT (id) DO NOTHING;
+-- Import data for PartyHub application
+-- Insert data in order to respect foreign key constraints
 
--- =============================================================================
--- 2. CATEGORY
--- =============================================================================
-INSERT INTO category (id, name)
-VALUES
-    (1, 'Dinner'),
-    (2, 'Coding'),
-    (3, 'Hike'),
-    (4, 'Kids'),
-    (5, 'Games')
-ON CONFLICT (id) DO NOTHING;
+-- Insert FollowStatus data first
+INSERT INTO follow_status (id, name) VALUES (1, 'ausstehend');
+INSERT INTO follow_status (id, name) VALUES (2, 'akzeptiert');
+INSERT INTO follow_status (id, name) VALUES (3, 'blockiert');
 
--- =============================================================================
--- 3. LOCATION (latitude, longitude, id)
--- =============================================================================
-INSERT INTO location (id, latitude, longitude)
-VALUES
-    (1, 48.2685, 14.2518),
-    (2, 48.3069, 14.2858),
-    (3, 48.3060, 14.2861),
-    (4, 48.3001, 14.2900),
-    (5, 48.2950, 14.3000)
-ON CONFLICT (id) DO NOTHING;
+-- Insert User data
+INSERT INTO users (id, display_name, distinct_name, email, biography, profile_picture) VALUES
+(1, 'Anna Huber', 'anna_h', 'anna.huber@wien.at', 'Party-Enthusiastin und Event-Organisatorin aus Wien!', 'profile_picture1.jpg'),
+(2, 'Michael Wagner', 'michi_w', 'michael.wagner@graz.at', 'Liebhaber von geselligen Veranstaltungen und neuen Bekanntschaften', 'profile_picture2.jpg'),
+(3, 'Katrin Bauer', 'katrin_b', 'katrin.bauer@salzburg.at', 'Musikliebhaberin und Tanzflächen-Expertin', 'profile_picture3.jpg'),
+(4, 'Thomas Schneider', 'thomas_s', 'thomas.schneider@linz.at', 'Professioneller Event-Planer für besondere Momente', 'profile_picture4.jpg'),
+(5, 'Sabine Weber', 'sabine_w', 'sabine.weber@innsbruck.at', 'Genießerin und geselliger Schmetterling', 'profile_picture5.jpg');
 
--- =============================================================================
--- 4. PARTY (ISO-Format für Timestamps: YYYY-MM-DD HH:MM:SS)
--- =============================================================================
-INSERT INTO party (id, host_user_id, category_id, location_id, title, description, time_start, time_end, created_at, max_people, min_age, max_age, fee)
-VALUES
-    (1, 1, 5, 1, 'Saturday Game Night', 'Board games, snacks, and a relaxed vibe.', '2025-12-07 19:00:00', '2025-12-07 23:00:00', '2025-10-01 08:15:00', 12, 21, 35, 0),
-    (2, 2, 3, 2, 'Mountain Hike – Sunrise', 'Sunrise hike up Eagle Peak. Moderate difficulty.', '2025-12-07 05:30:00', '2025-12-07 10:30:00', '2025-10-02 12:40:00', 8, 18, 45, 0),
-    (3, 3, 2, 3, 'Intro to Python Coding', 'Hands‑on Python basics. Laptops provided.', '2025-12-07 14:00:00', '2025-12-07 17:00:00', '2025-10-03 09:05:00', 20, 16, 60, 0),
-    (4, 4, 1, 4, 'Italian Dinner Party', 'Homemade pasta, wine, and good conversation.', '2025-12-07 19:30:00', '2025-12-07 22:30:00', '2025-10-04 14:22:00', 6, 25, 50, 0),
-    (5, 5, 4, 5, 'Kids Craft Afternoon', 'Paint, glue, and glitter! Parents welcome.', '2025-12-07 13:00:00', '2025-12-07 15:00:00', '2025-10-05 16:30:00', 10, 5, 12, 0)
-ON CONFLICT (id) DO NOTHING;
+-- Insert Category data
+INSERT INTO category (id, name) VALUES
+(1, 'Musik'),
+(2, 'Sport'),
+(3, 'Kunst'),
+(4, 'Essen & Trinken'),
+(5, 'Technologie'),
+(6, 'Networking'),
+(7, 'Wohltätigkeit'),
+(8, 'Bildung');
 
--- =============================================================================
--- 5. MEDIA
--- =============================================================================
-INSERT INTO media (id, party_id, user_id, url)
-VALUES
-    (1, 1, 1, 'http://example.com/images/party1.jpg'),
-    (2, 2, 2, 'http://example.com/images/party2.jpg')
-ON CONFLICT (id) DO NOTHING;
+-- Insert Location data
+INSERT INTO location (id, longitude, latitude) VALUES
+(1, 16.3738, 48.2082),  -- Wien, Stephansdom
+(2, 16.3680, 48.2020),  -- Wien, nahe Karlsplatz
+(3, 16.3850, 48.2150),  -- Wien, Donaukanal
+(4, 16.3600, 48.2000),  -- Wien, Mariahilf
+(5, 16.3750, 48.2100);  -- Wien, Innere Stadt
 
--- =============================================================================
--- 6. SEQUENZEN SYNCHRONISIEREN (Ganz wichtig für Postgres!)
--- Damit neue IDs über die Website nach den manuellen IDs (1, 2, 3...) starten.
--- =============================================================================
-SELECT setval(pg_get_serial_sequence('users', 'id'), coalesce(max(id), 1)) FROM users;
-SELECT setval(pg_get_serial_sequence('location', 'id'), coalesce(max(id), 1)) FROM location;
-SELECT setval(pg_get_serial_sequence('party', 'id'), coalesce(max(id), 1)) FROM party;
-SELECT setval(pg_get_serial_sequence('category', 'id'), coalesce(max(id), 1)) FROM category;
-SELECT setval(pg_get_serial_sequence('media', 'id'), coalesce(max(id), 1)) FROM media;
+-- Insert Party data
+INSERT INTO party (id, host_user_id, category_id, location_id, title, time_start, time_end, max_people, min_age, max_age, website, description, fee, created_at) VALUES
+(1, 1, 1, 1, 'Sommer Musik Festival', '2024-07-15 18:00:00', '2024-07-15 23:00:00', 200, 18, 35, 'https://summermusic.at', 'Begleite uns zu einem fantastischen Sommer-Musik-Festival mit mehreren DJs und Live-Auftritten! Wiener Atmosphäre garantiert.', 25.00, '2024-06-01 10:00:00'),
+(2, 2, 4, 2, 'Weinverkostung Abend', '2024-08-20 19:00:00', '2024-08-20 22:00:00', 50, 21, 60, 'https://weinverkostung.at', 'Exklusive Weinverkostung mit Weinen aus aller Welt. Fachkundige Sommelier-Betreuung inklusive. Wiener Weinviertel-Spezialitäten.', 45.00, '2024-06-15 14:30:00'),
+(3, 3, 2, 3, 'Beachvolleyball Turnier', '2024-09-05 10:00:00', '2024-09-05 17:00:00', 100, 16, 40, 'https://beachvolley.at', 'Jährliches Beachvolleyball-Turnier am Donaukanal. Teams willkommen, Einzelspieler können bestehende Teams verstärken!', 10.00, '2024-07-01 09:15:00'),
+(4, 4, 5, 4, 'Tech Meetup: KI & Zukunft', '2024-10-12 18:30:00', '2024-10-12 21:30:00', 80, 18, 50, 'https://techmeetup.at', 'Diskussion über neueste KI-Technologie und ihre Auswirkungen auf unsere Zukunft. Speaker aus führenden Tech-Unternehmen.', 0.00, '2024-08-01 16:45:00'),
+(5, 5, 3, 5, 'Kunstgalerie Eröffnung', '2024-11-08 17:00:00', '2024-11-08 20:00:00', 60, 18, 65, 'https://kunstgalerie.at', 'Eröffnungsabend unserer zeitgenössischen Kunstausstellung mit lokalen und internationalen Künstlern. Wiener Kunstszene hautnah erleben.', 15.00, '2024-09-15 11:20:00');
+
+-- Insert party-user relationships (many-to-many)
+INSERT INTO party_user (party_id, user_id) VALUES
+(1, 1), (1, 2), (1, 3),
+(2, 2), (2, 4), (2, 5),
+(3, 3), (3, 1),
+(4, 4), (4, 5), (4, 1),
+(5, 5), (5, 3), (5, 4);
+
+-- Insert Media data
+INSERT INTO media (id, party_id, user_id, url) VALUES
+(1, 1, 1, '/images/profile_picture1.jpg'),
+(2, 1, 2, '/images/profile_picture2.jpg'),
+(3, 2, 2, '/images/profile_picture3.jpg'),
+(4, 2, 4, '/images/profile_picture4.jpg'),
+(5, 3, 3, '/images/profile_picture5.jpg'),
+(6, 4, 4, '/images/default_profile-picture.jpg'),
+(7, 5, 5, '/uploads/party5/kunstausstellung.jpg'),
+(8, 5, 3, '/uploads/party5/galerie_innenraum.jpg');
+
+-- Insert Invitation data - Einladungen für Events
+INSERT INTO invitation (id, sender_id, recipient_id, party_id) VALUES
+(1, 1, 2, 1),  -- Anna lädt Michael zum Musikfestival ein
+(2, 1, 5, 1),  -- Anna lädt Sabine zum Musikfestival ein
+(3, 2, 3, 2),  -- Michael lädt Katrin zur Weinverkostung ein
+(4, 2, 4, 2),  -- Michael lädt Thomas zur Weinverkostung ein
+(5, 3, 1, 3),  -- Katrin lädt Anna zum Beachvolleyball ein
+(6, 3, 5, 3),  -- Katrin lädt Sabine zum Beachvolleyball ein
+(7, 4, 2, 4),  -- Thomas lädt Michael zum Tech Meetup ein
+(8, 4, 3, 4),  -- Thomas lädt Katrin zum Tech Meetup ein
+(9, 5, 1, 5),  -- Sabine lädt Anna zur Kunsteröffnung ein
+(10, 5, 4, 5); -- Sabine lädt Thomas zur Kunsteröffnung ein
+
+-- Insert Follow relationships - Follow-Beziehungen
+INSERT INTO follow (user1_id, user2_id, status_id) VALUES
+(1, 2, 2),  -- Anna folgt Michael (akzeptiert)
+(1, 3, 2),  -- Anna folgt Katrin (akzeptiert)
+(2, 1, 2),  -- Michael folgt Anna (akzeptiert)
+(2, 4, 2),  -- Michael folgt Thomas (akzeptiert)
+(3, 1, 2),  -- Katrin folgt Anna (akzeptiert)
+(3, 5, 1),  -- Katrin folgt Sabine (ausstehend)
+(4, 2, 2),  -- Thomas folgt Michael (akzeptiert)
+(4, 5, 2),  -- Thomas folgt Sabine (akzeptiert)
+(5, 3, 2),  -- Sabine folgt Katrin (akzeptiert)
+(5, 4, 2);  -- Sabine folgt Thomas (akzeptiert)

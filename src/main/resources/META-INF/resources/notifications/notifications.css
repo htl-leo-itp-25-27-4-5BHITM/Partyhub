@@ -1,47 +1,19 @@
-@font-face {
-  font-family: 'handmade';
-  src: url(../fonts/Lunasima-Regular.ttf);
-}
-
 /* zentriertes Panel */
 :root {
   --panel-width: min(520px, 94vw);
-  --card-bg: rgba(34,30,54,0.9);
   --accent: #56F27C;
   --danger: #FF2E63;
 }
 
 * { box-sizing: border-box; }
 
-body{
-  margin:0;
-  font-family: handmade;
-  /* Use the same background as the card to avoid white gaps when scrolling */
-  background: var(--card-bg);
-  background-color: var(--card-bg);
-  color:#fff;
-  min-height:100vh;
-  display:block;
-  padding-top: 8px;
-  padding-left:24px;
-  padding-right:24px;
-}
-
-/* Ensure the root html element uses the same background and fills viewport */
-html {
-  background: var(--card-bg);
-  background-color: var(--card-bg);
-  min-height: 100%;
-}
-
 /* Panel: keine Box mehr, nicht fixed, liste fließt die seite runter */
-.notif-wrap { width:100%; display:block; background: var(--card-bg); }
 .notif-panel {
   width:100%;
   max-width: none;
   position: static;            /* nicht fixed */
   margin: 0;
-  background: var(--card-bg);  /* gleiche Grundfarbe */
+  background: transparent;  /* use body background */
   border-radius: 0;
   padding:0;                   /* Titel entfernt, kein extra padding */
   box-shadow: none;
@@ -83,12 +55,12 @@ html {
 
 /* Card: etwas hellerer Hintergrund, kein sichtbarer Rand - nur Schatten für Abgrenzung */
 .notif-card {
-  background: rgba(255,255,255,0.06); /* subtiler Kontrast auf var(--card-bg) */
-  border-radius:10px;
+  background: var(--bg-tertiary);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: var(--border-radius-l);
   padding:10px;
   display:block;
   transition:opacity .18s ease, transform .18s ease;
-  border: none; /* Border entfernt */
   box-shadow: 0 2px 10px rgba(0,0,0,0.25), 0 0 0 1px rgba(255,255,255,0.02); /* Schatten + subtiler "Outline"-Effekt */
 }
 
@@ -114,7 +86,7 @@ html {
   height:40px;
   border-radius:50%;
   overflow:hidden;
-  border:1px solid rgba(255,255,255,0.06);
+  border:1px solid rgba(255,255,255,0.1);
   box-shadow: 0 2px 6px rgba(0,0,0,0.24);
 }
 
@@ -176,6 +148,13 @@ html {
   color: var(--accent);
 }
 
+/* View Party button: blau */
+.btn-view-party {
+  background: rgba(62, 193, 243, 0.12);
+  color: #3ec1f3;
+}
+.btn-view-party:hover { background: rgba(62, 193, 243, 0.18); transform:translateY(-2px); }
+
 /* Dismiss button: rot */
 .notif-actions .btn-dismiss {
   /* more specific selector so it overrides .notif-actions button color */
@@ -202,6 +181,7 @@ html {
   color: var(--accent);
   font-weight:700;
   font-size:0.80rem; /* leicht kleiner */
+  font-family: var(--font-body);
 }
 
 /* Ensure the check SVG in accepted-badge uses the accent color */
@@ -222,6 +202,7 @@ html {
   color: var(--danger);
   font-weight:700;
   font-size:0.80rem;
+  font-family: var(--font-body);
 }
 
 /* Ensure the X SVG in rejected-badge uses the danger color */
@@ -232,7 +213,7 @@ html {
 }
 
 /* kleine Hilfsklasse für leeren Zustand */
-.muted { color:rgba(255,255,255,0.6); text-align:center; padding:18px 6px; }
+.muted { color:rgba(255,255,255,0.6); text-align:center; padding:18px 6px; font-family: var(--font-body); }
 
 /* responsive */
 @media (max-width:420px) {
@@ -246,12 +227,14 @@ html {
   font-size:0.84rem; /* leicht kleiner */
   white-space:normal;
   color:#fff;
+  font-family: var(--font-body);
 }
 
 .notif-time {
   font-size:0.72rem; /* verkleinert von 0.78rem */
   color:rgba(255,255,255,0.6);
   margin-top:4px;
+  font-family: var(--font-body);
 }
 
 /* Toast notification (Rückmeldung bei Accept/Dismiss) — modernes Design */
@@ -276,10 +259,11 @@ html {
   border-radius: 12px;
   font-size: 0.9rem;
   font-weight: 600;
+  font-family: var(--font-body);
   box-shadow: 0 6px 20px rgba(0,0,0,0.35), 0 0 0 1px rgba(255,255,255,0.08);
   opacity: 0;
   transform: translateY(16px) scale(0.95);
-  animation: toast-pop-in 0.25s cubic-bezier(0.34,1.56,0.64,1) forwards, 
+  animation: toast-pop-in 0.25s cubic-bezier(0.34,1.56,0.64,1) forwards,
              toast-fade-out 0.3s ease 2.2s forwards;
   pointer-events: auto;
   display: flex;

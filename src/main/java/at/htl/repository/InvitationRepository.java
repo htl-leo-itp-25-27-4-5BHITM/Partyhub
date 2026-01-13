@@ -2,10 +2,12 @@ package at.htl.repository;
 
 import at.htl.dto.InvitationDto;
 import at.htl.model.Invitation;
+import at.htl.model.Party;
 import at.htl.model.User;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import jakarta.persistence.EntityManager;
+import jakarta.transaction.Transactional;
 import jakarta.ws.rs.core.Configuration;
 import jakarta.ws.rs.core.Response;
 import org.jboss.logging.Logger;
@@ -52,8 +54,12 @@ public class InvitationRepository {
         return entityManager.createQuery("select u from Invitation u where u.sender = :user", Invitation.class).setParameter("user", user).getResultList();
     }
 
+    // TODO: Check user permission
     public Response deleteInvite(Long id){
         Invitation invitation = entityManager.find(Invitation.class, id);
+        if (invitation == null) {
+            return Response.status(Response.Status.NOT_FOUND).build();
+        }
         entityManager.remove(invitation);
         return Response.ok().build();
     }

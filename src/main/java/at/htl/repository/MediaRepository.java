@@ -94,4 +94,17 @@ public class MediaRepository {
         );
     }
 
+    /**
+     * Get the count of media uploaded by a specific user
+     * @param userId The ID of the user
+     * @return The number of media items uploaded by the user
+     */
+    public long getMediaCountByUserId(Long userId) {
+        return entityManager.createQuery(
+                "SELECT COUNT(m) FROM Media m WHERE m.user.id = :userId",
+                Long.class)
+                .setParameter("userId", userId)
+                .getSingleResult();
+    }
+
 }

@@ -1,4 +1,5 @@
-// Edit Account Page JavaScript
+// Edit Profile Page JavaScript
+let selectedProfilePictureFile = null;
 
 document.addEventListener('DOMContentLoaded', function() {
     initializeEditPage();
@@ -225,12 +226,22 @@ async function submitForm() {
     saveBtn.textContent = 'Saving...';
 
     try {
+        let profilePictureFilename = null;
+
+        // Upload profile picture first if one is selected
+        if (selectedProfilePictureFile) {
+            profilePictureFilename = await uploadProfilePicture(userId);
+        } else {
+            // Use existing profile picture
+            profilePictureFilename = await getProfilePictureFilename();
+        }
+
         const formData = {
             displayName: document.getElementById('displayName').value.trim(),
             distinctName: document.getElementById('distinctName').value.trim(),
             email: document.getElementById('email').value.trim(),
             biography: document.getElementById('biography').value.trim(),
-            profilePicture: await getProfilePictureFilename()
+            profilePicture: profilePictureFilename
         };
 
         const response = await fetch(`/api/users/${userId}`, {
@@ -244,6 +255,9 @@ async function submitForm() {
         if (!response.ok) {
             throw new Error('Failed to update profile');
         }
+
+        // Clear the selected file after successful upload
+        selectedProfilePictureFile = null;
 
         // Show success message
         showSuccess('Profile updated successfully!');
@@ -265,9 +279,26 @@ async function submitForm() {
     }
 }
 
+async function uploadProfilePicture(userId) {
+    const formData = new FormData();
+    formData.append('file', selectedProfilePictureFile);
+
+    const response = await fetch(`/api/users/${userId}/upload-profile-picture`, {
+        method: 'POST',
+        body: formData
+    });
+
+    if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to upload profile picture');
+    }
+
+    const result = await response.json();
+    return result.filename ? 'uploads/profiles/' + result.filename : null;
+}
+
 async function getProfilePictureFilename() {
-    // TODO: Implement proper file upload handling
-    // For now, return the current profile picture filename
+    // Return the current profile picture filename from the user data
     const userId = getCurrentUserId();
     try {
         const response = await fetch(`/api/users/${userId}`);
@@ -306,6 +337,9 @@ function handleFileSelect(event) {
         return;
     }
 
+    // Store the selected file
+    selectedProfilePictureFile = file;
+
     // Preview the image
     const reader = new FileReader();
     reader.onload = function(e) {
@@ -313,8 +347,6 @@ function handleFileSelect(event) {
     };
     reader.readAsDataURL(file);
 
-    // TODO: Implement actual file upload to server
-    // For now, just show a success message
     showSuccess('Profile picture selected. Changes will be saved when you submit the form.');
 }
 

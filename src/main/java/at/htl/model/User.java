@@ -14,23 +14,22 @@ import java.util.Set;
 @TableGenerator(name="users")
 @Inheritance(strategy = InheritanceType.JOINED)
 public class User {
-    public User(){}
-    public User(JsonWebToken jwt) {
-        this.name = jwt.getName();
-        this.email = jwt.getClaim("email");
-        // default profile image filename (stored without path)
-        this.profileImage = "profile_picture.jpg";
+    public User(){
+
     }
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-    private String name;
+
+    @Column(name = "display_name")
+    private String displayName;
+    @Column(name = "distinct_name")
+    private String distinctName;
     private String email;
     @Column(nullable = true)
     private String biography;
 
-    // new field for profile image filename (only filename)
     @Column(name = "profile_picture", nullable = true)
     private String profileImage;
 
@@ -45,9 +44,6 @@ public class User {
     public void setId(Long id) {
         this.id = id;
     }
-
-    public String getName() { return name; }
-    public void setName(String name) { this.name = name; }
 
     public String getEmail() { return email; }
     public void setEmail(String email) { this.email = email; }
@@ -68,19 +64,27 @@ public class User {
         this.party = party;
     }
 
+    public String getDisplayName() {
+        return displayName;
+    }
+
+    public void setDisplayName(String displayName) {
+        this.displayName = displayName;
+    }
+
+    public String getDistinctName() {
+        return distinctName;
+    }
+
+    public void setDistinctName(String distinctName) {
+        this.distinctName = distinctName;
+    }
+
     public String getProfileImage() {
         return profileImage;
     }
 
     public void setProfileImage(String profileImage) {
         this.profileImage = profileImage;
-    }
-
-    @PrePersist
-    @PreUpdate
-    private void ensureProfileImage() {
-        if (this.profileImage == null || this.profileImage.isBlank()) {
-            this.profileImage = "profile_picture3.jpg";
-        }
     }
 }

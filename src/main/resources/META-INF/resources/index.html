@@ -8,6 +8,7 @@
     <link href="index.css" rel="stylesheet" />
 
     <!--    <script src="script.js" defer></script>-->
+    <script src="nav.js" defer></script>
     <script src="backend-functions.js" defer></script>
     <style>
       body {
@@ -21,7 +22,10 @@
       <!-- top-bar removed: bottom navigation used instead -->
 
       <div class="container py-4">
-        <h2 class="mb-3 text-black">Filter Parties</h2>
+        <header class="page-header">
+          <h1 class="page-title font-heading">Partyhub</h1>
+          <p class="page-subtitle font-body-text">Find the perfect event for you</p>
+        </header>
 
         <!-- Screenshot placeholder: place the provided map image at "images/map-screenshot.png" -->
         <div
@@ -93,7 +97,7 @@
           role="navigation"
           aria-label="Bottom navigation"
         >
-          <a class="nav-btn" href="/homepage/homepage.html" aria-label="Home">
+          <a class="nav-btn" href="/index.html" aria-label="Home">
             <svg
               class="nav-icon icon--pink"
               width="28"
@@ -202,64 +206,5 @@
       <!-- /.container -->
     </div>
     <!-- /.app-shell -->
-
-    <script>
-      // Universal nav coloring: default pink, active page green
-      (function markActiveNav() {
-        const nav = document.querySelector(".bottom-nav");
-        if (!nav) return;
-        const links = nav.querySelectorAll(".nav-btn");
-        // normalize URL for matching
-        const href = (
-          location.pathname +
-          location.search +
-          location.hash
-        ).toLowerCase();
-
-        links.forEach((a) => {
-          const icon = a.querySelector(".nav-icon");
-          if (!icon) return;
-          icon.classList.remove("icon--green");
-          icon.classList.add("icon--pink");
-          a.classList.remove("active");
-
-          const target = (a.getAttribute("href") || "").toLowerCase();
-          // mark active by matching common path tokens
-          if (
-            target.includes("notifications") &&
-            href.includes("notifications")
-          ) {
-            icon.classList.remove("icon--pink");
-            icon.classList.add("icon--green");
-            a.classList.add("active");
-          } else if (target.includes("profile") && href.includes("profile")) {
-            icon.classList.remove("icon--pink");
-            icon.classList.add("icon--green");
-            a.classList.add("active");
-          } else if (
-            target.includes("listpartys") &&
-            href.includes("listpartys")
-          ) {
-            icon.classList.remove("icon--pink");
-            icon.classList.add("icon--green");
-            a.classList.add("active");
-          } else if (target.includes("homepage") && href.includes("homepage")) {
-            icon.classList.remove("icon--pink");
-            icon.classList.add("icon--green");
-            a.classList.add("active");
-          } else if (
-            (href === "/" ||
-              href.endsWith("/index.html") ||
-              href.includes("index.html")) &&
-            target.includes("homepage")
-          ) {
-            // treat root/index as homepage
-            icon.classList.remove("icon--pink");
-            icon.classList.add("icon--green");
-            a.classList.add("active");
-          }
-        });
-      })();
-    </script>
   </body>
 </html>

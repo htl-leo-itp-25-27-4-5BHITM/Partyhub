@@ -3,16 +3,16 @@ package at.htl.model;
 import jakarta.persistence.*;
 
 @Entity
-@TableGenerator(name="friendship_status")
-@Table(name="friendship_status")
-public class FriendshipStatus {
+@TableGenerator(name="follow_status")
+@Table(name="follow_status")
+public class FollowStatus {
     @Id
     @Column(name = "id")
     private Long status_id;
     @Column(name = "name")
     private String name;
 
-    public FriendshipStatus(){}
+    public FollowStatus(){}
 
     public String getName() {
         return name;

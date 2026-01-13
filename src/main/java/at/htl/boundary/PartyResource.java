@@ -20,6 +20,8 @@ public class PartyResource {
     PartyRepository partyRepository;
     @Inject
     MediaRepository mediaRepository;
+    @Inject
+    Logger logger;
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)

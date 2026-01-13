@@ -36,7 +36,7 @@ async function createParty() {
     }
 }
 
-createParty();
+//createParty();
 
 // Fetch all parties
 async function getAllParties() {
@@ -51,7 +51,7 @@ async function getAllParties() {
         console.error('Error fetching parties:', error);
     }
 }
-getAllParties()
+//getAllParties()
 
 // Sort parties
 async function sortParties(sortKey) {
@@ -66,7 +66,7 @@ async function sortParties(sortKey) {
     }
 }
 
-sortParties("asc")
+//sortParties("asc")
 
 // Filter parties by content
 async function filterParties(content) {
@@ -88,7 +88,7 @@ async function filterParties(content) {
     }
 }
 
-filterParties("a")
+//filterParties("a")
 
 // Get a party by ID
 async function getPartyById(partyId) {
@@ -103,7 +103,7 @@ async function getPartyById(partyId) {
     }
 }
 
-getPartyById(2)
+//getPartyById(2)
 
 // Update a party by ID
 async function updateParty(partyId) {
@@ -138,7 +138,7 @@ async function updateParty(partyId) {
     }
 }
 
-updateParty(2)
+//updateParty(2)
 
 // Delete a party by ID
 async function deleteParty(partyId) {
@@ -168,7 +168,7 @@ async function attendParty(partyId) {
 }
 }
 
-attendParty(2)
+//attendParty(2)
 
 // Leave a party
 async function leaveParty(partyId) {
@@ -183,7 +183,7 @@ async function leaveParty(partyId) {
 }
 }
 
-leaveParty(2)
+//leaveParty(2)
 
 // Get media for a party
 async function getMediaForParty(partyId) {
@@ -198,13 +198,13 @@ async function getMediaForParty(partyId) {
     }
 }
 
-getMediaForParty(2)
+//getMediaForParty(2)
 
 // User-functions
 // Fetch all users
 async function getAllUsers() {
     try {
-        const response = await fetch('/api/users/');
+        const response = await fetch('/api/users/all');
         if (!response.ok) throw new Error('Network response was not ok');
         const data = await response.json();
         console.log(data);
@@ -214,7 +214,7 @@ async function getAllUsers() {
     }
 }
 
-getAllUsers()
+//getAllUsers()
 
 // Get user by id
 async function getUserById(id) {
@@ -229,7 +229,7 @@ async function getUserById(id) {
     }
 }
 
-getUserById(2)
+//getUserById(2)
 
 // Get profile-picture by user id
 async function getProfilePicture(id) {
@@ -245,7 +245,7 @@ async function getProfilePicture(id) {
     }
 }
 
-getProfilePicture(2)
+//getProfilePicture(2)
 
 // Invite user to party using userId
 async function invite(recipient, partyId) {
@@ -268,7 +268,25 @@ async function invite(recipient, partyId) {
     }
 }
 
-invite(3, 2)
+// Get user by id
+async function createUser() {
+    try {
+        const response = await fetch("/api/users/", {
+            method: 'POST',
+        });
+        if (!response.ok) throw new Error('Network response was not ok');
+        const data = await response.json();
+        console.log(data);
+        return data;
+    } catch (error) {
+        console.error('Error creating user:', error);
+    }
+}
+
+//getUserById(2)
+
+// Invite-functions
+//invite(3, 2)
 
 // Get users personally received invites
 async function getReceivedInvites() {
@@ -302,21 +320,28 @@ async function getSentInvites() {
 
 //getSentInvites()
 
-// Delete users sent invites using invitation id
+// Delete invites using invitation id
 async function deleteInvite(invitationId) {
     try {
-        const response = await fetch(`/api/invites/` + invitationId, {
+        const response = await fetch(`/api/invites/delete/` + invitationId, {
             method: 'DELETE',
             headers: {
                 'Content-Type': 'application/json'
             },
         });
-        console.log('Invite:', response);
-        if (!response.ok) throw new Error('Network response was not ok');
-        console.log(response.ok)
+        console.log('Delete invite response:', response);
+        if (!response.ok) {
+            if (response.status === 404) {
+                throw new Error('Invitation not found');
+            }
+            throw new Error(`Failed to delete invitation: ${response.status}`);
+        }
+        console.log('Invitation deleted successfully');
+        return true;
     } catch (error) {
-        console.error('Error during invitation:', error);
+        console.error('Error deleting invitation:', error);
+        throw error;
     }
 }
 
-//deleteInvite(9)
+//deleteInvite(1)

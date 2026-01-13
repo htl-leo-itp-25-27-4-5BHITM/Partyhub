@@ -1,12 +1,12 @@
 package at.htl.repository;
 
+import at.htl.dto.UserCreateDto;
+import at.htl.model.Party;
 import at.htl.model.User;
-import io.quarkus.security.identity.SecurityIdentity;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import jakarta.persistence.EntityManager;
 import jakarta.ws.rs.core.Response;
-import org.eclipse.microprofile.jwt.JsonWebToken;
 import jakarta.transaction.Transactional;
 
 import java.util.List;
@@ -24,6 +24,15 @@ public class UserRepository {
         return em.createQuery("SELECT u FROM User u", User.class).getResultList();
     }
 
+    public List<User> getUsersByDistinctNameSearch(String search) {
+        String like = "%" + search + "%";
+        String jpql =
+        """
+        SELECT u FROM User u WHERE u.distinctName like :substring
+        """;
+        return em.createQuery(jpql, User.class).setParameter("substring", like).getResultList();
+    }
+
     public User getUser(long id) {
         return em.find(User.class, id);
     }
@@ -36,30 +45,30 @@ public class UserRepository {
         return res.isEmpty() ? null : res.get(0);
     }
 
-    @Transactional
-    public User save(User user) {
-        if (user.getId() == null) {
-            em.persist(user);
-            return user;
-        } else {
-            return em.merge(user);
-        }
+    public User findByDistinctName(String distinctName) {
+        User res = em.createQuery("SELECT u FROM User u WHERE u.distinctName = :distinctName", User.class)
+                .setParameter("distinctName", distinctName)
+                .getSingleResultOrNull();
+        return res;
+    }
+
+    public Response createUser(User user) {
+        em.persist(user);
+        return Response.ok(user).build();
     }
 
     @Transactional
-    public User createOrUpdateByEmail(String name, String email) {
-        User user = findByEmail(email);
+    public Response updateUser(Long id, UserCreateDto createUserDto) {
+        User user = getUser(id);
         if (user == null) {
-            user = new User();
-            user.setName(name);
-            user.setEmail(email);
-            // default profile image will be set by entity lifecycle
-            save(user);
-        } else {
-            user.setName(name);
-            save(user);
+            return Response.status(Response.Status.NOT_FOUND).build();
         }
-        return user;
+        user.setDisplayName(createUserDto.displayName());
+        user.setDistinctName(createUserDto.distinctName());
+        user.setEmail(createUserDto.email());
+        user.setBiography(createUserDto.biography());
+        user.setProfileImage(createUserDto.profilePicture());
+        em.merge(user);
+        return Response.ok(user).build();
     }
-
 }

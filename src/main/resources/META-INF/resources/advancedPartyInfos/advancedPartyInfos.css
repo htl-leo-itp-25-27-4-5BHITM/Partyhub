@@ -126,6 +126,67 @@ body {
   color: var(--muted);
 }
 
+/* Photo Previews */
+.photo-previews {
+  margin: 20px 0 16px 0;
+}
+
+.preview-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(70px, 1fr));
+  gap: 6px;
+  max-width: 320px;
+  justify-items: center;
+}
+
+.preview-item {
+  width: 100%;
+  max-width: 70px;
+  aspect-ratio: 1;
+  border-radius: var(--border-radius-m);
+  overflow: hidden;
+  cursor: pointer;
+  transition: transform 0.2s ease;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.preview-item:hover {
+  transform: scale(1.05);
+}
+
+.preview-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center;
+  display: block;
+}
+
+.preview-placeholder {
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.05));
+  border: 1px dashed rgba(255, 255, 255, 0.3);
+  border-radius: var(--border-radius-s);
+}
+
+/* Responsive adjustments for photo previews */
+@media (max-width: 480px) {
+  .preview-grid {
+    max-width: 280px;
+    grid-template-columns: repeat(auto-fit, minmax(60px, 1fr));
+    gap: 4px;
+  }
+
+  .preview-item {
+    max-width: 60px;
+  }
+
+  .preview-placeholder {
+    font-size: 14px;
+  }
+}
+
 .photos-btn {
   display: block;
   background: none;

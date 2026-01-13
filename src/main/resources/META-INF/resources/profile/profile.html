@@ -8,6 +8,7 @@
     <link rel="stylesheet" href="../global.css">
     <link rel="stylesheet" href="./profile.css">
     <link rel="stylesheet" href="../index.css">
+    <script src="../nav.js" defer></script>
     <script src="./profile.js" defer></script>
 </head>
 
@@ -32,15 +33,21 @@
 
             <input type="text" id="searchInput" placeholder="Search usernames..." aria-label="Search usernames" />
         </div>
+
+        <!-- Search Results Dropdown -->
+        <div id="searchDropdown" class="search-dropdown hidden">
+            <div id="searchResults" class="search-results"></div>
+        </div>
     </div>
 
     <div id="profileContainer">
         <div id="profilePicture">
-            <img id="profileImg" src="/images/profile_picture3.jpg" alt="Profile Picture">
+            <img id="profileImg" alt="Profile Picture">
         </div>
 
         <div id="username">
-            <p>@partyMausViki</p>
+            <p id="displayName">Loading...</p>
+            <p id="distinctName" class="distinct-name">@loading...</p>
         </div>
 
         <div id="profileDetails">
@@ -50,7 +57,7 @@
             <div id="postsCount" data-count="9"></div>
         </div>
         <div id="actionButton">
-            <button id="editAccounçtBtn" class="edit-account-btn"><a href="./editAccount/editAccount.html">Edit Account</a></button>
+            <button id="editAccountBtn" class="edit-account-btn"><a href="../editProfile/editProfile.html">Edit Profile</a></button>
         </div>
 
         <!-- Tab-System für Beiträge und Favoriten -->
@@ -171,73 +178,42 @@
                                 </div>
                             </div>
                         </template>
+                </section>
+            </div>
 
-        <div id="navbarSpacer">
-                <!-- Shared Bottom Navigation -->
-                <nav class="bottom-nav" role="navigation" aria-label="Bottom navigation">
-                    <a class="nav-btn" href="/homepage/homepage.html" aria-label="Home">
-                        <svg class="nav-icon icon--pink" width="28" height="28" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                            <path d="M3 6.5L8 4l7 2.5 6-2.5v11l-6 2.5L10 15 3 17.5v-11z" stroke="currentColor" stroke-width="1.2" stroke-linejoin="round" stroke-linecap="round"/>
-                        </svg>
-                    </a>
+            <!-- Shared Bottom Navigation -->
+            <nav class="bottom-nav" role="navigation" aria-label="Bottom navigation">
+                <a class="nav-btn" href="/index.html" aria-label="Home">
+                    <svg class="nav-icon icon--pink" width="28" height="28" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M3 6.5L8 4l7 2.5 6-2.5v11l-6 2.5L10 15 3 17.5v-11z" stroke="currentColor" stroke-width="1.2" stroke-linejoin="round" stroke-linecap="round"/>
+                    </svg>
+                </a>
 
-                    <a class="nav-btn" href="/listPartys/listPartys.html" aria-label="List Parties">
-                        <svg class="nav-icon icon--green" width="28" height="28" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                            <rect x="3" y="3" width="18" height="18" rx="3" stroke="currentColor" stroke-width="1.2"/>
-                            <circle cx="8.5" cy="8.5" r="1.8" fill="currentColor" />
-                            <path d="M21 21l-6-6-5 5" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/>
-                        </svg>
-                    </a>
+                <a class="nav-btn" href="/listPartys/listPartys.html" aria-label="List Parties">
+                    <svg class="nav-icon icon--pink" width="28" height="28" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <rect x="3" y="3" width="18" height="18" rx="3" stroke="currentColor" stroke-width="1.2"/>
+                        <circle cx="8.5" cy="8.5" r="1.8" fill="currentColor" />
+                        <path d="M21 21l-6-6-5 5" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                </a>
 
-                    <a class="nav-btn" href="/notifications/notifications.html" aria-label="Notifications">
-                        <svg class="nav-icon icon--pink" width="28" height="28" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                            <path d="M12 22a2.5 2.5 0 0 0 2.45-2H9.55A2.5 2.5 0 0 0 12 22z" fill="currentColor"/>
-                            <path d="M18 8a6 6 0 10-12 0v5l-2 2v1h16v-1l-2-2V8z" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/>
-                        </svg>
-                    </a>
+                <a class="nav-btn" href="/notifications/notifications.html" aria-label="Notifications">
+                    <svg class="nav-icon icon--pink" width="28" height="28" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M12 22a2.5 2.5 0 0 0 2.45-2H9.55A2.5 2.5 0 0 0 12 22z" fill="currentColor"/>
+                        <path d="M18 8a6 6 0 10-12 0v5l-2 2v1h16v-1l-2-2V8z" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                </a>
 
-                    <a class="nav-btn" href="/profile/profile.html" aria-label="Profile">
-                        <svg class="nav-icon icon--pink" width="28" height="28" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                            <circle cx="12" cy="8.5" r="3" stroke="currentColor" stroke-width="1.2"/>
-                            <path d="M4 20a8 8 0 0 1 16 0" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/>
-                        </svg>
-                    </a>
-                </nav>
+                <a class="nav-btn" href="/profile/profile.html" aria-label="Profile">
+                    <svg class="nav-icon icon--green" width="28" height="28" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <circle cx="12" cy="8.5" r="3" stroke="currentColor" stroke-width="1.2"/>
+                        <path d="M4 20a8 8 0 0 1 16 0" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                </a>
+            </nav>
+
         </div>
-
-        <script>
-            // Highlight active navigation on profile page
-            function markActiveNavProfile() {
-                const nav = document.querySelector('.bottom-nav');
-                if (!nav) return;
-                const links = nav.querySelectorAll('.nav-btn');
-                links.forEach(a => {
-                    const icon = a.querySelector('.nav-icon');
-                    if (!icon) return;
-                    // default to pink
-                    icon.classList.remove('icon--green');
-                    icon.classList.add('icon--pink');
-                    a.classList.remove('active');
-                    a.removeAttribute('aria-current');
-
-                    const href = (a.getAttribute('href') || '').toLowerCase();
-                    if (href.includes('profile')) {
-                        icon.classList.remove('icon--pink');
-                        icon.classList.add('icon--green');
-                        a.classList.add('active');
-                        a.setAttribute('aria-current', 'page');
-                    }
-                });
-            }
-
-            if (document.readyState === 'loading') {
-                document.addEventListener('DOMContentLoaded', markActiveNavProfile);
-            } else {
-                markActiveNavProfile();
-            }
-        </script>
-
-        </div> <!-- /.app-shell -->
+    </div>
 
     </body>
 
