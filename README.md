@@ -7,6 +7,8 @@
 3. Sprint: 19.11.2025
 4. Sprint: 03.12.2025
 5. Sprint: 17.12.2025
+6. Sprint: 14.01.2026
+7. Sprint: 28.01.2026
 
 ## Run Locally
 
