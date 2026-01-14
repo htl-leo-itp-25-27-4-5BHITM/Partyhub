@@ -1,9 +1,9 @@
 /*
     addParty.js
-    - Initialisiert Flatpickr für Datum/Uhrzeitfelder
-    - Rendert eine Test-Userliste (Dummy) für die Sichtbarkeitsauswahl
-    - Führt sinnvolle Validierungen vor dem Abschicken durch
-    - Gut kommentiert (Deutsch), damit es übersichtlich bleibt
+    - Initializes Flatpickr for date/time fields (including past-date check)
+    - Renders a user list for visibility selection
+    - Performs meaningful validations before submission
+    - Well-commented for better overview
 */
 
 document.addEventListener("DOMContentLoaded", () => {
@@ -18,15 +18,15 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   // ------------------------------
-  // Flatpickr initialisieren
+  // Initialize Flatpickr
   // ------------------------------
-  // Wir speichern die Instanzen, damit wir später echte Date-Objekte
-  // statt nur Strings für Validierung und Vergleich verwenden können.
+  // minDate: "today" prevents selecting days in the past via the UI.
   const startPicker = flatpickr("#time_start", {
     enableTime: true,
     dateFormat: "d.m.Y H:i",
     time_24hr: true,
     minuteIncrement: 15,
+    minDate: "today",
   });
 
   const endPicker = flatpickr("#time_end", {
@@ -34,12 +34,11 @@ document.addEventListener("DOMContentLoaded", () => {
     dateFormat: "d.m.Y H:i",
     time_24hr: true,
     minuteIncrement: 15,
+    minDate: "today",
   });
 
   // ------------------------------
-  // Wenn der Startzeitpunkt geändert wird, setzen wir ein Minimum
-  // für das Enddatum, damit das Ende nicht vor dem Start liegen kann.
-  // Dadurch nimmt das Formular später immer die aktuellste Auswahl.
+  // When start time changes, set minimum for end date
   // ------------------------------
   startPicker.set("onChange", function (selectedDates) {
     if (selectedDates && selectedDates[0]) {
@@ -48,19 +47,15 @@ document.addEventListener("DOMContentLoaded", () => {
   });
 
   // ------------------------------
-  // Wenn das Enddatum geändert wird und es vor dem bisherigen
-  // Startdatum liegt, synchronisieren wir den Start automatisch
-  // auf das neue Ende. So wird die zuletzt vom Nutzer gewählte
-  // Endzeit immer berücksichtigt.
+  // Synchronize start date if end date is set before it
   // ------------------------------
   endPicker.set("onChange", function (selectedDates) {
     if (!selectedDates || !selectedDates[0]) return;
     const newEnd = selectedDates[0];
     const curStart = startPicker.selectedDates[0];
     if (curStart && newEnd < curStart) {
-      // Setze Start auf das neue Enddatum (ohne das onChange erneut auszulösen)
       startPicker.setDate(newEnd, true);
-      console.log("Startdatum an neues Enddatum angepasst:", newEnd);
+      console.log("Start date adjusted to new end date:", newEnd);
     }
   });
 
@@ -80,8 +75,8 @@ document.addEventListener("DOMContentLoaded", () => {
   // Load users from backend API
   // ------------------------------
   const userList = document.getElementById("userList");
-  let visibleUsersToCheck = null; // Store visible users for edit mode
-  
+  let visibleUsersToCheck = null;
+
   async function loadUsers() {
     try {
       const response = await fetch("/api/users/all");
@@ -91,8 +86,7 @@ document.addEventListener("DOMContentLoaded", () => {
       }
       const users = await response.json();
       renderUsers(users);
-      
-      // If we have stored visible_users (from edit mode), check them now
+
       if (visibleUsersToCheck && Array.isArray(visibleUsersToCheck)) {
         checkVisibleUsers(visibleUsersToCheck);
       }
@@ -103,16 +97,15 @@ document.addEventListener("DOMContentLoaded", () => {
 
   function renderUsers(users) {
     if (!userList) return;
-    userList.innerHTML = ""; // Clear existing content
-    
+    userList.innerHTML = "";
+
     users.forEach((user) => {
       const card = document.createElement("div");
       card.className = "user-card";
-      
-      // Generate avatar from first letter of displayName or distinctName
+
       const avatarLetter = (user.displayName || user.distinctName || "?").charAt(0).toUpperCase();
       const username = user.distinctName || user.id.toString();
-      
+
       card.innerHTML = `
                 <div class="user-left">
                     <div class="user-avatar">${avatarLetter}</div>
@@ -130,21 +123,19 @@ document.addEventListener("DOMContentLoaded", () => {
   function checkVisibleUsers(visibleUsers) {
     const form = document.querySelector(".party-form");
     if (!form) return;
-    
+
     Array.from(form.querySelectorAll('input[name="visible_users"]')).forEach(inp => {
       if (visibleUsers.includes(inp.value)) inp.checked = true;
       else inp.checked = false;
     });
   }
 
-  // Load users when page loads
   loadUsers();
 
   // ------------------------------
-  // Hilfsfunktionen für Validierung
+  // Helper functions for validation
   // ------------------------------
   const showError = (msg) => {
-    // Klein, aber effektiv: alert für jetzt. Später können wir Inline-Fehler anzeigen.
     alert(msg);
   };
 
@@ -162,7 +153,6 @@ document.addEventListener("DOMContentLoaded", () => {
 
   const safeParseUrl = (u) => {
     try {
-      // Wenn URL relativ ist, new URL will throw; that's acceptable as invalid.
       return new URL(u);
     } catch (_) {
       return null;
@@ -170,8 +160,7 @@ document.addEventListener("DOMContentLoaded", () => {
   };
 
   // ------------------------------
-  // createParty helper (uses the example you provided)
-  // Accepts a partyPayload object and sends it to /api/party/add
+  // API Helpers
   // ------------------------------
   async function createParty(partyPayload) {
     try {
@@ -186,23 +175,14 @@ document.addEventListener("DOMContentLoaded", () => {
 
       const location = response.headers.get("Location");
       let data = null;
-      try {
-        data = await response.json();
-      } catch (_) {
-        // no json body
-      }
+      try { data = await response.json(); } catch (_) {}
 
       if (response.ok || response.status === 201) {
-        console.log("Party created successfully!", { status: response.status, data, location });
         return { ok: true, status: response.status, data, location };
       }
 
-      // Try to read text for more informative error
       let text = null;
-      try {
-        text = await response.text();
-      } catch (_) {}
-      console.error("Error creating party:", response.status, text || data);
+      try { text = await response.text(); } catch (_) {}
       return { ok: false, status: response.status, text, data };
     } catch (error) {
       console.error("Network error:", error);
@@ -210,10 +190,8 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   }
 
-  // updateParty helper for edit mode
   async function updateParty(partyId, partyPayload) {
     try {
-      // prefer backend helper if available
       if (window.backend && typeof window.backend.updateParty === "function") {
         const data = await window.backend.updateParty(partyId, partyPayload);
         return { ok: !!data, data };
@@ -233,14 +211,11 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   }
 
-  // ------------------------------
-  // Form element MUST be available before trying to load edit-mode data
-  // ------------------------------
   const form = document.querySelector(".party-form");
-  if (!form) return; // Form nicht gefunden -> nichts tun
+  if (!form) return;
 
   // ------------------------------
-  // Edit mode: if ?id=.. present, load party and prefill form
+  // Edit mode logic
   // ------------------------------
   const urlParams = new URLSearchParams(window.location.search);
   const editPartyId = urlParams.get("id");
@@ -251,18 +226,15 @@ document.addEventListener("DOMContentLoaded", () => {
     const submitBtn = form.querySelector(".submit-btn");
     if (submitBtn) submitBtn.textContent = "Update";
 
-    // helper to parse backend date format dd.MM.yyyy HH:mm
     const parseFromBackend = (s) => {
       if (!s || typeof s !== "string") return null;
       const [datePart, timePart] = s.split(" ");
       if (!datePart || !timePart) return null;
       const [d, m, y] = datePart.split(".").map(Number);
       const [h, min] = timePart.split(":").map(Number);
-      if ([d, m, y, h, min].some((v) => Number.isNaN(v))) return null;
       return new Date(y, m - 1, d, h, min);
     };
 
-    // fetch party via backend helper or direct fetch
     let party = null;
     try {
       if (window.backend && typeof window.backend.getPartyById === "function") {
@@ -271,44 +243,31 @@ document.addEventListener("DOMContentLoaded", () => {
         const res = await fetch(`/api/party/${editPartyId}`);
         if (res.ok) party = await res.json();
       }
-    } catch (err) {
-      console.error("Error loading party for edit:", err);
-    }
-    if (!party) {
-      alert("Konnte Party nicht laden.");
-      return;
-    }
+    } catch (err) { console.error(err); }
 
-    // populate form fields (guard checks)
-    form.title.value = party.title || form.title.value || "";
-    form.description.value = party.description || form.description.value || "";
-    // Handle location name - can be object with name property or string
+    if (!party) return;
+
+    form.title.value = party.title || "";
+    form.description.value = party.description || "";
     if (party.location) {
-      if (typeof party.location === 'object' && party.location.name) {
-        if (form.location_name) form.location_name.value = party.location.name;
-      } else if (typeof party.location === 'string') {
-        if (form.location_name) form.location_name.value = party.location;
-      }
+      if (typeof party.location === 'object' && party.location.name) form.location_name.value = party.location.name;
+      else if (typeof party.location === 'string') form.location_name.value = party.location;
     }
     if (party.website) form.website.value = party.website;
     if (party.fee !== undefined) form.entry_costs.value = party.fee;
     if (party.min_age !== undefined) form.min_age.value = party.min_age;
     if (party.max_age !== undefined) form.max_age.value = party.max_age;
-    if (party.theme !== undefined && form.theme) form.theme.value = party.theme;
-    if (party.max_people !== undefined && form.max_people) form.max_people.value = party.max_people;
+    if (party.theme && form.theme) form.theme.value = party.theme;
+    if (party.max_people && form.max_people) form.max_people.value = party.max_people;
 
-    // times into flatpickr
     const sd = parseFromBackend(party.time_start || party.timeStart || party.start_time);
     const ed = parseFromBackend(party.time_end || party.timeEnd || party.end_time);
     if (sd) startPicker.setDate(sd, true);
     if (ed) endPicker.setDate(ed, true);
 
-    // visible users: store for checking after users are loaded
-    if (Array.isArray(party.visible_users) && party.visible_users.length > 0) {
+    if (Array.isArray(party.visible_users)) {
       visibleUsersToCheck = party.visible_users;
-      // Try to check immediately (if users already loaded), otherwise they'll be checked when users load
       checkVisibleUsers(party.visible_users);
-      // open panel to show selections
       const panelEl = document.getElementById("visibilityPanel");
       const toggle = document.getElementById("visibilityToggle");
       if (panelEl && toggle) {
@@ -319,136 +278,100 @@ document.addEventListener("DOMContentLoaded", () => {
   })();
 
   // ------------------------------
-  // Form Submit mit Validierungen
+  // Form Submit with Validation
   // ------------------------------
   form.addEventListener("submit", async (e) => {
     e.preventDefault();
 
-    // Werte aus dem Formular
     const title = form.title.value && form.title.value.trim();
-    const description = form.description.value && form.description.value.trim();
     const locationName = form.location_name && form.location_name.value ? form.location_name.value.trim() : '';
     const entryCosts = form.entry_costs.value;
     const minAge = form.min_age.value;
     const maxAge = form.max_age.value;
     const website = form.website.value && form.website.value.trim();
-
-    // Datum: wir ziehen die Date-Objekte direkt aus den Flatpickr-Instanzen
     const startDate = startPicker.selectedDates[0] || null;
     const endDate = endPicker.selectedDates[0] || null;
 
-    // ------------------------------
-    // Pflicht- und Sinnprüfungen
-    // ------------------------------
     if (!title) {
-      showError("Bitte gib einen Namen für die Party ein.");
+      showError("Please enter a name for the party.");
       form.title.focus();
       return;
     }
 
-    // Ort ist sinnvoll als Pflichtfeld
     if (!locationName) {
-      showError("Bitte gib einen Ortsnamen ein.");
+      showError("Please enter a location name.");
       if (form.location_name) form.location_name.focus();
       return;
     }
 
-    // Zeitfelder prüfen
     if (!startDate) {
-      showError("Bitte wähle ein Startdatum/-zeit aus.");
+      showError("Please select a start date and time.");
       return;
     }
+
+    // --- Validation against past dates ---
+    const now = new Date();
+    // 1-minute grace period for filling out the form
+    if (startDate < new Date(now.getTime() - 60000)) {
+      showError("Oops! Your party cannot start in the past. 🕒 Please select a future time.");
+      return;
+    }
+
     if (!endDate) {
-      showError("Bitte wähle ein Enddatum/-zeit aus.");
+      showError("Please select an end date and time.");
       return;
     }
     if (startDate >= endDate) {
-      showError("Das Enddatum muss nach dem Startdatum liegen.");
+      showError("The end date must be after the start date.");
       return;
     }
 
-    // Eintrittskosten: falls ausgefüllt, dürfen sie nicht negativ sein
-    if (entryCosts && entryCosts !== "") {
-      if (!isPositiveNumber(entryCosts)) {
-        showError(
-          "Die Eintrittskosten müssen eine positive Zahl (oder 0) sein."
-        );
-        form.entry_costs.focus();
-        return;
-      }
+    if (entryCosts && !isPositiveNumber(entryCosts)) {
+      showError("The admission fee must be a positive number (or 0).");
+      form.entry_costs.focus();
+      return;
     }
 
-    // Altersprüfung: wenn beide angegeben, muss min <= max
-    if (minAge && minAge !== "") {
-      if (!isInteger(minAge) || Number(minAge) < 0) {
-        showError("Das Mindestalter muss eine ganze Zahl >= 0 sein.");
-        form.min_age.focus();
-        return;
-      }
+    if (minAge && (!isInteger(minAge) || Number(minAge) < 0)) {
+      showError("Invalid minimum age.");
+      return;
     }
-    if (maxAge && maxAge !== "") {
-      if (!isInteger(maxAge) || Number(maxAge) < 0) {
-        showError("Das Maximalalter muss eine ganze Zahl >= 0 sein.");
-        form.max_age.focus();
-        return;
-      }
-    }
+
     if (minAge && maxAge && Number(minAge) > Number(maxAge)) {
-      showError(
-        "Das Mindestalter darf nicht größer als das Maximalalter sein."
-      );
-      form.min_age.focus();
+      showError("The minimum age cannot be higher than the maximum age.");
       return;
     }
 
-    // Website: falls ausgefüllt, sollte es eine gültige URL sein
-    if (website) {
-      const parsed = safeParseUrl(website);
-      if (!parsed) {
-        showError("Bitte gib eine gültige Website-URL an (inkl. https://).");
+    // --- Website is OPTIONAL: Only validate if something was entered ---
+    if (website && website !== "") {
+      if (!safeParseUrl(website)) {
+        showError("Please enter a valid website URL (including https://) or leave the field empty.");
         form.website.focus();
         return;
       }
     }
 
-    // Sichtbarkeit: wenn nur bestimmte Personen ausgewählt werden, prüfe,
-    // ob mindestens eine ausgewählt ist (das macht Sinn).
-    const visibilityOpen = document
-      .getElementById("visibilityPanel")
-      ?.classList.contains("open");
+    const visibilityOpen = document.getElementById("visibilityPanel")?.classList.contains("open");
     let visibleUsers = [];
     if (visibilityOpen) {
-      visibleUsers = Array.from(
-        form.querySelectorAll('input[name="visible_users"]:checked')
-      ).map((i) => i.value);
+      visibleUsers = Array.from(form.querySelectorAll('input[name="visible_users"]:checked')).map((i) => i.value);
       if (visibleUsers.length === 0) {
-        const ok = confirm(
-          "Keine Benutzer ausgewählt — soll die Party trotzdem nur für ausgewählte Personen sichtbar sein? (OK = nein, Abbrechen = abbrechen)"
-        );
-        if (!ok) {
-          // Benutzer gewählt abbrechen
-          return;
-        }
+        if (!confirm("No users selected — do you want to proceed anyway?")) return;
       }
     }
 
-    // ------------------------------
-    // Payload zusammenstellen (Backend erwartet dd.MM.yyyy HH:mm)
-    // ------------------------------
     const formatToBackend = (d) => {
       if (!d || !(d instanceof Date)) return null;
       const pad = (n) => String(n).padStart(2, "0");
-      return `${pad(d.getDate())}.${pad(d.getMonth() + 1)}.${d.getFullYear()} ${pad(
-        d.getHours()
-      )}:${pad(d.getMinutes())}`;
+      return `${pad(d.getDate())}.${pad(d.getMonth() + 1)}.${d.getFullYear()} ${pad(d.getHours())}:${pad(d.getMinutes())}`;
     };
 
     const payload = {
       title,
-      description,
-      location_name: locationName || null, // Location name
-      time_start: formatToBackend(startDate) || null,
-      time_end: formatToBackend(endDate) || null,
+      description: form.description.value.trim(),
+      location_name: locationName || null,
+      time_start: formatToBackend(startDate),
+      time_end: formatToBackend(endDate),
       longitude: form.longitude?.value ? Number(form.longitude.value) : 16.3738,
       latitude: form.latitude?.value ? Number(form.latitude.value) : 48.2082,
       category_id: form.category_id?.value ? Number(form.category_id.value) : 2,
@@ -457,28 +380,11 @@ document.addEventListener("DOMContentLoaded", () => {
       theme: form.theme?.value ? String(form.theme.value).trim() : null,
     };
 
-    // optionales max_people falls vorhanden im Form
-    if (form.max_people?.value) {
-      const mp = Number(form.max_people.value);
-      if (!Number.isNaN(mp) && isFinite(mp) && mp > 0) payload.max_people = mp;
-    }
+    if (form.max_people?.value) payload.max_people = Number(form.max_people.value);
+    if (minAge) payload.min_age = Number(minAge);
+    if (maxAge) payload.max_age = Number(maxAge);
+    if (entryCosts) payload.fee = Number(entryCosts);
 
-    // Min/Max Alter sind optional: nur hinzufügen, wenn der Benutzer sie ausgefüllt hat.
-    if (minAge !== null && minAge !== undefined && minAge !== "") {
-      payload.min_age = Number(minAge);
-    }
-    if (maxAge !== null && maxAge !== undefined && maxAge !== "") {
-      payload.max_age = Number(maxAge);
-    }
-
-    // Eintrittskosten sind optional: nur hinzufügen, wenn ausgefüllt.
-    if (entryCosts !== null && entryCosts !== undefined && entryCosts !== "") {
-      payload.fee = Number(entryCosts);
-    }
-
-    // ------------------------------
-    // Abschicken: gleiche Logik wie vorher, aber mit Validierung
-    // ------------------------------
     const submitBtn = form.querySelector(".submit-btn");
     try {
       if (submitBtn) {
@@ -488,41 +394,21 @@ document.addEventListener("DOMContentLoaded", () => {
 
       let result;
       if (isEditMode && editPartyId) {
-        // Update flow
         result = await updateParty(editPartyId, payload);
         if (result.ok) {
-          alert("Party erfolgreich aktualisiert.");
-          // Try redirect to the updated party page if id known
-          const id = editPartyId;
-          window.location.href = `/party/${id}`;
+          alert("Party successfully updated.");
+          window.location.href = `/party/${editPartyId}`;
           return;
-        } else {
-          const msg = result.text || (result.data && JSON.stringify(result.data)) || "Aktualisierung fehlgeschlagen.";
-          showError(msg);
         }
       } else {
-        // Create flow
         result = await createParty(payload);
         if (result.ok) {
-          alert("Party erfolgreich erstellt.");
-          if (result.location) {
-            window.location.href = result.location;
-            return;
-          }
-          if (result.data && (result.data.id || result.data.partyId)) {
-            const id = result.data.id || result.data.partyId;
-            window.location.href = `/party/${id}`;
-            return;
-          }
-          window.location.href = "/listPartys/listPartys.html";
-        } else {
-          const msg =
-            (result.text && result.text.slice(0, 100)) ||
-            (result.data && JSON.stringify(result.data).slice(0, 200)) ||
-            "Senden der Party fehlgeschlagen. Bitte versuche es später erneut.";
-          showError(msg);
+          alert("Party successfully created.");
+          window.location.href = result.location || "/listPartys/listPartys.html";
+          return;
         }
       }
+      showError("An error occurred while saving the party.");
     } finally {
       if (submitBtn) {
         submitBtn.disabled = false;
@@ -531,4 +417,3 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   });
 });
-// end of file
