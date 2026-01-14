@@ -9,10 +9,11 @@
     <link rel="stylesheet" href="./profile.css">
     <link rel="stylesheet" href="../index.css">
     <script src="../nav.js" defer></script>
+    <script src="../backend-functions.js" defer></script>
     <script src="./profile.js" defer></script>
 </head>
 
-<body>
+<body class="bg-light">
         <div class="app-shell">
             <!-- top-bar removed: bottom navigation used instead -->
 
@@ -63,7 +64,7 @@
         <!-- Tab-System für Beiträge und Favoriten -->
         <div id="profileTabs">
             <div class="tab-buttons">
-                <button id="tabPartys" class="tab-btn" aria-label="Partys">
+                <button id="tabPartys" class="tab-btn active" aria-label="Partys">
                     <span class="tab-icon">
                         <!-- Party icon: party popper Vorlage -->
                         <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -106,7 +107,7 @@
                         </svg>
                     </span>
                 </button>
-                <button id="tabPosts" class="tab-btn active" aria-label="Beiträge">
+                <button id="tabPosts" class="tab-btn" aria-label="Beiträge">
                     <span class="tab-icon">
                         <!-- Beiträge icon: document -->
                         <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -131,7 +132,7 @@
             </div>
             <div class="tab-underline"></div>
             <div class="tab-content" style="background:none; box-shadow:none; border-radius:0; padding-top:18px;">
-                <section id="tabContentPartys" class="tab-section" style="display:none;">
+                <section id="tabContentPartys" class="tab-section" style="display:block;">
                     <p class="muted no-parties">Keine Partys vorhanden</p>
 
                     <!-- template für eine party-card; wird per JS geklont -->
@@ -165,19 +166,45 @@
 
                             <div class="party-body">
                                 <div class="info-box">
-                                    <div class="info-value">Datum</div>
+                                    <div class="info-value party-date">Datum</div>
                                     <div class="info-label">Datum</div>
                                 </div>
                                 <div class="info-box">
-                                    <div class="info-value">Uhrzeit</div>
+                                    <div class="info-value party-time">Uhrzeit</div>
                                     <div class="info-label">Uhrzeit</div>
                                 </div>
                                 <div class="info-box">
-                                    <div class="info-value">Ort</div>
+                                    <div class="info-value party-location">Ort</div>
                                     <div class="info-label">Ort</div>
                                 </div>
                             </div>
-                        </template>
+
+                            <!-- zusätzliche, anfänglich ausgeblendete Infos -->
+                            <div class="party-extra" style="display:none; padding-top:8px;">
+                                <div class="info-line"><strong>Max. People:</strong> <span class="party-people">—</span></div>
+                                <div class="info-line"><strong>Age:</strong> <span class="party-age">—</span></div>
+                                <div class="info-line"><strong>Fee:</strong> <span class="party-fee">—</span></div>
+                                <div class="info-line"><strong>Category:</strong> <span class="party-category">—</span></div>
+                                <div class="info-line"><strong>Created:</strong> <span class="party-created">—</span></div>
+                            </div>
+                        </article>
+                    </template>
+
+                    <!-- Grid: 2 Partys pro Reihe -->
+                    <div id="partiesContainer" style="display:grid; grid-template-columns: repeat(2, 1fr); gap:12px;"></div>
+                </section>
+
+                <!-- EIGENE BILDER -->
+                <section id="tabContentPosts" class="tab-section" style="display:none;">
+                    <p class="muted no-posts">Keine eigenen Fotos vorhanden</p>
+                    <!-- Bilder-Grid: einfache Styling-Vorgabe -->
+                    <div id="ownMediaGrid" class="media-grid" style="display:grid; grid-template-columns: repeat(3, 1fr); gap:8px;"></div>
+                </section>
+
+                <!-- GELIKTE BILDER -->
+                <section id="tabContentFavorites" class="tab-section" style="display:none;">
+                    <p class="muted no-favs">Keine gelikten Fotos vorhanden</p>
+                    <div id="likedMediaGrid" class="media-grid" style="display:grid; grid-template-columns: repeat(3, 1fr); gap:8px;"></div>
                 </section>
             </div>
 

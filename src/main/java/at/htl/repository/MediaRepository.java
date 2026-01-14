@@ -90,11 +90,11 @@ public class MediaRepository {
     private MediaDto toMediaDto(Media media) {
         return new MediaDto(
                 media.getId(),
-                media.getUser().getId(),
+                media.getParty().getId(),
                 media.getUrl()
         );
     }
-    public Response getImgByMediaId(@PathParam("id") long id) {
+    public Response getImgByMediaId(long id) {
         Media media = entityManager.find(Media.class, id);
         String path;
         //TODO:sanitize path
@@ -121,6 +121,15 @@ public class MediaRepository {
                 Long.class)
                 .setParameter("userId", userId)
                 .getSingleResult();
+    }
+
+    public List<MediaDto> getMediaByUserId(Long userId) {
+        List<Media> mediaList = entityManager.createQuery(
+                "SELECT m FROM Media m WHERE m.user.id = :userId",
+                Media.class)
+                .setParameter("userId", userId)
+                .getResultList();
+        return mediaList.stream().map(this::toMediaDto).collect(Collectors.toList());
     }
 
 }

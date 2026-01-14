@@ -76,6 +76,9 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     function updateUserProfile(user) {
+        // Set current user ID for party/media loading
+        currentUserId = user.id;
+        
         // Update profile picture
         const finalPath = `/api/users/${user.id}/profile-picture`;
         console.log("Loading profile picture from: " + finalPath);
@@ -93,6 +96,9 @@ document.addEventListener('DOMContentLoaded', function () {
 
         // Load and update follower/following/media counts
         loadUserStats(user.id);
+
+        // Load initial data
+        loadUserParties();
 
         // Error handling for profile picture
         img.onerror = function() {
@@ -274,30 +280,300 @@ document.addEventListener('DOMContentLoaded', function () {
         searchResults.innerHTML = '';
     }
 
+    // Helper: safe call to backend namespace
+    const hasBackend = typeof window.backend === 'object';
+
+    // Helper: Try multiple endpoints sequentially
+    async function tryFetchJson(urls, options) {
+        for (const u of urls) {
+            try {
+                const res = await fetch(u, options);
+                if (!res.ok) {
+                    console.debug(`tryFetchJson: ${u} returned ${res.status}`);
+                    continue;
+                }
+                const data = await res.json().catch(() => null);
+                return { url: u, data, res };
+            } catch (err) {
+                console.debug(`tryFetchJson: network error for ${u}`, err);
+            }
+        }
+        return null;
+    }
+
+    // Load user parties
+    let currentUserId = null;
+    async function loadUserParties() {
+        if (!currentUserId) return;
+        
+        let parties = null;
+        // prefer backend helper
+        if (hasBackend && typeof window.backend.getPartiesByUser === 'function') {
+            try {
+                parties = await window.backend.getPartiesByUser(currentUserId);
+            } catch (err) {
+                console.debug('backend.getPartiesByUser failed', err);
+            }
+        }
+        // fallback to getAllParties+filter
+        if (!Array.isArray(parties) && hasBackend && typeof window.backend.getAllParties === 'function') {
+            try {
+                const all = await window.backend.getAllParties();
+                if (Array.isArray(all)) {
+                    parties = all.filter(p => p.ownerId == currentUserId || p.creatorId == currentUserId || p.userId == currentUserId || p.owner == currentUserId);
+                }
+            } catch (err) {
+                console.debug('backend.getAllParties failed', err);
+            }
+        }
+        // endpoint fallbacks
+        if (!Array.isArray(parties)) {
+            try {
+                const r = await fetch(`/api/party/`);
+                if (r.ok) {
+                    const data = await r.json().catch(() => null);
+                    if (Array.isArray(data)) parties = data.filter(p => p.ownerId == currentUserId || p.creatorId == currentUserId || p.userId == currentUserId || p.owner == currentUserId);
+                    else if (data && Array.isArray(data.data)) parties = data.data.filter(p => p.ownerId == currentUserId || p.creatorId == currentUserId || p.userId == currentUserId || p.owner == currentUserId);
+                }
+            } catch (err) { console.debug('fallback fetch failed', err); }
+        }
+
+        const container = document.getElementById('partiesContainer');
+        const noMsg = document.querySelector('#tabContentPartys .no-parties');
+        const template = document.getElementById('party-template');
+        if (!container || !template) return;
+
+        container.innerHTML = '';
+        if (!parties || parties.length === 0) {
+            if (noMsg) noMsg.style.display = '';
+            return;
+        }
+        if (noMsg) noMsg.style.display = 'none';
+
+        parties.forEach(p => {
+            const node = template.content.cloneNode(true);
+            const article = node.querySelector('article.party-card');
+            article.dataset.id = p.id ?? p.partyId ?? '';
+            // visible fields
+            const nameEl = node.querySelector('.party-name');
+            const dateEl = node.querySelector('.party-date');
+            const timeEl = node.querySelector('.party-time');
+            const locEl = node.querySelector('.party-location');
+            if (nameEl) nameEl.textContent = p.title || p.name || 'Untitled Party';
+            if (dateEl) dateEl.textContent = p.time_start || p.date || p.start || '';
+            if (timeEl) timeEl.textContent = p.time_end || p.end || '';
+            // Handle location - can be object with name property or string
+            if (locEl) {
+                if (p.location && typeof p.location === 'object' && p.location.name) {
+                    locEl.textContent = p.location.name;
+                } else if (p.location && typeof p.location === 'object' && (p.location.latitude || p.location.longitude)) {
+                    // Fallback to coordinates if name not available
+                    locEl.textContent = `${p.location.latitude?.toFixed(4) || ''}, ${p.location.longitude?.toFixed(4) || ''}`;
+                } else {
+                    locEl.textContent = p.location || p.venue || '';
+                }
+            }
+
+            // edit/delete buttons
+            const editBtn = node.querySelector('.edit-btn');
+            const deleteBtn = node.querySelector('.delete-btn');
+            const partyId = article.dataset.id;
+            if (editBtn) {
+                editBtn.addEventListener('click', (ev) => {
+                    ev.stopPropagation();
+                    window.location.href = `/addParty/addParty.html?id=${partyId}`;
+                });
+            }
+            if (deleteBtn) {
+                deleteBtn.addEventListener('click', async (ev) => {
+                    ev.stopPropagation();
+                    if (!confirm('Soll diese Party wirklich gelöscht werden?')) return;
+                    let deleted = false;
+                    if (hasBackend && typeof window.backend.deleteParty === 'function') {
+                        try {
+                            const res = await window.backend.deleteParty(partyId);
+                            deleted = !!(res && res.ok);
+                        } catch (_) { deleted = false; }
+                    } else {
+                        try {
+                            const res = await fetch(`/api/party/${partyId}`, { method: 'DELETE' });
+                            deleted = res.ok;
+                        } catch (_) { deleted = false; }
+                    }
+                    if (deleted) {
+                        article.remove();
+                    } else {
+                        alert('Löschen fehlgeschlagen');
+                    }
+                });
+            }
+
+            // option: toggle extra details
+            const extra = node.querySelector('.party-extra');
+            if (article && extra) {
+                article.addEventListener('click', () => {
+                    extra.style.display = (extra.style.display === 'block') ? 'none' : 'block';
+                });
+            }
+
+            container.appendChild(node);
+        });
+    }
+
+    // Load own media
+    async function loadOwnMedia() {
+        if (!currentUserId) return;
+        
+        let media = [];
+
+        if (hasBackend && typeof window.backend.getPartiesByUser === 'function') {
+            try {
+                const partiesList = await window.backend.getPartiesByUser(currentUserId);
+                if (Array.isArray(partiesList) && partiesList.length > 0) {
+                    const mediaArrays = await Promise.all(partiesList.map(async p => {
+                        if (hasBackend && typeof window.backend.getMediaForParty === 'function') {
+                            try {
+                                const m = await window.backend.getMediaForParty(p.id ?? p.partyId);
+                                return Array.isArray(m) ? m : [];
+                            } catch (_) {
+                                return [];
+                            }
+                        }
+                        try {
+                            const res = await fetch(`/api/party/${p.id ?? p.partyId}/media`);
+                            if (res.ok) {
+                                const d = await res.json().catch(() => null);
+                                return Array.isArray(d) ? d : [];
+                            }
+                        } catch (_) {}
+                        return [];
+                    }));
+                    media = mediaArrays.flat().filter(Boolean);
+                }
+            } catch (err) {
+                console.debug('loadOwnMedia: backend.getPartiesByUser/getMediaForParty failed', err);
+            }
+        }
+
+        // fallback endpoints
+        if (!Array.isArray(media) || media.length === 0) {
+            const found = await tryFetchJson([
+                `/api/users/${currentUserId}/media`,
+                `/api/media/user/${currentUserId}`,
+                `/api/users/${currentUserId}/photos`,
+                `/api/media?userId=${currentUserId}`
+            ]);
+            if (found && Array.isArray(found.data)) media = found.data;
+        }
+
+        if (!Array.isArray(media)) media = [];
+
+        const cont = document.getElementById('ownMediaGrid');
+        const noMsg = document.querySelector('#tabContentPosts .no-posts');
+        if (!cont) return;
+        cont.innerHTML = '';
+        if (!media || media.length === 0) {
+            if (noMsg) noMsg.style.display = '';
+            return;
+        }
+        if (noMsg) noMsg.style.display = 'none';
+
+        media.forEach(m => {
+            const imgEl = document.createElement('img');
+            imgEl.className = 'media-thumb';
+            const mediaUrl = m.url || m.path || (m.id ? `/api/media/${m.id}` : `/images/${m.filename || 'placeholder.jpg'}`);
+            imgEl.src = mediaUrl;
+            imgEl.alt = m.title || 'media';
+            imgEl.style.width = '100%';
+            imgEl.style.height = 'auto';
+            imgEl.style.objectFit = 'cover';
+            imgEl.style.borderRadius = '8px';
+            cont.appendChild(imgEl);
+        });
+    }
+
+    // Load liked media
+    async function loadLikedMedia() {
+        if (!currentUserId) return;
+        
+        let media = null;
+        const candidates = [
+            `/api/users/${currentUserId}/likes`,
+            `/api/users/${currentUserId}/likedMedia`,
+            `/api/media/liked/${currentUserId}`,
+            `/api/media/likes/${currentUserId}`,
+            `/api/users/${currentUserId}/favourites`,
+            `/api/users/${currentUserId}/favorites`
+        ];
+        const found = await tryFetchJson(candidates);
+        if (found && Array.isArray(found.data)) media = found.data;
+        if (!Array.isArray(media)) media = [];
+
+        const cont = document.getElementById('likedMediaGrid');
+        const noMsg = document.querySelector('#tabContentFavorites .no-favs');
+        if (!cont) return;
+        cont.innerHTML = '';
+        if (!media || media.length === 0) {
+            if (noMsg) noMsg.style.display = '';
+            return;
+        }
+        if (noMsg) noMsg.style.display = 'none';
+
+        media.forEach(m => {
+            const imgEl = document.createElement('img');
+            imgEl.className = 'media-thumb';
+            const mediaUrl = m.url || m.path || (m.id ? `/api/media/${m.id}` : `/images/${m.filename || 'placeholder.jpg'}`);
+            imgEl.src = mediaUrl;
+            imgEl.alt = m.title || 'media';
+            imgEl.style.width = '100%';
+            imgEl.style.height = 'auto';
+            imgEl.style.objectFit = 'cover';
+            imgEl.style.borderRadius = '8px';
+            cont.appendChild(imgEl);
+        });
+    }
+
+    // Helper: hide profile picture when posts tab is active
+    function hideProfilePictureWhenPosts(activeTabName) {
+        const pic = document.getElementById('profilePicture');
+        if (!pic) return;
+        pic.style.display = (activeTabName === 'posts') ? 'none' : '';
+    }
+
     // Tab switching functionality
     const tabButtons = document.querySelectorAll('.tab-btn');
     const tabSections = document.querySelectorAll('.tab-section');
 
+    function showTab(name) {
+        // reset
+        ['Partys', 'Posts', 'Favorites'].forEach(k => {
+            const btn = document.getElementById(`tab${k}`);
+            const sec = document.getElementById(`tabContent${k}`);
+            if (btn) btn.classList.toggle('active', k === name);
+            if (sec) sec.style.display = (k === name) ? 'block' : 'none';
+        });
+        hideProfilePictureWhenPosts(name.toLowerCase());
+        
+        // Load data when switching tabs
+        if (name === 'Posts') {
+            loadOwnMedia();
+        } else if (name === 'Favorites') {
+            loadLikedMedia();
+        } else if (name === 'Partys') {
+            loadUserParties();
+        }
+    }
+
     if (tabButtons.length > 0) {
         tabButtons.forEach(button => {
             button.addEventListener('click', function() {
-                const tabName = this.id;
-
-                // Remove active class from all buttons
-                tabButtons.forEach(btn => btn.classList.remove('active'));
-
-                // Add active class to clicked button
-                this.classList.add('active');
-
-                // Hide all tab sections
-                tabSections.forEach(section => section.style.display = 'none');
-
-                // Show the corresponding tab section
-                const targetSection = document.getElementById('tabContent' + tabName.charAt(3).toUpperCase() + tabName.slice(4));
-                if (targetSection) {
-                    targetSection.style.display = 'block';
-                }
+                const tabName = this.id.replace('tab', '');
+                showTab(tabName);
             });
         });
+        
+        // Initial load - show Partys tab
+        showTab('Partys');
     }
+
 });

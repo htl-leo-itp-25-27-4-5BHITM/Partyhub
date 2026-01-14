@@ -117,6 +117,17 @@ public class UserResource {
         return Response.ok().entity("{\"count\": " + count + "}").build();
     }
 
+    @GET
+    @Path("/{id}/media")
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response getMediaByUserId(@PathParam("id") long id) {
+        User user = userRepository.getUser(id);
+        if (user == null) {
+            return Response.status(Response.Status.NOT_FOUND).build();
+        }
+        return Response.ok(mediaRepository.getMediaByUserId(id)).build();
+    }
+
     @PUT
     @Path("/{id}")
     @Consumes(MediaType.APPLICATION_JSON)

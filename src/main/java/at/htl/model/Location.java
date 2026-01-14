@@ -17,8 +17,17 @@ public class Location {
     private Long id;
     double longitude;
     double latitude;
+    private String name;
 
     public Location() {
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
     }
 
     public Long getId() {

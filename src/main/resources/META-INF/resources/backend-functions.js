@@ -219,21 +219,28 @@ async function getSentInvites() {
     }
 }
 
-// Delete users sent invites using invitation id
 async function deleteInvite(invitationId) {
     try {
-        const response = await fetch(`/api/invites/` + invitationId, {
+        const response = await fetch(`/api/invites/delete/` + invitationId, {
             method: 'DELETE',
-            headers: { 'Content-Type': 'application/json' },
+            headers: {
+                'Content-Type': 'application/json'
+            },
         });
-        if (!response.ok) throw new Error('Network response was not ok');
-        return { ok: true };
+        console.log('Delete invite response:', response);
+        if (!response.ok) {
+            if (response.status === 404) {
+                throw new Error('Invitation not found');
+            }
+            throw new Error(`Failed to delete invitation: ${response.status}`);
+        }
+        console.log('Invitation deleted successfully');
+        return true;
     } catch (error) {
         console.error('Error deleting invitation:', error);
-        return { ok: false, error };
+        throw error;
     }
 }
-
 // Get parties created by a specific user (tries several endpoints, fallspezifisch)
 async function getPartiesByUser(userId) {
     const candidates = [

@@ -8,6 +8,16 @@
 
 document.addEventListener("DOMContentLoaded", () => {
   // ------------------------------
+  // Back button functionality
+  // ------------------------------
+  const backArrow = document.querySelector(".back-arrow");
+  if (backArrow) {
+    backArrow.addEventListener("click", function () {
+      window.history.back();
+    });
+  }
+
+  // ------------------------------
   // Flatpickr initialisieren
   // ------------------------------
   // Wir speichern die Instanzen, damit wir später echte Date-Objekte
@@ -67,38 +77,68 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   // ------------------------------
-  // Dummy User Data (Platzhalter)
-  // später vom Backend laden
+  // Load users from backend API
   // ------------------------------
-  const users = [
-    { username: "partymausViki", avatar: "V", checked: true },
-    { username: "max", avatar: "M", checked: false },
-    { username: "evapartying", avatar: "E", checked: false },
-    { username: "partywithviki", avatar: "V", checked: true },
-    { username: "hannah._.", avatar: "H", checked: false },
-  ];
-
-  // Render user list into panel
   const userList = document.getElementById("userList");
-  if (userList) {
+  let visibleUsersToCheck = null; // Store visible users for edit mode
+  
+  async function loadUsers() {
+    try {
+      const response = await fetch("/api/users/all");
+      if (!response.ok) {
+        console.error("Failed to fetch users:", response.status);
+        return;
+      }
+      const users = await response.json();
+      renderUsers(users);
+      
+      // If we have stored visible_users (from edit mode), check them now
+      if (visibleUsersToCheck && Array.isArray(visibleUsersToCheck)) {
+        checkVisibleUsers(visibleUsersToCheck);
+      }
+    } catch (error) {
+      console.error("Error fetching users:", error);
+    }
+  }
+
+  function renderUsers(users) {
+    if (!userList) return;
+    userList.innerHTML = ""; // Clear existing content
+    
     users.forEach((user) => {
       const card = document.createElement("div");
       card.className = "user-card";
+      
+      // Generate avatar from first letter of displayName or distinctName
+      const avatarLetter = (user.displayName || user.distinctName || "?").charAt(0).toUpperCase();
+      const username = user.distinctName || user.id.toString();
+      
       card.innerHTML = `
                 <div class="user-left">
-                    <div class="user-avatar">${user.avatar}</div>
-                    <span class="user-name">@${user.username}</span>
+                    <div class="user-avatar">${avatarLetter}</div>
+                    <span class="user-name">@${username}</span>
                 </div>
                 <label class="user-select">
-                    <input type="checkbox" name="visible_users" value="${
-                      user.username
-                    }" ${user.checked ? "checked" : ""}>
+                    <input type="checkbox" name="visible_users" value="${username}">
                     <span class="checkmark"></span>
                 </label>
             `;
       userList.appendChild(card);
     });
   }
+
+  function checkVisibleUsers(visibleUsers) {
+    const form = document.querySelector(".party-form");
+    if (!form) return;
+    
+    Array.from(form.querySelectorAll('input[name="visible_users"]')).forEach(inp => {
+      if (visibleUsers.includes(inp.value)) inp.checked = true;
+      else inp.checked = false;
+    });
+  }
+
+  // Load users when page loads
+  loadUsers();
 
   // ------------------------------
   // Hilfsfunktionen für Validierung
@@ -242,7 +282,14 @@ document.addEventListener("DOMContentLoaded", () => {
     // populate form fields (guard checks)
     form.title.value = party.title || form.title.value || "";
     form.description.value = party.description || form.description.value || "";
-    if (party.location) form.location.value = party.location;
+    // Handle location name - can be object with name property or string
+    if (party.location) {
+      if (typeof party.location === 'object' && party.location.name) {
+        if (form.location_name) form.location_name.value = party.location.name;
+      } else if (typeof party.location === 'string') {
+        if (form.location_name) form.location_name.value = party.location;
+      }
+    }
     if (party.website) form.website.value = party.website;
     if (party.fee !== undefined) form.entry_costs.value = party.fee;
     if (party.min_age !== undefined) form.min_age.value = party.min_age;
@@ -256,12 +303,11 @@ document.addEventListener("DOMContentLoaded", () => {
     if (sd) startPicker.setDate(sd, true);
     if (ed) endPicker.setDate(ed, true);
 
-    // visible users: try to check matching checkboxes if any
+    // visible users: store for checking after users are loaded
     if (Array.isArray(party.visible_users) && party.visible_users.length > 0) {
-      Array.from(form.querySelectorAll('input[name="visible_users"]')).forEach(inp => {
-        if (party.visible_users.includes(inp.value)) inp.checked = true;
-        else inp.checked = false;
-      });
+      visibleUsersToCheck = party.visible_users;
+      // Try to check immediately (if users already loaded), otherwise they'll be checked when users load
+      checkVisibleUsers(party.visible_users);
       // open panel to show selections
       const panelEl = document.getElementById("visibilityPanel");
       const toggle = document.getElementById("visibilityToggle");
@@ -281,7 +327,7 @@ document.addEventListener("DOMContentLoaded", () => {
     // Werte aus dem Formular
     const title = form.title.value && form.title.value.trim();
     const description = form.description.value && form.description.value.trim();
-    const location = form.location.value && form.location.value.trim();
+    const locationName = form.location_name && form.location_name.value ? form.location_name.value.trim() : '';
     const entryCosts = form.entry_costs.value;
     const minAge = form.min_age.value;
     const maxAge = form.max_age.value;
@@ -301,9 +347,9 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     // Ort ist sinnvoll als Pflichtfeld
-    if (!location) {
-      showError("Bitte gib einen Ort ein.");
-      form.location.focus();
+    if (!locationName) {
+      showError("Bitte gib einen Ortsnamen ein.");
+      if (form.location_name) form.location_name.focus();
       return;
     }
 
@@ -400,7 +446,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const payload = {
       title,
       description,
-      location: location || null, // Venue string
+      location_name: locationName || null, // Location name
       time_start: formatToBackend(startDate) || null,
       time_end: formatToBackend(endDate) || null,
       longitude: form.longitude?.value ? Number(form.longitude.value) : 16.3738,

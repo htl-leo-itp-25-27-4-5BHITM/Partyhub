@@ -178,11 +178,19 @@ async function updatePartyDisplay(party) {
     }
   }
 
-  // Location - since location is coordinates, show a placeholder or coordinates
+  // Location - show name if available, otherwise coordinates
   if (locationElement) {
-    if (party.location && party.location.latitude && party.location.longitude) {
-      // For now, show coordinates. In a real app, you'd reverse geocode to get address
-      locationElement.textContent = `${party.location.latitude.toFixed(4)}, ${party.location.longitude.toFixed(4)}`;
+    if (party.location && typeof party.location === 'object') {
+      if (party.location.name) {
+        locationElement.textContent = party.location.name;
+      } else if (party.location.latitude && party.location.longitude) {
+        // Fallback to coordinates if name not available
+        locationElement.textContent = `${party.location.latitude.toFixed(4)}, ${party.location.longitude.toFixed(4)}`;
+      } else {
+        locationElement.textContent = 'Location TBA';
+      }
+    } else if (party.location && typeof party.location === 'string') {
+      locationElement.textContent = party.location;
     } else {
       locationElement.textContent = 'Location TBA';
     }
