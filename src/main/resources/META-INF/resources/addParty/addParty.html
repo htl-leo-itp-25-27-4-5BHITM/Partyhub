@@ -1,253 +1,108 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Add Party</title>
 
-    <link href="../global.css" rel="stylesheet" />
     <link rel="stylesheet" href="./addParty.css" />
-    <link rel="stylesheet" href="../index.css" />
-
-    <!-- Flatpickr -->
-    <link
-      rel="stylesheet"
-      href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css"
-    />
     <link
       rel="stylesheet"
       href="https://cdn.jsdelivr.net/npm/flatpickr/dist/themes/dark.css"
     />
 
     <script src="https://cdn.jsdelivr.net/npm/flatpickr" defer></script>
-    <script src="../nav.js" defer></script>
     <script src="./addParty.js" defer></script>
   </head>
 
-  <body class="bg-light">
+  <body>
     <main class="add-party-page">
       <section class="party-card">
         <div class="card-top">
           <span class="back-arrow">‹</span>
+          <span class="step-title" id="stepTitle">Add new Party</span>
         </div>
 
-        <form action="/api/party/add" method="post" class="party-form">
-          <!-- NAME -->
-          <div class="field field-name">
-            <div class="field-label field-label-center">Name</div>
-            <input
-              type="text"
-              name="title"
-              placeholder="Name (z.B. Birthday Party)"
-            />
-          </div>
+        <form class="party-form">
+          <!-- STEP 1 -->
+          <div class="step active" data-step="1">
+            <div class="field field-name">
+              <div class="field-label field-label-center">Name</div>
+              <input name="title" placeholder="Birthday Party" />
+            </div>
 
-          <!-- DESCRIPTION -->
-          <div class="field">
-            <div class="field-label">Description</div>
-            <input
-              type="text"
-              name="description"
-              placeholder="Kurzbeschreibung (z.B. Motto, Stimmung)"
-            />
-          </div>
+            <div class="field">
+              <div class="field-label">Description</div>
+              <input name="description" placeholder="Motto, Stimmung" />
+            </div>
 
-          <!-- DATE -->
-          <div class="field">
-            <div class="field-label">Date / Begin Time</div>
-            <input
-              id="time_start"
-              type="text"
-              name="time_start"
-              placeholder="dd.mm.yyyy hh:mm"
-            />
-          </div>
+            <div class="field">
+              <div class="field-label">Date / Begin Time</div>
+              <input id="time_start" placeholder="dd.mm.yyyy hh:mm" />
+            </div>
 
-          <!-- END TIME -->
-          <div class="field">
-            <div class="field-label">End Time</div>
-            <input
-              id="time_end"
-              type="text"
-              name="time_end"
-              placeholder="dd.mm.yyyy hh:mm"
-            />
-          </div>
+            <div class="field">
+              <div class="field-label">End Time</div>
+              <input id="time_end" placeholder="dd.mm.yyyy hh:mm" />
+            </div>
 
-          <!-- LOCATION NAME -->
-          <div class="field">
-            <div class="field-label">Location Name</div>
-            <input
-              type="text"
-              name="location_name"
-              placeholder="Ort (z.B. Club XYZ)"
-            />
-          </div>
-
-          <!-- VISIBILITY SECTION -->
-          <div class="field field-visibility">
-            <button type="button" class="visibility-btn" id="visibilityToggle">
-              <span class="visibility-text">only chosen people</span>
-              <span class="arrow">›</span>
-            </button>
-
-            <!-- NEUE DYNAMISCHE USER-LIST BOX -->
-            <div class="visibility-panel" id="visibilityPanel">
-              <div class="user-list" id="userList">
-                <!-- Users werden später hier rein geladen -->
-              </div>
+            <div class="field">
+              <div class="field-label">Location Name</div>
+              <input name="location_name" placeholder="Club XYZ" />
             </div>
           </div>
 
-          <!-- ENTRY COSTS -->
-          <div class="field">
-            <div class="field-label">Entry Costs</div>
-            <input
-              type="number"
-              name="entry_costs"
-              placeholder="Eintritt (z.B. 5)"
-            />
+          <!-- STEP 2 -->
+          <div class="step" data-step="2">
+            <div class="visibility-options">
+              <button type="button" class="vis-card active" data-mode="private">
+                🔒 Only chosen people
+              </button>
+              <button type="button" class="vis-card" data-mode="public">
+                🔓 Everyone
+              </button>
+            </div>
+
+            <div class="user-list" id="userList"></div>
+
+            <p class="everyone-hint" id="everyoneHint">
+              Jeder kann diese Party sehen und besuchen
+            </p>
           </div>
 
-          <!-- THEME -->
-          <div class="field">
-            <div class="field-label">Theme</div>
-            <input type="text" name="theme" placeholder="Thema (z.B. 90s)" />
+          <!-- STEP 3 -->
+          <div class="step" data-step="3">
+            <div class="field">
+              <div class="field-label">Entry Costs</div>
+              <input name="entry_costs" type="number" placeholder="5" />
+            </div>
+
+            <div class="field">
+              <div class="field-label">Theme</div>
+              <input name="theme" placeholder="90s" />
+            </div>
+
+            <div class="field">
+              <div class="field-label">Min Age</div>
+              <input name="min_age" type="number" placeholder="18" />
+            </div>
+
+            <div class="field">
+              <div class="field-label">Max Age</div>
+              <input name="max_age" type="number" />
+            </div>
+
+            <div class="field">
+              <div class="field-label">Website</div>
+              <input name="website" placeholder="https://example.com" />
+            </div>
           </div>
 
-          <!-- MIN AGE -->
-          <div class="field">
-            <div class="field-label">Min Age</div>
-            <input
-              type="number"
-              name="min_age"
-              placeholder="Mindestalter (z.B. 18)"
-            />
-          </div>
-
-          <!-- MAX AGE -->
-          <div class="field">
-            <div class="field-label">Max Age</div>
-            <input type="number" name="max_age" />
-          </div>
-
-          <!-- WEBSITE -->
-          <div class="field">
-            <div class="field-label">Website</div>
-            <input
-              type="url"
-              name="website"
-              placeholder="https://example.com (optional)"
-            />
-          </div>
-
-          <button type="submit" class="submit-btn">Submit</button>
+          <button type="button" class="submit-btn" id="continueBtn">
+            Continue
+          </button>
         </form>
       </section>
     </main>
-    <!-- Bottom navigation -->
-    <nav class="bottom-nav" role="navigation" aria-label="Bottom navigation">
-      <a class="nav-btn" href="/index.html" aria-label="Home">
-        <svg
-          class="nav-icon icon--pink"
-          width="28"
-          height="28"
-          viewBox="0 0 24 24"
-          fill="none"
-          xmlns="http://www.w3.org/2000/svg"
-        >
-          <path
-            d="M3 6.5L8 4l7 2.5 6-2.5v11l-6 2.5L10 15 3 17.5v-11z"
-            stroke="currentColor"
-            stroke-width="1.2"
-            stroke-linejoin="round"
-            stroke-linecap="round"
-          />
-        </svg>
-      </a>
-      <a
-        class="nav-btn"
-        href="/listPartys/listPartys.html"
-        aria-label="List Parties"
-      >
-        <svg
-          class="nav-icon icon--pink"
-          width="28"
-          height="28"
-          viewBox="0 0 24 24"
-          fill="none"
-          xmlns="http://www.w3.org/2000/svg"
-        >
-          <rect
-            x="3"
-            y="3"
-            width="18"
-            height="18"
-            rx="3"
-            stroke="currentColor"
-            stroke-width="1.2"
-          />
-          <circle cx="8.5" cy="8.5" r="1.8" fill="currentColor" />
-          <path
-            d="M21 21l-6-6-5 5"
-            stroke="currentColor"
-            stroke-width="1.2"
-            stroke-linecap="round"
-            stroke-linejoin="round"
-          />
-        </svg>
-      </a>
-      <a
-        class="nav-btn"
-        href="/notifications/notifications.html"
-        aria-label="Notifications"
-      >
-        <svg
-          class="nav-icon icon--pink"
-          width="28"
-          height="28"
-          viewBox="0 0 24 24"
-          fill="none"
-          xmlns="http://www.w3.org/2000/svg"
-        >
-          <path
-            d="M12 22a2.5 2.5 0 0 0 2.45-2H9.55A2.5 2.5 0 0 0 12 22z"
-            fill="currentColor"
-          />
-          <path
-            d="M18 8a6 6 0 10-12 0v5l-2 2v1h16v-1l-2-2V8z"
-            stroke="currentColor"
-            stroke-width="1.2"
-            stroke-linecap="round"
-            stroke-linejoin="round"
-          />
-        </svg>
-      </a>
-      <a class="nav-btn" href="/profile/profile.html" aria-label="Profile">
-        <svg
-          class="nav-icon icon--pink"
-          width="28"
-          height="28"
-          viewBox="0 0 24 24"
-          fill="none"
-          xmlns="http://www.w3.org/2000/svg"
-        >
-          <circle
-            cx="12"
-            cy="8.5"
-            r="3"
-            stroke="currentColor"
-            stroke-width="1.2"
-          />
-          <path
-            d="M4 20a8 8 0 0 1 16 0"
-            stroke="currentColor"
-            stroke-width="1.2"
-            stroke-linecap="round"
-            stroke-linejoin="round"
-          />
-        </svg>
-      </a>
-    </nav>
   </body>
 </html>
