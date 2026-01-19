@@ -132,3 +132,17 @@ body {
   flex-direction: column;
   gap: 12px;
 }
+/* Markiert das Feld rot bei Fehlern */
+.input-error {
+  border: 2px solid #ff4d4f !important;
+  background-color: #fff2f0 !important;
+  transition: all 0.3s ease;
+}
+
+/* Optional: Verhindert, dass der User in Step 2 hängen bleibt,
+   wenn keine User geladen werden konnten */
+.user-list:empty::after {
+  content: "Keine Teilnehmer gefunden.";
+  color: #888;
+  font-size: 0.9rem;
+}
