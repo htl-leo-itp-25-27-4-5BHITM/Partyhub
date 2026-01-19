@@ -1,7 +1,5 @@
-package at.htl.boundary;
+package at.htl.category;
 
-import at.htl.model.Category;
-import at.htl.repository.CategoryRepository;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.GET;

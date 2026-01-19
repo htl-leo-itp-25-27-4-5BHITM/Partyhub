@@ -1,4 +1,4 @@
-package at.htl.model;
+package at.htl.follow;
 
 import jakarta.persistence.*;
 

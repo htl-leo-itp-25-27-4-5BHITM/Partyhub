@@ -1,12 +1,9 @@
-package at.htl.model;
+package at.htl.user;
 
-import at.htl.dto.InvitationDto;
+import at.htl.party.Party;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
-import org.eclipse.microprofile.jwt.JsonWebToken;
 
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Set;
 
 @Entity

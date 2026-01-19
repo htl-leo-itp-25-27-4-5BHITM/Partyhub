@@ -1,6 +1,5 @@
-package at.htl.repository;
+package at.htl.category;
 
-import at.htl.model.Category;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import jakarta.persistence.EntityManager;

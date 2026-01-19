@@ -1,7 +1,7 @@
-package at.htl.repository;
+package at.htl.media;
 
-import at.htl.dto.MediaDto;
-import at.htl.model.Media;
+import at.htl.party.PartyRepository;
+import at.htl.user.UserRepository;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import jakarta.persistence.EntityManager;

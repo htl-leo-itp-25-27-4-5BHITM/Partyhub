@@ -1,8 +1,6 @@
-package at.htl.repository;
+package at.htl.follow;
 
-import at.htl.model.Follow;
-import at.htl.model.FollowStatus;
-import at.htl.model.User;
+import at.htl.user.User;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import jakarta.persistence.EntityManager;

@@ -1,7 +1,4 @@
-package at.htl.dto;
-
-import java.time.LocalDateTime;
-import java.util.Set;
+package at.htl.party;
 
 public record PartyCreateDto(
         String title,

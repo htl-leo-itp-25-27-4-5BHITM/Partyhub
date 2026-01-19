@@ -1,8 +1,5 @@
-package at.htl.repository;
+package at.htl.user;
 
-import at.htl.dto.UserCreateDto;
-import at.htl.model.Party;
-import at.htl.model.User;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import jakarta.persistence.EntityManager;

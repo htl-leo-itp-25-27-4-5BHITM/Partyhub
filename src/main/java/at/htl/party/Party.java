@@ -1,11 +1,11 @@
-package at.htl.model;
+package at.htl.party;
 
-import at.htl.model.Category;
-import at.htl.model.Location;
-import at.htl.model.User;
+import at.htl.category.Category;
+import at.htl.invitation.Invitation;
+import at.htl.location.Location;
+import at.htl.media.Media;
+import at.htl.user.User;
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.JsonInclude;
-import jakarta.annotation.Nullable;
 import jakarta.persistence.*;
 import org.hibernate.annotations.CreationTimestamp;
 

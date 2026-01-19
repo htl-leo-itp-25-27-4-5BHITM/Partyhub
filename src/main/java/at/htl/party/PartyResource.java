@@ -1,17 +1,13 @@
-package at.htl.boundary;
+package at.htl.party;
 
-import at.htl.dto.FilterDto;
-import at.htl.dto.PartyCreateDto;
-import at.htl.model.Party;
-import at.htl.repository.MediaRepository;
-import at.htl.repository.PartyRepository;
+import at.htl.FilterDto;
+import at.htl.media.MediaRepository;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import jakarta.transaction.Transactional;
 import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
-import org.jboss.logging.Logger;
 
 @ApplicationScoped
 @Path("/api/party")

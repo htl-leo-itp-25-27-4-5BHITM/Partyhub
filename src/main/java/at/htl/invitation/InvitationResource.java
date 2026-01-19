@@ -1,7 +1,5 @@
-package at.htl.boundary;
+package at.htl.invitation;
 
-import at.htl.dto.InvitationDto;
-import at.htl.repository.InvitationRepository;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import jakarta.transaction.Transactional;

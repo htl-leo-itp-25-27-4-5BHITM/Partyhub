@@ -1,11 +1,8 @@
-package at.htl.repository;
+package at.htl.location;
 
-import at.htl.model.Category;
-import at.htl.model.Location;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import jakarta.persistence.EntityManager;
-import jakarta.persistence.PersistenceContext;
 import jakarta.ws.rs.core.Response;
 
 import java.util.List;

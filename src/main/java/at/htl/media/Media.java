@@ -1,5 +1,7 @@
-package at.htl.model;
+package at.htl.media;
 
+import at.htl.party.Party;
+import at.htl.user.User;
 import jakarta.persistence.*;
 
 @Entity

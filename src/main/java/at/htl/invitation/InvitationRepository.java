@@ -1,14 +1,11 @@
-package at.htl.repository;
+package at.htl.invitation;
 
-import at.htl.dto.InvitationDto;
-import at.htl.model.Invitation;
-import at.htl.model.Party;
-import at.htl.model.User;
+import at.htl.party.PartyRepository;
+import at.htl.user.User;
+import at.htl.user.UserRepository;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import jakarta.persistence.EntityManager;
-import jakarta.transaction.Transactional;
-import jakarta.ws.rs.core.Configuration;
 import jakarta.ws.rs.core.Response;
 import org.jboss.logging.Logger;
 

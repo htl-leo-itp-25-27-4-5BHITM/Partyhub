@@ -1,10 +1,7 @@
-package at.htl.boundary;
+package at.htl.user;
 
-import at.htl.dto.UserCreateDto;
-import at.htl.model.User;
-import at.htl.repository.FollowRepository;
-import at.htl.repository.MediaRepository;
-import at.htl.repository.UserRepository;
+import at.htl.follow.FollowRepository;
+import at.htl.media.MediaRepository;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import jakarta.transaction.Transactional;

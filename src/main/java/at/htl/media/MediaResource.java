@@ -1,6 +1,5 @@
-package at.htl.boundary;
+package at.htl.media;
 
-import at.htl.repository.MediaRepository;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.GET;

@@ -1,11 +1,7 @@
-package at.htl.model;
+package at.htl.location;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
-import at.htl.model.Party;
-
-import java.util.ArrayList;
-import java.util.List;
 
 @Entity
 @TableGenerator(name="location")

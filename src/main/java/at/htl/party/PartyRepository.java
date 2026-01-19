@@ -1,11 +1,11 @@
-package at.htl.repository;
+package at.htl.party;
 
-import at.htl.boundary.PartyResource;
-import at.htl.dto.FilterDto;
-import at.htl.dto.PartyCreateDto;
-import at.htl.model.Location;
-import at.htl.model.Party;
-import at.htl.model.User;
+import at.htl.category.CategoryRepository;
+import at.htl.FilterDto;
+import at.htl.location.Location;
+import at.htl.location.LocationRepository;
+import at.htl.user.User;
+import at.htl.user.UserRepository;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import jakarta.persistence.EntityManager;
@@ -29,9 +29,12 @@ public class PartyRepository {
     @Inject EntityManager entityManager;
     @Inject Logger logger;
 
-    @Inject LocationRepository locationRepository;
-    @Inject CategoryRepository categoryRepository;
-    @Inject UserRepository userRepository;
+    @Inject
+    LocationRepository locationRepository;
+    @Inject
+    CategoryRepository categoryRepository;
+    @Inject
+    UserRepository userRepository;
 
     private static final DateTimeFormatter PARTY_DTF = DateTimeFormatter.ofPattern("dd.MM.yyyy HH:mm");
 
