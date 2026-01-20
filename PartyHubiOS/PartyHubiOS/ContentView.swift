@@ -17,7 +17,7 @@ struct ContentView: View {
                     }
                 ProfileView()
                     .tabItem {
-                        Label("Profile", systemImage: "chevron")
+                        Label("Profile", systemImage: "person")
                     }
             }
         }
