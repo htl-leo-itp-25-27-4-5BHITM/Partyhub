@@ -33,22 +33,35 @@
   --nav-glow: 0 6px 24px rgba(57, 245, 122, 0.08);
 }
 
+/* ====== FIX: stabile Höhenkette ====== */
+html,
 body {
-  background: var(--bg-primary);
+  height: 100%;
+  margin: 0;
   padding: 0;
 }
 
+body {
+  background: var(--bg-primary);
+  padding: 0;
+  overflow: hidden; /* FIX: kein doppeltes Scrollen */
+}
+
+/* ====== FIX: app-shell als Flex, kein overflow-y:auto ====== */
 .app-shell {
   width: 100%;
   max-width: none;
   margin: 0;
   background: var(--bg-secondary);
   border-radius: 0;
-  overflow-y: auto;
-  overflow-x: hidden;
+  overflow: hidden; /* FIX */
   box-shadow: 0 14px 40px rgba(15, 12, 40, 0.12);
   position: relative;
-  height: 100vh; /* fill viewport */
+  height: 100vh;
+
+  display: flex;          /* FIX */
+  flex-direction: column; /* FIX */
+  min-height: 0;          /* FIX */
 }
 
 .top-bar {
@@ -60,6 +73,7 @@ body {
   padding: 12px 18px;
   background: #1a0f3b;
   z-index: 30;
+  flex: 0 0 auto; /* FIX */
 }
 
 .top-btn {
@@ -97,25 +111,57 @@ body {
   stroke: currentColor;
 }
 
+/* ====== FIX: container als Flex, kein height:100% + overflow-y:auto ====== */
 .container {
-  height: 100%;
-  overflow-y: auto;
+  flex: 1;                 /* FIX */
+  min-height: 0;           /* FIX */
+  overflow: hidden;        /* FIX */
+  display: flex;           /* FIX */
+  flex-direction: column;  /* FIX */
+
   padding: 8px 12px 12px 12px;
   box-sizing: border-box;
   padding-bottom: calc(var(--nav-height) + 12px);
 }
 
+/* optional falls du page-content benutzt */
+.page-content {
+  flex: 1;
+  min-height: 0;          /* FIX */
+  display: flex;
+  flex-direction: column;
+}
+
+/* ====== FIX: Map braucht echte Flex-Höhe + min-height:0 ====== */
 .map-placeholder {
+  flex: 1;                 /* FIX */
+  min-height: 0;           /* FIX (super wichtig!) */
   border-radius: 6px;
   overflow: hidden;
   background: transparent;
+  position: relative;
 }
 
+/* dein map div */
+#map {
+  width: 100%;
+  height: 100%;
+}
+
+/* ====== FIX: Leaflet Tile-Salat durch globale img-Regeln ====== */
+.leaflet-container img,
+.leaflet-container .leaflet-tile {
+  max-width: none !important;
+  max-height: none !important;
+  width: auto;
+  height: auto;
+}
+
+/* Bottom nav bleibt wie bei dir (nur: das kann Performance kosten) */
 .bottom-nav {
   position: fixed;
   left: 0;
   transform: none;
-
   bottom: 0;
   width: 100%;
   max-width: none;
@@ -154,7 +200,6 @@ body {
   transition: transform 0.14s ease, opacity 0.12s ease, filter 0.12s ease;
 }
 
-
 .nav-icon path,
 .nav-icon rect,
 .nav-icon circle,
@@ -166,9 +211,7 @@ body {
 }
 
 .nav-icon {
-  color: var(
-    --accent-pink
-  );
+  color: var(--accent-pink);
   opacity: 0.98;
 }
 .nav-btn .nav-icon {
@@ -219,7 +262,6 @@ body {
   transform: scale(1.18);
 }
 
-
 @media (max-width: 420px) {
   :root {
     --nav-height: 78px;
@@ -234,8 +276,4 @@ body {
   .page-title {
     font-size: var(--font-size-xl);
   }
-}
-
-.page-content {
-  min-height: calc(100vh - var(--nav-height));
 }

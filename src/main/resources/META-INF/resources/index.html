@@ -3,208 +3,108 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Demo Quarkus Static Site</title>
-    <link href="global.css" rel="stylesheet" />
-    <link href="index.css" rel="stylesheet" />
+    <title>Homepage</title>
 
-    <!--    <script src="script.js" defer></script>-->
-    <script src="nav.js" defer></script>
-    <script src="backend-functions.js" defer></script>
-    <style>
-      body {
-        color: white;
-      }
-    </style>
+    <!-- Deine Styles -->
+    <link rel="stylesheet" href="./global.css" />
+    <link rel="stylesheet" href="./index.css" />
+
+    <!-- Leaflet CSS (DAS hat gefehlt!) -->
+    <link
+      rel="stylesheet"
+      href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+      integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
+      crossorigin=""
+    />
+
+    <!-- Leaflet JS -->
+    <script
+      src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+      integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
+      crossorigin=""
+      defer
+    ></script>
+
+    <!-- Deine Scripts -->
+    <script src="./index.js" defer></script>
+    <script src="./nav.js" defer></script>
   </head>
 
   <body class="bg-light">
     <div class="app-shell">
-      <!-- top-bar removed: bottom navigation used instead -->
-
       <div class="container py-4">
         <header class="page-header">
-          <h1 class="page-title font-heading">Partyhub</h1>
-          <p class="page-subtitle font-body-text">Find the perfect event for you</p>
+          <h1 class="page-title font-heading">Homepage</h1>
+          <p class="page-subtitle font-body-text">Welcome to PartyHub</p>
         </header>
 
-        <!-- Screenshot placeholder: place the provided map image at "images/map-screenshot.png" -->
-        <div
-          class="map-placeholder mb-3"
-          style="
-            width: 100%;
-            max-height: 640px;
-            overflow: hidden;
-            border-radius: 8px;
-            background: linear-gradient(180deg, #edf7e8, #d7f0d7);
-          "
-        >
-          <!-- Inline SVG placeholder to avoid an external image file. -->
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            viewBox="0 0 390 844"
-            style="width: 100%; height: auto; display: block"
-          >
-            <defs>
-              <linearGradient id="g" x1="0" x2="0" y1="0" y2="1">
-                <stop offset="0" stop-color="#dff0d8" />
-                <stop offset="1" stop-color="#e7f6df" />
-              </linearGradient>
-            </defs>
-            <rect width="100%" height="100%" fill="url(#g)" />
-            <!-- simplified map shapes -->
-            <g fill="#cfe9b9" stroke="#cfe9b9" stroke-width="0">
-              <path
-                d="M10 120c40-40 80-40 130-20s90 60 140 40 80-60 120-40 60 80 30 120-120 80-180 90-120-10-170-60-40-90-0-120z"
-                opacity="0.9"
-              />
-              <path
-                d="M20 380c50-30 110-20 160 0s90 50 140 30 70-60 110-40 40 80 10 110-100 70-160 80-130-10-180-60-40-90-0-120z"
-                opacity="0.9"
-              />
-            </g>
-            <!-- pins -->
-            <g fill="#ff3b6b">
-              <circle cx="60" cy="200" r="8" />
-              <circle cx="260" cy="330" r="8" />
-              <circle cx="320" cy="740" r="8" />
-            </g>
-            <!-- blue location dot -->
-            <g>
-              <circle
-                cx="180"
-                cy="260"
-                r="14"
-                fill="#2a9df4"
-                stroke="#fff"
-                stroke-width="4"
-              />
-              <circle cx="180" cy="260" r="6" fill="#bde9ff" />
-            </g>
-            <!-- bottom nav shadow area -->
-            <rect
-              x="0"
-              y="748"
-              width="390"
-              height="96"
-              fill="#1f1330"
-              opacity="1"
+        <p class="muted">Welcome — this is the homepage placeholder.</p>
+
+        <h1 class="leaflet-title">Meine Leaflet Karte</h1>
+
+        <!-- Map Wrapper -->
+        <div class="map-placeholder">
+          <div id="map"></div>
+        </div>
+      </div>
+
+      <nav class="bottom-nav" role="navigation" aria-label="Bottom navigation">
+        <a class="nav-btn" href="/index.html" aria-label="Home">
+          <svg class="nav-icon icon--pink" width="28" height="28" viewBox="0 0 24 24" fill="none"
+            xmlns="http://www.w3.org/2000/svg">
+            <path
+              d="M3 6.5L8 4l7 2.5 6-2.5v11l-6 2.5L10 15 3 17.5v-11z"
+              stroke="currentColor"
+              stroke-width="1.2"
+              stroke-linejoin="round"
+              stroke-linecap="round"
             />
           </svg>
-        </div>
-        <!-- Bottom navigation bar -->
-        <nav
-          class="bottom-nav"
-          role="navigation"
-          aria-label="Bottom navigation"
-        >
-          <a class="nav-btn" href="/index.html" aria-label="Home">
-            <svg
-              class="nav-icon icon--pink"
-              width="28"
-              height="28"
-              viewBox="0 0 24 24"
-              fill="none"
-              xmlns="http://www.w3.org/2000/svg"
-            >
-              <path
-                d="M3 6.5L8 4l7 2.5 6-2.5v11l-6 2.5L10 15 3 17.5v-11z"
-                stroke="currentColor"
-                stroke-width="1.2"
-                stroke-linejoin="round"
-                stroke-linecap="round"
-              />
-            </svg>
-          </a>
+        </a>
 
-          <a
-            class="nav-btn"
-            href="/listPartys/listPartys.html"
-            aria-label="List Parties"
-          >
-            <svg
-              class="nav-icon icon--pink"
-              width="28"
-              height="28"
-              viewBox="0 0 24 24"
-              fill="none"
-              xmlns="http://www.w3.org/2000/svg"
-            >
-              <rect
-                x="3"
-                y="3"
-                width="18"
-                height="18"
-                rx="3"
-                stroke="currentColor"
-                stroke-width="1.2"
-              />
-              <circle cx="8.5" cy="8.5" r="1.8" fill="currentColor" />
-              <path
-                d="M21 21l-6-6-5 5"
-                stroke="currentColor"
-                stroke-width="1.2"
-                stroke-linecap="round"
-                stroke-linejoin="round"
-              />
-            </svg>
-          </a>
+        <a class="nav-btn" href="/listPartys/listPartys.html" aria-label="List Parties">
+          <svg class="nav-icon icon--pink" width="28" height="28" viewBox="0 0 24 24" fill="none"
+            xmlns="http://www.w3.org/2000/svg">
+            <rect x="3" y="3" width="18" height="18" rx="3" stroke="currentColor" stroke-width="1.2" />
+            <circle cx="8.5" cy="8.5" r="1.8" fill="currentColor" />
+            <path
+              d="M21 21l-6-6-5 5"
+              stroke="currentColor"
+              stroke-width="1.2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            />
+          </svg>
+        </a>
 
-          <a
-            class="nav-btn"
-            href="/notifications/notifications.html"
-            aria-label="Notifications"
-          >
-            <svg
-              class="nav-icon icon--pink"
-              width="28"
-              height="28"
-              viewBox="0 0 24 24"
-              fill="none"
-              xmlns="http://www.w3.org/2000/svg"
-            >
-              <path
-                d="M12 22a2.5 2.5 0 0 0 2.45-2H9.55A2.5 2.5 0 0 0 12 22z"
-                fill="currentColor"
-              />
-              <path
-                d="M18 8a6 6 0 10-12 0v5l-2 2v1h16v-1l-2-2V8z"
-                stroke="currentColor"
-                stroke-width="1.2"
-                stroke-linecap="round"
-                stroke-linejoin="round"
-              />
-            </svg>
-          </a>
+        <a class="nav-btn" href="/notifications/notifications.html" aria-label="Notifications">
+          <svg class="nav-icon icon--pink" width="28" height="28" viewBox="0 0 24 24" fill="none"
+            xmlns="http://www.w3.org/2000/svg">
+            <path d="M12 22a2.5 2.5 0 0 0 2.45-2H9.55A2.5 2.5 0 0 0 12 22z" fill="currentColor" />
+            <path
+              d="M18 8a6 6 0 10-12 0v5l-2 2v1h16v-1l-2-2V8z"
+              stroke="currentColor"
+              stroke-width="1.2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            />
+          </svg>
+        </a>
 
-          <a class="nav-btn" href="/profile/profile.html" aria-label="Profile">
-            <svg
-              class="nav-icon icon--pink"
-              width="28"
-              height="28"
-              viewBox="0 0 24 24"
-              fill="none"
-              xmlns="http://www.w3.org/2000/svg"
-            >
-              <circle
-                cx="12"
-                cy="8.5"
-                r="3"
-                stroke="currentColor"
-                stroke-width="1.2"
-              />
-              <path
-                d="M4 20a8 8 0 0 1 16 0"
-                stroke="currentColor"
-                stroke-width="1.2"
-                stroke-linecap="round"
-                stroke-linejoin="round"
-              />
-            </svg>
-          </a>
-        </nav>
-      </div>
-      <!-- /.container -->
+        <a class="nav-btn" href="/profile/profile.html" aria-label="Profile">
+          <svg class="nav-icon icon--pink" width="28" height="28" viewBox="0 0 24 24" fill="none"
+            xmlns="http://www.w3.org/2000/svg">
+            <circle cx="12" cy="8.5" r="3" stroke="currentColor" stroke-width="1.2" />
+            <path
+              d="M4 20a8 8 0 0 1 16 0"
+              stroke="currentColor"
+              stroke-width="1.2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            />
+          </svg>
+        </a>
+      </nav>
     </div>
-    <!-- /.app-shell -->
   </body>
 </html>
