@@ -277,3 +277,47 @@ body {
     font-size: var(--font-size-xl);
   }
 }
+
+.page-content {
+  min-height: calc(100vh - var(--nav-height));
+}
+
+/* Enforce consistent bottom navigation sizing across all pages */
+.bottom-nav,
+.bottom-nav * {
+  box-sizing: border-box;
+}
+
+/* fixed dimensions to avoid size drift between pages */
+.bottom-nav {
+  height: var(--nav-height) !important;
+  padding: 10px 12px !important;
+}
+.bottom-nav .nav-btn {
+  width: 76px !important;
+  height: 76px !important;
+  padding: 8px !important;
+  border-radius: 20px !important;
+}
+.bottom-nav .nav-icon {
+  width: 54px !important;
+  height: 54px !important;
+}
+
+/* ensure any SVG inside nav uses the explicit size (override inline attributes if needed) */
+.bottom-nav svg {
+  width: 54px !important;
+  height: 54px !important;
+}
+
+@media (max-width: 420px) {
+  .bottom-nav .nav-btn {
+    width: 64px !important;
+    height: 64px !important;
+  }
+  .bottom-nav .nav-icon,
+  .bottom-nav svg {
+    width: 38px !important;
+    height: 38px !important;
+  }
+}
