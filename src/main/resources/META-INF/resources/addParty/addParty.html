@@ -1,111 +1,61 @@
 <!doctype html>
-<html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Add Party</title>
+<html lang="de">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Party erstellen</title>
+  <link rel="stylesheet" href="./addParty.css" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/themes/dark.css" />
+  <script src="https://cdn.jsdelivr.net/npm/flatpickr" defer></script>
+  <script src="./addParty.js" defer></script>
+</head>
+<body>
+<main class="add-party-page">
+  <section class="party-card">
+    <div class="card-top">
+      <span class="back-arrow">‹</span>
+      <span class="step-title" id="stepTitle">Add new Party</span>
+    </div>
 
-    <link rel="stylesheet" href="./addParty.css" />
-    <link
-      rel="stylesheet"
-      href="https://cdn.jsdelivr.net/npm/flatpickr/dist/themes/dark.css"
-    />
+    <form class="party-form">
+      <div class="step active" data-step="1">
+        <div class="field"><div class="field-label">Name</div>
+          <input name="title" placeholder="Party Name" /></div>
+        <div class="field"><div class="field-label">Beschreibung</div>
+          <input name="description" placeholder="Was passiert?" /></div>
+        <div class="field"><div class="field-label">Beginn</div>
+          <input id="time_start" name="time_start" placeholder="Startzeit" /></div>
+        <div class="field"><div class="field-label">Ende</div>
+          <input id="time_end" name="time_end" placeholder="Endzeit" /></div>
+        <div class="field"><div class="field-label">Ort Name</div>
+          <input name="location_name" placeholder="z.B. Club XY" /></div>
+      </div>
 
-    <script src="https://cdn.jsdelivr.net/npm/flatpickr" defer></script>
-    <script src="./addParty.js" defer></script>
-  </head>
-
-  <body>
-    <main class="add-party-page">
-      <section class="party-card">
-        <div class="card-top">
-          <span class="back-arrow">‹</span>
-          <span class="step-title" id="stepTitle">Add new Party</span>
+      <div class="step" data-step="2">
+        <div class="visibility-options">
+          <button type="button" class="vis-card active" data-mode="private">🔒 Privat</button>
+          <button type="button" class="vis-card" data-mode="public">🔓 Öffentlich</button>
         </div>
+        <div class="user-list" id="userList"></div>
+        <p class="everyone-hint" id="everyoneHint" style="display:none">Sichtbar für alle.</p>
+      </div>
 
-        <form class="party-form">
-          <!-- STEP 1 -->
-          <div class="step active" data-step="1">
-            <div class="field field-name">
-              <div class="field-label field-label-center">Name</div>
-              <input name="title" placeholder="Birthday Party" />
-            </div>
+      <div class="step" data-step="3">
+        <div class="field"><div class="field-label">Eintritt (€)</div>
+          <input name="entry_costs" type="number" /></div>
+        <div class="field"><div class="field-label">Motto</div>
+          <input name="theme" placeholder="90er, etc." /></div>
+        <div class="field"><div class="field-label">Mindestalter</div>
+          <input name="min_age" type="number" value="18" /></div>
+        <div class="field"><div class="field-label">Max. Alter</div>
+          <input name="max_age" type="number" /></div>
+        <div class="field"><div class="field-label">Website</div>
+          <input name="website" type="url" placeholder="https://..." /></div>
+      </div>
 
-            <div class="field">
-              <div class="field-label">Description</div>
-              <input name="description" placeholder="Motto, Stimmung" />
-            </div>
-
-            <div class="field">
-              <div class="field-label">Date / Begin Time</div>
-              <input id="time_start" placeholder="dd.mm.yyyy hh:mm" />
-              <span class="error-msg" id="error-time-start"></span>
-            </div>
-
-            <div class="field">
-              <div class="field-label">End Time</div>
-              <input id="time_end" placeholder="dd.mm.yyyy hh:mm" />
-              <span class="error-msg" id="error-time-end"></span>
-
-            </div>
-
-            <div class="field">
-              <div class="field-label">Location Name</div>
-              <input name="location_name" placeholder="Club XYZ" />
-            </div>
-          </div>
-
-          <!-- STEP 2 -->
-          <div class="step" data-step="2">
-            <div class="visibility-options">
-              <button type="button" class="vis-card active" data-mode="private">
-                🔒 Only chosen people
-              </button>
-              <button type="button" class="vis-card" data-mode="public">
-                🔓 Everyone
-              </button>
-            </div>
-
-            <div class="user-list" id="userList"></div>
-
-            <p class="everyone-hint" id="everyoneHint">
-              Jeder kann diese Party sehen und besuchen
-            </p>
-          </div>
-
-          <!-- STEP 3 -->
-          <div class="step" data-step="3">
-            <div class="field">
-              <div class="field-label">Entry Costs</div>
-              <input name="entry_costs" type="number" placeholder="5" />
-            </div>
-
-            <div class="field">
-              <div class="field-label">Theme</div>
-              <input name="theme" placeholder="90s" />
-            </div>
-
-            <div class="field">
-              <div class="field-label">Min Age</div>
-              <input name="min_age" type="number" placeholder="18" />
-            </div>
-
-            <div class="field">
-              <div class="field-label">Max Age</div>
-              <input name="max_age" type="number" />
-            </div>
-
-            <div class="field">
-              <div class="field-label">Website</div>
-              <input name="website" placeholder="https://example.com" />
-            </div>
-          </div>
-
-          <button type="button" class="submit-btn" id="continueBtn">
-            Continue
-          </button>
-        </form>
-      </section>
-    </main>
-  </body>
+      <button type="button" class="submit-btn" id="continueBtn">Continue</button>
+    </form>
+  </section>
+</main>
+</body>
 </html>

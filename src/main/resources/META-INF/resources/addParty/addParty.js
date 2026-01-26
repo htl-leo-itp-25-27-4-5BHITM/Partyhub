@@ -6,83 +6,60 @@ document.addEventListener("DOMContentLoaded", () => {
   const backArrow = document.querySelector(".back-arrow");
   const userList = document.getElementById("userList");
   const everyoneHint = document.getElementById("everyoneHint");
+  const form = document.querySelector(".party-form");
 
   // --- STATE ---
+  // Wir initialisieren alle Felder, damit sie im JSON vorhanden sind
   let currentStep = 0;
   const stepTitles = ["Add new Party", "Who can attend the party?", "Other Infos"];
-  const state = { visibility: "private", selectedUsers: [] };
+  const state = {
+    title: "",
+    description: "",
+    time_start: "",
+    time_end: "",
+    location_name: "",
+    visibility: "private",
+    selectedUsers: [],
+    entry_costs: 0,
+    theme: "",
+    min_age: 18,
+    max_age: null,
+    website: "",
+    latitude: 0.0,
+    longitude: 0.0
+  };
 
   // --- INITIALISIERUNG FLATPICKR ---
-  // Wir speichern die Instanzen in Variablen, um später auf .selectedDates zuzugreifen
   const fpStart = flatpickr("#time_start", {
     enableTime: true,
     dateFormat: "d.m.Y H:i",
-    time_24hr: true,
-    onClose: () => validateField(document.getElementById("time_start"))
+    time_24hr: true
   });
 
   const fpEnd = flatpickr("#time_end", {
     enableTime: true,
     dateFormat: "d.m.Y H:i",
-    time_24hr: true,
-    onClose: () => validateField(document.getElementById("time_end"))
+    time_24hr: true
   });
 
-  // --- VALIDIERUNGS-LOGIK ---
-  function validateField(input) {
-    if (!input) return true;
-    const fieldName = input.name || input.id;
-    const value = input.value.trim();
-    let isInvalid = false;
-    const now = new Date();
-
-    // 1. Pflichtfelder (darf nicht leer sein)
-    const requiredFields = ["title", "time_start", "location_name"];
-    if (requiredFields.includes(fieldName) && value === "") {
-      isInvalid = true;
+  // --- STANDORT-LOGIK ---
+  function fetchLocation() {
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+          (pos) => {
+            // Wir runden auf 6 Nachkommastellen (reicht für Meter-Präzision)
+            state.latitude = parseFloat(pos.coords.latitude.toFixed(6));
+            state.longitude = parseFloat(pos.coords.longitude.toFixed(6));
+            console.log("📍 Standort erfasst:", state.latitude, state.longitude);
+          },
+          (err) => {
+            console.warn("Standort-Zugriff nicht möglich, nutze 0.0");
+          }
+      );
     }
-
-    // 2. Datum Validierung
-    const startDate = fpStart.selectedDates[0]; // Das echte JS-Datum Objekt
-    const endDate = fpEnd.selectedDates[0];
-
-    if (fieldName === "time_start" && startDate) {
-      // Start darf nicht in der Vergangenheit liegen (wir ziehen 1 Min Puffer ab)
-      if (startDate < new Date(now.getTime() - 60000)) {
-        isInvalid = true;
-      }
-    }
-
-    if (fieldName === "time_end" && endDate && startDate) {
-      // Ende muss nach Start liegen
-      if (endDate <= startDate) {
-        isInvalid = true;
-      }
-    }
-
-    // Visuelles Feedback
-    if (isInvalid) {
-      input.classList.add("input-error");
-    } else {
-      input.classList.remove("input-error");
-    }
-
-    return !isInvalid;
   }
-
-  function validateCurrentStep() {
-    const activeStep = steps[currentStep];
-    const inputs = activeStep.querySelectorAll("input");
-    let allOk = true;
-
-    inputs.forEach((input) => {
-      if (!validateField(input)) {
-        allOk = false;
-      }
-    });
-
-    return allOk;
-  }
+  // Standort sofort beim Laden abfragen
+  fetchLocation();
 
   // --- NAVIGATION ---
   function showStep(index) {
@@ -92,33 +69,76 @@ document.addEventListener("DOMContentLoaded", () => {
     btn.textContent = index === steps.length - 1 ? "Submit" : "Continue";
   }
 
-  // --- EVENTS ---
-  btn.addEventListener("click", () => {
-    if (!validateCurrentStep()) {
-      // Optional: Ein kleiner visueller Hinweis
-      return;
-    }
+  // --- DATEN SAMMELN ---
+  function collectStepData() {
+    const activeStep = steps[currentStep];
+    const inputs = activeStep.querySelectorAll("input");
 
-    // Daten sammeln
-    const inputs = steps[currentStep].querySelectorAll("input");
-    inputs.forEach((i) => {
-      if (i.type === "checkbox") {
-        if (i.checked && !state.selectedUsers.includes(i.value)) {
-          state.selectedUsers.push(i.value);
-        } else if (!i.checked) {
-          state.selectedUsers = state.selectedUsers.filter(u => u !== i.value);
+    inputs.forEach((input) => {
+      const key = input.name || input.id;
+      if (!key) return;
+
+      if (input.type === "checkbox") {
+        if (input.checked && !state.selectedUsers.includes(input.value)) {
+          state.selectedUsers.push(input.value);
+        } else if (!input.checked) {
+          state.selectedUsers = state.selectedUsers.filter(u => u !== input.value);
         }
+      } else if (input.type === "number") {
+        state[key] = input.value ? parseFloat(input.value) : 0;
       } else {
-        state[i.name || i.id] = i.value;
+        state[key] = input.value;
       }
     });
+  }
+
+  // --- SPEICHERN ---
+  async function saveParty() {
+    // Button deaktivieren um Duplicate Key Fehler durch Mehrfachklicks zu verhindern
+    if (btn.disabled) return;
+    btn.disabled = true;
+    btn.textContent = "Saving...";
+
+    try {
+      const response = await fetch("/api/party/add", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(state),
+      });
+
+      if (response.ok) {
+        form.innerHTML = `
+          <div style="text-align: center; padding: 40px 0;">
+            <h2 style="color: #fff; margin-bottom: 10px;">Party ready 🚀</h2>
+            <p style="color: #aaa;">Deine Party wurde erfolgreich gespeichert.</p>
+            <button type="button" class="submit-btn" style="margin-top: 20px;" onclick="window.location.href='/'">Back to Home</button>
+          </div>
+        `;
+        title.textContent = "Success!";
+      } else {
+        const errData = await response.json();
+        // Falls das Backend den ID-Fehler wirft, zeigen wir die Details an
+        alert("Fehler: " + (errData.details || "Server Fehler"));
+        btn.disabled = false;
+        btn.textContent = "Submit";
+      }
+    } catch (e) {
+      console.error(e);
+      alert("Netzwerkfehler zum Quarkus-Backend.");
+      btn.disabled = false;
+      btn.textContent = "Submit";
+    }
+  }
+
+  // --- EVENTS ---
+  btn.addEventListener("click", () => {
+    collectStepData();
 
     if (currentStep < steps.length - 1) {
       currentStep++;
       showStep(currentStep);
     } else {
-      console.log("FINAL PAYLOAD", state);
-      alert("Party ready 🚀");
+      saveParty();
     }
   });
 
@@ -142,16 +162,7 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   });
 
-  // Live-Korrektur beim Tippen
-  document.querySelectorAll("input").forEach(input => {
-    input.addEventListener("input", () => {
-      if (input.classList.contains("input-error")) {
-        validateField(input);
-      }
-    });
-  });
-
-  // User Laden (Simuliert)
+  // User Laden
   async function loadUsers() {
     try {
       const res = await fetch("/api/users/all");
