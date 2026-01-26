@@ -134,7 +134,7 @@ body {
 }
 /* Markiert das Feld rot bei Fehlern */
 .input-error {
-  background-color: #fff2f0 !important;
+  background-color: #ff220060 !important;
   transition: all 0.3s ease;
 }
 
