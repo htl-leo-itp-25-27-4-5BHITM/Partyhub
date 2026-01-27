@@ -9,8 +9,15 @@ import SwiftUI
 
 struct PhotoView: View {
     var body: some View {
-        Text(/*@START_MENU_TOKEN@*/"Hello, World!"/*@END_MENU_TOKEN@*/)
-    }
+        NavigationStack {
+            List {
+                NavigationLink("Bilder für Geburtstag hochladen") {
+                    // Hier rufen wir deine neue Datei auf
+                    PartyBilderView(partyName: "Geburtstag_2024")
+                }
+            }
+            .navigationTitle("Meine Partys")
+        }    }
 }
 
 #Preview {

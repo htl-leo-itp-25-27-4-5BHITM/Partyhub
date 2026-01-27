@@ -15,10 +15,15 @@ struct ContentView: View {
                     .tabItem {
                         Label("Home", systemImage: "house")
                     }
+                PhotoView()
+                    .tabItem{
+                        Label("Photo", systemImage: "photo.stack")
+                    }
                 ProfileView()
                     .tabItem {
                         Label("Profile", systemImage: "person")
                     }
+                
             }
         }
     }
