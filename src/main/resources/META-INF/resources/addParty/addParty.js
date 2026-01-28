@@ -6,60 +6,83 @@ document.addEventListener("DOMContentLoaded", () => {
   const backArrow = document.querySelector(".back-arrow");
   const userList = document.getElementById("userList");
   const everyoneHint = document.getElementById("everyoneHint");
-  const form = document.querySelector(".party-form");
 
   // --- STATE ---
-  // Wir initialisieren alle Felder, damit sie im JSON vorhanden sind
   let currentStep = 0;
   const stepTitles = ["Add new Party", "Who can attend the party?", "Other Infos"];
-  const state = {
-    title: "",
-    description: "",
-    time_start: "",
-    time_end: "",
-    location_name: "",
-    visibility: "private",
-    selectedUsers: [],
-    entry_costs: 0,
-    theme: "",
-    min_age: 18,
-    max_age: null,
-    website: "",
-    latitude: 0.0,
-    longitude: 0.0
-  };
+  const state = { visibility: "private", selectedUsers: [] };
 
   // --- INITIALISIERUNG FLATPICKR ---
+  // Wir speichern die Instanzen in Variablen, um später auf .selectedDates zuzugreifen
   const fpStart = flatpickr("#time_start", {
     enableTime: true,
     dateFormat: "d.m.Y H:i",
-    time_24hr: true
+    time_24hr: true,
+    onClose: () => validateField(document.getElementById("time_start"))
   });
 
   const fpEnd = flatpickr("#time_end", {
     enableTime: true,
     dateFormat: "d.m.Y H:i",
-    time_24hr: true
+    time_24hr: true,
+    onClose: () => validateField(document.getElementById("time_end"))
   });
 
-  // --- STANDORT-LOGIK ---
-  function fetchLocation() {
-    if (navigator.geolocation) {
-      navigator.geolocation.getCurrentPosition(
-          (pos) => {
-            // Wir runden auf 6 Nachkommastellen (reicht für Meter-Präzision)
-            state.latitude = parseFloat(pos.coords.latitude.toFixed(6));
-            state.longitude = parseFloat(pos.coords.longitude.toFixed(6));
-            console.log("📍 Standort erfasst:", state.latitude, state.longitude);
-          },
-          (err) => {
-            console.warn("Standort-Zugriff nicht möglich, nutze 0.0");
-          }
-      );
+  // --- VALIDIERUNGS-LOGIK ---
+  function validateField(input) {
+    if (!input) return true;
+    const fieldName = input.name || input.id;
+    const value = input.value.trim();
+    let isInvalid = false;
+    const now = new Date();
+
+    // 1. Pflichtfelder (darf nicht leer sein)
+    const requiredFields = ["title", "time_start", "location_name"];
+    if (requiredFields.includes(fieldName) && value === "") {
+      isInvalid = true;
     }
+
+    // 2. Datum Validierung
+    const startDate = fpStart.selectedDates[0]; // Das echte JS-Datum Objekt
+    const endDate = fpEnd.selectedDates[0];
+
+    if (fieldName === "time_start" && startDate) {
+      // Start darf nicht in der Vergangenheit liegen (wir ziehen 1 Min Puffer ab)
+      if (startDate < new Date(now.getTime() - 60000)) {
+        isInvalid = true;
+      }
+    }
+
+    if (fieldName === "time_end" && endDate && startDate) {
+      // Ende muss nach Start liegen
+      if (endDate <= startDate) {
+        isInvalid = true;
+      }
+    }
+
+    // Visuelles Feedback
+    if (isInvalid) {
+      input.classList.add("input-error");
+    } else {
+      input.classList.remove("input-error");
+    }
+
+    return !isInvalid;
   }
-  // Standort sofort beim Laden abfragen
-  fetchLocation();
+
+  function validateCurrentStep() {
+    const activeStep = steps[currentStep];
+    const inputs = activeStep.querySelectorAll("input");
+    let allOk = true;
+
+    inputs.forEach((input) => {
+      if (!validateField(input)) {
+        allOk = false;
+      }
+    });
+
+    return allOk;
+  }
 
   // --- NAVIGATION ---
   function showStep(index) {
@@ -69,76 +92,118 @@ document.addEventListener("DOMContentLoaded", () => {
     btn.textContent = index === steps.length - 1 ? "Submit" : "Continue";
   }
 
-  // --- DATEN SAMMELN ---
-  function collectStepData() {
-    const activeStep = steps[currentStep];
-    const inputs = activeStep.querySelectorAll("input");
+  // --- EVENTS ---
+  btn.addEventListener("click", async () => {
+    if (!validateCurrentStep()) {
+      // Optional: Ein kleiner visueller Hinweis
+      return;
+    }
 
-    inputs.forEach((input) => {
-      const key = input.name || input.id;
-      if (!key) return;
-
-      if (input.type === "checkbox") {
-        if (input.checked && !state.selectedUsers.includes(input.value)) {
-          state.selectedUsers.push(input.value);
-        } else if (!input.checked) {
-          state.selectedUsers = state.selectedUsers.filter(u => u !== input.value);
+    // Daten sammeln
+    const inputs = steps[currentStep].querySelectorAll("input");
+    inputs.forEach((i) => {
+      if (i.type === "checkbox") {
+        if (i.checked && !state.selectedUsers.includes(i.value)) {
+          state.selectedUsers.push(i.value);
+        } else if (!i.checked) {
+          state.selectedUsers = state.selectedUsers.filter(u => u !== i.value);
         }
-      } else if (input.type === "number") {
-        state[key] = input.value ? parseFloat(input.value) : 0;
       } else {
-        state[key] = input.value;
+        state[i.name || i.id] = i.value;
       }
     });
-  }
-
-  // --- SPEICHERN ---
-  async function saveParty() {
-    // Button deaktivieren um Duplicate Key Fehler durch Mehrfachklicks zu verhindern
-    if (btn.disabled) return;
-    btn.disabled = true;
-    btn.textContent = "Saving...";
-
-    try {
-      const response = await fetch("/api/party/add", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(state),
-      });
-
-      if (response.ok) {
-        form.innerHTML = `
-          <div style="text-align: center; padding: 40px 0;">
-            <h2 style="color: #fff; margin-bottom: 10px;">Party ready 🚀</h2>
-            <p style="color: #aaa;">Deine Party wurde erfolgreich gespeichert.</p>
-            <button type="button" class="submit-btn" style="margin-top: 20px;" onclick="window.location.href='/'">Back to Home</button>
-          </div>
-        `;
-        title.textContent = "Success!";
-      } else {
-        const errData = await response.json();
-        // Falls das Backend den ID-Fehler wirft, zeigen wir die Details an
-        alert("Fehler: " + (errData.details || "Server Fehler"));
-        btn.disabled = false;
-        btn.textContent = "Submit";
-      }
-    } catch (e) {
-      console.error(e);
-      alert("Netzwerkfehler zum Quarkus-Backend.");
-      btn.disabled = false;
-      btn.textContent = "Submit";
-    }
-  }
-
-  // --- EVENTS ---
-  btn.addEventListener("click", () => {
-    collectStepData();
 
     if (currentStep < steps.length - 1) {
       currentStep++;
       showStep(currentStep);
     } else {
-      saveParty();
+      // FINAL: build backend DTO and POST
+      btn.disabled = true;
+      btn.textContent = "Saving...";
+      // helper: format flatpickr date -> "dd.MM.yyyy HH:mm"
+      const formatToBackend = (fp) => {
+        const d = fp?.selectedDates?.[0];
+        if (!d) return null;
+        const pad = (n) => String(n).padStart(2, '0');
+        return `${pad(d.getDate())}.${pad(d.getMonth()+1)}.${d.getFullYear()} ${pad(d.getHours())}:${pad(d.getMinutes())}`;
+      };
+
+      const payload = {
+        title: state.title || null,
+        description: state.description || null,
+        fee: state.entry_costs ? Number(state.entry_costs) : null,
+        time_start: formatToBackend(fpStart) || null,
+        time_end: formatToBackend(fpEnd) || null,
+        max_people: state.max_people ? Number(state.max_people) : null,
+        min_age: state.min_age ? Number(state.min_age) : null,
+        max_age: state.max_age ? Number(state.max_age) : null,
+        website: state.website || null,
+        // latitude/longitude come from the new inputs (stored in state by collector)
+        latitude: (state.latitude !== undefined && state.latitude !== "") ? Number(state.latitude) : null,
+        longitude: (state.longitude !== undefined && state.longitude !== "") ? Number(state.longitude) : null,
+        category_id: state.category_id ? Number(state.category_id) : null
+      };
+
+      // --- SANITIZE: remove any location/nested id fields that might have been collected ---
+      // Defensive: ensure we only send the DTO fields; remove common location keys if present
+      const forbiddenKeys = ['location', 'location_name', 'location_id', 'location.id', 'locationId', 'locationId', 'id'];
+      forbiddenKeys.forEach(k => {
+        if (k.includes('.')) {
+          const [parent, child] = k.split('.');
+          if (payload[parent] && typeof payload[parent] === 'object') {
+            delete payload[parent][child];
+            // if parent becomes empty, delete it
+            if (Object.keys(payload[parent]).length === 0) delete payload[parent];
+          }
+        } else {
+          if (payload.hasOwnProperty(k)) delete payload[k];
+        }
+      });
+
+      // Extra defensive: if any value is an object (unexpected), remove it
+      Object.keys(payload).forEach(key => {
+        if (payload[key] && typeof payload[key] === 'object') {
+          delete payload[key];
+        }
+      });
+
+      // Debug log: show exact payload sent to backend (remove in production)
+      console.debug('Submitting party payload (sanitized):', payload);
+
+      try {
+        const res = await fetch('/api/party/add', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+        if (res.ok) {
+          const data = await res.json().catch(() => null);
+          const id = data && (data.id || data.partyId);
+          if (id) {
+            window.location.href = `/party/${id}`;
+            return;
+          }
+          alert('Party erfolgreich erstellt.');
+          window.location.href = '/listPartys/listPartys.html';
+        } else {
+          let msg = 'Serverfehler';
+          try {
+            const j = await res.json().catch(() => null);
+            if (j && (j.detail || j.message)) msg = j.detail || j.message;
+            else {
+              const t = await res.text().catch(() => null);
+              if (t) msg = t;
+            }
+          } catch (_) {}
+          alert('Fehler beim Speichern: ' + msg);
+        }
+      } catch (err) {
+        console.error('Netzwerkfehler', err);
+        alert('Netzwerkfehler beim Verbinden mit dem Backend.');
+      } finally {
+        btn.disabled = false;
+        btn.textContent = 'Submit';
+      }
     }
   });
 
@@ -162,7 +227,16 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   });
 
-  // User Laden
+  // Live-Korrektur beim Tippen
+  document.querySelectorAll("input").forEach(input => {
+    input.addEventListener("input", () => {
+      if (input.classList.contains("input-error")) {
+        validateField(input);
+      }
+    });
+  });
+
+  // User Laden (Simuliert)
   async function loadUsers() {
     try {
       const res = await fetch("/api/users/all");
