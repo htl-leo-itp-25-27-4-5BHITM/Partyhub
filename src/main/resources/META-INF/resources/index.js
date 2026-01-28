@@ -100,8 +100,9 @@ document.addEventListener("DOMContentLoaded", async () => {
   }
 
   // ---------------------------
-  // Filter: nur nächste 14 Tage
+  // Filter: nur nächste 14 Tage (robust + Logs)
   // ---------------------------
+
   // parsePartyStart: handle ISO, numeric timestamp, and backend format "dd.MM.yyyy HH:mm"
   function parsePartyStart(p) {
     const raw = p?.time_start ?? p?.startDate ?? p?.date ?? null;
@@ -131,14 +132,37 @@ document.addEventListener("DOMContentLoaded", async () => {
     return null;
   }
 
+  // normalize to start of day (local) to avoid time-of-day excluding same-day events
+  function startOfDayLocal(d) {
+    const nd = new Date(d);
+    nd.setHours(0,0,0,0);
+    return nd;
+  }
+
   function isInNext14Days(p) {
     const start = parsePartyStart(p);
     if (!start) return false;
 
     const now = new Date();
-    const in14 = new Date(now.getTime() + 14 * 24 * 60 * 60 * 1000);
+    const today = startOfDayLocal(now);
+    const in14 = new Date(today.getTime() + 14 * 24 * 60 * 60 * 1000); // midnight +14d
 
-    return start >= now && start <= in14;
+    const startDay = startOfDayLocal(start);
+
+    // Debug: show raw values if something excluded unexpectedly
+    const ok = startDay >= today && startDay <= in14;
+    if (!ok) {
+      console.debug('isInNext14Days: excluded party', {
+        id: p.id ?? p.partyId,
+        title: p.title ?? p.name,
+        raw_time_start: p?.time_start,
+        parsed_iso: start ? start.toISOString() : null,
+        startDay: startDay ? startDay.toISOString() : null,
+        today: today.toISOString(),
+        in14: in14.toISOString()
+      });
+    }
+    return ok;
   }
 
   // ---------------------------
