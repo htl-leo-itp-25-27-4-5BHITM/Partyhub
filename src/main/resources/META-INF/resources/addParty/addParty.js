@@ -93,7 +93,7 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   // --- EVENTS ---
-  btn.addEventListener("click", async () => {
+  btn.addEventListener("click", () => {
     if (!validateCurrentStep()) {
       // Optional: Ein kleiner visueller Hinweis
       return;
@@ -117,93 +117,8 @@ document.addEventListener("DOMContentLoaded", () => {
       currentStep++;
       showStep(currentStep);
     } else {
-      // FINAL: build backend DTO and POST
-      btn.disabled = true;
-      btn.textContent = "Saving...";
-      // helper: format flatpickr date -> "dd.MM.yyyy HH:mm"
-      const formatToBackend = (fp) => {
-        const d = fp?.selectedDates?.[0];
-        if (!d) return null;
-        const pad = (n) => String(n).padStart(2, '0');
-        return `${pad(d.getDate())}.${pad(d.getMonth()+1)}.${d.getFullYear()} ${pad(d.getHours())}:${pad(d.getMinutes())}`;
-      };
-
-      const payload = {
-        title: state.title || null,
-        description: state.description || null,
-        fee: state.entry_costs ? Number(state.entry_costs) : null,
-        time_start: formatToBackend(fpStart) || null,
-        time_end: formatToBackend(fpEnd) || null,
-        max_people: state.max_people ? Number(state.max_people) : null,
-        min_age: state.min_age ? Number(state.min_age) : null,
-        max_age: state.max_age ? Number(state.max_age) : null,
-        website: state.website || null,
-        // latitude/longitude come from the new inputs (stored in state by collector)
-        latitude: (state.latitude !== undefined && state.latitude !== "") ? Number(state.latitude) : null,
-        longitude: (state.longitude !== undefined && state.longitude !== "") ? Number(state.longitude) : null,
-        category_id: state.category_id ? Number(state.category_id) : null
-      };
-
-      // --- SANITIZE: remove any location/nested id fields that might have been collected ---
-      // Defensive: ensure we only send the DTO fields; remove common location keys if present
-      const forbiddenKeys = ['location', 'location_name', 'location_id', 'location.id', 'locationId', 'locationId', 'id'];
-      forbiddenKeys.forEach(k => {
-        if (k.includes('.')) {
-          const [parent, child] = k.split('.');
-          if (payload[parent] && typeof payload[parent] === 'object') {
-            delete payload[parent][child];
-            // if parent becomes empty, delete it
-            if (Object.keys(payload[parent]).length === 0) delete payload[parent];
-          }
-        } else {
-          if (payload.hasOwnProperty(k)) delete payload[k];
-        }
-      });
-
-      // Extra defensive: if any value is an object (unexpected), remove it
-      Object.keys(payload).forEach(key => {
-        if (payload[key] && typeof payload[key] === 'object') {
-          delete payload[key];
-        }
-      });
-
-      // Debug log: show exact payload sent to backend (remove in production)
-      console.debug('Submitting party payload (sanitized):', payload);
-
-      try {
-        const res = await fetch('/api/party/add', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(payload)
-        });
-        if (res.ok) {
-          const data = await res.json().catch(() => null);
-          const id = data && (data.id || data.partyId);
-          if (id) {
-            window.location.href = `/party/${id}`;
-            return;
-          }
-          alert('Party erfolgreich erstellt.');
-          window.location.href = '/listPartys/listPartys.html';
-        } else {
-          let msg = 'Serverfehler';
-          try {
-            const j = await res.json().catch(() => null);
-            if (j && (j.detail || j.message)) msg = j.detail || j.message;
-            else {
-              const t = await res.text().catch(() => null);
-              if (t) msg = t;
-            }
-          } catch (_) {}
-          alert('Fehler beim Speichern: ' + msg);
-        }
-      } catch (err) {
-        console.error('Netzwerkfehler', err);
-        alert('Netzwerkfehler beim Verbinden mit dem Backend.');
-      } finally {
-        btn.disabled = false;
-        btn.textContent = 'Submit';
-      }
+      console.log("FINAL PAYLOAD", state);
+      alert("Party ready 🚀");
     }
   });
 

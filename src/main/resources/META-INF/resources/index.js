@@ -102,11 +102,33 @@ document.addEventListener("DOMContentLoaded", async () => {
   // ---------------------------
   // Filter: nur nächste 14 Tage
   // ---------------------------
+  // parsePartyStart: handle ISO, numeric timestamp, and backend format "dd.MM.yyyy HH:mm"
   function parsePartyStart(p) {
     const raw = p?.time_start ?? p?.startDate ?? p?.date ?? null;
     if (!raw) return null;
-    const d = new Date(raw);
-    return Number.isNaN(d.getTime()) ? null : d;
+
+    // 1) Try native parsing (ISO)
+    let d = new Date(raw);
+    if (!Number.isNaN(d.getTime())) return d;
+
+    // 2) If it's a numeric timestamp string
+    if (/^\d+$/.test(String(raw))) {
+      d = new Date(Number(raw));
+      if (!Number.isNaN(d.getTime())) return d;
+    }
+
+    // 3) Try backend format "dd.MM.yyyy HH:mm" or "dd.MM.yyyy"
+    const m = String(raw).match(/^\s*(\d{1,2})\.(\d{1,2})\.(\d{4})(?:[ T](\d{1,2}):(\d{2}))?\s*$/);
+    if (m) {
+      const day = Number(m[1]), month = Number(m[2]), year = Number(m[3]);
+      const hour = m[4] ? Number(m[4]) : 0;
+      const minute = m[5] ? Number(m[5]) : 0;
+      d = new Date(year, month - 1, day, hour, minute);
+      if (!Number.isNaN(d.getTime())) return d;
+    }
+
+    // 4) Could not parse
+    return null;
   }
 
   function isInNext14Days(p) {
@@ -127,19 +149,25 @@ document.addEventListener("DOMContentLoaded", async () => {
       ? await window.backend.getAllParties()
       : await getAllParties();
 
+    // Debug: show what we received
+    console.debug('loadAllPartiesToMap: received parties:', parties);
     if (!Array.isArray(parties)) {
       console.warn("Parties nicht als Array bekommen:", parties);
       return;
     }
 
     const filtered = parties.filter(isInNext14Days);
+    console.debug(`loadAllPartiesToMap: ${parties.length} total, ${filtered.length} in next 14 days`);
 
     partyLayer.clearLayers();
     const bounds = [];
 
     for (const party of filtered) {
       const ll = extractLatLng(party);
-      if (!ll) continue;
+      if (!ll) {
+        console.debug('loadAllPartiesToMap: no coords for party', party.id ?? party.title ?? party);
+        continue;
+      }
 
       const marker = L.marker([ll.lat, ll.lng]).addTo(partyLayer);
       marker.bindPopup(partyPopupHtml(party));
