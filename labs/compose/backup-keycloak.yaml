@@ -1,0 +1,33 @@
+include:
+  - postgres.yaml
+services:
+  keycloak:
+    image: keycloak
+    container_name: keycloak
+    command: ["export",
+      "--db=postgres",
+      "--db-url=jdbc:postgresql://postgres:5432/keycloak",
+      "--db-username=keycloak",
+      "--db-password=keycloak",
+      "--realm=demo",
+      "--dir=/export",
+      "--users=same_file"
+      ]
+    volumes:
+      - shared-tmpfs:/export
+    depends_on:
+      postgres:
+          condition: service_healthy
+  backup:
+    container_name: backup
+    image: ubuntu:latest
+    command: ["sleep", "1800"]
+    volumes:
+      - shared-tmpfs:/export
+volumes:
+  shared-tmpfs:
+    driver: local
+    driver_opts:
+      type: "tmpfs"
+      device: "tmpfs"
+      o: "size=256m,uid=1000"

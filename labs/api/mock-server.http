@@ -1,0 +1,13 @@
+@MOCKSERVER=http://localhost:1080/mockserver
+###
+PUT {{MOCKSERVER}}/retrieve?type=logs&format=json
+###
+# @name requestsAndResponses
+PUT {{MOCKSERVER}}/retrieve?type=REQUEST_RESPONSES
+###
+# @name requestsOnly
+PUT {{MOCKSERVER}}/retrieve?type=REQUESTS&format=JSON
+###
+# @name clear all
+PUT {{MOCKSERVER}}/clear?type=log
+###

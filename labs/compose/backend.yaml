@@ -1,0 +1,17 @@
+services:
+  backend:
+    container_name: backend
+    image: backend
+    depends_on:
+      keycloak:
+        condition: service_healthy
+    healthcheck:
+      test: curl -f http://localhost:8080/api/q/health
+      start_period: 30s
+      start_interval: 2s
+      retries: 10
+    ports:
+      - 8080:8080
+    environment:
+      - quarkus.datasource.jdbc.url=jdbc:postgresql://postgres:5432/demo
+      - PUBLIC_KEY=MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEA0vtKuQx4Y7vn+O59uGIAINc99IS5w+EXsbzwBBS5iIukSnYM5eI5XRINTtM0+SIhg2HH7zJ5dE1m1eKj+84VfgQwBdsYZkSg+J7MvaHIADba/v7no2RKaYKZCI6CjwFzioYP3EtF3xuwOFoitr/7sn8MmtmkKrMUpCjuikaDyFxuSJ26GHK9cco60QXHqRw4R8K0Eg5/8zryDDFi86eepsV/ZwoBhEj4QnMVwOs8XzPE/9kZOn0xbEhHt2hMCREqq3QG4EovLyUTrdDRIdDL9eIv7yO4I9Yce4zBCitidq6JwHUcZR5Sa3QhyXg5Vt29OW2enhq5o892mvmbD/MeMwIDAQAB
