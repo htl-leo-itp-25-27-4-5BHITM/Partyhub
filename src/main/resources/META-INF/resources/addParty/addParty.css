@@ -145,3 +145,20 @@ body {
   color: #888;
   font-size: 0.9rem;
 }
+
+.suggestions {
+  background: white;
+  color: #1a1040;
+  border-radius: 12px;
+  margin-top: 6px;
+  overflow: hidden;
+}
+
+.suggestion {
+  padding: 10px;
+  cursor: pointer;
+}
+
+.suggestion:hover {
+  background: #eee;
+}

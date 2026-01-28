@@ -1,115 +1,125 @@
 document.addEventListener("DOMContentLoaded", () => {
-  // --- DOM ELEMENTE ---
+
+  /* ==========================
+     DOM ELEMENTE
+  ========================== */
   const steps = document.querySelectorAll(".step");
-  const btn = document.getElementById("continueBtn");
   const title = document.getElementById("stepTitle");
+  const btn = document.getElementById("continueBtn");
   const backArrow = document.querySelector(".back-arrow");
+
+  const addressInput = document.getElementById("location_address");
+  const suggestionsBox = document.getElementById("addressSuggestions");
+
   const userList = document.getElementById("userList");
   const everyoneHint = document.getElementById("everyoneHint");
 
-  // --- STATE ---
+  /* ==========================
+     STATE
+  ========================== */
   let currentStep = 0;
-  const stepTitles = ["Add new Party", "Who can attend the party?", "Other Infos"];
-  const state = { visibility: "private", selectedUsers: [] };
 
-  // --- INITIALISIERUNG FLATPICKR ---
-  // Wir speichern die Instanzen in Variablen, um später auf .selectedDates zuzugreifen
+  const state = {
+    title: "",
+    description: "",
+    time_start: "",
+    time_end: "",
+    location_address: "",
+    visibility: "private",
+    selectedUsers: [],
+    entry_costs: null,
+    theme: "",
+    min_age: 18,
+    max_age: null,
+    website: ""
+  };
+
+  const stepTitles = [
+    "Add new Party",
+    "Who can attend the party?",
+    "Other Infos"
+  ];
+
+  /* ==========================
+     FLATPICKR
+  ========================== */
   const fpStart = flatpickr("#time_start", {
     enableTime: true,
     dateFormat: "d.m.Y H:i",
-    time_24hr: true,
-    onClose: () => validateField(document.getElementById("time_start"))
+    time_24hr: true
   });
 
   const fpEnd = flatpickr("#time_end", {
     enableTime: true,
     dateFormat: "d.m.Y H:i",
-    time_24hr: true,
-    onClose: () => validateField(document.getElementById("time_end"))
+    time_24hr: true
   });
 
-  // --- VALIDIERUNGS-LOGIK ---
-  function validateField(input) {
-    if (!input) return true;
-    const fieldName = input.name || input.id;
-    const value = input.value.trim();
-    let isInvalid = false;
-    const now = new Date();
-
-    // 1. Pflichtfelder (darf nicht leer sein)
-    const requiredFields = ["title", "time_start", "location_name"];
-    if (requiredFields.includes(fieldName) && value === "") {
-      isInvalid = true;
-    }
-
-    // 2. Datum Validierung
-    const startDate = fpStart.selectedDates[0]; // Das echte JS-Datum Objekt
-    const endDate = fpEnd.selectedDates[0];
-
-    if (fieldName === "time_start" && startDate) {
-      // Start darf nicht in der Vergangenheit liegen (wir ziehen 1 Min Puffer ab)
-      if (startDate < new Date(now.getTime() - 60000)) {
-        isInvalid = true;
-      }
-    }
-
-    if (fieldName === "time_end" && endDate && startDate) {
-      // Ende muss nach Start liegen
-      if (endDate <= startDate) {
-        isInvalid = true;
-      }
-    }
-
-    // Visuelles Feedback
-    if (isInvalid) {
-      input.classList.add("input-error");
-    } else {
-      input.classList.remove("input-error");
-    }
-
-    return !isInvalid;
-  }
-
-  function validateCurrentStep() {
-    const activeStep = steps[currentStep];
-    const inputs = activeStep.querySelectorAll("input");
-    let allOk = true;
-
-    inputs.forEach((input) => {
-      if (!validateField(input)) {
-        allOk = false;
-      }
-    });
-
-    return allOk;
-  }
-
-  // --- NAVIGATION ---
+  /* ==========================
+     STEP LOGIK
+  ========================== */
   function showStep(index) {
-    steps.forEach((s) => s.classList.remove("active"));
+    steps.forEach(s => s.classList.remove("active"));
     steps[index].classList.add("active");
+
     title.textContent = stepTitles[index];
     btn.textContent = index === steps.length - 1 ? "Submit" : "Continue";
   }
 
-  // --- EVENTS ---
-  btn.addEventListener("click", () => {
-    if (!validateCurrentStep()) {
-      // Optional: Ein kleiner visueller Hinweis
-      return;
-    }
+  /* ==========================
+     VALIDATION
+  ========================== */
+  function validateStep() {
+    const activeStep = steps[currentStep];
+    const inputs = activeStep.querySelectorAll("input");
+    let valid = true;
 
-    // Daten sammeln
+    inputs.forEach(input => {
+      const value = input.value.trim();
+      let error = false;
+
+      if (
+        ["title", "time_start", "location_address"].includes(input.name) &&
+        value === ""
+      ) {
+        error = true;
+      }
+
+      if (input.name === "time_start" && fpStart.selectedDates[0]) {
+        if (fpStart.selectedDates[0] < new Date()) error = true;
+      }
+
+      if (
+        input.name === "time_end" &&
+        fpStart.selectedDates[0] &&
+        fpEnd.selectedDates[0] &&
+        fpEnd.selectedDates[0] <= fpStart.selectedDates[0]
+      ) {
+        error = true;
+      }
+
+      input.classList.toggle("input-error", error);
+      if (error) valid = false;
+    });
+
+    return valid;
+  }
+
+  /* ==========================
+     BUTTON EVENTS
+  ========================== */
+  btn.addEventListener("click", () => {
+    if (!validateStep()) return;
+
     const inputs = steps[currentStep].querySelectorAll("input");
-    inputs.forEach((i) => {
-      if (i.type === "checkbox") {
-        if (i.checked && !state.selectedUsers.includes(i.value)) {
-          state.selectedUsers.push(i.value);
-        } else if (!i.checked) {
-          state.selectedUsers = state.selectedUsers.filter(u => u !== i.value);
+
+    inputs.forEach(input => {
+      if (input.type === "checkbox") {
+        if (input.checked && !state.selectedUsers.includes(input.value)) {
+          state.selectedUsers.push(input.value);
         }
       } else {
-        state[i.name || i.id] = i.value;
+        state[input.name] = input.value;
       }
     });
 
@@ -131,42 +141,96 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   });
 
-  // Sichtbarkeit Step 2
-  document.querySelectorAll(".vis-card").forEach((vBtn) => {
-    vBtn.addEventListener("click", () => {
-      document.querySelectorAll(".vis-card").forEach((b) => b.classList.remove("active"));
-      vBtn.classList.add("active");
-      state.visibility = vBtn.dataset.mode;
-      userList.style.display = state.visibility === "public" ? "none" : "flex";
-      everyoneHint.style.display = state.visibility === "public" ? "block" : "none";
+  /* ==========================
+     VISIBILITY STEP
+  ========================== */
+  document.querySelectorAll(".vis-card").forEach(btn => {
+    btn.addEventListener("click", () => {
+      document.querySelectorAll(".vis-card")
+        .forEach(b => b.classList.remove("active"));
+
+      btn.classList.add("active");
+      state.visibility = btn.dataset.mode;
+
+      const isPublic = state.visibility === "public";
+      userList.style.display = isPublic ? "none" : "flex";
+      everyoneHint.style.display = isPublic ? "block" : "none";
     });
   });
 
-  // Live-Korrektur beim Tippen
-  document.querySelectorAll("input").forEach(input => {
-    input.addEventListener("input", () => {
-      if (input.classList.contains("input-error")) {
-        validateField(input);
-      }
-    });
+  /* ==========================
+     ADRESS AUTOCOMPLETE
+  ========================== */
+  let debounceTimer;
+
+  addressInput.addEventListener("input", () => {
+    clearTimeout(debounceTimer);
+
+    const query = addressInput.value.trim();
+    if (query.length < 3) {
+      suggestionsBox.innerHTML = "";
+      return;
+    }
+
+    debounceTimer = setTimeout(() => {
+      searchAddress(query);
+    }, 400);
   });
 
-  // User Laden (Simuliert)
+  async function searchAddress(query) {
+    try {
+      const res = await fetch(
+        `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}&limit=5`,
+        { headers: { "Accept-Language": "de" } }
+      );
+
+      const results = await res.json();
+      suggestionsBox.innerHTML = "";
+
+      results.forEach(place => {
+        const div = document.createElement("div");
+        div.className = "suggestion";
+        div.textContent = place.display_name;
+
+        div.addEventListener("click", () => {
+          addressInput.value = place.display_name;
+          state.location_address = place.display_name;
+          suggestionsBox.innerHTML = "";
+        });
+
+        suggestionsBox.appendChild(div);
+      });
+    } catch (e) {
+      console.error("Adresse konnte nicht geladen werden", e);
+    }
+  }
+
+  /* ==========================
+     USERS LADEN (SIMULIERT)
+  ========================== */
   async function loadUsers() {
     try {
       const res = await fetch("/api/users/all");
       if (!res.ok) return;
+
       const users = await res.json();
       userList.innerHTML = "";
-      users.forEach((u) => {
-        const el = document.createElement("div");
-        el.className = "user-card";
-        el.innerHTML = `<span>@${u.distinctName}</span><input type="checkbox" value="${u.distinctName}">`;
-        userList.appendChild(el);
+
+      users.forEach(u => {
+        const card = document.createElement("div");
+        card.className = "user-card";
+        card.innerHTML = `
+          <span>@${u.distinctName}</span>
+          <input type="checkbox" value="${u.distinctName}">
+        `;
+        userList.appendChild(card);
       });
-    } catch (e) {}
+    } catch {}
   }
 
+  /* ==========================
+     INIT
+  ========================== */
   loadUsers();
   showStep(0);
 });
