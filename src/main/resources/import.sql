@@ -35,7 +35,7 @@ INSERT INTO location (id, longitude, latitude, name) VALUES
 
 -- Insert Party data
 INSERT INTO party (id, host_user_id, category_id, location_id, title, time_start, time_end, max_people, min_age, max_age, website, description, fee, created_at) VALUES
-(1, 1, 1, 1, 'Sommer Musik Festival', '2026-02-06 18:00:00', '2026-02-06 23:00:00', 200, 18, 35, 'https://summermusic.at', 'Begleite uns zu einem fantastischen Sommer-Musik-Festival mit mehreren DJs und Live-Auftritten! Wiener Atmosphäre garantiert.', 25.00, '2024-06-01 10:00:00'),
+(1, 1, 1, 1, 'Sommer Musik Festival', '2025-02-06 18:00:00', '2025-02-06 23:00:00', 200, 18, 35, 'https://summermusic.at', 'Begleite uns zu einem fantastischen Sommer-Musik-Festival mit mehreren DJs und Live-Auftritten! Wiener Atmosphäre garantiert.', 25.00, '2024-06-01 10:00:00'),
 (2, 2, 4, 2, 'Weinverkostung Abend', '2026-02-08 19:00:00', '2026-02-08 22:00:00', 50, 21, 60, 'https://weinverkostung.at', 'Exklusive Weinverkostung mit Weinen aus aller Welt. Fachkundige Sommelier-Betreuung inklusive. Wiener Weinviertel-Spezialitäten.', 45.00, '2024-06-15 14:30:00'),
 (3, 3, 2, 3, 'Beachvolleyball Turnier', '2026-02-03 10:00:00', '2026-02-03 17:00:00', 100, 16, 40, 'https://beachvolley.at', 'Jährliches Beachvolleyball-Turnier am Donaukanal. Teams willkommen, Einzelspieler können bestehende Teams verstärken!', 10.00, '2024-07-01 09:15:00'),
 (4, 4, 5, 4, 'Tech Meetup: KI & Zukunft', '2026-02-01 18:30:00', '2026-02-01 21:30:00', 80, 18, 50, 'https://techmeetup.at', 'Diskussion über neueste KI-Technologie und ihre Auswirkungen auf unsere Zukunft. Speaker aus führenden Tech-Unternehmen.', 0.00, '2024-08-01 16:45:00'),
