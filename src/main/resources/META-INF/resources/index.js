@@ -288,3 +288,109 @@ async function getAllParties() {
         return null;
     }
 }
+
+// --- DEV: Override browser geolocation to Vienna (48.2082, 16.3738) ---
+// This will make getCurrentPosition / watchPosition return Vienna coordinates.
+// Remove or comment out this call in production.
+(function setFakeGeolocationToVienna() {
+  const fakeLat = 48.2082;
+  const fakeLng = 16.3738;
+  const fakeAcc = 30;
+
+  try {
+    const originalGeo = navigator.geolocation ? { ...navigator.geolocation } : null;
+    const watchers = new Map();
+    let nextWatchId = 1;
+
+    const geo = {
+      getCurrentPosition(success, error, opts) {
+        // call success asynchronously to mimic real behavior
+        setTimeout(() => {
+          success({
+            coords: {
+              latitude: fakeLat,
+              longitude: fakeLng,
+              accuracy: fakeAcc,
+              altitude: null,
+              altitudeAccuracy: null,
+              heading: null,
+              speed: null
+            },
+            timestamp: Date.now()
+          });
+        }, 50);
+      },
+      watchPosition(success, error, opts) {
+        const id = nextWatchId++;
+        // immediate callback
+        success({
+          coords: {
+            latitude: fakeLat,
+            longitude: fakeLng,
+            accuracy: fakeAcc,
+            altitude: null,
+            altitudeAccuracy: null,
+            heading: null,
+            speed: null
+          },
+          timestamp: Date.now()
+        });
+        // periodic updates (every 5s)
+        const handle = setInterval(() => {
+          success({
+            coords: {
+              latitude: fakeLat,
+              longitude: fakeLng,
+              accuracy: fakeAcc,
+              altitude: null,
+              altitudeAccuracy: null,
+              heading: null,
+              speed: null
+            },
+            timestamp: Date.now()
+          });
+        }, 5000);
+        watchers.set(id, handle);
+        return id;
+      },
+      clearWatch(id) {
+        const h = watchers.get(id);
+        if (h) {
+          clearInterval(h);
+          watchers.delete(id);
+        }
+      }
+    };
+
+    // Replace navigator.geolocation (if allowed)
+    try {
+      Object.defineProperty(navigator, 'geolocation', {
+        value: geo,
+        configurable: true,
+        writable: true
+      });
+      console.info('Fake geolocation installed: Vienna (48.2082,16.3738)');
+    } catch (e) {
+      // fallback: assign if defineProperty not allowed
+      try { navigator.geolocation = geo; console.info('Fake geolocation assigned: Vienna'); } catch (_) {}
+    }
+
+    // Optional: expose restore function for debugging
+    window.__restoreOriginalGeolocation = function() {
+      try {
+        if (originalGeo) {
+          Object.defineProperty(navigator, 'geolocation', {
+            value: originalGeo,
+            configurable: true,
+            writable: true
+          });
+          console.info('Geolocation restored to original.');
+        }
+      } catch (e) {
+        console.warn('Could not restore original geolocation.', e);
+      }
+    };
+  } catch (err) {
+    console.warn('Failed to set fake geolocation', err);
+  }
+})();
