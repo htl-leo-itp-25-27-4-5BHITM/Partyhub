@@ -249,13 +249,19 @@ public class PartyRepository {
             Location newLocation = new Location();
             newLocation.setLatitude(partyCreateDto.latitude());
             newLocation.setLongitude(partyCreateDto.longitude());
+            newLocation.setName(partyCreateDto.location_address());
             entityManager.persist(newLocation);
             party.setLocation(newLocation);
         }
 
         party.setMax_age(partyCreateDto.max_age());
         party.setMin_age(partyCreateDto.min_age());
-        party.setCategory(categoryRepository.getCategoryById(partyCreateDto.category_id()));
+        if (partyCreateDto.category_id() != null) {
+            party.setCategory(categoryRepository.getCategoryById(partyCreateDto.category_id()));
+        } else {
+            // Use default category (id = 1) if none provided
+            party.setCategory(categoryRepository.getCategoryById(1L));
+        }
 
         party.setCreated_at(LocalDateTime.now());
         return party;

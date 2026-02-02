@@ -8,7 +8,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     zoomControl: true,
     inertia: true,
     updateWhenZooming: false,
-    updateWhenIdle: true
+    updateWhenIdle: true,
   }).setView([48.3069, 14.2858], 13);
 
   L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
@@ -16,11 +16,46 @@ document.addEventListener("DOMContentLoaded", async () => {
     keepBuffer: 2,
     updateWhenIdle: true,
     updateWhenZooming: false,
-    attribution: "&copy; OpenStreetMap contributors"
+    attribution: "&copy; OpenStreetMap contributors",
   }).addTo(map);
 
   const partyLayer = L.layerGroup().addTo(map);
   const userLayer = L.layerGroup().addTo(map);
+
+  // Load parties from localStorage and add to map
+  function loadPartiesFromLocalStorage() {
+    try {
+      const partiesJSON = localStorage.getItem("parties");
+      if (!partiesJSON) return [];
+      const parties = JSON.parse(partiesJSON);
+      return Array.isArray(parties) ? parties : [];
+    } catch (err) {
+      return [];
+    }
+  }
+
+  // Add party markers from localStorage to map
+  function addLocalStoragePartiesToMap() {
+    const localParties = loadPartiesFromLocalStorage();
+    localParties.forEach((party) => {
+      if (party.latitude && party.longitude) {
+        const marker = L.marker([party.latitude, party.longitude], {
+          icon: L.icon({
+            iconUrl:
+              "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png",
+            iconSize: [25, 41],
+            iconAnchor: [12, 41],
+          }),
+        })
+          .bindPopup(
+            `<strong>${escapeHtml(party.title)}</strong><br>${escapeHtml(party.location_address)}`,
+          )
+          .addTo(partyLayer);
+      }
+    });
+  }
+
+  addLocalStoragePartiesToMap();
 
   // ---------------------------
   // Helpers
@@ -43,16 +78,24 @@ document.addEventListener("DOMContentLoaded", async () => {
     if (!party || typeof party !== "object") return null;
 
     // Direkt am Party-Objekt
-    const latDirect = toNumber(pick(party, ["lat", "latitude", "Latitude", "y"]));
-    const lngDirect = toNumber(pick(party, ["lng", "lon", "longitude", "Longitude", "x"]));
-    if (latDirect !== null && lngDirect !== null) return { lat: latDirect, lng: lngDirect };
+    const latDirect = toNumber(
+      pick(party, ["lat", "latitude", "Latitude", "y"]),
+    );
+    const lngDirect = toNumber(
+      pick(party, ["lng", "lon", "longitude", "Longitude", "x"]),
+    );
+    if (latDirect !== null && lngDirect !== null)
+      return { lat: latDirect, lng: lngDirect };
 
     // In party.location (dein Fall)
     if (party.location && typeof party.location === "object") {
       const loc = party.location;
       const latLoc = toNumber(pick(loc, ["lat", "latitude", "Latitude", "y"]));
-      const lngLoc = toNumber(pick(loc, ["lng", "lon", "longitude", "Longitude", "x"]));
-      if (latLoc !== null && lngLoc !== null) return { lat: latLoc, lng: lngLoc };
+      const lngLoc = toNumber(
+        pick(loc, ["lng", "lon", "longitude", "Longitude", "x"]),
+      );
+      if (latLoc !== null && lngLoc !== null)
+        return { lat: latLoc, lng: lngLoc };
 
       // GeoJSON
       if (Array.isArray(loc.coordinates) && loc.coordinates.length >= 2) {
@@ -119,9 +162,13 @@ document.addEventListener("DOMContentLoaded", async () => {
     }
 
     // 3) Try backend format "dd.MM.yyyy HH:mm" or "dd.MM.yyyy"
-    const m = String(raw).match(/^\s*(\d{1,2})\.(\d{1,2})\.(\d{4})(?:[ T](\d{1,2}):(\d{2}))?\s*$/);
+    const m = String(raw).match(
+      /^\s*(\d{1,2})\.(\d{1,2})\.(\d{4})(?:[ T](\d{1,2}):(\d{2}))?\s*$/,
+    );
     if (m) {
-      const day = Number(m[1]), month = Number(m[2]), year = Number(m[3]);
+      const day = Number(m[1]),
+        month = Number(m[2]),
+        year = Number(m[3]);
       const hour = m[4] ? Number(m[4]) : 0;
       const minute = m[5] ? Number(m[5]) : 0;
       d = new Date(year, month - 1, day, hour, minute);
@@ -135,7 +182,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   // normalize to start of day (local) to avoid time-of-day excluding same-day events
   function startOfDayLocal(d) {
     const nd = new Date(d);
-    nd.setHours(0,0,0,0);
+    nd.setHours(0, 0, 0, 0);
     return nd;
   }
 
@@ -152,14 +199,14 @@ document.addEventListener("DOMContentLoaded", async () => {
     // Debug: show raw values if something excluded unexpectedly
     const ok = startDay >= today && startDay <= in14;
     if (!ok) {
-      console.debug('isInNext14Days: excluded party', {
+      console.debug("isInNext14Days: excluded party", {
         id: p.id ?? p.partyId,
         title: p.title ?? p.name,
         raw_time_start: p?.time_start,
         parsed_iso: start ? start.toISOString() : null,
         startDay: startDay ? startDay.toISOString() : null,
         today: today.toISOString(),
-        in14: in14.toISOString()
+        in14: in14.toISOString(),
       });
     }
     return ok;
@@ -174,14 +221,16 @@ document.addEventListener("DOMContentLoaded", async () => {
       : await getAllParties();
 
     // Debug: show what we received
-    console.debug('loadAllPartiesToMap: received parties:', parties);
+    console.debug("loadAllPartiesToMap: received parties:", parties);
     if (!Array.isArray(parties)) {
       console.warn("Parties nicht als Array bekommen:", parties);
       return;
     }
 
     const filtered = parties.filter(isInNext14Days);
-    console.debug(`loadAllPartiesToMap: ${parties.length} total, ${filtered.length} in next 14 days`);
+    console.debug(
+      `loadAllPartiesToMap: ${parties.length} total, ${filtered.length} in next 14 days`,
+    );
 
     partyLayer.clearLayers();
     const bounds = [];
@@ -189,7 +238,10 @@ document.addEventListener("DOMContentLoaded", async () => {
     for (const party of filtered) {
       const ll = extractLatLng(party);
       if (!ll) {
-        console.debug('loadAllPartiesToMap: no coords for party', party.id ?? party.title ?? party);
+        console.debug(
+          "loadAllPartiesToMap: no coords for party",
+          party.id ?? party.title ?? party,
+        );
         continue;
       }
 
@@ -236,11 +288,11 @@ document.addEventListener("DOMContentLoaded", async () => {
         showUserLocation(
           pos.coords.latitude,
           pos.coords.longitude,
-          pos.coords.accuracy
+          pos.coords.accuracy,
         );
       },
       (err) => console.warn("Geolocation error:", err.message),
-      { enableHighAccuracy: true, timeout: 10000, maximumAge: 5000 }
+      { enableHighAccuracy: true, timeout: 10000, maximumAge: 5000 },
     );
   }
 
@@ -276,17 +328,16 @@ document.addEventListener("DOMContentLoaded", async () => {
   startGeolocation();
 });
 
-
 async function getAllParties() {
-    try {
-        const response = await fetch('/api/party/');
-        if (!response.ok) throw new Error('Network response was not ok');
-        const data = await response.json();
-        return data;
-    } catch (error) {
-        console.error('Error fetching parties:', error);
-        return null;
-    }
+  try {
+    const response = await fetch("/api/party/");
+    if (!response.ok) throw new Error("Network response was not ok");
+    const data = await response.json();
+    return data;
+  } catch (error) {
+    console.error("Error fetching parties:", error);
+    return null;
+  }
 }
 
 // --- DEV: Override browser geolocation to Vienna (48.2082, 16.3738) ---
@@ -298,7 +349,9 @@ async function getAllParties() {
   const fakeAcc = 30;
 
   try {
-    const originalGeo = navigator.geolocation ? { ...navigator.geolocation } : null;
+    const originalGeo = navigator.geolocation
+      ? { ...navigator.geolocation }
+      : null;
     const watchers = new Map();
     let nextWatchId = 1;
 
@@ -314,9 +367,9 @@ async function getAllParties() {
               altitude: null,
               altitudeAccuracy: null,
               heading: null,
-              speed: null
+              speed: null,
             },
-            timestamp: Date.now()
+            timestamp: Date.now(),
           });
         }, 50);
       },
@@ -331,9 +384,9 @@ async function getAllParties() {
             altitude: null,
             altitudeAccuracy: null,
             heading: null,
-            speed: null
+            speed: null,
           },
-          timestamp: Date.now()
+          timestamp: Date.now(),
         });
         // periodic updates (every 5s)
         const handle = setInterval(() => {
@@ -345,9 +398,9 @@ async function getAllParties() {
               altitude: null,
               altitudeAccuracy: null,
               heading: null,
-              speed: null
+              speed: null,
             },
-            timestamp: Date.now()
+            timestamp: Date.now(),
           });
         }, 5000);
         watchers.set(id, handle);
@@ -359,38 +412,41 @@ async function getAllParties() {
           clearInterval(h);
           watchers.delete(id);
         }
-      }
+      },
     };
 
     // Replace navigator.geolocation (if allowed)
     try {
-      Object.defineProperty(navigator, 'geolocation', {
+      Object.defineProperty(navigator, "geolocation", {
         value: geo,
         configurable: true,
-        writable: true
+        writable: true,
       });
-      console.info('Fake geolocation installed: Vienna (48.2082,16.3738)');
+      console.info("Fake geolocation installed: Vienna (48.2082,16.3738)");
     } catch (e) {
       // fallback: assign if defineProperty not allowed
-      try { navigator.geolocation = geo; console.info('Fake geolocation assigned: Vienna'); } catch (_) {}
+      try {
+        navigator.geolocation = geo;
+        console.info("Fake geolocation assigned: Vienna");
+      } catch (_) {}
     }
 
     // Optional: expose restore function for debugging
-    window.__restoreOriginalGeolocation = function() {
+    window.__restoreOriginalGeolocation = function () {
       try {
         if (originalGeo) {
-          Object.defineProperty(navigator, 'geolocation', {
+          Object.defineProperty(navigator, "geolocation", {
             value: originalGeo,
             configurable: true,
-            writable: true
+            writable: true,
           });
-          console.info('Geolocation restored to original.');
+          console.info("Geolocation restored to original.");
         }
       } catch (e) {
-        console.warn('Could not restore original geolocation.', e);
+        console.warn("Could not restore original geolocation.", e);
       }
     };
   } catch (err) {
-    console.warn('Failed to set fake geolocation', err);
+    console.warn("Failed to set fake geolocation", err);
   }
 })();
