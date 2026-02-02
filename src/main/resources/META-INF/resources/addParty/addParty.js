@@ -1,5 +1,4 @@
 document.addEventListener("DOMContentLoaded", () => {
-
   /* ==========================
      DOM ELEMENTE
   ========================== */
@@ -25,19 +24,22 @@ document.addEventListener("DOMContentLoaded", () => {
     time_start: "",
     time_end: "",
     location_address: "",
+    latitude: null,
+    longitude: null,
     visibility: "private",
     selectedUsers: [],
     entry_costs: null,
     theme: "",
     min_age: 18,
     max_age: null,
-    website: ""
+    website: "",
   };
 
   const stepTitles = [
     "Add new Party",
     "Who can attend the party?",
-    "Other Infos"
+    "Other Infos",
+    "Map Preview",
   ];
 
   /* ==========================
@@ -46,20 +48,20 @@ document.addEventListener("DOMContentLoaded", () => {
   const fpStart = flatpickr("#time_start", {
     enableTime: true,
     dateFormat: "d.m.Y H:i",
-    time_24hr: true
+    time_24hr: true,
   });
 
   const fpEnd = flatpickr("#time_end", {
     enableTime: true,
     dateFormat: "d.m.Y H:i",
-    time_24hr: true
+    time_24hr: true,
   });
 
   /* ==========================
-     STEP LOGIK
+     STEP NAVIGATION
   ========================== */
   function showStep(index) {
-    steps.forEach(s => s.classList.remove("active"));
+    steps.forEach((s) => s.classList.remove("active"));
     steps[index].classList.add("active");
 
     title.textContent = stepTitles[index];
@@ -74,10 +76,11 @@ document.addEventListener("DOMContentLoaded", () => {
     const inputs = activeStep.querySelectorAll("input");
     let valid = true;
 
-    inputs.forEach(input => {
+    inputs.forEach((input) => {
       const value = input.value.trim();
       let error = false;
 
+      // Pflichtfelder
       if (
         ["title", "time_start", "location_address"].includes(input.name) &&
         value === ""
@@ -85,10 +88,20 @@ document.addEventListener("DOMContentLoaded", () => {
         error = true;
       }
 
+      // Adresse nur gültig wenn ausgewählt
+      if (
+        input.name === "location_address" &&
+        (!state.latitude || !state.longitude)
+      ) {
+        error = true;
+      }
+
+      // Startdatum darf nicht Vergangenheit sein
       if (input.name === "time_start" && fpStart.selectedDates[0]) {
         if (fpStart.selectedDates[0] < new Date()) error = true;
       }
 
+      // Enddatum nach Start
       if (
         input.name === "time_end" &&
         fpStart.selectedDates[0] &&
@@ -113,10 +126,15 @@ document.addEventListener("DOMContentLoaded", () => {
 
     const inputs = steps[currentStep].querySelectorAll("input");
 
-    inputs.forEach(input => {
+    inputs.forEach((input) => {
       if (input.type === "checkbox") {
         if (input.checked && !state.selectedUsers.includes(input.value)) {
           state.selectedUsers.push(input.value);
+        }
+        if (!input.checked) {
+          state.selectedUsers = state.selectedUsers.filter(
+            (u) => u !== input.value,
+          );
         }
       } else {
         state[input.name] = input.value;
@@ -127,8 +145,8 @@ document.addEventListener("DOMContentLoaded", () => {
       currentStep++;
       showStep(currentStep);
     } else {
-      console.log("FINAL PAYLOAD", state);
-      alert("Party ready 🚀");
+      // Submit the party
+      submitPartyToBackend(state);
     }
   });
 
@@ -144,13 +162,14 @@ document.addEventListener("DOMContentLoaded", () => {
   /* ==========================
      VISIBILITY STEP
   ========================== */
-  document.querySelectorAll(".vis-card").forEach(btn => {
-    btn.addEventListener("click", () => {
-      document.querySelectorAll(".vis-card")
-        .forEach(b => b.classList.remove("active"));
+  document.querySelectorAll(".vis-card").forEach((card) => {
+    card.addEventListener("click", () => {
+      document
+        .querySelectorAll(".vis-card")
+        .forEach((c) => c.classList.remove("active"));
 
-      btn.classList.add("active");
-      state.visibility = btn.dataset.mode;
+      card.classList.add("active");
+      state.visibility = card.dataset.mode;
 
       const isPublic = state.visibility === "public";
       userList.style.display = isPublic ? "none" : "flex";
@@ -159,12 +178,16 @@ document.addEventListener("DOMContentLoaded", () => {
   });
 
   /* ==========================
-     ADRESS AUTOCOMPLETE
+     ADRESS AUTOCOMPLETE (NOMINATIM)
   ========================== */
   let debounceTimer;
 
   addressInput.addEventListener("input", () => {
     clearTimeout(debounceTimer);
+
+    // Wenn User wieder tippt → Koordinaten reset
+    state.latitude = null;
+    state.longitude = null;
 
     const query = addressInput.value.trim();
     if (query.length < 3) {
@@ -181,32 +204,36 @@ document.addEventListener("DOMContentLoaded", () => {
     try {
       const res = await fetch(
         `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}&limit=5`,
-        { headers: { "Accept-Language": "de" } }
+        { headers: { "Accept-Language": "de" } },
       );
 
       const results = await res.json();
       suggestionsBox.innerHTML = "";
 
-      results.forEach(place => {
+      results.forEach((place) => {
         const div = document.createElement("div");
         div.className = "suggestion";
         div.textContent = place.display_name;
 
         div.addEventListener("click", () => {
           addressInput.value = place.display_name;
+
           state.location_address = place.display_name;
+          state.latitude = Number(place.lat);
+          state.longitude = Number(place.lon);
+
           suggestionsBox.innerHTML = "";
         });
 
         suggestionsBox.appendChild(div);
       });
     } catch (e) {
-      console.error("Adresse konnte nicht geladen werden", e);
+      // Address search failed silently
     }
   }
 
   /* ==========================
-     USERS LADEN (SIMULIERT)
+     USERS LADEN
   ========================== */
   async function loadUsers() {
     try {
@@ -216,14 +243,14 @@ document.addEventListener("DOMContentLoaded", () => {
       const users = await res.json();
       userList.innerHTML = "";
 
-      users.forEach(u => {
-        const card = document.createElement("div");
-        card.className = "user-card";
-        card.innerHTML = `
+      users.forEach((u) => {
+        const el = document.createElement("div");
+        el.className = "user-card";
+        el.innerHTML = `
           <span>@${u.distinctName}</span>
           <input type="checkbox" value="${u.distinctName}">
         `;
-        userList.appendChild(card);
+        userList.appendChild(el);
       });
     } catch {}
   }
@@ -233,4 +260,113 @@ document.addEventListener("DOMContentLoaded", () => {
   ========================== */
   loadUsers();
   showStep(0);
+
+  /* ==========================
+     LEAFLET MAP (Step 4)
+  ========================== */
+  let addPartyMap = null;
+  let addPartyMarker = null;
+
+  function initAddPartyMap() {
+    if (addPartyMap) return; // already initialized
+
+    const mapDiv = document.getElementById("addPartyMap");
+    addPartyMap = L.map(mapDiv).setView([48.2082, 16.3738], 13); // Vienna center
+
+    L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+      attribution: "&copy; OpenStreetMap contributors",
+      maxZoom: 19,
+    }).addTo(addPartyMap);
+
+    // Add marker at party location
+    if (state.latitude && state.longitude) {
+      if (addPartyMarker) {
+        addPartyMarker.setLatLng([state.latitude, state.longitude]);
+      } else {
+        addPartyMarker = L.marker([state.latitude, state.longitude])
+          .bindPopup(
+            `<strong>${state.title}</strong><br>${state.location_address}`,
+          )
+          .addTo(addPartyMap);
+      }
+      addPartyMap.setView([state.latitude, state.longitude], 15);
+    }
+  }
+
+  // Hook into step navigation to initialize map on step 4
+  const originalShowStep = showStep;
+  showStep = function (index) {
+    originalShowStep(index);
+    if (index === 3 && state.latitude && state.longitude) {
+      const mapDiv = document.getElementById("addPartyMap");
+      const msgDiv = document.getElementById("mapMessage");
+      mapDiv.style.display = "block";
+      msgDiv.style.display = "none";
+      setTimeout(() => initAddPartyMap(), 100);
+    }
+  };
+
+  /* ==========================
+     SEND PARTY TO BACKEND
+  ========================== */
+  async function submitPartyToBackend(partyData) {
+    // Save to localStorage for instant map display
+    const parties = JSON.parse(localStorage.getItem("parties") || "[]");
+    parties.push({
+      id: Date.now(),
+      title: partyData.title,
+      latitude: partyData.latitude,
+      longitude: partyData.longitude,
+      location_address: partyData.location_address,
+      description: partyData.description,
+      time_start: partyData.time_start,
+      time_end: partyData.time_end,
+      visibility: partyData.visibility,
+      entry_costs: partyData.entry_costs,
+      theme: partyData.theme,
+      min_age: partyData.min_age,
+      max_age: partyData.max_age,
+      website: partyData.website,
+    });
+    localStorage.setItem("parties", JSON.stringify(parties));
+
+    // Try to send to backend (fire and forget)
+    try {
+      const backendPayload = {
+        title: partyData.title,
+        description: partyData.description,
+        fee: partyData.entry_costs, // Map entry_costs to fee
+        time_start: partyData.time_start,
+        time_end: partyData.time_end,
+        latitude: partyData.latitude,
+        longitude: partyData.longitude,
+        location_address: partyData.location_address,
+        min_age: partyData.min_age,
+        max_age: partyData.max_age,
+        website: partyData.website,
+        theme: partyData.theme,
+        visibility: partyData.visibility,
+        selectedUsers: partyData.selectedUsers,
+      };
+      
+      const response = await fetch("/api/party/add", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(backendPayload),
+      });
+      
+      if (!response.ok) {
+        console.error("Backend error:", response.statusText);
+      }
+    } catch (err) {
+      console.error("Backend not available:", err);
+      // Backend not available, but party is saved in localStorage
+    }
+
+    alert("Party hinzugefügt! 🎉");
+    // Navigate to index.html to see party on map
+    setTimeout(() => {
+      window.location.href = "/index.html";
+    }, 500);
+  }
 });

@@ -9,7 +9,21 @@
       rel="stylesheet"
       href="https://cdn.jsdelivr.net/npm/flatpickr/dist/themes/dark.css"
     />
+    <!-- Leaflet CSS -->
+    <link
+      rel="stylesheet"
+      href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+      integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
+      crossorigin=""
+    />
     <script src="https://cdn.jsdelivr.net/npm/flatpickr" defer></script>
+    <!-- Leaflet JS -->
+    <script
+      src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+      integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
+      crossorigin=""
+      defer
+    ></script>
     <script src="./addParty.js" defer></script>
   </head>
   <body>
@@ -84,6 +98,28 @@
             <div class="field">
               <div class="field-label">Website</div>
               <input name="website" type="url" placeholder="https://..." />
+            </div>
+          </div>
+
+          <div class="step" data-step="4">
+            <div class="field">
+              <div class="field-label">Map Preview</div>
+              <div
+                id="addPartyMap"
+                style="
+                  width: 100%;
+                  height: 320px;
+                  border-radius: 8px;
+                  margin-top: 10px;
+                  display: none;
+                "
+              ></div>
+              <p
+                id="mapMessage"
+                style="color: #999; text-align: center; padding: 20px"
+              >
+                Party wird auf der Karte angezeigt
+              </p>
             </div>
           </div>
 

@@ -12,4 +12,8 @@ public record PartyCreateDto(
         String website,
         Double latitude,
         Double longitude,
-        Long category_id ){ }
+        String location_address,
+        Long category_id,
+        String theme,
+        String visibility,
+        java.util.List<String> selectedUsers ){ }
