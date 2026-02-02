@@ -241,16 +241,21 @@ async function deleteInvite(invitationId) {
         throw error;
     }
 }
-// Get parties created by a specific user (tries several endpoints, fallspezifisch)
+// Get parties created by a specific user (tries several endpoints, fallbacks)
 async function getPartiesByUser(userId) {
     const candidates = [
         `/api/users/${userId}/parties`,
         `/api/party/user/${userId}`,
+        `/api/party?host_user_id=${userId}`,
+        `/api/party?hostId=${userId}`,
+        `/api/party?host_id=${userId}`,
         `/api/party?ownerId=${userId}`,
         `/api/party?userId=${userId}`,
-        `/api/party/owner/${userId}`
+        `/api/party/owned/${userId}`,
+        `/api/party/owner/${userId}`,
+        `/api/party/` // last resort - list all
     ];
-    // try direct endpoints first
+
     for (const u of candidates) {
         try {
             const res = await fetch(u);
@@ -259,33 +264,84 @@ async function getPartiesByUser(userId) {
                 continue;
             }
             const data = await res.json().catch(() => null);
-            // Accept several response shapes
-            if (Array.isArray(data)) return data;
-            if (data && Array.isArray(data.parties)) return data.parties;
-            if (data && Array.isArray(data.data)) return data.data;
-            if (data && Array.isArray(data.results)) return data.results;
-            // If object contains party-like items under other keys, attempt to find first array
-            if (data && typeof data === 'object') {
+            if (!data) continue;
+
+            // Normalize several possible shapes to an array "arr"
+            let arr = null;
+            if (Array.isArray(data)) arr = data;
+            else if (Array.isArray(data.parties)) arr = data.parties;
+            else if (Array.isArray(data.data)) arr = data.data;
+            else if (Array.isArray(data.results)) arr = data.results;
+            else if (typeof data === 'object') {
+                // try to find the first array value inside the response object
                 for (const k of Object.keys(data)) {
-                    if (Array.isArray(data[k])) return data[k];
+                    if (Array.isArray(data[k])) { arr = data[k]; break; }
                 }
             }
-            if (Array.isArray(data)) return data;
+
+            if (Array.isArray(arr)) {
+                // Filter strictly for host/owner fields matching userId to be safe
+                const filtered = arr.filter(p => {
+                    if (!p) return false;
+                    const id = String(userId);
+                    if (p.host_user_id != null && String(p.host_user_id) === id) return true;
+                    if (p.hostId != null && String(p.hostId) === id) return true;
+                    if (p.host_id != null && String(p.host_id) === id) return true;
+                    if (p.hostUserId != null && String(p.hostUserId) === id) return true;
+                    if (p.ownerId != null && String(p.ownerId) === id) return true;
+                    if (p.creatorId != null && String(p.creatorId) === id) return true;
+                    if (p.userId != null && String(p.userId) === id) return true;
+                    if (p.owner != null && String(p.owner) === id) return true;
+                    if (p.host && typeof p.host === 'object' && (String(p.host.id) === id || String(p.host.userId) === id)) return true;
+                    return false;
+                });
+                console.debug(`getPartiesByUser: endpoint ${u} returned ${arr.length} item(s), filtered -> ${filtered.length}`);
+                // If we queried a direct user-scoped endpoint (not the generic /api/party/), return filtered (could be empty)
+                return filtered;
+            }
+            // If data itself is an object that looks like a single party, return it as single-element array when host matches
+            if (data && typeof data === 'object') {
+                const maybe = data;
+                const idStr = String(userId);
+                if (
+                    (maybe.host_user_id != null && String(maybe.host_user_id) === idStr) ||
+                    (maybe.hostId != null && String(maybe.hostId) === idStr) ||
+                    (maybe.ownerId != null && String(maybe.ownerId) === idStr) ||
+                    (maybe.creatorId != null && String(maybe.creatorId) === idStr) ||
+                    (maybe.host && typeof maybe.host === 'object' && String(maybe.host.id) === idStr)
+                ) {
+                    return [maybe];
+                }
+            }
         } catch (err) {
             console.debug(`getPartiesByUser: network error for ${u}`, err);
+            continue;
         }
     }
 
-    // fallback: fetch all parties and filter by common owner fields
+    // fallback: fetch all parties and filter by many possible owner/host fields
     try {
         const all = await getAllParties();
-        if (!Array.isArray(all)) return null;
-        return all.filter(p => {
-            return p.ownerId == userId || p.creatorId == userId || p.userId == userId || p.owner == userId;
+        if (!Array.isArray(all)) return [];
+        const result = all.filter(p => {
+            if (!p) return false;
+            const id = String(userId);
+            if (p.host_user_id != null && String(p.host_user_id) === id) return true;
+            if (p.hostId != null && String(p.hostId) === id) return true;
+            if (p.host_id != null && String(p.host_id) === id) return true;
+            if (p.hostUserId != null && String(p.hostUserId) === id) return true;
+            if (p.ownerId != null && String(p.ownerId) === id) return true;
+            if (p.creatorId != null && String(p.creatorId) === id) return true;
+            if (p.userId != null && String(p.userId) === id) return true;
+            if (p.owner != null && String(p.owner) === id) return true;
+            if (p.host && typeof p.host === 'object' && (String(p.host.id) === id || String(p.host.userId) === id)) return true;
+            return false;
         });
+        console.debug(`getPartiesByUser: fallback filtered ${result.length} parties from all (${Array.isArray(all)?all.length:0})`);
+        return result;
     } catch (err) {
         console.error('getPartiesByUser fallback failed', err);
-        return null;
+        return [];
     }
 }
 

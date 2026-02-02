@@ -643,3 +643,209 @@ body {
     padding: 8px;
   }
 }
+
+/* Make parties container scrollable without pushing page content.
+   max-height tuned relative to viewport; adjust calc(...) if header/footer sizes change. */
+#partiesContainer {
+  display: grid; /* keep grid layout from .party-grid */
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+  width: 100%;
+  max-width: 520px;
+  margin: 12px auto 0;
+  box-sizing: border-box;
+  padding: 8px;
+  /* ensure container doesn't grow beyond viewport — adjust 320px as needed */
+  max-height: calc(100vh - 320px);
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch; /* smooth scrolling on iOS */
+  /* visual separation / backdrop */
+  background: transparent;
+
+  /* ADDED: bottom padding so last items remain visible above fixed bottom nav */
+  /* 56px = approx. bottom-nav height, 24px = extra gap; env(safe-area-inset-bottom) for iOS */
+  padding-bottom: calc(56px + 24px + env(safe-area-inset-bottom, 0px));
+}
+
+/* scrollbar styling for parties container */
+#partiesContainer::-webkit-scrollbar {
+  width: 8px;
+}
+#partiesContainer::-webkit-scrollbar-track {
+  background: transparent;
+}
+#partiesContainer::-webkit-scrollbar-thumb {
+  background: rgba(255,255,255,0.06);
+  border-radius: 6px;
+}
+#partiesContainer::-webkit-scrollbar-thumb:hover {
+  background: rgba(255,255,255,0.12);
+}
+
+/* ensure single-column on small screens */
+@media (max-width: 360px) {
+  #partiesContainer {
+    grid-template-columns: 1fr;
+    max-height: calc(100vh - 260px);
+    padding: 6px;
+    /* slightly larger bottom padding on small screens */
+    padding-bottom: calc(56px + 32px + env(safe-area-inset-bottom, 0px));
+  }
+}
+
+/* Username button: show only the username text in the header */
+.username-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: transparent;
+  border: none;
+  padding: 6px 12px;
+  border-radius: 10px;
+  cursor: pointer;
+  color: inherit;
+  text-align: left;
+}
+
+/* Header shows only the distinct username */
+.username-btn .username-avatar,
+.username-avatar { 
+  display: none; /* hide avatar in header; dropdown items still use .avatar */
+}
+
+.distinct-name {
+  font-size: 1rem;
+  font-weight: 700;
+  color: #fff;
+}
+
+/* keep dropdown avatars visible (class .avatar used in list items) */
+.avatar {
+  display: inline-block;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  object-fit: cover;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.25);
+}
+
+/* Username list items use existing .username-item styles if any; add small defaults */
+.username-item {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  width: 100%;
+  padding: 10px 12px;
+  background: transparent;
+  border: none;
+  text-align: left;
+  color: inherit;
+  cursor: pointer;
+}
+.username-item:hover {
+  background: rgba(255,255,255,0.04);
+}
+  padding: 10px 12px;
+  background: transparent;
+  border: none;
+  text-align: left;
+  color: inherit;
+  cursor: pointer;
+}
+.username-item:hover {
+  background: rgba(255,255,255,0.04);
+}
+
+/* Make username container relative so dropdown can be absolute and overlay content */
+#username {
+  position: relative;
+  z-index: 1;
+}
+
+/* username dropdown: overlay, not push content */
+#usernameDropdown {
+  position: absolute;
+  top: calc(100% + 8px);
+  left: 50%;
+  transform: translateX(-50%);
+  width: min(90vw, 420px);
+  background: rgba(34, 30, 54, 0.98);
+  border-radius: 12px;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.35);
+  padding: 6px 0;
+  z-index: 3000;
+  max-height: 320px;
+  overflow-y: auto;
+  border: 1px solid rgba(255,255,255,0.06);
+  backdrop-filter: blur(6px);
+}
+
+/* hidden state */
+#usernameDropdown.hidden {
+  display: none;
+}
+
+/* dropdown list items styling */
+.dropdown-list {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+/* ensure avatar in dropdown visible */
+#usernameDropdown .avatar {
+  width: 44px;
+  height: 44px;
+  flex-shrink: 0;
+}
+
+/* make sure dropdown doesn't affect layout when hidden */
+#usernameDropdown[aria-hidden="true"] { display: none; }
+
+/* small responsive tweak so dropdown fits on narrow screens */
+@media (max-width: 380px) {
+  #usernameDropdown { left: 8px; transform: none; width: calc(100% - 16px); }
+}
+
+/* expandable party details */
+.party-extra {
+  display: block;
+  margin-top: 8px;
+  background: rgba(0,0,0,0.18);
+  border-radius: 8px;
+  padding: 8px;
+  max-height: 260px;
+  overflow: auto;
+  border: 1px solid rgba(255,255,255,0.04);
+}
+
+/* hidden helper */
+.party-extra.hidden {
+  display: none;
+}
+
+/* JSON block */
+.party-json {
+  color: #fff;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, "Roboto Mono", "Courier New", monospace;
+  font-size: 0.78rem;
+  line-height: 1.3;
+  white-space: pre-wrap;
+  word-break: break-word;
+  margin: 0;
+}
+
+/* small spacing for the details button (icon alignment) */
+.details-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 8px;
+  background: transparent;
+  border: none;
+  color: inherit;
+  cursor: pointer;
+}
+.details-btn:focus { outline: 2px solid rgba(255,255,255,0.08); }
