@@ -26,12 +26,12 @@ INSERT INTO category (id, name) VALUES
 (8, 'Bildung');
 
 -- Insert Location data
-INSERT INTO location (id, longitude, latitude, name) VALUES
-(1, 16.3738, 48.2082  , 'Stephansdom'),
-(2, 16.3680, 48.2020  ,'Karlsplatz'),
-(3, 16.3850, 48.2150  ,'Donaukanal'),
-(4, 16.3600, 48.2000  ,'Mariahilf'),
-(5, 16.3750, 48.2100  ,'Innere Stadt');
+INSERT INTO location (id, longitude, latitude, adresse) VALUES
+(1, 16.3738, 48.2082  , 'Stephansplatz, 1010 Wien, Österreich'),
+(2, 16.3680, 48.2020  ,'Hofburg, 1010 Wien, Österreich'),
+(3, 16.3850, 48.2150  ,'Praterstern, 1020 Wien, Österreich'),
+(4, 16.3600, 48.2000  ,'Linke Wienzeile, 1060 Wien, Österreich'),
+(5, 16.3750, 48.2100  ,'Lugeck / Fleischmarkt, 1010 Wien, Österreich');
 
 -- Insert Party data
 INSERT INTO party (id, host_user_id, category_id, location_id, title, time_start, time_end, max_people, min_age, max_age, website, description, fee, created_at) VALUES
