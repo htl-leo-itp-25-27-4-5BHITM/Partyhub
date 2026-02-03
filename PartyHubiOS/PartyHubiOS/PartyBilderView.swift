@@ -5,8 +5,8 @@ struct PartyBilderView: View {
     let partyName: String
     
     @State private var selectedItems: [PhotosPickerItem] = []
-    @State private var geladeneBilder: [URL] = [] // Wir speichern jetzt URLs, um die Dateien löschen zu können
-    @State private var ausgewaehlteBilderZumLoeschen = Set<URL>() // Speichert, welche Bilder markiert sind
+    @State private var geladeneBilder: [URL] = []
+    @State private var ausgewaehlteBilderZumLoeschen = Set<URL>()
     @State private var istImBearbeitungsModus = false
     
     var body: some View {
@@ -14,7 +14,6 @@ struct PartyBilderView: View {
             HStack {
                 Text(partyName).font(.title).bold()
                 Spacer()
-                // Button um den Lösch-Modus zu starten
                 Button(istImBearbeitungsModus ? "Fertig" : "Bearbeiten") {
                     istImBearbeitungsModus.toggle()
                     ausgewaehlteBilderZumLoeschen.removeAll()
@@ -26,7 +25,6 @@ struct PartyBilderView: View {
                 LazyVGrid(columns: [GridItem(.adaptive(minimum: 100))], spacing: 10) {
                     ForEach(geladeneBilder, id: \.self) { url in
                         ZStack(alignment: .topTrailing) {
-                            // Das Bild anzeigen
                             if let daten = try? Data(contentsOf: url), let bild = UIImage(data: daten) {
                                 Image(uiImage: bild)
                                     .resizable()
@@ -42,7 +40,6 @@ struct PartyBilderView: View {
                                     }
                             }
 
-                            // Häkchen anzeigen, wenn im Bearbeitungsmodus
                             if istImBearbeitungsModus {
                                 Image(systemName: ausgewaehlteBilderZumLoeschen.contains(url) ? "checkmark.circle.fill" : "circle")
                                     .foregroundColor(.blue)
@@ -55,7 +52,6 @@ struct PartyBilderView: View {
             }
 
             if istImBearbeitungsModus && !ausgewaehlteBilderZumLoeschen.isEmpty {
-                // Löschen Button
                 Button(action: loescheAusgewaehlteBilder) {
                     Label("\(ausgewaehlteBilderZumLoeschen.count) Bilder löschen", systemImage: "trash")
                         .foregroundColor(.white)
@@ -66,7 +62,6 @@ struct PartyBilderView: View {
                 }
                 .padding()
             } else if !istImBearbeitungsModus {
-                // Normaler Picker Button
                 PhotosPicker(selection: $selectedItems, matching: .images) {
                     Label("Fotos hinzufügen", systemImage: "plus")
                         .padding()
@@ -82,7 +77,7 @@ struct PartyBilderView: View {
         .onAppear { ladeBilderAusOrdner() }
     }
 
-    // MARK: - Logik
+
 
     func waehleBildAus(url: URL) {
         if ausgewaehlteBilderZumLoeschen.contains(url) {
@@ -95,11 +90,11 @@ struct PartyBilderView: View {
     func loescheAusgewaehlteBilder() {
         let fm = FileManager.default
         for url in ausgewaehlteBilderZumLoeschen {
-            try? fm.removeItem(at: url) // Löscht die echte Datei
+            try? fm.removeItem(at: url) 
         }
         ausgewaehlteBilderZumLoeschen.removeAll()
         istImBearbeitungsModus = false
-        ladeBilderAusOrdner() // Liste neu laden
+        ladeBilderAusOrdner()
     }
 
     func speichereBilder() {

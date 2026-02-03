@@ -12,7 +12,6 @@ struct PhotoView: View {
         NavigationStack {
             List {
                 NavigationLink("Bilder für Geburtstag hochladen") {
-                    // Hier rufen wir deine neue Datei auf
                     PartyBilderView(partyName: "Geburtstag_2024")
                 }
             }
