@@ -13,7 +13,11 @@ struct ContentView: View {
             TabView{
                 HomeView()
                     .tabItem {
-                        Label("Home", systemImage: "house")
+                        Label("Home", systemImage: "location")
+                    }
+                PartyView()
+                    .tabItem {
+                        Label("Party", systemImage: "party.popper")
                     }
                 PhotoView()
                     .tabItem{
@@ -25,10 +29,15 @@ struct ContentView: View {
                     }
                 
             }
+            .tint(.primaryPink)
+
         }
     }
 }
 /*
+ 
+
+ 
 #Preview {
     ContentView()
 }

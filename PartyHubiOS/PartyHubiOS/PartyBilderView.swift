@@ -42,7 +42,7 @@ struct PartyBilderView: View {
 
                             if istImBearbeitungsModus {
                                 Image(systemName: ausgewaehlteBilderZumLoeschen.contains(url) ? "checkmark.circle.fill" : "circle")
-                                    .foregroundColor(.blue)
+                                    .foregroundColor(.primaryDarkBlue)
                                     .padding(5)
                             }
                         }
@@ -66,7 +66,7 @@ struct PartyBilderView: View {
                     Label("Fotos hinzufügen", systemImage: "plus")
                         .padding()
                         .frame(maxWidth: .infinity)
-                        .background(Color.blue)
+                        .background(Color.primaryDarkBlue)
                         .foregroundColor(.white)
                         .cornerRadius(10)
                 }
