@@ -13,11 +13,8 @@ struct PartyView: View {
                     VStack(spacing: 15) {
                         Text("ALL PARTIES")
                             .font(.system(size: 55, weight: .black))
-                            .foregroundColor(Color.primaryDarkBlue) // Subtiler Effekt
+                            .foregroundColor(Color.primaryDarkBlue)
                         
-                        Text("Discover amazing events near you")
-                            .italic()
-                            .foregroundColor(.white.opacity(0.8))
                         
                         Button(action: { /* Aktion hier */ }) {
                             HStack {
@@ -28,14 +25,13 @@ struct PartyView: View {
                             .foregroundColor(.white)
                             .padding(.vertical, 12)
                             .padding(.horizontal, 25)
-                            .background(Color.pink) // Knalliges Pink wie im Bild
+                            .background(Color.primaryDarkBlue)
                             .cornerRadius(20)
-                            .shadow(color: .pink.opacity(0.5), radius: 10)
+                            .shadow(color:.primaryDarkBlue.opacity(0.5), radius: 10)
                         }
                     }
                     .padding(.top, 40)
                     
-                    // 2. Karten Sektion
                     VStack(spacing: 15) {
                         PartyCard(name: "Summer Blast", location: "Berlin, Strandbar", date: "15. Aug 2026")
                         PartyCard(name: "Techno Night", location: "München, Club X", date: "22. Aug 2026")
@@ -47,7 +43,6 @@ struct PartyView: View {
         }
     }
     
-    // Die Karten-Komponente
     struct PartyCard: View {
         let name: String
         let location: String
