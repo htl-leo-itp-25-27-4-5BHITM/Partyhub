@@ -26,7 +26,7 @@ INSERT INTO category (id, name) VALUES
 (8, 'Bildung');
 
 -- Insert Location data
-INSERT INTO location (id, longitude, latitude, adresse) VALUES
+INSERT INTO location (id, longitude, latitude, address) VALUES
 (1, 16.3738, 48.2082  , 'Stephansplatz, 1010 Wien, Österreich'),
 (2, 16.3680, 48.2020  ,'Hofburg, 1010 Wien, Österreich'),
 (3, 16.3850, 48.2150  ,'Praterstern, 1020 Wien, Österreich'),
