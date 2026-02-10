@@ -2,61 +2,42 @@ document.addEventListener('DOMContentLoaded', function () {
     const img = document.getElementById('profileImg');
     const displayNameElement = document.getElementById('displayName');
     const distinctNameElement = document.getElementById('distinctName');
-    // global current user id used throughout this file
     let currentUserId = null;
     let isViewingOwnProfile = false;
-    
+    let viewedUserId = null;
+    let relationshipStatus = null;
+
     if (!img) return;
 
-    // 1. Handle aus der URL holen oder current user verwenden
     const urlParams = new URLSearchParams(window.location.search);
     const userHandle = urlParams.get('handle');
     const userId = urlParams.get('id');
 
-    // 2. User data laden
     if (userHandle) {
         loadUserDataByHandle(userHandle);
     } else if (userId) {
         loadUserDataById(userId);
     } else {
-        // Viewing own profile - use dynamic backend user context
         isViewingOwnProfile = true;
         loadCurrentUserData();
     }
 
-    // Listen for user switch events from the user-switcher component
     window.addEventListener('userChanged', function(event) {
-        if (isViewingOwnProfile) {
-            console.log('User switched, reloading profile...', event.detail);
-            if (event.detail && event.detail.id) {
-                loadUserDataById(event.detail.id);
-            } else {
-                loadCurrentUserData();
+        if (event.detail && event.detail.id) {
+            if (isViewingOwnProfile) {
+                window.location.reload();
             }
         }
     });
-
-    async function getCurrentUserId() {
-        try {
-            const response = await fetch('/api/user-context/current/id');
-            if (response.ok) {
-                const data = await response.json();
-                return data.userId;
-            }
-        } catch (error) {
-            console.error('Error getting current user ID:', error);
-        }
-        return 1; // Fallback to default
-    }
 
     async function loadCurrentUserData() {
         try {
             const response = await fetch('/api/user-context/current');
             if (response.ok) {
                 const userData = await response.json();
-                console.log('Current user data loaded:', userData);
+                currentUserId = userData.id;
+                isViewingOwnProfile = true;
                 updateUserProfile(userData);
-                // Update URL to reflect current user without reloading
                 const newUrl = new URL(window.location.href);
                 newUrl.searchParams.set('id', userData.id);
                 window.history.replaceState({}, '', newUrl);
@@ -65,21 +46,22 @@ document.addEventListener('DOMContentLoaded', function () {
             }
         } catch (error) {
             console.error('Failed to load current user data:', error);
-            // Fallback to user ID 1
             loadUserDataById(1);
         }
     }
 
     function loadUserDataByHandle(userHandle) {
         const userApiUrl = `/api/users/handle/${userHandle}`;
-        console.log("Loading user data from:", userApiUrl);
         fetch(userApiUrl)
             .then(response => {
                 if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
                 return response.json();
             })
             .then(userData => {
-                console.log("User data loaded:", userData);
+                currentUserId = null;
+                isViewingOwnProfile = false;
+                viewedUserId = userData.id;
+                disableTabsForOtherUser();
                 updateUserProfile(userData);
             })
             .catch(error => {
@@ -91,15 +73,30 @@ document.addEventListener('DOMContentLoaded', function () {
 
     function loadUserDataById(userId) {
         const userApiUrl = `/api/users/${userId}`;
-        console.log("Loading user data from:", userApiUrl);
         fetch(userApiUrl)
             .then(response => {
                 if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
                 return response.json();
             })
             .then(userData => {
-                console.log("User data loaded:", userData);
-                updateUserProfile(userData);
+                fetch('/api/user-context/current')
+                    .then(r => r.json())
+                    .then(context => {
+                        currentUserId = context.id;
+                        isViewingOwnProfile = (String(userId) === String(context.id));
+                        viewedUserId = userData.id;
+                        if (!isViewingOwnProfile) {
+                            disableTabsForOtherUser();
+                        }
+                        updateUserProfile(userData);
+                    })
+                    .catch(() => {
+                        currentUserId = null;
+                        isViewingOwnProfile = false;
+                        viewedUserId = userData.id;
+                        disableTabsForOtherUser();
+                        updateUserProfile(userData);
+                    });
             })
             .catch(error => {
                 console.error("Failed to load user data:", error);
@@ -108,9 +105,22 @@ document.addEventListener('DOMContentLoaded', function () {
             });
     }
 
-    function updateUserProfile(user) {
-        currentUserId = user.id;
+    function disableTabsForOtherUser() {
+        const tabButtons = document.querySelectorAll('.tab-btn');
+        const profileTabs = document.getElementById('profileTabs');
         
+        profileTabs.style.opacity = '0.5';
+        profileTabs.style.pointerEvents = 'none';
+        
+        tabButtons.forEach(btn => {
+            btn.style.opacity = '0.5';
+            btn.style.cursor = 'not-allowed';
+        });
+    }
+
+    function updateUserProfile(user) {
+        viewedUserId = user.id;
+
         const finalPath = `/api/users/${user.id}/profile-picture`;
         img.src = finalPath;
 
@@ -121,8 +131,14 @@ document.addEventListener('DOMContentLoaded', function () {
             distinctNameElement.textContent = `@${user.distinctName}`;
         }
 
-        loadUserStats(user.id);
-        loadUserParties(); // Wird aufgerufen, sobald currentUserId feststeht
+        if (isViewingOwnProfile) {
+            loadUserStats(user.id);
+            loadUserParties();
+            hideProfileActions();
+        } else {
+            loadUserStats(user.id);
+            loadRelationshipStatus(user.id);
+        }
 
         img.onerror = function() {
             this.src = "/images/default_profile-picture.jpg";
@@ -130,17 +146,28 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     function loadUserStats(userId) {
-        const stats = ['followers', 'following', 'media'];
+        const stats = [
+            { key: 'followers', id: 'followersCount' },
+            { key: 'following', id: 'followingCount' },
+            { key: 'friends', id: 'friendsCount' },
+            { key: 'posts', id: 'postsCount' }
+        ];
+
         stats.forEach(stat => {
-            fetch(`/api/users/${userId}/${stat}/count`)
-                .then(response => response.json())
+            const el = document.getElementById(stat.id);
+            if (!el) return;
+
+            fetch(`/api/users/${userId}/${stat.key}/count`)
+                .then(response => {
+                    if (!response.ok) return { count: 0 };
+                    return response.json();
+                })
                 .then(data => {
-                    const el = document.getElementById(`${stat}Count`);
-                    if (el) el.setAttribute('data-count', formatCount(data.count));
+                    const count = data.count !== undefined ? data.count : 0;
+                    el.textContent = formatCount(count);
                 })
                 .catch(() => {
-                    const el = document.getElementById(`${stat}Count`);
-                    if (el) el.setAttribute('data-count', '0');
+                    el.textContent = '0';
                 });
         });
     }
@@ -151,7 +178,187 @@ document.addEventListener('DOMContentLoaded', function () {
         return count.toString();
     }
 
-    // Search functionality
+    function loadUserFriends(userId) {
+        const friendsContainer = document.getElementById('friendsList');
+        const noFriendsState = document.getElementById('noFriendsState');
+        const friendsLoading = document.getElementById('friendsLoading');
+
+        if (!friendsContainer) return;
+
+        if (friendsLoading) friendsLoading.style.display = 'flex';
+        if (noFriendsState) noFriendsState.style.display = 'none';
+
+        fetch(`/api/users/${userId}/friends`)
+            .then(response => {
+                if (!response.ok) throw new Error('Failed to load friends');
+                return response.json();
+            })
+            .then(data => {
+                if (friendsLoading) friendsLoading.style.display = 'none';
+
+                const friends = data.friends || data || [];
+                const friendsCountEl = document.getElementById('friendsCount');
+                if (friendsCountEl) {
+                    friendsCountEl.textContent = formatCount(friends.length);
+                }
+
+                friendsContainer.innerHTML = '';
+
+                if (friends.length === 0) {
+                    if (noFriendsState) noFriendsState.style.display = 'flex';
+                    return;
+                }
+
+                friends.forEach(friend => {
+                    const friendItem = createFriendItem(friend, userId);
+                    friendsContainer.appendChild(friendItem);
+                });
+            })
+            .catch(error => {
+                console.error('Error loading friends:', error);
+                if (friendsLoading) friendsLoading.style.display = 'none';
+                if (noFriendsState) noFriendsState.style.display = 'flex';
+                const friendsCountEl = document.getElementById('friendsCount');
+                if (friendsCountEl) {
+                    friendsCountEl.textContent = '0';
+                }
+            });
+    }
+
+    function createFriendItem(friend, userId) {
+        const item = document.createElement('div');
+        item.className = 'friend-item';
+        item.dataset.userId = friend.id;
+
+        item.innerHTML = `
+            <div class="friend-info">
+                <img src="/api/users/${friend.id}/profile-picture" class="friend-avatar" onerror="this.src='/images/default_profile-picture.jpg'" alt="${escapeHtml(friend.displayName || friend.distinctName)}">
+                <div class="friend-details">
+                    <span class="friend-name">${escapeHtml(friend.displayName || friend.distinctName)}</span>
+                    <span class="friend-handle">@${escapeHtml(friend.distinctName)}</span>
+                </div>
+            </div>
+            <div class="friend-actions">
+                <button type="button" class="friend-action-btn view-profile" data-handle="${friend.distinctName}" aria-label="View profile">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M5 12h14M12 5l7 7-7 7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                </button>
+            </div>
+        `;
+
+        const viewBtn = item.querySelector('.view-profile');
+        if (viewBtn) {
+            viewBtn.addEventListener('click', () => {
+                window.location.href = `/profile/profile.html?handle=${friend.distinctName}`;
+            });
+        }
+
+        return item;
+    }
+
+    function loadFollowersList(userId) {
+        const modal = document.getElementById('userListModal');
+        const modalTitle = document.getElementById('modalTitle');
+        const modalUserList = document.getElementById('modalUserList');
+        const modalLoading = document.getElementById('modalLoading');
+        const modalEmpty = document.getElementById('modalEmpty');
+
+        modalTitle.textContent = 'Followers';
+        modalUserList.innerHTML = '';
+        modalLoading.style.display = 'flex';
+        modalEmpty.style.display = 'none';
+        modal.classList.remove('hidden');
+
+        fetch(`/api/users/${userId}/followers`)
+            .then(response => {
+                if (!response.ok) throw new Error('Failed to load followers');
+                return response.json();
+            })
+            .then(data => {
+                modalLoading.style.display = 'none';
+                const followers = data.followers || data || [];
+                modalUserList.innerHTML = '';
+
+                if (followers.length === 0) {
+                    modalEmpty.style.display = 'flex';
+                    return;
+                }
+
+                followers.forEach(user => {
+                    const item = createModalUserItem(user);
+                    modalUserList.appendChild(item);
+                });
+            })
+            .catch(error => {
+                console.error('Error loading followers:', error);
+                modalLoading.style.display = 'none';
+                modalEmpty.style.display = 'flex';
+            });
+    }
+
+    function loadFollowingList(userId) {
+        const modal = document.getElementById('userListModal');
+        const modalTitle = document.getElementById('modalTitle');
+        const modalUserList = document.getElementById('modalUserList');
+        const modalLoading = document.getElementById('modalLoading');
+        const modalEmpty = document.getElementById('modalEmpty');
+
+        modalTitle.textContent = 'Following';
+        modalUserList.innerHTML = '';
+        modalLoading.style.display = 'flex';
+        modalEmpty.style.display = 'none';
+        modal.classList.remove('hidden');
+
+        fetch(`/api/users/${userId}/following`)
+            .then(response => {
+                if (!response.ok) throw new Error('Failed to load following');
+                return response.json();
+            })
+            .then(data => {
+                modalLoading.style.display = 'none';
+                const following = data.following || data || [];
+                modalUserList.innerHTML = '';
+
+                if (following.length === 0) {
+                    modalEmpty.style.display = 'flex';
+                    return;
+                }
+
+                following.forEach(user => {
+                    const item = createModalUserItem(user);
+                    modalUserList.appendChild(item);
+                });
+            })
+            .catch(error => {
+                console.error('Error loading following:', error);
+                modalLoading.style.display = 'none';
+                modalEmpty.style.display = 'flex';
+            });
+    }
+
+    function createModalUserItem(user) {
+        const item = document.createElement('div');
+        item.className = 'modal-user-item';
+        item.innerHTML = `
+            <img src="/api/users/${user.id}/profile-picture" class="modal-user-avatar" onerror="this.src='/images/default_profile-picture.jpg'" alt="${escapeHtml(user.displayName || user.distinctName)}">
+            <div class="modal-user-info">
+                <span class="modal-user-name">${escapeHtml(user.displayName || user.distinctName)}</span>
+                <span class="modal-user-handle">@${escapeHtml(user.distinctName)}</span>
+            </div>
+        `;
+        item.addEventListener('click', () => {
+            window.location.href = `/profile/profile.html?handle=${user.distinctName}`;
+            closeModal();
+        });
+        return item;
+    }
+
+    function closeModal() {
+        const modal = document.getElementById('userListModal');
+        modal.classList.add('hidden');
+    }
+
     const searchInput = document.getElementById('searchInput');
     const searchDropdown = document.getElementById('searchDropdown');
     const searchResults = document.getElementById('searchResults');
@@ -162,10 +369,10 @@ document.addEventListener('DOMContentLoaded', function () {
             const query = e.target.value.trim();
             if (searchTimeout) clearTimeout(searchTimeout);
             if (query === '') {
-                hideDropdown();
+                if (searchDropdown) searchDropdown.classList.add('hidden');
                 return;
             }
-            searchTimeout = setTimeout(() => performSearch(query), 1000);
+            searchTimeout = setTimeout(() => performSearch(query), 300);
         });
     }
 
@@ -173,14 +380,17 @@ document.addEventListener('DOMContentLoaded', function () {
         fetch(`/api/users/all/search?name=${encodeURIComponent(query)}`)
             .then(res => res.json())
             .then(data => displaySearchResults(data))
-            .catch(() => hideDropdown());
+            .catch(() => {
+                if (searchDropdown) searchDropdown.classList.add('hidden');
+            });
     }
 
     function displaySearchResults(results) {
         if (!results || results.length === 0) {
-            hideDropdown();
+            if (searchDropdown) searchDropdown.classList.add('hidden');
             return;
         }
+        if (!searchResults) return;
         searchResults.innerHTML = '';
         results.forEach(user => {
             const item = document.createElement('div');
@@ -197,14 +407,9 @@ document.addEventListener('DOMContentLoaded', function () {
             });
             searchResults.appendChild(item);
         });
-        searchDropdown.classList.remove('hidden');
+        if (searchDropdown) searchDropdown.classList.remove('hidden');
     }
 
-    function hideDropdown() {
-        if (searchDropdown) searchDropdown.classList.add('hidden');
-    }
-
-    // Username Dropdown Logic
     const usernameBtn = document.getElementById('usernameBtn');
     const usernameDropdown = document.getElementById('usernameDropdown');
     const usernameList = document.getElementById('usernameList');
@@ -236,72 +441,122 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     function renderUsernameList(users) {
+        if (!usernameList) return;
         usernameList.innerHTML = '';
         users.forEach(u => {
             const btn = document.createElement('button');
             btn.className = 'username-item';
-            const isCurrentUser = u.id === currentUserId;
-            btn.innerHTML = `<span>@${u.distinctName}</span>${isCurrentUser ? ' <small>(current)</small>' : ''}`;
+            btn.innerHTML = `<span>@${u.distinctName}</span>`;
             btn.onclick = async () => {
                 usernameDropdown.classList.add('hidden');
-                
-                // Also update the backend user context to switch to this user
                 try {
-                    const response = await fetch(`/api/user-context/switch/${u.id}`, { method: 'POST' });
-                    if (response.ok) {
-                        console.log(`Switched backend context to user ${u.id}`);
-                        // Dispatch event so other components know
-                        window.dispatchEvent(new CustomEvent('userChanged', { detail: u }));
-                    }
+                    await fetch(`/api/user-context/switch/${u.id}`, { method: 'POST' });
+                    window.location.reload();
                 } catch (error) {
-                    console.error('Error switching user context:', error);
+                    console.error('Error switching user:', error);
                 }
-                
-                loadUserDataById(u.id);
-                isViewingOwnProfile = true; // Now viewing as this user
-                const newUrl = new URL(window.location.href);
-                newUrl.searchParams.delete('handle');
-                newUrl.searchParams.set('id', u.id);
-                window.history.replaceState({}, '', newUrl);
             };
             usernameList.appendChild(btn);
         });
     }
 
-    // --- PARTY LOADING LOGIC (CORRECTED) ---
-    const hasBackend = typeof window.backend === 'object';
-    let cachedPartyEndpoint = null;
-
-    async function tryFetchJson(urls) {
-        for (const u of urls) {
-            try {
-                const res = await fetch(u);
-                if (res.ok) {
-                    const data = await res.json();
-                    return { url: u, data };
-                }
-            } catch (err) {}
+    document.addEventListener('click', (e) => {
+        if (usernameDropdown && !usernameDropdown.contains(e.target) && e.target !== usernameBtn) {
+            usernameDropdown.classList.add('hidden');
         }
-        return null;
+    });
+
+    const followersBtn = document.getElementById('followersBtn');
+    const followingBtn = document.getElementById('followingBtn');
+    const friendsBtn = document.getElementById('friendsBtn');
+    const modalClose = document.querySelector('.modal-close');
+    const modalOverlay = document.querySelector('.modal-overlay');
+
+    if (followersBtn) {
+        followersBtn.addEventListener('click', () => {
+            const userId = viewedUserId || currentUserId;
+            if (userId) loadFollowersList(userId);
+        });
     }
+
+    if (followingBtn) {
+        followingBtn.addEventListener('click', () => {
+            const userId = viewedUserId || currentUserId;
+            if (userId) loadFollowingList(userId);
+        });
+    }
+
+    if (friendsBtn) {
+        friendsBtn.addEventListener('click', () => {
+            if (isViewingOwnProfile) {
+                switchTab('tabFriends');
+            } else {
+                ToastManager.warning('You can only view your own friends');
+            }
+        });
+    }
+
+    if (modalClose) {
+        modalClose.addEventListener('click', closeModal);
+    }
+
+    if (modalOverlay) {
+        modalOverlay.addEventListener('click', closeModal);
+    }
+
+    function switchTab(tabId) {
+        const tabBtn = document.getElementById(tabId);
+        if (!tabBtn) return;
+
+        document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+        tabBtn.classList.add('active');
+
+        document.querySelectorAll('.tab-section').forEach(section => section.style.display = 'none');
+
+        const contentId = tabId.replace('tab', 'tabContent');
+        const contentSection = document.getElementById(contentId);
+        if (contentSection) {
+            contentSection.style.display = 'block';
+        }
+
+        if (tabId === 'tabFriends' && viewedUserId) {
+            loadUserFriends(viewedUserId);
+        }
+    }
+
+    document.querySelectorAll('.tab-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+            if (!isViewingOwnProfile) return;
+            switchTab(btn.id);
+        });
+    });
 
     async function loadUserParties() {
         if (!currentUserId) return;
+
         let parties = null;
 
-        // 1. Backend Helper
-        if (hasBackend && typeof window.backend.getPartiesByUser === 'function') {
+        if (typeof window.backend === 'object' && typeof window.backend.getPartiesByUser === 'function') {
             try { parties = await window.backend.getPartiesByUser(currentUserId); } catch (e) {}
         }
 
-        // 2. Fetch from APIs
         if (!Array.isArray(parties)) {
             const endpoints = [
                 `/api/party/`,
                 `/api/party?host_user_id=${currentUserId}`,
                 `/api/users/${currentUserId}/parties`
             ];
-            const found = await tryFetchJson(endpoints);
+            let found = null;
+            for (const u of endpoints) {
+                try {
+                    const res = await fetch(u);
+                    if (res.ok) {
+                        const data = await res.json();
+                        found = { url: u, data };
+                        break;
+                    }
+                } catch (err) {}
+            }
             if (found) {
                 parties = Array.isArray(found.data) ? found.data : found.data.data;
             }
@@ -309,41 +564,32 @@ document.addEventListener('DOMContentLoaded', function () {
 
         if (!Array.isArray(parties)) parties = [];
 
-        // ROBUSTER FILTER: Vergleicht verschiedene mögliche ID-Felder
         const filtered = parties.filter(p => {
             if (!p) return false;
-            const targetId = String(currentUserId);
-            const hostId = p.host_user_id || p.hostId || p.host_id || p.ownerId || 
+            const hostId = p.host_user_id || p.hostId || p.host_id || p.ownerId ||
                            (p.host && p.host.id) || (p.owner && p.owner.id);
-            return String(hostId) === targetId;
+            return String(hostId) === String(currentUserId);
         });
-
-        console.log(`Filtered ${filtered.length} parties for user ${currentUserId}`);
 
         const container = document.getElementById('partiesContainer');
         const template = document.getElementById('party-template');
-        const noMsg = document.querySelector('#tabContentPartys .no-parties');
         const noMsgState = document.getElementById('noPartiesState');
 
         if (!container || !template) return;
         container.innerHTML = '';
 
         if (filtered.length === 0) {
-            if (noMsg) noMsg.style.display = 'none';
             if (noMsgState) noMsgState.style.display = 'flex';
             return;
         }
 
-        if (noMsg) noMsg.style.display = 'none';
         if (noMsgState) noMsgState.style.display = 'none';
 
         filtered.forEach(p => {
             const node = template.content.cloneNode(true);
-            const article = node.querySelector('.party-card');
-            
             node.querySelector('.party-name').textContent = p.title || p.name || 'Party';
             node.querySelector('.party-date').textContent = p.time_start || p.date || '';
-            
+
             const locEl = node.querySelector('.party-location');
             if (locEl) locEl.textContent = (p.location && p.location.name) ? p.location.name : (p.location || '');
 
@@ -351,7 +597,7 @@ document.addEventListener('DOMContentLoaded', function () {
             if (deleteBtn) {
                 deleteBtn.onclick = async (e) => {
                     e.stopPropagation();
-                    if (!confirm('Löschen?')) return;
+                    if (!confirm('Delete this party?')) return;
                     const res = await fetch(`/api/party/${p.id}`, { method: 'DELETE' });
                     if (res.ok) loadUserParties();
                 };
@@ -359,17 +605,188 @@ document.addEventListener('DOMContentLoaded', function () {
 
             container.appendChild(node);
         });
-
-        adjustPartiesContainerHeight();
     }
 
-    function adjustPartiesContainerHeight() {
-        const container = document.getElementById('partiesContainer');
-        if (!container || container.children.length === 0) return;
-        // Einfache Höhenberechnung für Grid-Layout
-        const height = container.scrollHeight;
-        container.style.maxHeight = height + 100 + "px";
+    function escapeHtml(text) {
+        if (!text) return '';
+        const div = document.createElement('div');
+        div.textContent = text;
+        return div.innerHTML;
     }
 
-    window.addEventListener('resize', adjustPartiesContainerHeight);
+    function hideProfileActions() {
+        const profileActions = document.getElementById('profileActions');
+        const editAccountBtn = document.getElementById('editAccountBtn');
+        if (profileActions) profileActions.classList.add('hidden');
+        if (editAccountBtn) editAccountBtn.style.display = 'block';
+    }
+
+    function showProfileActions() {
+        const profileActions = document.getElementById('profileActions');
+        const editAccountBtn = document.getElementById('editAccountBtn');
+        if (profileActions) profileActions.classList.remove('hidden');
+        if (editAccountBtn) editAccountBtn.style.display = 'none';
+    }
+
+    function loadRelationshipStatus(userId) {
+        if (!currentUserId || !userId || currentUserId === userId) {
+            hideProfileActions();
+            return;
+        }
+
+        fetch(`/api/users/${userId}/relationship?from=${currentUserId}`)
+            .then(response => {
+                if (!response.ok) return { isFollowing: false, isFriend: false, friendRequestSent: false };
+                return response.json();
+            })
+            .then(data => {
+                relationshipStatus = data;
+                updateActionButtons(data);
+            })
+            .catch(() => {
+                relationshipStatus = { isFollowing: false, isFriend: false, friendRequestSent: false };
+                updateActionButtons(relationshipStatus);
+            });
+    }
+
+    function updateActionButtons(status) {
+        const followBtn = document.getElementById('followBtn');
+        const friendBtn = document.getElementById('friendBtn');
+        const followSpan = followBtn ? followBtn.querySelector('span') : null;
+        const friendSpan = friendBtn ? friendBtn.querySelector('span') : null;
+
+        if (!followBtn || !friendBtn) return;
+
+        showProfileActions();
+
+        if (status.isFollowing) {
+            followBtn.classList.add('following');
+            followBtn.classList.remove('action-btn--primary');
+            followBtn.classList.add('action-btn--secondary');
+            if (followSpan) followSpan.textContent = 'Following';
+        } else {
+            followBtn.classList.remove('following');
+            followBtn.classList.add('action-btn--primary');
+            followBtn.classList.remove('action-btn--secondary');
+            if (followSpan) followSpan.textContent = 'Follow';
+        }
+
+        if (status.isFriend) {
+            friendBtn.classList.add('friend');
+            friendBtn.innerHTML = `
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                    <circle cx="9" cy="7" r="4" stroke="currentColor" stroke-width="1.5"/>
+                    <path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                </svg>
+                <span>Friend</span>
+            `;
+            friendBtn.disabled = true;
+            friendBtn.style.opacity = '0.7';
+        } else if (status.friendRequestSent) {
+            friendBtn.innerHTML = `
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                    <path d="M22 4L12 14.01l-3-3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+                <span>Pending</span>
+            `;
+            friendBtn.disabled = true;
+            friendBtn.style.opacity = '0.7';
+        } else {
+            friendBtn.classList.remove('friend');
+            friendBtn.innerHTML = `
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                    <circle cx="8.5" cy="7" r="4" stroke="currentColor" stroke-width="1.5"/>
+                    <path d="M20 8v6M23 11h-6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                </svg>
+                <span>Add Friend</span>
+            `;
+            friendBtn.disabled = false;
+            friendBtn.style.opacity = '1';
+        }
+    }
+
+    function handleFollow() {
+        if (!viewedUserId || !currentUserId) return;
+
+        const followBtn = document.getElementById('followBtn');
+        const isCurrentlyFollowing = relationshipStatus?.isFollowing;
+
+        if (isCurrentlyFollowing) {
+            fetch(`/api/users/${viewedUserId}/followers/${currentUserId}`, { method: 'DELETE' })
+                .then(response => {
+                    if (response.ok) {
+                        relationshipStatus.isFollowing = false;
+                        updateActionButtons(relationshipStatus);
+                        ToastManager.success('Unfollowed successfully');
+                        refreshStats();
+                    } else {
+                        throw new Error('Failed to unfollow');
+                    }
+                })
+                .catch(() => {
+                    ToastManager.error('Failed to unfollow');
+                });
+        } else {
+            fetch(`/api/users/${viewedUserId}/followers`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ userId: currentUserId })
+            })
+            .then(response => {
+                if (response.ok || response.status === 201) {
+                    relationshipStatus.isFollowing = true;
+                    updateActionButtons(relationshipStatus);
+                    ToastManager.success('Now following');
+                    refreshStats();
+                } else {
+                    throw new Error('Failed to follow');
+                }
+            })
+            .catch(() => {
+                ToastManager.error('Failed to follow');
+            });
+        }
+    }
+
+    function handleFriendRequest() {
+        if (!viewedUserId || !currentUserId || relationshipStatus?.isFriend || relationshipStatus?.friendRequestSent) return;
+
+        fetch('/api/friends/request', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ fromUserId: currentUserId, toUserId: viewedUserId })
+        })
+        .then(response => {
+            if (response.ok || response.status === 201) {
+                relationshipStatus.friendRequestSent = true;
+                updateActionButtons(relationshipStatus);
+                ToastManager.success('Friend request sent');
+            } else {
+                throw new Error('Failed to send friend request');
+            }
+        })
+        .catch(() => {
+            ToastManager.error('Failed to send friend request');
+        });
+    }
+
+    function refreshStats() {
+        if (viewedUserId) {
+            loadUserStats(viewedUserId);
+        }
+    }
+
+    const followBtn = document.getElementById('followBtn');
+    const friendBtn = document.getElementById('friendBtn');
+
+    if (followBtn) {
+        followBtn.addEventListener('click', handleFollow);
+    }
+
+    if (friendBtn) {
+        friendBtn.addEventListener('click', handleFriendRequest);
+    }
 });

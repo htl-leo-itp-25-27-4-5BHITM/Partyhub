@@ -1,27 +1,29 @@
 (function() {
   const STORAGE_KEY = 'partyhub_current_user';
   let isInitialized = false;
-  
-  if (!isProfilePage()) return;
-  
-  if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', initUserSwitcher);
-  } else {
-    initUserSwitcher();
-  }
 
   function isProfilePage() {
-    return window.location.pathname.includes('/profile/') || 
-           window.location.pathname.endsWith('profile.html');
+    const path = window.location.pathname;
+    return path.includes('/profile/') ||
+           path.endsWith('profile.html') ||
+           path.endsWith('/profile');
   }
 
-  async function initUserSwitcher() {
+  if (!isProfilePage()) return;
+
+  function init() {
     if (isInitialized) return;
     isInitialized = true;
-    
+
     createSwitcherUI();
-    await loadUsers();
-    await syncWithBackend();
+    loadUsers();
+    syncWithBackend();
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', init);
+  } else {
+    init();
   }
 
   function createSwitcherUI() {
@@ -47,28 +49,32 @@
 
     const profileContainer = document.getElementById('profileContainer');
     if (profileContainer) {
-      profileContainer.insertBefore(switcher, profileContainer.firstChild);
+      if (profileContainer.firstChild) {
+        profileContainer.insertBefore(switcher, profileContainer.firstChild);
+      } else {
+        profileContainer.appendChild(switcher);
+      }
     }
+
+    addStyles();
 
     const trigger = document.getElementById('userSwitcherTrigger');
     const dropdown = document.getElementById('userSwitcherDropdown');
-    
+
     if (trigger && dropdown) {
-      trigger.addEventListener('click', (e) => {
+      trigger.addEventListener('click', function(e) {
         e.stopPropagation();
         dropdown.classList.toggle('hidden');
         trigger.classList.toggle('active');
       });
-
-      document.addEventListener('click', (e) => {
-        if (!switcher.contains(e.target)) {
-          dropdown.classList.add('hidden');
-          trigger.classList.remove('active');
-        }
-      });
     }
 
-    addStyles();
+    document.addEventListener('click', function(e) {
+      if (dropdown && trigger && !switcher.contains(e.target)) {
+        dropdown.classList.add('hidden');
+        trigger.classList.remove('active');
+      }
+    });
   }
 
   function addStyles() {
@@ -84,7 +90,7 @@
         position: relative;
         z-index: 100;
       }
-      
+
       .user-switcher-trigger {
         display: flex;
         align-items: center;
@@ -96,24 +102,24 @@
         cursor: pointer;
         transition: all 0.2s ease;
       }
-      
+
       .user-switcher-trigger:hover {
         border-color: rgba(255, 46, 99, 0.6);
         box-shadow: 0 4px 12px rgba(255, 46, 99, 0.15);
       }
-      
+
       .user-switcher-trigger.active {
         border-color: #ff2e63;
         border-bottom-left-radius: 0;
         border-bottom-right-radius: 0;
       }
-      
+
       .current-user-info {
         display: flex;
         align-items: center;
         gap: 12px;
       }
-      
+
       .user-avatar {
         width: 36px;
         height: 36px;
@@ -127,25 +133,25 @@
         color: white;
         text-transform: uppercase;
       }
-      
+
       .user-name {
         color: #ffffff;
         font-size: 14px;
         font-weight: 500;
       }
-      
+
       .switcher-chevron {
         width: 20px;
         height: 20px;
         color: rgba(255, 255, 255, 0.6);
         transition: transform 0.2s ease;
       }
-      
+
       .user-switcher-trigger.active .switcher-chevron {
         transform: rotate(180deg);
         color: #ff2e63;
       }
-      
+
       .user-switcher-dropdown {
         position: absolute;
         top: 100%;
@@ -158,11 +164,11 @@
         overflow: hidden;
         box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
       }
-      
+
       .user-switcher-dropdown.hidden {
         display: none;
       }
-      
+
       .dropdown-header {
         padding: 10px 16px;
         font-size: 12px;
@@ -171,25 +177,25 @@
         letter-spacing: 0.5px;
         border-bottom: 1px solid rgba(255, 255, 255, 0.1);
       }
-      
+
       .user-list {
         max-height: 240px;
         overflow-y: auto;
       }
-      
+
       .user-list::-webkit-scrollbar {
         width: 6px;
       }
-      
+
       .user-list::-webkit-scrollbar-track {
         background: transparent;
       }
-      
+
       .user-list::-webkit-scrollbar-thumb {
         background: rgba(255, 255, 255, 0.2);
         border-radius: 3px;
       }
-      
+
       .user-option {
         display: flex;
         align-items: center;
@@ -199,19 +205,19 @@
         transition: background 0.15s ease;
         border-bottom: 1px solid rgba(255, 255, 255, 0.05);
       }
-      
+
       .user-option:last-child {
         border-bottom: none;
       }
-      
+
       .user-option:hover {
         background: rgba(255, 46, 99, 0.1);
       }
-      
+
       .user-option.active {
         background: rgba(255, 46, 99, 0.15);
       }
-      
+
       .user-option-avatar {
         width: 32px;
         height: 32px;
@@ -226,12 +232,12 @@
         text-transform: uppercase;
         flex-shrink: 0;
       }
-      
+
       .user-option-info {
         flex: 1;
         min-width: 0;
       }
-      
+
       .user-option-name {
         color: #ffffff;
         font-size: 14px;
@@ -240,7 +246,7 @@
         overflow: hidden;
         text-overflow: ellipsis;
       }
-      
+
       .user-option-handle {
         color: rgba(255, 255, 255, 0.5);
         font-size: 12px;
@@ -248,7 +254,7 @@
         overflow: hidden;
         text-overflow: ellipsis;
       }
-      
+
       .user-option-check {
         width: 20px;
         height: 20px;
@@ -256,11 +262,11 @@
         flex-shrink: 0;
         opacity: 0;
       }
-      
+
       .user-option.active .user-option-check {
         opacity: 1;
       }
-      
+
       @media (max-width: 480px) {
         #user-switcher {
           max-width: 280px;
@@ -270,36 +276,44 @@
     document.head.appendChild(styles);
   }
 
-  async function loadUsers() {
+  function loadUsers() {
     const list = document.getElementById('userList');
     if (!list) return;
-    
-    try {
-      const response = await fetch('/api/users/all');
-      if (!response.ok) throw new Error('Failed to fetch users');
-      
-      const users = await response.json();
-      
-      list.innerHTML = users.map(user => `
-        <div class="user-option" data-user-id="${user.id}" data-user='${JSON.stringify(user)}'>
-          <div class="user-option-avatar">${user.displayName ? user.displayName.charAt(0) : '?'}</div>
-          <div class="user-option-info">
-            <div class="user-option-name">${user.displayName || user.distinctName}</div>
-            <div class="user-option-handle">@${user.distinctName}</div>
+
+    fetch('/api/users/all')
+      .then(response => {
+        if (!response.ok) throw new Error('Failed to fetch users');
+        return response.json();
+      })
+      .then(users => {
+        if (!users || users.length === 0) {
+          list.innerHTML = '<div class="user-option"><div class="user-option-info"><div class="user-option-name" style="color: #888;">No users found</div></div></div>';
+          return;
+        }
+
+        list.innerHTML = users.map(user => `
+          <div class="user-option" data-user-id="${user.id}" data-user='${JSON.stringify(user)}'>
+            <div class="user-option-avatar">${user.displayName ? user.displayName.charAt(0) : '?'}</div>
+            <div class="user-option-info">
+              <div class="user-option-name">${user.displayName || user.distinctName}</div>
+              <div class="user-option-handle">@${user.distinctName}</div>
+            </div>
+            <svg class="user-option-check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M20 6L9 17l-5-5"/>
+            </svg>
           </div>
-          <svg class="user-option-check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <path d="M20 6L9 17l-5-5"/>
-          </svg>
-        </div>
-      `).join('');
-      
-      list.querySelectorAll('.user-option').forEach(option => {
-        option.addEventListener('click', () => handleUserChange(option));
+        `).join('');
+
+        list.querySelectorAll('.user-option').forEach(option => {
+          option.addEventListener('click', function() {
+            handleUserChange(this);
+          });
+        });
+      })
+      .catch(error => {
+        console.error('Error loading users:', error);
+        list.innerHTML = '<div class="user-option"><div class="user-option-info"><div class="user-option-name" style="color: #ff4757;">Error loading users</div></div></div>';
       });
-      
-    } catch (error) {
-      list.innerHTML = '<div class="user-option"><div class="user-option-info"><div class="user-option-name" style="color: #ff4757;">Error loading users</div></div></div>';
-    }
   }
 
   async function syncWithBackend() {
@@ -307,14 +321,14 @@
       const response = await fetch('/api/user-context/current');
       if (response.ok) {
         const backendUser = await response.json();
-        
+
         const userData = {
           id: backendUser.id,
           displayName: backendUser.displayName,
           distinctName: backendUser.distinctName
         };
         localStorage.setItem(STORAGE_KEY, JSON.stringify(userData));
-        
+
         updateUI(userData);
         highlightCurrentUser(userData.id);
         window.dispatchEvent(new CustomEvent('userChanged', { detail: userData }));
@@ -344,21 +358,19 @@
   async function handleUserChange(option) {
     const userId = option.dataset.userId;
     const userData = JSON.parse(option.dataset.user);
-    
+
     try {
-      const response = await fetch(`/api/user-context/switch/${userId}`, { method: 'POST' });
-      if (!response.ok) throw new Error('Failed to switch user');
-      
+      await fetch(`/api/user-context/switch/${userId}`, { method: 'POST' });
+
       localStorage.setItem(STORAGE_KEY, JSON.stringify(userData));
-      updateUI(userData);
-      highlightCurrentUser(userId);
-      window.dispatchEvent(new CustomEvent('userChanged', { detail: userData }));
-      
+
       const dropdown = document.getElementById('userSwitcherDropdown');
       const trigger = document.getElementById('userSwitcherTrigger');
       if (dropdown) dropdown.classList.add('hidden');
       if (trigger) trigger.classList.remove('active');
-      
+
+      window.location.reload();
+
     } catch (error) {
       console.error('Error switching user:', error);
     }
@@ -367,7 +379,7 @@
   function updateUI(user) {
     const nameEl = document.getElementById('switcherName');
     const avatarEl = document.getElementById('switcherAvatar');
-    
+
     if (nameEl && user) {
       nameEl.textContent = `@${user.distinctName}`;
     }
@@ -377,7 +389,9 @@
   }
 
   function highlightCurrentUser(userId) {
-    document.querySelectorAll('.user-option').forEach(option => {
+    if (!userId) return;
+    const options = document.querySelectorAll('.user-option');
+    options.forEach(option => {
       if (option.dataset.userId === String(userId)) {
         option.classList.add('active');
       } else {
@@ -396,7 +410,7 @@
       }
       return this.getCurrentUserSync();
     },
-    
+
     getCurrentUserId: async function() {
       try {
         const response = await fetch('/api/user-context/current/id');
@@ -410,17 +424,17 @@
       const user = this.getCurrentUserSync();
       return user ? user.id : null;
     },
-    
+
     getCurrentUserSync: function() {
       const stored = localStorage.getItem(STORAGE_KEY);
       return stored ? JSON.parse(stored) : null;
     },
-    
+
     getCurrentUserIdSync: function() {
       const user = this.getCurrentUserSync();
       return user ? user.id : null;
     },
-    
+
     clearUser: async function() {
       try {
         await fetch('/api/user-context/reset', { method: 'POST' });
@@ -432,7 +446,7 @@
       highlightCurrentUser(null);
       window.dispatchEvent(new CustomEvent('userChanged', { detail: null }));
     },
-    
+
     switchUser: async function(userId) {
       try {
         const response = await fetch(`/api/user-context/switch/${userId}`, { method: 'POST' });
@@ -443,7 +457,7 @@
             displayName: result.displayName,
             distinctName: result.distinctName
           };
-          
+
           localStorage.setItem(STORAGE_KEY, JSON.stringify(userData));
           updateUI(userData);
           highlightCurrentUser(userId);
@@ -455,12 +469,12 @@
         throw error;
       }
     },
-    
+
     sync: async function() {
       await syncWithBackend();
     }
   };
-  
+
   if (document.readyState === 'complete') {
     window.UserSwitcher.sync();
   } else {

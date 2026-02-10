@@ -10,325 +10,317 @@
     <link rel="stylesheet" href="./profile.css">
     <link rel="stylesheet" href="../index.css">
     <script src="../ux-utils.js" defer></script>
-    <script src="./profile.js" defer></script>
     <script src="../user-switcher.js" defer></script>
+    <script src="./profile.js" defer></script>
 </head>
 
 <body>
-        <div class="app-shell">
-            <!-- top-bar removed: bottom navigation used instead -->
-
+    <div class="app-shell">
         <div id="searchBar">
-        <div class="searchBox">
-            <!-- magnifier icon (inline SVG) -->
-            <span class="searchIcon" aria-hidden="true">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"
-                    focusable="false">
-                    <path d="M11 19a8 8 0 1 1 0-16 8 8 0 0 1 0 16z" stroke="white" stroke-width="1.6"
-                        stroke-linecap="round" stroke-linejoin="round" />
-                    <path d="M21 21l-4.35-4.35" stroke="white" stroke-width="1.6" stroke-linecap="round"
-                        stroke-linejoin="round" />
-                </svg>
-            </span>
-
-            <div class="separator"></div>
-
-            <input type="text" id="searchInput" placeholder="Search usernames..." aria-label="Search usernames" />
+            <div class="searchBox">
+                <span class="searchIcon" aria-hidden="true">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M11 19a8 8 0 1 1 0-16 8 8 0 0 1 0 16z" stroke="white" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+                        <path d="M21 21l-4.35-4.35" stroke="white" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                </span>
+                <div class="separator"></div>
+                <input type="text" id="searchInput" placeholder="Search usernames..." aria-label="Search usernames" />
+            </div>
+            <div id="searchDropdown" class="hidden" role="listbox" aria-label="Search results">
+                <div id="searchResults" class="search-results-list"></div>
+            </div>
         </div>
 
-        <!-- Search dropdown used by existing search logic in profile.js -->
-        <div id="searchDropdown" class="hidden" role="listbox" aria-label="Search results">
-            <div id="searchResults" class="search-results-list"></div>
-        </div>
-    </div>
-
-    <div id="profileContainer">
+        <div id="profileContainer">
             <div id="profilePicture">
-                <!-- give the img an id and a safe default src (root /images/) -->
                 <img id="profileImg" src="/images/default_profile-picture.jpg" alt="Profile Picture">
             </div>
 
-            <!-- Username button + dropdown for all users -->
             <div id="username">
                 <div id="displayName" class="display-name">Display Name</div>
                 <button id="usernameBtn" class="username-btn" aria-haspopup="true" aria-expanded="false" type="button">
                     <span id="distinctName" class="distinct-name">@username</span>
                 </button>
- 
-             <!-- Dropdown with all users (populated by JS) -->
-             <div id="usernameDropdown" class="dropdown hidden" role="menu" aria-label="All users">
-                 <div id="usernameList" class="dropdown-list">
-                     <!-- populated by JS -->
-                 </div>
-             </div>
-         </div>
+                <div id="usernameDropdown" class="dropdown hidden" role="menu" aria-label="All users">
+                    <div id="usernameList" class="dropdown-list"></div>
+                </div>
+            </div>
 
-        <div id="profileDetails">
-            <!-- sample numbers added for demonstration; JS can replace these dynamically -->
-            <div id="followingCount" data-count="45"></div>
-            <div id="followersCount" data-count="128"></div>
-            <div id="postsCount" data-count="9"></div>
-        </div>
-        <div id="actionButton">
-            <button id="editAccounçtBtn" class="edit-account-btn"><a href="./editAccount/editAccount.html">Edit Account</a></button>
-        </div>
-
-        <!-- Tab-System für Beiträge und Favoriten -->
-        <div id="profileTabs">
-            <div class="tab-buttons">
-                <button id="tabPartys" class="tab-btn" aria-label="Partys">
-                    <span class="tab-icon">
-                        <!-- Party icon: party popper Vorlage -->
-                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                            <path
-                                d="M4.01207 15.7618L5.70156 10.6933C6.46758 8.39525 6.85059 7.24623 7.75684 7.03229C8.6631 6.81835 9.51953 7.67478 11.2324 9.38764L14.6114 12.7666C16.3242 14.4795 17.1807 15.3359 16.9667 16.2422C16.7528 17.1484 15.6038 17.5314 13.3057 18.2975L8.23724 19.987C5.47183 20.9088 4.08912 21.3697 3.35924 20.6398C2.62936 19.9099 3.09026 18.5272 4.01207 15.7618Z"
-                                stroke="currentColor" stroke-width="1.5" stroke-linecap="round" fill="none" />
-                            <path opacity="0.5"
-                                d="M12.2351 18.3461C12.2351 18.3461 11.477 16.0649 11.477 14.5552C11.477 13.0454 12.2351 10.7643 12.2351 10.7643M8.06517 19.4833C8.06517 19.4833 7.42484 16.7314 7.307 14.9343C7.11229 11.965 8.06517 7.35254 8.06517 7.35254"
-                                stroke="currentColor" stroke-width="1.5" stroke-linecap="round" fill="none" />
-                            <path
-                                d="M14.5093 10.0061L14.6533 9.28614C14.7986 8.55924 15.3224 7.96597 16.0256 7.73155C16.7289 7.49714 17.2526 6.90387 17.398 6.17697L17.542 5.45703"
-                                stroke="currentColor" stroke-width="1.5" stroke-linecap="round" fill="none" />
-                            <path
-                                d="M17.5691 12.2533L17.7819 12.3762C18.4391 12.7556 19.2652 12.6719 19.8329 12.1685C20.347 11.7126 21.0792 11.597 21.7087 11.8723L22.0002 11.9997"
-                                stroke="currentColor" stroke-width="1.5" stroke-linecap="round" fill="none" />
-                            <path
-                                d="M10.5352 3C10.1977 3.55206 10.2823 4.26344 10.7399 4.72097L10.8377 4.81885C11.2309 5.21201 11.3759 5.78959 11.215 6.32182"
-                                stroke="currentColor" stroke-width="1.5" stroke-linecap="round" fill="none" />
-                            <g opacity="0.5">
-                                <path
-                                    d="M13.561 4.39648C13.7621 4.19542 13.8626 4.09489 13.9788 4.05804C14.0772 4.02688 14.1827 4.02688 14.281 4.05804C14.3973 4.09489 14.4978 4.19542 14.6989 4.39648C14.8999 4.59753 15.0004 4.69806 15.0373 4.8143C15.0685 4.91262 15.0685 5.01817 15.0373 5.11648C15.0004 5.23272 14.8999 5.33325 14.6989 5.53431C14.4978 5.73536 14.3973 5.83589 14.281 5.87274C14.1827 5.90391 14.0772 5.90391 13.9788 5.87274C13.8626 5.83589 13.7621 5.73536 13.561 5.53431C13.36 5.33325 13.2594 5.23272 13.2226 5.11648C13.1914 5.01817 13.1914 4.91262 13.2226 4.8143C13.2594 4.69806 13.36 4.59753 13.561 4.39648Z"
-                                    fill="currentColor" />
-                            </g>
-                            <path
-                                d="M19.4682 7.46822C19.7136 7.22283 19.8363 7.10014 19.9747 7.04681C20.1367 6.9844 20.3161 6.9844 20.4781 7.04681C20.6165 7.10014 20.7392 7.22283 20.9846 7.46822C21.23 7.71362 21.3527 7.83631 21.406 7.97472C21.4684 8.1367 21.4684 8.31609 21.406 8.47807C21.3527 8.61649 21.23 8.73918 20.9846 8.98457C20.7392 9.22996 20.6165 9.35266 20.4781 9.40599C20.3161 9.4684 20.1367 9.4684 19.9747 9.40599C19.8363 9.35266 19.7136 9.22996 19.4682 8.98457C19.2228 8.73918 19.1001 8.61649 19.0468 8.47807C18.9844 8.31609 18.9844 8.1367 19.0468 7.97472C19.1001 7.83631 19.2228 7.71362 19.4682 7.46822Z"
-                                fill="currentColor" />
-                            <g opacity="0.5">
-                                <path
-                                    d="M6.92737 3.94079C7.13683 3.73132 7.47645 3.73132 7.68592 3.94079C7.89539 4.15026 7.89539 4.48988 7.68592 4.69935C7.47645 4.90882 7.13683 4.90882 6.92737 4.69935C6.7179 4.48988 6.7179 4.15026 6.92737 3.94079Z"
-                                    fill="currentColor" />
-                            </g>
-                            <path opacity="0.5"
-                                d="M19.0582 15.3134C19.2677 15.1039 19.6073 15.1039 19.8168 15.3134C20.0262 15.5228 20.0262 15.8624 19.8168 16.0719C19.6073 16.2814 19.2677 16.2814 19.0582 16.0719C18.8488 15.8624 18.8488 15.5228 19.0582 15.3134Z"
-                                fill="currentColor" />
-                            <g opacity="0.5">
-                                <path
-                                    d="M17.5 9.74145C17.7095 9.53198 18.0491 9.53198 18.2586 9.74145C18.468 9.95092 18.468 10.2905 18.2586 10.5C18.0491 10.7095 17.7095 10.7095 17.5 10.5C17.2905 10.2905 17.2905 9.95092 17.5 9.74145Z"
-                                    fill="currentColor" />
-                            </g>
-                        </svg>
-                    </span>
+            <div id="profileDetails">
+                <button id="followersBtn" class="profile-stat-btn">
+                    <span class="stat-value" id="followersCount">0</span>
+                    <span class="stat-label">Followers</span>
                 </button>
-                <button id="tabPosts" class="tab-btn active" aria-label="Beiträge">
-                    <span class="tab-icon">
-                        <!-- Beiträge icon: document -->
-                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                            <rect x="4" y="4" width="16" height="16" rx="3" stroke="currentColor" stroke-width="2"
-                                fill="none" />
-                            <line x1="8" y1="8" x2="16" y2="8" stroke="currentColor" stroke-width="2" />
-                            <line x1="8" y1="12" x2="16" y2="12" stroke="currentColor" stroke-width="2" />
-                            <line x1="8" y1="16" x2="12" y2="16" stroke="currentColor" stroke-width="2" />
-                        </svg>
-                    </span>
+                <button id="followingBtn" class="profile-stat-btn">
+                    <span class="stat-value" id="followingCount">0</span>
+                    <span class="stat-label">Following</span>
                 </button>
-                <button id="tabFavorites" class="tab-btn" aria-label="Favoriten">
-                    <span class="tab-icon">
-                        <!-- Favoriten icon: full heart -->
-                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                            <path
-                                d="M12 21c-.6 0-1.2-.2-1.7-.6C6.1 17.1 2 13.36 2 9.5 2 6.42 4.42 4 7.5 4c1.74 0 3.41.81 4.5 2.09C13.09 4.81 14.76 4 16.5 4 19.58 4 22 6.42 22 9.5c0 3.86-4.1 7.6-8.3 10.9-.5.4-1.1.6-1.7.6z"
-                                fill="currentColor" stroke="currentColor" stroke-width="1.5" />
-                        </svg>
-                    </span>
+                <button id="friendsBtn" class="profile-stat-btn">
+                    <span class="stat-value" id="friendsCount">0</span>
+                    <span class="stat-label">Friends</span>
+                </button>
+                <button id="postsBtn" class="profile-stat-btn">
+                    <span class="stat-value" id="postsCount">0</span>
+                    <span class="stat-label">Posts</span>
                 </button>
             </div>
-            <div class="tab-underline"></div>
-            <div class="tab-content" style="background:none; box-shadow:none; border-radius:0; padding-top:18px;">
-                <section id="tabContentPartys" class="tab-section" style="display:none;">
-                    <div id="noPartiesState" class="empty-state empty-state--parties" style="display: none;">
-                        <svg class="empty-state-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                            <path d="M3 6.5L8 4l7 2.5 6-2.5v11l-6 2.5L10 15 3 17.5v-11z" stroke="currentColor" stroke-width="1.5"/>
-                            <path d="M12 22a2.5 2.5 0 0 0 2.45-2H9.55A2.5 2.5 0 0 0 12 22z" fill="currentColor"/>
-                            <path d="M18 8a6 6 0 1 0-12 0v5l-2 2v1h16v-1l-2-2V8z" stroke="currentColor" stroke-width="1.5"/>
+            <div id="actionButton">
+                <button id="editAccountBtn" class="edit-account-btn"><a href="../editProfile/editProfile.html">Edit Account</a></button>
+                <div id="profileActions" class="profile-actions hidden">
+                    <button id="followBtn" class="action-btn action-btn--primary">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
                         </svg>
-                        <h3 class="empty-state-title">No Parties Yet</h3>
-                        <p class="empty-state-message">You haven't created any parties. Be the first to start the celebration!</p>
-                        <a href="/addParty/addParty.html" class="empty-state-action">
-                            <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                <path d="M12 4v16m8-8H4" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                        <span>Follow</span>
+                    </button>
+                    <button id="friendBtn" class="action-btn action-btn--secondary">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                            <circle cx="8.5" cy="7" r="4" stroke="currentColor" stroke-width="1.5"/>
+                            <path d="M20 8v6M23 11h-6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                        </svg>
+                        <span>Add Friend</span>
+                    </button>
+                </div>
+            </div>
+
+            <div id="profileTabs">
+                <div class="tab-buttons">
+                    <button id="tabPartys" class="tab-btn" aria-label="Partys">
+                        <span class="tab-icon">
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M4.01207 15.7618L5.70156 10.6933C6.46758 8.39525 6.85059 7.24623 7.75684 7.03229C8.6631 6.81835 9.51953 7.67478 11.2324 9.38764L14.6114 12.7666C16.3242 14.4795 17.1807 15.3359 16.9667 16.2422C16.7528 17.1484 15.6038 17.5314 13.3057 18.2975L8.23724 19.987C5.47183 20.9088 4.08912 21.3697 3.35924 20.6398C2.62936 19.9099 3.09026 18.5272 4.01207 15.7618Z" stroke="currentColor" stroke-width="1.5" fill="none"/>
+                                <path opacity="0.5" d="M12.2351 18.3461C12.2351 18.3461 11.477 16.0649 11.477 14.5552C11.477 13.0454 12.2351 10.7643 12.2351 10.7643M8.06517 19.4833C8.06517 19.4833 7.42484 16.7314 7.307 14.9343C7.11229 11.965 8.06517 7.35254 8.06517 7.35254" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" fill="none"/>
+                                <path d="M14.5093 10.0061L14.6533 9.28614C14.7986 8.55924 15.3224 7.96597 16.0256 7.73155C16.7289 7.49714 17.2526 6.90387 17.398 6.17697L17.542 5.45703" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" fill="none"/>
+                                <path d="M17.5691 12.2533L17.7819 12.3762C18.4391 12.7556 19.2652 12.6719 19.8329 12.1685C20.347 11.7126 21.0792 11.597 21.7087 11.8723L22.0002 11.9997" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" fill="none"/>
+                                <path d="M10.5352 3C10.1977 3.55206 10.2823 4.26344 10.7399 4.72097L10.8377 4.81885C11.2309 5.21201 11.3759 5.78959 11.215 6.32182" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" fill="none"/>
+                                <g opacity="0.5">
+                                    <path d="M13.561 4.39648C13.7621 4.19542 13.8626 4.09489 13.9788 4.05804C14.0772 4.02688 14.1827 4.02688 14.281 4.05804C14.3973 4.09489 14.4978 4.19542 14.6989 4.39648C14.8999 4.59753 15.0004 4.69806 15.0373 4.8143C15.0685 4.91262 15.0685 5.01817 15.0373 5.11648C15.0004 5.23272 14.8999 5.33325 14.6989 5.53431C14.4978 5.73536 14.3973 5.83589 14.281 5.87274C14.1827 5.90391 14.0772 5.90391 13.9788 5.87274C13.8626 5.83589 13.7621 5.73536 13.561 5.53431C13.36 5.33325 13.2594 5.23272 13.2226 5.11648C13.1914 5.01817 13.1914 4.91262 13.2226 4.8143C13.2594 4.69806 13.36 4.59753 13.561 4.39648Z" fill="currentColor"/>
+                                </g>
+                                <path d="M19.4682 7.46822C19.7136 7.22283 19.8363 7.10014 19.9747 7.04681C20.1367 6.9844 20.3161 6.9844 20.4781 7.04681C20.6165 7.10014 20.7392 7.22283 20.9846 7.46822C21.23 7.71362 21.3527 7.83631 21.406 7.97472C21.4684 8.1367 21.4684 8.31609 21.406 8.47807C21.3527 8.61649 21.23 8.73918 20.9846 8.98457C20.7392 9.22996 20.6165 9.35266 20.4781 9.40599C20.3161 9.4684 20.1367 9.4684 19.9747 9.40599C19.8363 9.35266 19.7136 9.22996 19.4682 8.98457C19.2228 8.73918 19.1001 8.61649 19.0468 8.47807C18.9844 8.31609 18.9844 8.1367 19.0468 7.97472C19.1001 7.83631 19.2228 7.71362 19.4682 7.46822Z" fill="currentColor"/>
+                                <g opacity="0.5">
+                                    <path d="M6.92737 3.94079C7.13683 3.73132 7.47645 3.73132 7.68592 3.94079C7.89539 4.15026 7.89539 4.48988 7.68592 4.69935C7.47645 4.90882 7.13683 4.90882 6.92737 4.69935C6.7179 4.48988 6.7179 4.15026 6.92737 3.94079Z" fill="currentColor"/>
+                                </g>
+                                <path opacity="0.5" d="M19.0582 15.3134C19.2677 15.1039 19.6073 15.1039 19.8168 15.3134C20.0262 15.5228 20.0262 15.8624 19.8168 16.0719C19.6073 16.2814 19.2677 16.2814 19.0582 16.0719C18.8488 15.8624 18.8488 15.5228 19.0582 15.3134Z" fill="currentColor"/>
+                                <g opacity="0.5">
+                                    <path d="M17.5 9.74145C17.7095 9.53198 18.0491 9.53198 18.2586 9.74145C18.468 9.95092 18.468 10.2905 18.2586 10.5C18.0491 10.7095 17.7095 10.7095 17.5 10.5C17.2905 10.2905 17.2905 9.95092 17.5 9.74145Z" fill="currentColor"/>
+                                </g>
                             </svg>
-                            Create Party
-                        </a>
-                    </div>
-                    <p class="muted no-parties" id="noPartiesText">Keine Partys vorhanden</p>
-
-                    <!-- template für eine party-card; wird per JS geklont -->
-                    <template id="party-template">
-                        <article class="party-card" data-id="">
-                            <header class="party-header">
-                                <h4 class="party-name">Party Name</h4>
-                                <div class="party-actions">
-                                    <button class="icon-btn edit-btn" aria-label="Edit party" title="Edit">
-                                        <!-- edit pencil -->
-                                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"
-                                            focusable="false">
-                                            <path d="M3 21v-3.75L14.06 6.19l3.75 3.75L6.75 21H3z" stroke="currentColor" stroke-width="1.4"
-                                                stroke-linecap="round" stroke-linejoin="round"/>
-                                            <path d="M18.37 5.63l.0001-.0001a2 2 0 0 0 0-2.83 2 2 0 0 0-2.83 0L14 4.32" stroke="currentColor" stroke-width="1.4"
-                                                stroke-linecap="round" stroke-linejoin="round"/>
-                                        </svg>
-                                    </button>
-                                    <button class="icon-btn delete-btn" aria-label="Delete party" title="Delete">
-                                        <!-- trash -->
-                                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"
-                                            focusable="false">
-                                            <path d="M3 6h18" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/>
-                                            <path d="M8 6v12a2 2 0 0 0 2 2h4a2 2 0 0 0 2-2V6" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"
-                                                stroke-linejoin="round"/>
-                                            <path d="M10 11v6M14 11v6" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/>
-                                        </svg>
-                                    </button>
-                                    <!-- ADDED: details toggle button -->
-                                    <button class="icon-btn details-btn" aria-expanded="false" aria-label="Show details" title="Details">
-                                        <!-- simple chevron / info icon (accessible text is aria-label) -->
+                        </span>
+                    </button>
+                    <button id="tabFriends" class="tab-btn" aria-label="Friends">
+                        <span class="tab-icon">
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                                <circle cx="9" cy="7" r="4" stroke="currentColor" stroke-width="1.5"/>
+                                <path d="M23 21v-2a4 4 0 0 0-3-3.87" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                                <path d="M16 3.13a4 4 0 0 1 0 7.75" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                            </svg>
+                        </span>
+                    </button>
+                    <button id="tabPosts" class="tab-btn active" aria-label="Posts">
+                        <span class="tab-icon">
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <rect x="4" y="4" width="16" height="16" rx="3" stroke="currentColor" stroke-width="2" fill="none"/>
+                                <line x1="8" y1="8" x2="16" y2="8" stroke="currentColor" stroke-width="2"/>
+                                <line x1="8" y1="12" x2="16" y2="12" stroke="currentColor" stroke-width="2"/>
+                                <line x1="8" y1="16" x2="12" y2="16" stroke="currentColor" stroke-width="2"/>
+                            </svg>
+                        </span>
+                    </button>
+                    <button id="tabFavorites" class="tab-btn" aria-label="Favorites">
+                        <span class="tab-icon">
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M12 21c-.6 0-1.2-.2-1.7-.6C6.1 17.1 2 13.36 2 9.5 2 6.42 4.42 4 7.5 4c1.74 0 3.41.81 4.5 2.09C13.09 4.81 14.76 4 16.5 4 19.58 4 22 6.42 22 9.5c0 3.86-4.1 7.6-8.3 10.9-.5.4-1.1.6-1.7.6z" fill="currentColor" stroke="currentColor" stroke-width="1.5"/>
+                            </svg>
+                        </span>
+                    </button>
+                </div>
+                <div class="tab-underline"></div>
+                <div class="tab-content" style="background:none; box-shadow:none; border-radius:0; padding-top:18px;">
+                    <section id="tabContentPartys" class="tab-section" style="display:none;">
+                        <div id="noPartiesState" class="empty-state empty-state--parties" style="display: none;">
+                            <svg class="empty-state-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M3 6.5L8 4l7 2.5 6-2.5v11l-6 2.5L10 15 3 17.5v-11z" stroke="currentColor" stroke-width="1.5"/>
+                                <path d="M12 22a2.5 2.5 0 0 0 2.45-2H9.55A2.5 2.5 0 0 0 12 22z" fill="currentColor"/>
+                                <path d="M18 8a6 6 0 10-12 0v5l-2 2v1h16v-1l-2-2V8z" stroke="currentColor" stroke-width="1.5"/>
+                            </svg>
+                            <h3 class="empty-state-title">No Parties Yet</h3>
+                            <p class="empty-state-message">You haven't created any parties. Be the first to start the celebration!</p>
+                            <a href="/addParty/addParty.html" class="empty-state-action">
+                                <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                    <path d="M12 4v16m8-8H4" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                                </svg>
+                                Create Party
+                            </a>
+                        </div>
+                        <p class="muted no-parties" id="noPartiesText" style="display: none;">Keine Partys vorhanden</p>
+                        <template id="party-template">
+                            <article class="party-card" data-id="">
+                                <header class="party-header">
+                                    <h4 class="party-name">Party Name</h4>
+                                    <div class="party-actions">
+                                        <button class="icon-btn edit-btn" aria-label="Edit party" title="Edit">
+                                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                                <path d="M3 21v-3.75L14.06 6.19l3.75 3.75L6.75 21H3z" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/>
+                                                <path d="M18.37 5.63l.0001-.0001a2 2 0 0 0 0-2.83 2 2 0 0 0-2.83 0L14 4.32" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/>
+                                            </svg>
+                                        </button>
+                                        <button class="icon-btn delete-btn" aria-label="Delete party" title="Delete">
+                                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                                <path d="M3 6h18" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/>
+                                                <path d="M8 6v12a2 2 0 0 0 2 2h4a2 2 0 0 0 2-2V6" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/>
+                                                <path d="M10 11v6M14 11v6" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/>
+                                            </svg>
+                                        </button>
+                                        <button class="icon-btn details-btn" aria-expanded="false" aria-label="Show details" title="Details">
+                                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                                <path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/>
+                                            </svg>
+                                        </button>
+                                    </div>
+                                </header>
+                                <div class="party-body">
+                                    <div class="info-box">
+                                        <div class="info-value">Datum</div>
+                                        <div class="info-label">Datum</div>
+                                    </div>
+                                    <div class="info-box">
+                                        <div class="info-value">Uhrzeit</div>
+                                        <div class="info-label">Uhrzeit</div>
+                                    </div>
+                                    <div class="info-box">
+                                        <div class="info-value">Ort</div>
+                                        <div class="info-label">Ort</div>
+                                    </div>
+                                </div>
+                                <div class="party-extra hidden" aria-hidden="true">
+                                    <pre class="party-json" tabindex="0"></pre>
+                                </div>
+                            </article>
+                        </template>
+                        <div id="partiesContainer" class="party-grid" aria-live="polite"></div>
+                    </section>
+                    <section id="tabContentFriends" class="tab-section" style="display:none;">
+                        <div class="friends-header">
+                            <div class="add-friend-section">
+                                <div class="add-friend-input-wrapper">
+                                    <input type="text" id="addFriendInput" placeholder="Add friend by username..." aria-label="Add friend by username"/>
+                                    <button type="button" id="addFriendBtn" class="btn btn-sm" aria-label="Add friend">
                                         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                            <path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/>
+                                            <path d="M12 4v16m8-8H4" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
                                         </svg>
                                     </button>
                                 </div>
-                            </header>
-
-                            <div class="party-body">
-                                <div class="info-box">
-                                    <div class="info-value">Datum</div>
-                                    <div class="info-label">Datum</div>
-                                </div>
-                                <div class="info-box">
-                                    <div class="info-value">Uhrzeit</div>
-                                    <div class="info-label">Uhrzeit</div>
-                                </div>
-                                <div class="info-box">
-                                    <div class="info-value">Ort</div>
-                                    <div class="info-label">Ort</div>
-                                </div>
+                                <p class="add-friend-hint">Enter a username to send a friend request</p>
                             </div>
-
-                            <!-- ADDED: expandable details area (hidden by default) -->
-                            <div class="party-extra hidden" aria-hidden="true">
-                                <pre class="party-json" tabindex="0"></pre>
+                        </div>
+                        <div id="friendsList" class="friends-list" aria-label="Friends list">
+                            <div id="friendsLoading" class="loading-container" style="display: none;">
+                                <div class="loading-spinner"></div>
+                                <p class="loading-text">Loading friends...</p>
                             </div>
-                        </article>
-                    </template>
-
-                    <!-- ADDED: Container where JS will append party-cards -->
-                    <div id="partiesContainer" class="party-grid" aria-live="polite"></div>
-                </section>
-                <section id="tabContentPosts" class="tab-section" style="display:block;">
-                    <div id="noPostsState" class="empty-state empty-state--generic" style="display: none;">
-                        <svg class="empty-state-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                            <rect x="4" y="4" width="16" height="16" rx="3" stroke="currentColor" stroke-width="1.5"/>
-                            <path d="M8 8h8M8 12h8M8 16h5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
-                        </svg>
-                        <h3 class="empty-state-title">No Posts Yet</h3>
-                        <p class="empty-state-message">Share your thoughts and updates with your followers.</p>
-                    </div>
-                    <p class="muted no-posts" id="noPostsText">Keine Beiträge vorhanden</p>
-
-                    <!-- template für einen beitrag; wird per JS geklont -->
-                    <template id="post-template">
-                        <article class="post-card" data-id="">
-                            <header class="post-header">
-                                <h4 class="post-title">Beitragstitel</h4>
-                                <div class="post-actions">
-                                    <button class="icon-btn edit-btn" aria-label="Edit post" title="Edit">
-                                        <!-- edit pencil -->
-                                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"
-                                            focusable="false">
-                                            <path d="M3 21v-3.75L14.06 6.19l3.75 3.75L6.75 21H3z" stroke="currentColor" stroke-width="1.4"
-                                                stroke-linecap="round" stroke-linejoin="round"/>
-                                            <path d="M18.37 5.63l.0001-.0001a2 2 0 0 0 0-2.83 2 2 0 0 0-2.83 0L14 4.32" stroke="currentColor" stroke-width="1.4"
-                                                stroke-linecap="round" stroke-linejoin="round"/>
-                                        </svg>
-                                    </button>
-                                    <button class="icon-btn delete-btn" aria-label="Delete post" title="Delete">
-                                        <!-- trash -->
-                                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"
-                                            focusable="false">
-                                            <path d="M3 6h18" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/>
-                                            <path d="M8 6v12a2 2 0 0 0 2 2h4a2 2 0 0 0 2-2V6" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"
-                                                stroke-linejoin="round"/>
-                                            <path d="M10 11v6M14 11v6" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/>
-                                        </svg>
-                                    </button>
+                            <div id="noFriendsState" class="empty-state empty-state--favorites" style="display: none;">
+                                <svg class="empty-state-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                    <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                                    <circle cx="9" cy="7" r="4" stroke="currentColor" stroke-width="1.5"/>
+                                    <path d="M23 21v-2a4 4 0 0 0-3-3.87" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                                    <path d="M16 3.13a4 4 0 0 1 0 7.75" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                                </svg>
+                                <h3 class="empty-state-title">No Friends Yet</h3>
+                                <p class="empty-state-message">Start connecting with other users by adding friends!</p>
+                            </div>
+                        </div>
+                    </section>
+                    <section id="tabContentPosts" class="tab-section" style="display:block;">
+                        <div id="noPostsState" class="empty-state empty-state--generic" style="display: none;">
+                            <svg class="empty-state-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <rect x="4" y="4" width="16" height="16" rx="3" stroke="currentColor" stroke-width="1.5"/>
+                                <path d="M8 8h8M8 12h8M8 16h5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                            </svg>
+                            <h3 class="empty-state-title">No Posts Yet</h3>
+                            <p class="empty-state-message">Share your thoughts and updates with your followers.</p>
+                        </div>
+                        <p class="muted no-posts" id="noPostsText" style="display: none;">Keine Beiträge vorhanden</p>
+                        <template id="post-template">
+                            <article class="post-card" data-id="">
+                                <header class="post-header">
+                                    <h4 class="post-title">Beitragstitel</h4>
+                                    <div class="post-actions">
+                                        <button class="icon-btn edit-btn" aria-label="Edit post" title="Edit">
+                                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                                <path d="M3 21v-3.75L14.06 6.19l3.75 3.75L6.75 21H3z" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/>
+                                                <path d="M18.37 5.63l.0001-.0001a2 2 0 0 0 0-2.83 2 2 0 0 0-2.83 0L14 4.32" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/>
+                                            </svg>
+                                        </button>
+                                        <button class="icon-btn delete-btn" aria-label="Delete post" title="Delete">
+                                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                                <path d="M3 6h18" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/>
+                                                <path d="M8 6v12a2 2 0 0 0 2 2h4a2 2 0 0 0 2-2V6" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/>
+                                                <path d="M10 11v6M14 11v6" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/>
+                                            </svg>
+                                        </button>
+                                    </div>
+                                </header>
+                                <div class="post-body">
+                                    <div class="content-placeholder">Inhalt des Beitrags</div>
                                 </div>
-                            </header>
-
-                            <div class="post-body">
-                                <div class="content-placeholder">Inhalt des Beitrags</div>
-                            </div>
+                            </article>
                         </template>
-                </section>
-                <section id="tabContentFavorites" class="tab-section" style="display:none;">
-                    <div id="noFavoritesState" class="empty-state empty-state--favorites" style="display: none;">
-                        <svg class="empty-state-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                            <path d="M12 21c-.6 0-1.2-.2-1.7-.6C6.1 17.1 2 13.36 2 9.5 2 6.42 4.42 4 7.5 4c1.74 0 3.41.81 4.5 2.09C13.09 4.81 14.76 4 16.5 4 19.58 4 22 6.42 22 9.5c0 3.86-4.1 7.6-8.3 10.9-.5.4-1.1.6-1.7.6z" fill="currentColor" stroke="currentColor" stroke-width="1.5"/>
-                        </svg>
-                        <h3 class="empty-state-title">No Favorites</h3>
-                        <p class="empty-state-message">Start exploring and save your favorite parties here.</p>
-                    </div>
-                    <p class="muted no-favorites" id="noFavoritesText">Keine Favoriten vorhanden</p>
-
-                    <!-- template für einen favoriten; wird per JS geklont -->
-                    <template id="favorite-template">
-                        <article class="favorite-card" data-id="">
-                            <header class="favorite-header">
-                                <h4 class="favorite-title">Favoriten Titel</h4>
-                                <div class="favorite-actions">
-                                    <button class="icon-btn delete-btn" aria-label="Remove from favorites" title="Remove">
-                                        <!-- trash -->
-                                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"
-                                            focusable="false">
-                                            <path d="M3 6h18" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/>
-                                            <path d="M8 6v12a2 2 0 0 0 2 2h4a2 2 0 0 0 2-2V6" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"
-                                                stroke-linejoin="round"/>
-                                            <path d="M10 11v6M14 11v6" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/>
-                                        </svg>
-                                    </button>
+                    </section>
+                    <section id="tabContentFavorites" class="tab-section" style="display:none;">
+                        <div id="noFavoritesState" class="empty-state empty-state--favorites" style="display: none;">
+                            <svg class="empty-state-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M12 21c-.6 0-1.2-.2-1.7-.6C6.1 17.1 2 13.36 2 9.5 2 6.42 4.42 4 7.5 4c1.74 0 3.41.81 4.5 2.09C13.09 4.81 14.76 4 16.5 4 19.58 4 22 6.42 22 9.5c0 3.86-4.1 7.6-8.3 10.9-.5.4-1.1.6-1.7.6z" fill="currentColor" stroke="currentColor" stroke-width="1.5"/>
+                            </svg>
+                            <h3 class="empty-state-title">No Favorites</h3>
+                            <p class="empty-state-message">Start exploring and save your favorite parties here.</p>
+                        </div>
+                        <p class="muted no-favorites" id="noFavoritesText" style="display: none;">Keine Favoriten vorhanden</p>
+                        <template id="favorite-template">
+                            <article class="favorite-card" data-id="">
+                                <header class="favorite-header">
+                                    <h4 class="favorite-title">Favoriten Titel</h4>
+                                    <div class="favorite-actions">
+                                        <button class="icon-btn delete-btn" aria-label="Remove from favorites" title="Remove">
+                                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                                <path d="M3 6h18" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/>
+                                                <path d="M8 6v12a2 2 0 0 0 2 2h4a2 2 0 0 0 2-2V6" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/>
+                                                <path d="M10 11v6M14 11v6" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/>
+                                            </svg>
+                                        </button>
+                                    </div>
+                                </header>
+                                <div class="favorite-body">
+                                    <div class="content-placeholder">Inhalt des Favoriten</div>
                                 </div>
-                            </header>
-
-                            <div class="favorite-body">
-                                <div class="content-placeholder">Inhalt des Favoriten</div>
-                            </div>
+                            </article>
                         </template>
-                </section>
+                    </section>
+                </div>
             </div>
-        </div>
 
-        <div id="navbarSpacer">
-                <!-- Shared Bottom Navigation -->
+            <div id="navbarSpacer">
                 <nav class="bottom-nav" role="navigation" aria-label="Bottom navigation">
                     <a class="nav-btn" href="../index.html" aria-label="Home">
                         <svg class="nav-icon icon--pink" width="28" height="28" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                             <path d="M3 6.5L8 4l7 2.5 6-2.5v11l-6 2.5L10 15 3 17.5v-11z" stroke="currentColor" stroke-width="1.2" stroke-linejoin="round" stroke-linecap="round"/>
                         </svg>
                     </a>
-
                     <a class="nav-btn" href="/listPartys/listPartys.html" aria-label="List Parties">
                         <svg class="nav-icon icon--green" width="28" height="28" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                             <rect x="3" y="3" width="18" height="18" rx="3" stroke="currentColor" stroke-width="1.2"/>
-                            <circle cx="8.5" cy="8.5" r="1.8" fill="currentColor" />
+                            <circle cx="8.5" cy="8.5" r="1.8" fill="currentColor"/>
                             <path d="M21 21l-6-6-5 5" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/>
                         </svg>
                     </a>
-
                     <a class="nav-btn" href="/notifications/notifications.html" aria-label="Notifications">
                         <svg class="nav-icon icon--pink" width="28" height="28" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                             <path d="M12 22a2.5 2.5 0 0 0 2.45-2H9.55A2.5 2.5 0 0 0 12 22z" fill="currentColor"/>
                             <path d="M18 8a6 6 0 10-12 0v5l-2 2v1h16v-1l-2-2V8z" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/>
                         </svg>
                     </a>
-
                     <a class="nav-btn" href="/profile/profile.html" aria-label="Profile">
                         <svg class="nav-icon icon--pink" width="28" height="28" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                             <circle cx="12" cy="8.5" r="3" stroke="currentColor" stroke-width="1.2"/>
@@ -336,42 +328,63 @@
                         </svg>
                     </a>
                 </nav>
+            </div>
+
+            <script>
+                function markActiveNavProfile() {
+                    const nav = document.querySelector('.bottom-nav');
+                    if (!nav) return;
+                    const links = nav.querySelectorAll('.nav-btn');
+                    links.forEach(a => {
+                        const icon = a.querySelector('.nav-icon');
+                        if (!icon) return;
+                        icon.classList.remove('icon--green');
+                        icon.classList.add('icon--pink');
+                        a.classList.remove('active');
+                        a.removeAttribute('aria-current');
+                        const href = (a.getAttribute('href') || '').toLowerCase();
+                        if (href.includes('profile')) {
+                            icon.classList.remove('icon--pink');
+                            icon.classList.add('icon--green');
+                            a.classList.add('active');
+                            a.setAttribute('aria-current', 'page');
+                        }
+                    });
+                }
+                if (document.readyState === 'loading') {
+                    document.addEventListener('DOMContentLoaded', markActiveNavProfile);
+                } else {
+                    markActiveNavProfile();
+                }
+            </script>
         </div>
+    </div>
 
-        <script>
-            // Highlight active navigation on profile page
-            function markActiveNavProfile() {
-                const nav = document.querySelector('.bottom-nav');
-                if (!nav) return;
-                const links = nav.querySelectorAll('.nav-btn');
-                links.forEach(a => {
-                    const icon = a.querySelector('.nav-icon');
-                    if (!icon) return;
-                    // default to pink
-                    icon.classList.remove('icon--green');
-                    icon.classList.add('icon--pink');
-                    a.classList.remove('active');
-                    a.removeAttribute('aria-current');
-
-                    const href = (a.getAttribute('href') || '').toLowerCase();
-                    if (href.includes('profile')) {
-                        icon.classList.remove('icon--pink');
-                        icon.classList.add('icon--green');
-                        a.classList.add('active');
-                        a.setAttribute('aria-current', 'page');
-                    }
-                });
-            }
-
-            if (document.readyState === 'loading') {
-                document.addEventListener('DOMContentLoaded', markActiveNavProfile);
-            } else {
-                markActiveNavProfile();
-            }
-        </script>
-
-        </div> <!-- /.app-shell -->
-
-    </body>
-
+    <div id="userListModal" class="modal hidden" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+        <div class="modal-overlay"></div>
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="modalTitle" class="modal-title">Followers</h2>
+                <button type="button" class="modal-close" aria-label="Close modal">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M18 6L6 18M6 6l12 12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                    </svg>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="modal-search" id="modalSearchWrapper" style="display: none;">
+                    <input type="text" id="modalSearchInput" placeholder="Search..." aria-label="Search users"/>
+                </div>
+                <div id="modalUserList" class="modal-user-list"></div>
+                <div id="modalLoading" class="loading-container" style="display: none;">
+                    <div class="loading-spinner"></div>
+                    <p class="loading-text">Loading...</p>
+                </div>
+                <div id="modalEmpty" class="empty-state" style="display: none;">
+                    <p class="empty-state-message">No users found</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
 </html>
