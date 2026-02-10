@@ -16,9 +16,10 @@
 
   function createSwitcherUI() {
     if (document.getElementById('user-switcher')) return;
-
+    
     const switcher = document.createElement('div');
     switcher.id = 'user-switcher';
+    switcher.style.zIndex = '1000';
     switcher.innerHTML = `
       <button class="user-switcher-trigger" id="userSwitcherTrigger" aria-haspopup="true" aria-expanded="false">
         <img class="user-avatar-img" id="switcherAvatarImg" src="/images/default_profile-picture.jpg" alt="" onerror="this.src='/images/default_profile-picture.jpg'">
@@ -27,7 +28,7 @@
           <span class="user-handle" id="switcherHandle">@username</span>
         </span>
         <svg class="switcher-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-          <path d="M6 9l6 6 6-6"/>
+          <path d="M6 9l6 6-6"/>
         </svg>
       </button>
       <div class="user-switcher-dropdown hidden" id="userSwitcherDropdown" role="menu">
@@ -42,14 +43,14 @@
 
     const container = document.getElementById('profileContainer') || document.body;
     container.insertBefore(switcher, container.firstChild);
-
+    
     injectStyles();
     attachEventListeners();
   }
 
-  function injectStyles() {
+    function injectStyles() {
     if (document.getElementById('user-switcher-styles')) return;
-
+    
     const styles = document.createElement('style');
     styles.id = 'user-switcher-styles';
     styles.textContent = `
@@ -59,7 +60,6 @@
         margin: 0 auto 20px;
         position: relative;
         z-index: 1000;
-        font-family: var(--font-body, 'Segoe UI', system-ui, sans-serif);
       }
 
       .user-switcher-trigger {
