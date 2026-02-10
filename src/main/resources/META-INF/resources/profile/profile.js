@@ -4,6 +4,7 @@ document.addEventListener('DOMContentLoaded', function () {
     const distinctNameElement = document.getElementById('distinctName');
     // global current user id used throughout this file
     let currentUserId = null;
+    let isViewingOwnProfile = false;
     
     if (!img) return;
 
@@ -18,12 +19,55 @@ document.addEventListener('DOMContentLoaded', function () {
     } else if (userId) {
         loadUserDataById(userId);
     } else {
-        loadUserDataById(getCurrentUserId());
+        // Viewing own profile - use dynamic backend user context
+        isViewingOwnProfile = true;
+        loadCurrentUserData();
     }
 
-    function getCurrentUserId() {
-        // TODO: Implement based on your authentication system
-        return 1; // Test-ID
+    // Listen for user switch events from the user-switcher component
+    window.addEventListener('userChanged', function(event) {
+        if (isViewingOwnProfile) {
+            console.log('User switched, reloading profile...', event.detail);
+            if (event.detail && event.detail.id) {
+                loadUserDataById(event.detail.id);
+            } else {
+                loadCurrentUserData();
+            }
+        }
+    });
+
+    async function getCurrentUserId() {
+        try {
+            const response = await fetch('/api/user-context/current/id');
+            if (response.ok) {
+                const data = await response.json();
+                return data.userId;
+            }
+        } catch (error) {
+            console.error('Error getting current user ID:', error);
+        }
+        return 1; // Fallback to default
+    }
+
+    async function loadCurrentUserData() {
+        try {
+            const response = await fetch('/api/user-context/current');
+            if (response.ok) {
+                const userData = await response.json();
+                console.log('Current user data loaded:', userData);
+                updateUserProfile(userData);
+                // Update URL to reflect current user without reloading
+                const newUrl = new URL(window.location.href);
+                newUrl.searchParams.set('id', userData.id);
+                window.history.replaceState({}, '', newUrl);
+            } else {
+                throw new Error('Failed to load current user');
+            }
+        } catch (error) {
+            console.error('Failed to load current user data:', error);
+            // Fallback to user ID 1
+            loadUserDataById(1);
+        }
     }
 
     function loadUserDataByHandle(userHandle) {
@@ -196,11 +240,27 @@ document.addEventListener('DOMContentLoaded', function () {
         users.forEach(u => {
             const btn = document.createElement('button');
             btn.className = 'username-item';
-            btn.innerHTML = `<span>@${u.distinctName}</span>`;
-            btn.onclick = () => {
+            const isCurrentUser = u.id === currentUserId;
+            btn.innerHTML = `<span>@${u.distinctName}</span>${isCurrentUser ? ' <small>(current)</small>' : ''}`;
+            btn.onclick = async () => {
                 usernameDropdown.classList.add('hidden');
+                
+                // Also update the backend user context to switch to this user
+                try {
+                    const response = await fetch(`/api/user-context/switch/${u.id}`, { method: 'POST' });
+                    if (response.ok) {
+                        console.log(`Switched backend context to user ${u.id}`);
+                        // Dispatch event so other components know
+                        window.dispatchEvent(new CustomEvent('userChanged', { detail: u }));
+                    }
+                } catch (error) {
+                    console.error('Error switching user context:', error);
+                }
+                
                 loadUserDataById(u.id);
+                isViewingOwnProfile = true; // Now viewing as this user
                 const newUrl = new URL(window.location.href);
+                newUrl.searchParams.delete('handle');
                 newUrl.searchParams.set('id', u.id);
                 window.history.replaceState({}, '', newUrl);
             };

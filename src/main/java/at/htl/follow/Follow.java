@@ -42,4 +42,18 @@ public class Follow {
     public void setStatus(FollowStatus status) {
         this.status = status;
     }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        Follow follow = (Follow) o;
+        return java.util.Objects.equals(user1_id, follow.user1_id) &&
+               java.util.Objects.equals(user2_id, follow.user2_id);
+    }
+
+    @Override
+    public int hashCode() {
+        return java.util.Objects.hash(user1_id, user2_id);
+    }
 }

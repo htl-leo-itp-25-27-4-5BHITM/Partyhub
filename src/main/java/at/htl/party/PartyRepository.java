@@ -5,6 +5,7 @@ import at.htl.FilterDto;
 import at.htl.location.Location;
 import at.htl.location.LocationRepository;
 import at.htl.user.User;
+import at.htl.user.UserContext;
 import at.htl.user.UserRepository;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
@@ -23,9 +24,6 @@ import java.util.List;
 @ApplicationScoped
 public class PartyRepository {
 
-    // TODO: replace with actual authenticated user id
-    final Long DEFAULT_USER_ID = 1L;
-
     @Inject EntityManager entityManager;
     @Inject Logger logger;
 
@@ -35,6 +33,8 @@ public class PartyRepository {
     CategoryRepository categoryRepository;
     @Inject
     UserRepository userRepository;
+    @Inject
+    UserContext userContext;
 
     private static final DateTimeFormatter PARTY_DTF = DateTimeFormatter.ofPattern("dd.MM.yyyy HH:mm");
 
@@ -46,8 +46,7 @@ public class PartyRepository {
 
     public Response addParty(PartyCreateDto partyCreateDto) {
         Party party = partyCreateDtoToParty(partyCreateDto);
-        // TODO: Use current user
-        party.setHost_user(userRepository.getUser(DEFAULT_USER_ID));
+        party.setHost_user(userContext.getCurrentUser());
         entityManager.persist(party);
         return Response.created(UriBuilder.fromMethod(PartyResource.class, "addParty").build()).build();
     }
@@ -61,7 +60,7 @@ public class PartyRepository {
                         "SELECT COUNT(p) FROM Party p WHERE p.id = :id AND p.host_user.id = :hostId",
                         Long.class)
                 .setParameter("id", id)
-                .setParameter("hostId", DEFAULT_USER_ID) // TODO: replace with actual authenticated user id
+                .setParameter("hostId", userContext.getCurrentUserId())
                 .getSingleResult();
         if (matches != null && matches > 0) {
             entityManager.remove(party);
@@ -78,7 +77,7 @@ public class PartyRepository {
         }
         Party updatedParty = partyCreateDtoToParty(partyCreateDto);
         updatedParty.setId(id);
-        updatedParty.setHost_user(userRepository.getUser(DEFAULT_USER_ID));
+        updatedParty.setHost_user(userContext.getCurrentUser());
 
         entityManager.merge(updatedParty);
         return Response.ok().entity(updatedParty).build();
@@ -174,7 +173,7 @@ public class PartyRepository {
         if (party == null) {
             return Response.status(Response.Status.NOT_FOUND).build();
         }
-        User user = userRepository.getUser(DEFAULT_USER_ID);
+        User user = userContext.getCurrentUser();
         if (user == null) {
             return Response.status(Response.Status.BAD_REQUEST).entity("User not found").build();
         }
@@ -196,7 +195,7 @@ public class PartyRepository {
         if (party == null) {
             return Response.status(Response.Status.NOT_FOUND).build();
         }
-        User user = userRepository.getUser(DEFAULT_USER_ID);
+        User user = userContext.getCurrentUser();
         if (user == null) {
             return Response.status(Response.Status.BAD_REQUEST).entity("User not found").build();
         }
@@ -219,7 +218,7 @@ public class PartyRepository {
         int count = 0;
         if (party.getUsers() != null) {
             count = party.getUsers().size();
-            User user = userRepository.getUser(DEFAULT_USER_ID);
+            User user = userContext.getCurrentUser();
             if (user != null) {
                 attending = party.getUsers().contains(user);
             }
@@ -259,7 +258,6 @@ public class PartyRepository {
         if (partyCreateDto.category_id() != null) {
             party.setCategory(categoryRepository.getCategoryById(partyCreateDto.category_id()));
         } else {
-            // Use default category (id = 1) if none provided
             party.setCategory(categoryRepository.getCategoryById(1L));
         }
 
