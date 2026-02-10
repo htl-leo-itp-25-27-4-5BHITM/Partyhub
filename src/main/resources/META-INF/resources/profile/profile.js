@@ -49,8 +49,22 @@ document.addEventListener('DOMContentLoaded', function () {
 
     window.addEventListener('userChanged', function(event) {
         if (event.detail && event.detail.id) {
-            if (isViewingOwnProfile) {
-                window.location.reload();
+            const newUser = event.detail;
+            currentUserId = newUser.id;
+            isViewingOwnProfile = true;
+            
+            // Update profile display immediately
+            updateUserProfile(newUser);
+            
+            // Update URL to reflect the switched user
+            const newUrl = new URL(window.location.href);
+            newUrl.searchParams.set('id', newUser.id);
+            newUrl.searchParams.delete('handle');
+            window.history.replaceState({}, '', newUrl);
+            
+            // Show notification
+            if (window.ToastManager) {
+                window.ToastManager.success(`Switched to @${newUser.distinctName}`);
             }
         }
     });
