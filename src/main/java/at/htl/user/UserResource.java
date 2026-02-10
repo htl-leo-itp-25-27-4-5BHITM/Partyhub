@@ -141,20 +141,49 @@ public class UserResource {
         if (user == null) {
             return Response.status(Response.Status.NOT_FOUND).build();
         }
+        
         String pic = user.getProfileImage();
-        String path;
-            path = "src/main/resources/uploads/profiles/" + pic;
-            try {
-                InputStream is = Files.newInputStream(Paths.get(path));
-                String lower = pic.toLowerCase();
-                String type = "application/octet-stream";
-                if (lower.endsWith(".jpg") || lower.endsWith(".jpeg")) type = "image/jpeg";
-                else if (lower.endsWith(".png")) type = "image/png";
-                else if (lower.endsWith(".gif")) type = "image/gif";
-                return Response.ok(is, type).build();
-            } catch (IOException e) {
+        String basePath = "src/main/resources/";
+        java.nio.file.Path filePath = null;
+        
+        // Try to find user's profile picture
+        if (pic != null && !pic.isEmpty()) {
+            // Normalize path - handle both "filename.jpg" and "uploads/profiles/filename.jpg"
+            String fullPath;
+            if (pic.startsWith("uploads/")) {
+                fullPath = basePath + pic;
+            } else {
+                fullPath = basePath + "uploads/profiles/" + pic;
             }
+            filePath = Paths.get(fullPath);
+            
+            // If file doesn't exist, fall back to default
+            if (!Files.exists(filePath)) {
+                filePath = null;
+            }
+        }
+        
+        // Use default if no valid profile picture found
+        if (filePath == null) {
+            java.nio.file.Path defaultPath = Paths.get(basePath + "uploads/profiles/default_profile-picture.jpg");
+            if (Files.exists(defaultPath)) {
+                filePath = defaultPath;
+            } else {
+                return Response.status(Response.Status.NOT_FOUND).build();
+            }
+        }
+        
+        try {
+            InputStream is = Files.newInputStream(filePath);
+            String filename = filePath.getFileName().toString().toLowerCase();
+            String type = "application/octet-stream";
+            if (filename.endsWith(".jpg") || filename.endsWith(".jpeg")) type = "image/jpeg";
+            else if (filename.endsWith(".png")) type = "image/png";
+            else if (filename.endsWith(".gif")) type = "image/gif";
+            return Response.ok(is, type).build();
+        } catch (IOException e) {
             return Response.status(Response.Status.NOT_FOUND).build();
+        }
     }
 
     @POST

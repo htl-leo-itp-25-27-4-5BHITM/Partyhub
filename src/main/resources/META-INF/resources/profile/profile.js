@@ -9,6 +9,31 @@ document.addEventListener('DOMContentLoaded', function () {
 
     if (!img) return;
 
+    // Helper function to try loading images from multiple URLs
+    async function tryImageUrls(urls, timeout = 5000) {
+        for (const url of urls) {
+            try {
+                const loaded = await new Promise((resolve) => {
+                    const testImg = new Image();
+                    const timer = setTimeout(() => resolve(false), timeout);
+                    testImg.onload = () => {
+                        clearTimeout(timer);
+                        resolve(true);
+                    };
+                    testImg.onerror = () => {
+                        clearTimeout(timer);
+                        resolve(false);
+                    };
+                    testImg.src = url;
+                });
+                if (loaded) return url;
+            } catch (e) {
+                // Continue to next URL
+            }
+        }
+        return null;
+    }
+
     const urlParams = new URLSearchParams(window.location.search);
     const userHandle = urlParams.get('handle');
     const userId = urlParams.get('id');
@@ -112,28 +137,12 @@ document.addEventListener('DOMContentLoaded', function () {
         // (window.setLoggedInUser) or by fetchCurrentUserFromBackend() in initProfileLoad.
         // This avoids writing the developer fallback (getCurrentUserId() -> 1) into storage.
 
-        // try multiple candidate URLs for profile image (pick first that loads)
-        (async function selectProfileImage() {
-            const candidates = [
-                `/api/users/${user.id}/profile-picture`,
-                `/api/users/${user.id}/profile_picture`,
-                user.profileImage ? `/images/${user.profileImage}` : null,
-                user.profileImage ? `/uploads/${user.profileImage}` : null,
-                `/images/default_profile-picture.jpg`
-            ].filter(Boolean);
-
-            const good = await tryImageUrls(candidates, 3000);
-            if (good) {
-                img.src = good;
-            } else {
-                // kein externes Bild verfügbar -> setze direkt den eingebetteten SVG-Fallback (keine 404 mehr)
-                img.src = 'data:image/svg+xml;utf8,' +
-                    encodeURIComponent(`<svg xmlns="http://www.w3.org/2000/svg" width="120" height="120">
-                        <rect width="100%" height="100%" fill="#444"/>
-                        <text x="50%" y="50%" fill="#fff" font-size="18" font-family="Arial" text-anchor="middle" dominant-baseline="central">No Image</text>
-                    </svg>`);
-            }
-        })();
+        // Load profile picture from API
+        img.src = `/api/users/${user.id}/profile-picture`;
+        img.onerror = function() {
+            this.onerror = null;
+            this.src = '/images/default_profile-picture.jpg';
+        };
 
         if (displayNameElement && user.displayName) {
             displayNameElement.textContent = user.displayName;
@@ -153,17 +162,6 @@ document.addEventListener('DOMContentLoaded', function () {
 
         // Load parties for the selected user (will prefer backend.getPartiesByUser)
         try { loadUserParties(); } catch (e) { console.debug('loadUserParties invocation failed', e); }
-
-        // keep an onerror fallback as a last resort (shouldn't be needed now)
-        img.onerror = function() {
-            console.warn("Profile picture onerror triggered:", this.src);
-            this.onerror = null;
-            this.src = 'data:image/svg+xml;utf8,' +
-                encodeURIComponent(`<svg xmlns="http://www.w3.org/2000/svg" width="120" height="120">
-                    <rect width="100%" height="100%" fill="#444"/>
-                    <text x="50%" y="50%" fill="#fff" font-size="18" font-family="Arial" text-anchor="middle" dominant-baseline="central">No Image</text>
-                </svg>`);
-        };
     }
 
     function loadUserStats(userId) {
