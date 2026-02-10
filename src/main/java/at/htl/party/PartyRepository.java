@@ -261,6 +261,8 @@ public class PartyRepository {
             party.setCategory(categoryRepository.getCategoryById(1L));
         }
 
+        party.setVisibility(partyCreateDto.visibility());
+
         party.setCreated_at(LocalDateTime.now());
         return party;
     }

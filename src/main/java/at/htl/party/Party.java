@@ -36,6 +36,7 @@ public class Party {
     private String website;
     private String description;
     private Double fee;
+    private String visibility;
     @CreationTimestamp
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime created_at;
@@ -153,6 +154,14 @@ public class Party {
 
     public void setFee(Double fee) {
         this.fee = fee;
+    }
+
+    public String getVisibility() {
+        return visibility;
+    }
+
+    public void setVisibility(String visibility) {
+        this.visibility = visibility;
     }
 
     public LocalDateTime getCreated_at() {

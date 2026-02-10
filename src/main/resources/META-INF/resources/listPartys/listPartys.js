@@ -37,13 +37,16 @@ async function loadAllParties() {
 
 function applyFilters() {
     filteredParties = allParties.filter(party => {
+        // Only show public parties by default (when filter is 'all')
+        if (currentFilter === 'all' && party.visibility !== 'public') {
+            return false;
+        }
+
         const matchesSearch = currentSearch === '' ||
             party.title.toLowerCase().includes(currentSearch.toLowerCase()) ||
             (party.description && party.description.toLowerCase().includes(currentSearch.toLowerCase()));
 
         if (!matchesSearch) return false;
-
-        if (currentFilter === 'all') return true;
 
         const partyDate = new Date(party.time_start);
         const now = new Date();
@@ -56,8 +59,6 @@ function applyFilters() {
                 return partyDate >= now && partyDate < new Date(today.getTime() + 86400000);
             case 'week':
                 return partyDate >= now && partyDate <= weekEnd;
-            case 'public':
-                return party.visibility === 'public';
             default:
                 return true;
         }
@@ -72,10 +73,10 @@ function renderParties() {
     if (filteredParties.length === 0) {
         container.innerHTML = '';
 
-        if (allParties.length === 0) {
+        if (filteredParties.length === 0) {
             container.appendChild(EmptyState.create('parties', {
-                title: 'No Parties Yet',
-                message: 'Be the first to create a party and get the celebration started!',
+                title: 'No Public Parties Yet',
+                message: 'Be the first to create a public party and get the celebration started!',
                 actionLabel: 'Create Party',
                 actionHref: '/addParty/addParty.html'
             }));
@@ -107,7 +108,7 @@ function createPartyCard(party) {
     const partyDate = new Date(party.time_start);
     const formattedDate = formatPartyDateList(partyDate);
 
-    const location = party.location_address || 'Location TBA';
+    const location = party.location?.address || 'Location TBA';
     const visibilityBadge = party.visibility === 'public'
         ? '<span class="party-category">Public</span>'
         : '<span class="party-category" style="background: #6c5ce7;">Private</span>';
@@ -188,8 +189,7 @@ function initFilters() {
         const filterMessages = {
             all: 'Showing all parties',
             today: 'Showing parties happening today',
-            week: 'Showing parties this week',
-            public: 'Showing public parties only'
+            week: 'Showing parties this week'
         };
 
         ToastManager.info(filterMessages[currentFilter] || `Filter: ${currentFilter}`);
