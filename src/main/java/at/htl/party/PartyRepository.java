@@ -248,7 +248,7 @@ public class PartyRepository {
             Location newLocation = new Location();
             newLocation.setLatitude(partyCreateDto.latitude());
             newLocation.setLongitude(partyCreateDto.longitude());
-            newLocation.setName(partyCreateDto.location_address());
+            newLocation.setAddress(partyCreateDto.location_address());
             entityManager.persist(newLocation);
             party.setLocation(newLocation);
         }

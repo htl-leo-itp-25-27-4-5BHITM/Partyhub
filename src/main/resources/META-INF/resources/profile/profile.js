@@ -105,24 +105,35 @@ document.addEventListener('DOMContentLoaded', function () {
             });
     }
 
-    function disableTabsForOtherUser() {
-        const tabButtons = document.querySelectorAll('.tab-btn');
-        const profileTabs = document.getElementById('profileTabs');
-        
-        profileTabs.style.opacity = '0.5';
-        profileTabs.style.pointerEvents = 'none';
-        
-        tabButtons.forEach(btn => {
-            btn.style.opacity = '0.5';
-            btn.style.cursor = 'not-allowed';
-        });
-    }
-
     function updateUserProfile(user) {
-        viewedUserId = user.id;
+        currentUserId = user.id;
+        // NOTE: don't automatically overwrite stored "last logged-in user" here.
+        // The stored last-logged-in ID should be written explicitly by the login flow
+        // (window.setLoggedInUser) or by fetchCurrentUserFromBackend() in initProfileLoad.
+        // This avoids writing the developer fallback (getCurrentUserId() -> 1) into storage.
 
-        const finalPath = `/api/users/${user.id}/profile-picture`;
-        img.src = finalPath;
+        // try multiple candidate URLs for profile image (pick first that loads)
+        (async function selectProfileImage() {
+            const candidates = [
+                `/api/users/${user.id}/profile-picture`,
+                `/api/users/${user.id}/profile_picture`,
+                user.profileImage ? `/images/${user.profileImage}` : null,
+                user.profileImage ? `/uploads/${user.profileImage}` : null,
+                `/images/default_profile-picture.jpg`
+            ].filter(Boolean);
+
+            const good = await tryImageUrls(candidates, 3000);
+            if (good) {
+                img.src = good;
+            } else {
+                // kein externes Bild verfügbar -> setze direkt den eingebetteten SVG-Fallback (keine 404 mehr)
+                img.src = 'data:image/svg+xml;utf8,' +
+                    encodeURIComponent(`<svg xmlns="http://www.w3.org/2000/svg" width="120" height="120">
+                        <rect width="100%" height="100%" fill="#444"/>
+                        <text x="50%" y="50%" fill="#fff" font-size="18" font-family="Arial" text-anchor="middle" dominant-baseline="central">No Image</text>
+                    </svg>`);
+            }
+        })();
 
         if (displayNameElement && user.displayName) {
             displayNameElement.textContent = user.displayName;
@@ -140,8 +151,18 @@ document.addEventListener('DOMContentLoaded', function () {
             loadRelationshipStatus(user.id);
         }
 
+        // Load parties for the selected user (will prefer backend.getPartiesByUser)
+        try { loadUserParties(); } catch (e) { console.debug('loadUserParties invocation failed', e); }
+
+        // keep an onerror fallback as a last resort (shouldn't be needed now)
         img.onerror = function() {
-            this.src = "/images/default_profile-picture.jpg";
+            console.warn("Profile picture onerror triggered:", this.src);
+            this.onerror = null;
+            this.src = 'data:image/svg+xml;utf8,' +
+                encodeURIComponent(`<svg xmlns="http://www.w3.org/2000/svg" width="120" height="120">
+                    <rect width="100%" height="100%" fill="#444"/>
+                    <text x="50%" y="50%" fill="#fff" font-size="18" font-family="Arial" text-anchor="middle" dominant-baseline="central">No Image</text>
+                </svg>`);
         };
     }
 
@@ -323,13 +344,30 @@ document.addEventListener('DOMContentLoaded', function () {
                 </div>
             `;
             item.addEventListener('click', () => {
-                window.location.href = `/profile/profile.html?handle=${user.distinctName}`;
+                // close search dropdown
+                hideDropdown();
+                // persist selected id and load profile by handle in-place
+                try { setStoredUserId(user.id); } catch (e) {}
+                loadUserDataByHandle(user.distinctName);
+                // update URL without reload
+                const newUrl = new URL(window.location.href);
+                newUrl.searchParams.set('handle', user.distinctName);
+                newUrl.searchParams.delete('id');
+                window.history.replaceState({}, '', newUrl);
             });
             searchResults.appendChild(item);
         });
         if (searchDropdown) searchDropdown.classList.remove('hidden');
     }
 
+    function hideDropdown() {
+        if (searchDropdown) {
+            searchDropdown.classList.add('hidden');
+            searchDropdown.setAttribute('aria-hidden', 'true');
+        }
+    }
+
+    // Username Dropdown Logic
     const usernameBtn = document.getElementById('usernameBtn');
     const usernameDropdown = document.getElementById('usernameDropdown');
     const usernameList = document.getElementById('usernameList');
@@ -338,24 +376,37 @@ document.addEventListener('DOMContentLoaded', function () {
     if (usernameBtn && usernameDropdown) {
         usernameBtn.addEventListener('click', async (e) => {
             e.stopPropagation();
-            if (!usernameDropdown.classList.contains('hidden')) {
+            // toggle dropdown + aria
+            const isOpen = !usernameDropdown.classList.contains('hidden');
+            if (isOpen) {
                 usernameDropdown.classList.add('hidden');
+                usernameDropdown.setAttribute('aria-hidden', 'true');
+                usernameBtn.setAttribute('aria-expanded', 'false');
                 return;
             }
-            if (!usernameCache) {
+            // open -> fetch list
+            usernameBtn.setAttribute('aria-expanded', 'true');
+            usernameDropdown.setAttribute('aria-hidden', 'false');
+
+            // Always fetch latest users from backend (don't persist full user list across sessions)
+            try {
                 const endpoints = ['/api/users', '/api/users/all'];
-                for (let url of endpoints) {
+                let users = [];
+                for (const url of endpoints) {
                     try {
                         const r = await fetch(url);
-                        if (r.ok) {
-                            const d = await r.json();
-                            usernameCache = Array.isArray(d) ? d : d.data;
-                            if (usernameCache) break;
-                        }
-                    } catch (e) {}
+                        if (!r.ok) continue;
+                        const d = await r.json().catch(() => null);
+                        if (!d) continue;
+                        users = Array.isArray(d) ? d : (Array.isArray(d.data) ? d.data : []);
+                        if (users && users.length) break;
+                    } catch (err) { /* try next */ }
                 }
+                renderUsernameList(users || []);
+            } catch (err) {
+                console.debug('username dropdown fetch failed', err);
+                renderUsernameList([]);
             }
-            renderUsernameList(usernameCache || []);
             usernameDropdown.classList.remove('hidden');
         });
     }
@@ -367,14 +418,21 @@ document.addEventListener('DOMContentLoaded', function () {
             const btn = document.createElement('button');
             btn.className = 'username-item';
             btn.innerHTML = `<span>@${u.distinctName}</span>`;
-            btn.onclick = async () => {
+            btn.onclick = () => {
+                // close dropdown + update aria
                 usernameDropdown.classList.add('hidden');
-                try {
-                    await fetch(`/api/user-context/switch/${u.id}`, { method: 'POST' });
-                    window.location.reload();
-                } catch (error) {
-                    console.error('Error switching user:', error);
-                }
+                usernameDropdown.setAttribute('aria-hidden', 'true');
+                usernameBtn.setAttribute('aria-expanded', 'false');
+
+                // persist selected as last-logged-in and load profile in-place
+                try { setStoredUserId(u.id); } catch (e) {}
+                loadUserDataById(u.id);
+
+                // update URL without reload (keep handle param absent, set id)
+                const newUrl = new URL(window.location.href);
+                newUrl.searchParams.set('id', u.id);
+                newUrl.searchParams.delete('handle');
+                window.history.replaceState({}, '', newUrl);
             };
             usernameList.appendChild(btn);
         });
@@ -440,9 +498,11 @@ document.addEventListener('DOMContentLoaded', function () {
         if (!currentUserId) return;
 
         let parties = null;
+        let backendProvided = false;
 
         if (typeof window.backend === 'object' && typeof window.backend.getPartiesByUser === 'function') {
             try { parties = await window.backend.getPartiesByUser(currentUserId); } catch (e) {}
+            if (Array.isArray(parties)) backendProvided = true;
         }
 
         if (!Array.isArray(parties)) {
@@ -464,6 +524,8 @@ document.addEventListener('DOMContentLoaded', function () {
             }
             if (found) {
                 parties = Array.isArray(found.data) ? found.data : found.data.data;
+                // if endpoint is user-scoped (contains "/users/"), assume backend already filtered
+                if (found.url && found.url.includes(`/users/${currentUserId}`)) backendProvided = true;
             }
         }
 

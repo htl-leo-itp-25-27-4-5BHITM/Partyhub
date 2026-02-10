@@ -26,7 +26,7 @@ INSERT INTO category (id, name) VALUES
 (8, 'Bildung');
 
 -- Insert Location data
-INSERT INTO location (id, longitude, latitude, name) VALUES
+INSERT INTO location (id, longitude, latitude, address) VALUES
 (1, 16.3738, 48.2082  , 'Stephansplatz, 1010 Wien, Österreich'),
 (2, 16.3680, 48.2020  ,'Hofburg, 1010 Wien, Österreich'),
 (3, 16.3850, 48.2150  ,'Praterstern, 1020 Wien, Österreich'),
@@ -35,11 +35,11 @@ INSERT INTO location (id, longitude, latitude, name) VALUES
 
 -- Insert Party data
 INSERT INTO party (id, host_user_id, category_id, location_id, title, time_start, time_end, max_people, min_age, max_age, website, description, fee, created_at) VALUES
-(1, 1, 1, 1, 'Sommer Musik Festival', '2025-02-06 18:00:00', '2025-02-06 23:00:00', 200, 18, 35, 'https://summermusic.at', 'Begleite uns zu einem fantastischen Sommer-Musik-Festival mit mehreren DJs und Live-Auftritten! Wiener Atmosphäre garantiert.', 25.00, '2024-06-01 10:00:00'),
-(2, 2, 4, 2, 'Weinverkostung Abend', '2026-02-08 19:00:00', '2026-02-08 22:00:00', 50, 21, 60, 'https://weinverkostung.at', 'Exklusive Weinverkostung mit Weinen aus aller Welt. Fachkundige Sommelier-Betreuung inklusive. Wiener Weinviertel-Spezialitäten.', 45.00, '2024-06-15 14:30:00'),
-(3, 3, 2, 3, 'Beachvolleyball Turnier', '2026-02-03 10:00:00', '2026-02-03 17:00:00', 100, 16, 40, 'https://beachvolley.at', 'Jährliches Beachvolleyball-Turnier am Donaukanal. Teams willkommen, Einzelspieler können bestehende Teams verstärken!', 10.00, '2024-07-01 09:15:00'),
-(4, 4, 5, 4, 'Tech Meetup: KI & Zukunft', '2026-02-01 18:30:00', '2026-02-01 21:30:00', 80, 18, 50, 'https://techmeetup.at', 'Diskussion über neueste KI-Technologie und ihre Auswirkungen auf unsere Zukunft. Speaker aus führenden Tech-Unternehmen.', 0.00, '2024-08-01 16:45:00'),
-(5, 5, 3, 5, 'Kunstgalerie Eröffnung', '2026-01-29 17:00:00', '2026-01-29 20:00:00', 60, 18, 65, 'https://kunstgalerie.at', 'Eröffnungsabend unserer zeitgenössischen Kunstausstellung mit lokalen und internationalen Künstlern. Wiener Kunstszene hautnah erleben.', 15.00, '2024-09-15 11:20:00');
+(1, 1, 1, 1, 'Sommer Musik Festival', '2025-02-13 18:00:00', '2025-02-13 23:00:00', 200, 18, 35, 'https://summermusic.at', 'Begleite uns zu einem fantastischen Sommer-Musik-Festival mit mehreren DJs und Live-Auftritten! Wiener Atmosphäre garantiert.', 25.00, '2024-06-01 10:00:00'),
+(2, 2, 4, 2, 'Weinverkostung Abend', '2026-02-15 19:00:00', '2026-02-15 22:00:00', 50, 21, 60, 'https://weinverkostung.at', 'Exklusive Weinverkostung mit Weinen aus aller Welt. Fachkundige Sommelier-Betreuung inklusive. Wiener Weinviertel-Spezialitäten.', 45.00, '2024-06-15 14:30:00'),
+(3, 3, 2, 3, 'Beachvolleyball Turnier', '2026-02-14 10:00:00', '2026-02-14 17:00:00', 100, 16, 40, 'https://beachvolley.at', 'Jährliches Beachvolleyball-Turnier am Donaukanal. Teams willkommen, Einzelspieler können bestehende Teams verstärken!', 10.00, '2024-07-01 09:15:00'),
+(4, 4, 5, 4, 'Tech Meetup: KI & Zukunft', '2026-02-16 18:30:00', '2026-02-16 21:30:00', 80, 18, 50, 'https://techmeetup.at', 'Diskussion über neueste KI-Technologie und ihre Auswirkungen auf unsere Zukunft. Speaker aus führenden Tech-Unternehmen.', 0.00, '2024-08-01 16:45:00'),
+(5, 5, 3, 5, 'Kunstgalerie Eröffnung', '2026-01-17 17:00:00', '2026-01-17 20:00:00', 60, 18, 65, 'https://kunstgalerie.at', 'Eröffnungsabend unserer zeitgenössischen Kunstausstellung mit lokalen und internationalen Künstlern. Wiener Kunstszene hautnah erleben.', 15.00, '2024-09-15 11:20:00');
 
 -- Insert party-user relationships (many-to-many)
 INSERT INTO party_user (party_id, user_id) VALUES
