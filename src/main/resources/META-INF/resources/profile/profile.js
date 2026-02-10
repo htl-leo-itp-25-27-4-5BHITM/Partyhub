@@ -7,23 +7,90 @@ document.addEventListener('DOMContentLoaded', function () {
     
     if (!img) return;
 
-    // 1. Handle aus der URL holen oder current user verwenden
-    const urlParams = new URLSearchParams(window.location.search);
-    const userHandle = urlParams.get('handle');
-    const userId = urlParams.get('id');
+    // persistent storage helpers (remember last logged-in user across visits)
+    const STORAGE_KEY = 'loggedInUserId';
+    function getStoredUserId() {
+        try { const v = localStorage.getItem(STORAGE_KEY); return v ? Number(v) : null; } catch (e) { return null; }
+    }
+    function setStoredUserId(id) {
+        try { if (id == null) localStorage.removeItem(STORAGE_KEY); else localStorage.setItem(STORAGE_KEY, String(id)); } catch (e) {}
+    }
+    // expose setter for external login flows — call this after successful login to remember the user
+    window.setLoggedInUser = setStoredUserId;
 
-    // 2. User data laden
-    if (userHandle) {
-        loadUserDataByHandle(userHandle);
-    } else if (userId) {
-        loadUserDataById(userId);
-    } else {
-        loadUserDataById(getCurrentUserId());
+    // Synchronize storages: prefer localStorage (last logged-in user).
+    // If localStorage already has the correct id, mirror it into sessionStorage to avoid legacy defaults (like "1").
+    try {
+        const local = getStoredUserId();
+        if (local != null) {
+            sessionStorage.setItem(STORAGE_KEY, String(local));
+        } else {
+            // remove any leftover session default (e.g. '1') to avoid confusion
+            sessionStorage.removeItem(STORAGE_KEY);
+        }
+    } catch (e) { /* ignore storage errors (private mode) */ }
+    
+    // try to ask backend who is currently logged in (best-effort)
+    async function fetchCurrentUserFromBackend() {
+        const endpoints = ['/api/auth/me', '/api/users/me', '/api/session', '/api/users/current'];
+        for (const u of endpoints) {
+            try {
+                const res = await fetch(u);
+                if (!res.ok) { continue; }
+                const data = await res.json().catch(() => null);
+                if (!data) continue;
+                // accept either { id: ... } or number or full user object
+                if (typeof data === 'number') return data;
+                if (data && typeof data === 'object') {
+                    if (data.id) return Number(data.id);
+                    // sometimes the payload is { user: { id: ... } }
+                    if (data.user && data.user.id) return Number(data.user.id);
+                }
+            } catch (err) {
+                // ignore, try next
+            }
+        }
+        return null;
     }
 
+    // 1. Handle aus der URL holen oder current user verwenden (async-safe)
+    (async function initProfileLoad() {
+        const urlParams = new URLSearchParams(window.location.search);
+        const userHandle = urlParams.get('handle');
+        const userIdParam = urlParams.get('id');
+
+        if (userHandle) {
+            loadUserDataByHandle(userHandle);
+            return;
+        }
+
+        if (userIdParam) {
+            loadUserDataById(userIdParam);
+            return;
+        }
+
+        // no params -> prefer stored ID, else ask backend, else fallback to getCurrentUserId()
+        const stored = getStoredUserId();
+        if (stored) {
+            loadUserDataById(stored);
+            return;
+        }
+
+        const fetched = await fetchCurrentUserFromBackend();
+        if (fetched) {
+            setStoredUserId(fetched);
+            loadUserDataById(fetched);
+            return;
+        }
+
+        // last fallback: use developer fallback
+        loadUserDataById(getCurrentUserId());
+    })();
+
+    // getCurrentUserId kept as a (developer) fallback only
     function getCurrentUserId() {
         // TODO: Implement based on your authentication system
-        return 1; // Test-ID
+        return 1; // Test-ID (fallback)
     }
 
     function loadUserDataByHandle(userHandle) {
@@ -66,9 +133,33 @@ document.addEventListener('DOMContentLoaded', function () {
 
     function updateUserProfile(user) {
         currentUserId = user.id;
-        
-        const finalPath = `/api/users/${user.id}/profile-picture`;
-        img.src = finalPath;
+        // NOTE: don't automatically overwrite stored "last logged-in user" here.
+        // The stored last-logged-in ID should be written explicitly by the login flow
+        // (window.setLoggedInUser) or by fetchCurrentUserFromBackend() in initProfileLoad.
+        // This avoids writing the developer fallback (getCurrentUserId() -> 1) into storage.
+
+        // try multiple candidate URLs for profile image (pick first that loads)
+        (async function selectProfileImage() {
+            const candidates = [
+                `/api/users/${user.id}/profile-picture`,
+                `/api/users/${user.id}/profile_picture`,
+                user.profileImage ? `/images/${user.profileImage}` : null,
+                user.profileImage ? `/uploads/${user.profileImage}` : null,
+                `/images/default_profile-picture.jpg`
+            ].filter(Boolean);
+
+            const good = await tryImageUrls(candidates, 3000);
+            if (good) {
+                img.src = good;
+            } else {
+                // kein externes Bild verfügbar -> setze direkt den eingebetteten SVG-Fallback (keine 404 mehr)
+                img.src = 'data:image/svg+xml;utf8,' +
+                    encodeURIComponent(`<svg xmlns="http://www.w3.org/2000/svg" width="120" height="120">
+                        <rect width="100%" height="100%" fill="#444"/>
+                        <text x="50%" y="50%" fill="#fff" font-size="18" font-family="Arial" text-anchor="middle" dominant-baseline="central">No Image</text>
+                    </svg>`);
+            }
+        })();
 
         if (displayNameElement && user.displayName) {
             displayNameElement.textContent = user.displayName;
@@ -78,10 +169,19 @@ document.addEventListener('DOMContentLoaded', function () {
         }
 
         loadUserStats(user.id);
-        loadUserParties(); // Wird aufgerufen, sobald currentUserId feststeht
 
+        // Load parties for the selected user (will prefer backend.getPartiesByUser)
+        try { loadUserParties(); } catch (e) { console.debug('loadUserParties invocation failed', e); }
+
+        // keep an onerror fallback as a last resort (shouldn't be needed now)
         img.onerror = function() {
-            this.src = "/images/default_profile-picture.jpg";
+            console.warn("Profile picture onerror triggered:", this.src);
+            this.onerror = null;
+            this.src = 'data:image/svg+xml;utf8,' +
+                encodeURIComponent(`<svg xmlns="http://www.w3.org/2000/svg" width="120" height="120">
+                    <rect width="100%" height="100%" fill="#444"/>
+                    <text x="50%" y="50%" fill="#fff" font-size="18" font-family="Arial" text-anchor="middle" dominant-baseline="central">No Image</text>
+                </svg>`);
         };
     }
 
@@ -149,7 +249,16 @@ document.addEventListener('DOMContentLoaded', function () {
                 </div>
             `;
             item.addEventListener('click', () => {
-                window.location.href = `/profile/profile.html?handle=${user.distinctName}`;
+                // close search dropdown
+                hideDropdown();
+                // persist selected id and load profile by handle in-place
+                try { setStoredUserId(user.id); } catch (e) {}
+                loadUserDataByHandle(user.distinctName);
+                // update URL without reload
+                const newUrl = new URL(window.location.href);
+                newUrl.searchParams.set('handle', user.distinctName);
+                newUrl.searchParams.delete('id');
+                window.history.replaceState({}, '', newUrl);
             });
             searchResults.appendChild(item);
         });
@@ -157,7 +266,10 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     function hideDropdown() {
-        if (searchDropdown) searchDropdown.classList.add('hidden');
+        if (searchDropdown) {
+            searchDropdown.classList.add('hidden');
+            searchDropdown.setAttribute('aria-hidden', 'true');
+        }
     }
 
     // Username Dropdown Logic
@@ -169,24 +281,37 @@ document.addEventListener('DOMContentLoaded', function () {
     if (usernameBtn && usernameDropdown) {
         usernameBtn.addEventListener('click', async (e) => {
             e.stopPropagation();
-            if (!usernameDropdown.classList.contains('hidden')) {
+            // toggle dropdown + aria
+            const isOpen = !usernameDropdown.classList.contains('hidden');
+            if (isOpen) {
                 usernameDropdown.classList.add('hidden');
+                usernameDropdown.setAttribute('aria-hidden', 'true');
+                usernameBtn.setAttribute('aria-expanded', 'false');
                 return;
             }
-            if (!usernameCache) {
+            // open -> fetch list
+            usernameBtn.setAttribute('aria-expanded', 'true');
+            usernameDropdown.setAttribute('aria-hidden', 'false');
+
+            // Always fetch latest users from backend (don't persist full user list across sessions)
+            try {
                 const endpoints = ['/api/users', '/api/users/all'];
-                for (let url of endpoints) {
+                let users = [];
+                for (const url of endpoints) {
                     try {
                         const r = await fetch(url);
-                        if (r.ok) {
-                            const d = await r.json();
-                            usernameCache = Array.isArray(d) ? d : d.data;
-                            if (usernameCache) break;
-                        }
-                    } catch (e) {}
+                        if (!r.ok) continue;
+                        const d = await r.json().catch(() => null);
+                        if (!d) continue;
+                        users = Array.isArray(d) ? d : (Array.isArray(d.data) ? d.data : []);
+                        if (users && users.length) break;
+                    } catch (err) { /* try next */ }
                 }
+                renderUsernameList(users || []);
+            } catch (err) {
+                console.debug('username dropdown fetch failed', err);
+                renderUsernameList([]);
             }
-            renderUsernameList(usernameCache || []);
             usernameDropdown.classList.remove('hidden');
         });
     }
@@ -198,10 +323,19 @@ document.addEventListener('DOMContentLoaded', function () {
             btn.className = 'username-item';
             btn.innerHTML = `<span>@${u.distinctName}</span>`;
             btn.onclick = () => {
+                // close dropdown + update aria
                 usernameDropdown.classList.add('hidden');
+                usernameDropdown.setAttribute('aria-hidden', 'true');
+                usernameBtn.setAttribute('aria-expanded', 'false');
+
+                // persist selected as last-logged-in and load profile in-place
+                try { setStoredUserId(u.id); } catch (e) {}
                 loadUserDataById(u.id);
+
+                // update URL without reload (keep handle param absent, set id)
                 const newUrl = new URL(window.location.href);
                 newUrl.searchParams.set('id', u.id);
+                newUrl.searchParams.delete('handle');
                 window.history.replaceState({}, '', newUrl);
             };
             usernameList.appendChild(btn);
@@ -228,10 +362,12 @@ document.addEventListener('DOMContentLoaded', function () {
     async function loadUserParties() {
         if (!currentUserId) return;
         let parties = null;
+        let backendProvided = false;
 
         // 1. Backend Helper
         if (hasBackend && typeof window.backend.getPartiesByUser === 'function') {
             try { parties = await window.backend.getPartiesByUser(currentUserId); } catch (e) {}
+            if (Array.isArray(parties)) backendProvided = true;
         }
 
         // 2. Fetch from APIs
@@ -244,21 +380,89 @@ document.addEventListener('DOMContentLoaded', function () {
             const found = await tryFetchJson(endpoints);
             if (found) {
                 parties = Array.isArray(found.data) ? found.data : found.data.data;
+                // if endpoint is user-scoped (contains "/users/"), assume backend already filtered
+                if (found.url && found.url.includes(`/users/${currentUserId}`)) backendProvided = true;
             }
         }
 
         if (!Array.isArray(parties)) parties = [];
 
-        // ROBUSTER FILTER: Vergleicht verschiedene mögliche ID-Felder
-        const filtered = parties.filter(p => {
-            if (!p) return false;
-            const targetId = String(currentUserId);
-            const hostId = p.host_user_id || p.hostId || p.host_id || p.ownerId || 
-                           (p.host && p.host.id) || (p.owner && p.owner.id);
-            return String(hostId) === targetId;
-        });
+        // Wenn Backend bereits eine gefilterte Liste geliefert hat, vertraue darauf.
+        let filtered;
+        if (backendProvided) {
+            filtered = parties;
+        } else {
+            // sonst robust clientseitig filtern
+            filtered = parties.filter(p => {
+                if (!p) return false;
+                const targetId = String(currentUserId);
+                const hostId = p.host_user_id || p.hostId || p.host_id || p.ownerId ||
+                               (p.host && p.host.id) || (p.owner && p.owner.id) || p.userId || p.creatorId;
+                return String(hostId) === targetId;
+            });
+            console.log(`Filtered ${filtered.length} parties for user ${currentUserId} (client-side)`);
+        }
 
-        console.log(`Filtered ${filtered.length} parties for user ${currentUserId}`);
+        // Falls clientseitige Filterung NULL Ergebnisse brachte, aber das Backend Items lieferte,
+        // rendern wir die rohe Backend-Liste zur Inspektion (vermeidet versteckte Daten)
+        if ((!filtered || filtered.length === 0) && Array.isArray(parties) && parties.length > 0) {
+            console.warn('loadUserParties: client filtering removed all items — rendering backend-provided list for inspection. backendProvided=', backendProvided);
+            filtered = parties.slice();
+        }
+
+        // Dedupliziere Partys nach eindeutiger ID bevor wir rendern.
+        // Unterstützte ID-Felder: id, partyId, _id
+        function getPartyId(p) {
+            if (!p) return null;
+            if (p.id != null) return String(p.id);
+            if (p.partyId != null) return String(p.partyId);
+            if (p._id != null) return String(p._id);
+            return null;
+        }
+
+        // Helper: build a stable fingerprint from title|date|location
+        function getPartyFingerprint(p) {
+            if (!p) return null;
+            const title = (p.title || p.name || p.partyName || '').toString().trim().toLowerCase().replace(/\s+/g, ' ');
+            const date = (p.time_start || p.date || p.start || p.startDate || '').toString().trim().toLowerCase().replace(/\s+/g, ' ');
+            let loc = '';
+            if (p.location && typeof p.location === 'object') {
+                loc = (p.location.name || `${p.location.latitude||''},${p.location.longitude||''}` || '').toString();
+            } else {
+                loc = (p.location || p.venue || p.place || '').toString();
+            }
+            loc = loc.trim().toLowerCase().replace(/\s+/g, ' ');
+            const fp = `${title}|${date}|${loc}`;
+            // if fingerprint would be empty, return null
+            return fp === '||' ? null : fp;
+        }
+
+        const seenIds = new Set();
+        const seenFp = new Set();
+        const finalList = [];
+
+        for (const it of (filtered || [])) {
+            const pid = getPartyId(it);
+            if (pid) {
+                if (seenIds.has(pid)) continue;
+                seenIds.add(pid);
+                finalList.push(it);
+                continue;
+            }
+            // no stable id -> try fingerprint
+            const fp = getPartyFingerprint(it);
+            if (fp) {
+                if (seenFp.has(fp)) continue;
+                seenFp.add(fp);
+                finalList.push(it);
+                continue;
+            }
+            // last resort: include if not exact same object ref (avoid JSON fallback heavy comparisons)
+            finalList.push(it);
+        }
+
+        filtered = finalList;
+        console.log(`After dedupe: ${filtered.length} unique parties for user ${currentUserId} (backendProvided=${backendProvided})`);
 
         const container = document.getElementById('partiesContainer');
         const template = document.getElementById('party-template');
@@ -278,11 +482,24 @@ document.addEventListener('DOMContentLoaded', function () {
             const node = template.content.cloneNode(true);
             const article = node.querySelector('.party-card');
             
-            node.querySelector('.party-name').textContent = p.title || p.name || 'Party';
-            node.querySelector('.party-date').textContent = p.time_start || p.date || '';
-            
-            const locEl = node.querySelector('.party-location');
-            if (locEl) locEl.textContent = (p.location && p.location.name) ? p.location.name : (p.location || '');
+            // Fülle sichtbare Felder: Template verwendet drei .info-box .info-value Elemente
+            const nameEl = node.querySelector('.party-name');
+            const infoValues = Array.from(node.querySelectorAll('.info-box .info-value'));
+            const dateEl = infoValues[0] || null;
+            const timeEl = infoValues[1] || null;
+            const locEl = infoValues[2] || null;
+
+            if (nameEl) nameEl.textContent = p.title || p.name || p.partyName || 'Party';
+            if (dateEl) dateEl.textContent = p.time_start || p.date || p.start || (p.startDate || '');
+            if (timeEl) timeEl.textContent = p.time_end || p.end || (p.endDate || '');
+            if (locEl) {
+                if (p.location && typeof p.location === 'object' && p.location.name) locEl.textContent = p.location.name;
+                else if (p.location && typeof p.location === 'object' && (p.location.latitude || p.location.longitude)) {
+                    locEl.textContent = `${p.location.latitude?.toFixed(4) || ''}${p.location.longitude ? ', ' + (p.location.longitude?.toFixed(4) || '') : ''}`;
+                } else {
+                    locEl.textContent = p.location || p.venue || p.place || '';
+                }
+            }
 
             const deleteBtn = node.querySelector('.delete-btn');
             if (deleteBtn) {
@@ -309,4 +526,79 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     window.addEventListener('resize', adjustPartiesContainerHeight);
+
+    // --- Tab handlers: ensure the three tabs respond to click + keyboard (Enter/Space) ---
+    (function initTabs() {
+        const ids = ['Partys', 'Posts', 'Favorites'];
+        function showTab(name) {
+            ids.forEach(k => {
+                const btn = document.getElementById(`tab${k}`);
+                const sec = document.getElementById(`tabContent${k}`);
+                if (btn) btn.classList.toggle('active', k === name);
+                if (sec) sec.style.display = (k === name) ? 'block' : 'none';
+            });
+
+            try { hideProfilePictureWhenPosts(name.toLowerCase()); } catch (_) {}
+            if (name === 'Partys') {
+                // load parties (no-op if currentUserId not set yet)
+                try { loadUserParties(); } catch (e) { console.debug('loadUserParties failed', e); }
+            } else if (name === 'Posts') {
+                try { loadOwnMedia(); } catch (e) { /* ignore */ }
+            } else if (name === 'Favorites') {
+                try { loadLikedMedia(); } catch (e) { /* ignore */ }
+            }
+        }
+
+        ids.forEach(k => {
+            const btn = document.getElementById(`tab${k}`);
+            if (!btn) return;
+            // defensive: ensure button type
+            btn.setAttribute('type', 'button');
+
+            btn.addEventListener('click', function (ev) {
+                ev.preventDefault();
+                ev.stopPropagation();
+                showTab(k);
+            });
+
+            // keyboard support
+            btn.addEventListener('keydown', function (ev) {
+                if (ev.key === 'Enter' || ev.key === ' ') {
+                    ev.preventDefault();
+                    btn.click();
+                }
+            });
+        });
+
+        // keep existing initial state if Posts is marked active in HTML; otherwise ensure Partys shown
+        const initial = document.querySelector('.tab-btn.active')?.id?.replace('tab','') || 'Partys';
+        showTab(initial);
+    })();
+
+    // helper: try list of image URLs sequentially, return first that loads
+    async function tryImageUrls(urls, timeout = 3000) {
+        for (const u of urls) {
+            try {
+                const ok = await new Promise(resolve => {
+                    const imgTest = new Image();
+                    let timer = setTimeout(() => {
+                        imgTest.onload = imgTest.onerror = null;
+                        resolve(false);
+                    }, timeout);
+                    imgTest.onload = () => { clearTimeout(timer); resolve(true); };
+                    imgTest.onerror = () => { clearTimeout(timer); resolve(false); };
+                    imgTest.src = u;
+                });
+                if (ok) {
+                    console.debug('Profile image available at', u);
+                    return u;
+                } else {
+                    console.debug('Profile image not available at', u);
+                }
+            } catch (e) {
+                console.debug('tryImageUrls error for', u, e);
+            }
+        }
+        return null;
+    }
 });
