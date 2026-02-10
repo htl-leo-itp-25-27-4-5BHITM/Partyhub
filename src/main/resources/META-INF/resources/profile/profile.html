@@ -56,10 +56,6 @@
                     <span class="stat-value" id="followingCount">0</span>
                     <span class="stat-label">Following</span>
                 </button>
-                <button id="friendsBtn" class="profile-stat-btn">
-                    <span class="stat-value" id="friendsCount">0</span>
-                    <span class="stat-label">Friends</span>
-                </button>
                 <button id="postsBtn" class="profile-stat-btn">
                     <span class="stat-value" id="postsCount">0</span>
                     <span class="stat-label">Posts</span>
@@ -73,14 +69,6 @@
                             <path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
                         </svg>
                         <span>Follow</span>
-                    </button>
-                    <button id="friendBtn" class="action-btn action-btn--secondary">
-                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                            <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
-                            <circle cx="8.5" cy="7" r="4" stroke="currentColor" stroke-width="1.5"/>
-                            <path d="M20 8v6M23 11h-6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
-                        </svg>
-                        <span>Add Friend</span>
                     </button>
                 </div>
             </div>
@@ -106,16 +94,6 @@
                                 <g opacity="0.5">
                                     <path d="M17.5 9.74145C17.7095 9.53198 18.0491 9.53198 18.2586 9.74145C18.468 9.95092 18.468 10.2905 18.2586 10.5C18.0491 10.7095 17.7095 10.7095 17.5 10.5C17.2905 10.2905 17.2905 9.95092 17.5 9.74145Z" fill="currentColor"/>
                                 </g>
-                            </svg>
-                        </span>
-                    </button>
-                    <button id="tabFriends" class="tab-btn" aria-label="Friends">
-                        <span class="tab-icon">
-                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
-                                <circle cx="9" cy="7" r="4" stroke="currentColor" stroke-width="1.5"/>
-                                <path d="M23 21v-2a4 4 0 0 0-3-3.87" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
-                                <path d="M16 3.13a4 4 0 0 1 0 7.75" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
                             </svg>
                         </span>
                     </button>
@@ -201,37 +179,6 @@
                             </article>
                         </template>
                         <div id="partiesContainer" class="party-grid" aria-live="polite"></div>
-                    </section>
-                    <section id="tabContentFriends" class="tab-section" style="display:none;">
-                        <div class="friends-header">
-                            <div class="add-friend-section">
-                                <div class="add-friend-input-wrapper">
-                                    <input type="text" id="addFriendInput" placeholder="Add friend by username..." aria-label="Add friend by username"/>
-                                    <button type="button" id="addFriendBtn" class="btn btn-sm" aria-label="Add friend">
-                                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                            <path d="M12 4v16m8-8H4" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-                                        </svg>
-                                    </button>
-                                </div>
-                                <p class="add-friend-hint">Enter a username to send a friend request</p>
-                            </div>
-                        </div>
-                        <div id="friendsList" class="friends-list" aria-label="Friends list">
-                            <div id="friendsLoading" class="loading-container" style="display: none;">
-                                <div class="loading-spinner"></div>
-                                <p class="loading-text">Loading friends...</p>
-                            </div>
-                            <div id="noFriendsState" class="empty-state empty-state--favorites" style="display: none;">
-                                <svg class="empty-state-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                    <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
-                                    <circle cx="9" cy="7" r="4" stroke="currentColor" stroke-width="1.5"/>
-                                    <path d="M23 21v-2a4 4 0 0 0-3-3.87" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
-                                    <path d="M16 3.13a4 4 0 0 1 0 7.75" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
-                                </svg>
-                                <h3 class="empty-state-title">No Friends Yet</h3>
-                                <p class="empty-state-message">Start connecting with other users by adding friends!</p>
-                            </div>
-                        </div>
                     </section>
                     <section id="tabContentPosts" class="tab-section" style="display:block;">
                         <div id="noPostsState" class="empty-state empty-state--generic" style="display: none;">

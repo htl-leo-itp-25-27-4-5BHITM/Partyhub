@@ -149,8 +149,7 @@ document.addEventListener('DOMContentLoaded', function () {
         const stats = [
             { key: 'followers', id: 'followersCount' },
             { key: 'following', id: 'followingCount' },
-            { key: 'friends', id: 'friendsCount' },
-            { key: 'posts', id: 'postsCount' }
+            { key: 'media', id: 'postsCount' }
         ];
 
         stats.forEach(stat => {
@@ -176,85 +175,6 @@ document.addEventListener('DOMContentLoaded', function () {
         if (count >= 1000000) return (count / 1000000).toFixed(1) + 'M';
         if (count >= 1000) return (count / 1000).toFixed(1) + 'K';
         return count.toString();
-    }
-
-    function loadUserFriends(userId) {
-        const friendsContainer = document.getElementById('friendsList');
-        const noFriendsState = document.getElementById('noFriendsState');
-        const friendsLoading = document.getElementById('friendsLoading');
-
-        if (!friendsContainer) return;
-
-        if (friendsLoading) friendsLoading.style.display = 'flex';
-        if (noFriendsState) noFriendsState.style.display = 'none';
-
-        fetch(`/api/users/${userId}/friends`)
-            .then(response => {
-                if (!response.ok) throw new Error('Failed to load friends');
-                return response.json();
-            })
-            .then(data => {
-                if (friendsLoading) friendsLoading.style.display = 'none';
-
-                const friends = data.friends || data || [];
-                const friendsCountEl = document.getElementById('friendsCount');
-                if (friendsCountEl) {
-                    friendsCountEl.textContent = formatCount(friends.length);
-                }
-
-                friendsContainer.innerHTML = '';
-
-                if (friends.length === 0) {
-                    if (noFriendsState) noFriendsState.style.display = 'flex';
-                    return;
-                }
-
-                friends.forEach(friend => {
-                    const friendItem = createFriendItem(friend, userId);
-                    friendsContainer.appendChild(friendItem);
-                });
-            })
-            .catch(error => {
-                console.error('Error loading friends:', error);
-                if (friendsLoading) friendsLoading.style.display = 'none';
-                if (noFriendsState) noFriendsState.style.display = 'flex';
-                const friendsCountEl = document.getElementById('friendsCount');
-                if (friendsCountEl) {
-                    friendsCountEl.textContent = '0';
-                }
-            });
-    }
-
-    function createFriendItem(friend, userId) {
-        const item = document.createElement('div');
-        item.className = 'friend-item';
-        item.dataset.userId = friend.id;
-
-        item.innerHTML = `
-            <div class="friend-info">
-                <img src="/api/users/${friend.id}/profile-picture" class="friend-avatar" onerror="this.src='/images/default_profile-picture.jpg'" alt="${escapeHtml(friend.displayName || friend.distinctName)}">
-                <div class="friend-details">
-                    <span class="friend-name">${escapeHtml(friend.displayName || friend.distinctName)}</span>
-                    <span class="friend-handle">@${escapeHtml(friend.distinctName)}</span>
-                </div>
-            </div>
-            <div class="friend-actions">
-                <button type="button" class="friend-action-btn view-profile" data-handle="${friend.distinctName}" aria-label="View profile">
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                        <path d="M5 12h14M12 5l7 7-7 7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                    </svg>
-                </button>
-            </div>
-        `;
-
-        const viewBtn = item.querySelector('.view-profile');
-        if (viewBtn) {
-            viewBtn.addEventListener('click', () => {
-                window.location.href = `/profile/profile.html?handle=${friend.distinctName}`;
-            });
-        }
-
-        return item;
     }
 
     function loadFollowersList(userId) {
@@ -468,7 +388,6 @@ document.addEventListener('DOMContentLoaded', function () {
 
     const followersBtn = document.getElementById('followersBtn');
     const followingBtn = document.getElementById('followingBtn');
-    const friendsBtn = document.getElementById('friendsBtn');
     const modalClose = document.querySelector('.modal-close');
     const modalOverlay = document.querySelector('.modal-overlay');
 
@@ -483,16 +402,6 @@ document.addEventListener('DOMContentLoaded', function () {
         followingBtn.addEventListener('click', () => {
             const userId = viewedUserId || currentUserId;
             if (userId) loadFollowingList(userId);
-        });
-    }
-
-    if (friendsBtn) {
-        friendsBtn.addEventListener('click', () => {
-            if (isViewingOwnProfile) {
-                switchTab('tabFriends');
-            } else {
-                ToastManager.warning('You can only view your own friends');
-            }
         });
     }
 
@@ -517,10 +426,6 @@ document.addEventListener('DOMContentLoaded', function () {
         const contentSection = document.getElementById(contentId);
         if (contentSection) {
             contentSection.style.display = 'block';
-        }
-
-        if (tabId === 'tabFriends' && viewedUserId) {
-            loadUserFriends(viewedUserId);
         }
     }
 
@@ -636,7 +541,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
         fetch(`/api/users/${userId}/relationship?from=${currentUserId}`)
             .then(response => {
-                if (!response.ok) return { isFollowing: false, isFriend: false, friendRequestSent: false };
+                if (!response.ok) return { isFollowing: false };
                 return response.json();
             })
             .then(data => {
@@ -644,18 +549,16 @@ document.addEventListener('DOMContentLoaded', function () {
                 updateActionButtons(data);
             })
             .catch(() => {
-                relationshipStatus = { isFollowing: false, isFriend: false, friendRequestSent: false };
+                relationshipStatus = { isFollowing: false };
                 updateActionButtons(relationshipStatus);
             });
     }
 
     function updateActionButtons(status) {
         const followBtn = document.getElementById('followBtn');
-        const friendBtn = document.getElementById('friendBtn');
         const followSpan = followBtn ? followBtn.querySelector('span') : null;
-        const friendSpan = friendBtn ? friendBtn.querySelector('span') : null;
 
-        if (!followBtn || !friendBtn) return;
+        if (!followBtn) return;
 
         showProfileActions();
 
@@ -669,42 +572,6 @@ document.addEventListener('DOMContentLoaded', function () {
             followBtn.classList.add('action-btn--primary');
             followBtn.classList.remove('action-btn--secondary');
             if (followSpan) followSpan.textContent = 'Follow';
-        }
-
-        if (status.isFriend) {
-            friendBtn.classList.add('friend');
-            friendBtn.innerHTML = `
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
-                    <circle cx="9" cy="7" r="4" stroke="currentColor" stroke-width="1.5"/>
-                    <path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
-                </svg>
-                <span>Friend</span>
-            `;
-            friendBtn.disabled = true;
-            friendBtn.style.opacity = '0.7';
-        } else if (status.friendRequestSent) {
-            friendBtn.innerHTML = `
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-                    <path d="M22 4L12 14.01l-3-3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-                </svg>
-                <span>Pending</span>
-            `;
-            friendBtn.disabled = true;
-            friendBtn.style.opacity = '0.7';
-        } else {
-            friendBtn.classList.remove('friend');
-            friendBtn.innerHTML = `
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
-                    <circle cx="8.5" cy="7" r="4" stroke="currentColor" stroke-width="1.5"/>
-                    <path d="M20 8v6M23 11h-6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
-                </svg>
-                <span>Add Friend</span>
-            `;
-            friendBtn.disabled = false;
-            friendBtn.style.opacity = '1';
         }
     }
 
@@ -751,28 +618,6 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     }
 
-    function handleFriendRequest() {
-        if (!viewedUserId || !currentUserId || relationshipStatus?.isFriend || relationshipStatus?.friendRequestSent) return;
-
-        fetch('/api/friends/request', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ fromUserId: currentUserId, toUserId: viewedUserId })
-        })
-        .then(response => {
-            if (response.ok || response.status === 201) {
-                relationshipStatus.friendRequestSent = true;
-                updateActionButtons(relationshipStatus);
-                ToastManager.success('Friend request sent');
-            } else {
-                throw new Error('Failed to send friend request');
-            }
-        })
-        .catch(() => {
-            ToastManager.error('Failed to send friend request');
-        });
-    }
-
     function refreshStats() {
         if (viewedUserId) {
             loadUserStats(viewedUserId);
@@ -780,13 +625,8 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     const followBtn = document.getElementById('followBtn');
-    const friendBtn = document.getElementById('friendBtn');
 
     if (followBtn) {
         followBtn.addEventListener('click', handleFollow);
-    }
-
-    if (friendBtn) {
-        friendBtn.addEventListener('click', handleFriendRequest);
     }
 });
