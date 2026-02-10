@@ -4,32 +4,140 @@ document.addEventListener('DOMContentLoaded', function() {
     initializeEditPage();
 });
 
+function setupBackButton() {
+    const backBtn = document.getElementById('backBtn');
+    if (!backBtn) return;
+
+    backBtn.addEventListener('click', () => {
+        const urlParams = new URLSearchParams(window.location.search);
+        const redirect = urlParams.get('redirect');
+        const userHandle = urlParams.get('handle');
+        const userId = urlParams.get('id');
+
+        if (redirect) {
+            window.location.href = decodeURIComponent(redirect);
+        } else if (userHandle) {
+            window.location.href = `/profile/profile.html?handle=${userHandle}`;
+        } else if (userId) {
+            window.location.href = `/profile/profile.html?id=${userId}`;
+        } else {
+            // Default to going back in history or to profile page
+            if (window.history.length > 1) {
+                history.back();
+            } else {
+                window.location.href = '/profile/profile.html';
+            }
+        }
+    });
+}
+
 function initializeEditPage() {
+    setupBackButton();
     const userId = getCurrentUserId();
 
     if (!userId) {
-        showError('User not logged in');
-        return;
+        // Still try to load data - getCurrentUserId might return null
+        // but loadUserData will handle the async resolution
+        loadUserData(userId);
+    } else {
+        loadUserData(userId);
     }
-
-    loadUserData(userId);
+    
     setupFormValidation();
     setupProfilePictureUpload();
 }
 
 function getCurrentUserId() {
-    return 1;
+    // Check URL parameters first for specific user to edit
+    const urlParams = new URLSearchParams(window.location.search);
+    const userId = urlParams.get('id');
+    const userHandle = urlParams.get('handle');
+    
+    if (userId) {
+        return parseInt(userId);
+    }
+    
+    if (userHandle) {
+        // We'll need to fetch user by handle to get the ID
+        // For now, return null and handle it in loadUserData
+        return null;
+    }
+    
+    // If no specific user, load current user context
+    // This will be handled asynchronously in loadUserData
+    return null;
+}
+
+async function getUserIdForSubmission() {
+    // Similar to getCurrentUserId but async to handle API calls
+    const urlParams = new URLSearchParams(window.location.search);
+    const userId = urlParams.get('id');
+    const userHandle = urlParams.get('handle');
+    
+    if (userId) {
+        return parseInt(userId);
+    }
+    
+    if (userHandle) {
+        const response = await fetch(`/api/users/handle/${userHandle}`);
+        if (response.ok) {
+            const user = await response.json();
+            return user.id;
+        }
+        throw new Error('User not found');
+    }
+    
+    // Load current user context
+    const contextResponse = await fetch('/api/user-context/current');
+    if (contextResponse.ok) {
+        const contextData = await contextResponse.json();
+        return contextData.id;
+    }
+    
+    throw new Error('No user context available');
 }
 
 async function loadUserData(userId) {
     try {
-        const response = await fetch(`/api/users/${userId}`);
-
-        if (!response.ok) {
-            throw new Error('Failed to load user data');
+        let user;
+        
+        // If no userId provided, try to get from URL or current user context
+        if (!userId) {
+            const urlParams = new URLSearchParams(window.location.search);
+            const userIdParam = urlParams.get('id');
+            const userHandle = urlParams.get('handle');
+            
+            if (userIdParam) {
+                userId = parseInt(userIdParam);
+            } else if (userHandle) {
+                // Load user by handle
+                const response = await fetch(`/api/users/handle/${userHandle}`);
+                if (response.ok) {
+                    user = await response.json();
+                } else {
+                    throw new Error('User not found');
+                }
+            } else {
+                // Load current user context
+                const contextResponse = await fetch('/api/user-context/current');
+                if (contextResponse.ok) {
+                    const contextData = await contextResponse.json();
+                    userId = contextData.id;
+                } else {
+                    throw new Error('No user context available');
+                }
+            }
+        }
+        
+        // If we still don't have user data, fetch by userId
+        if (!user) {
+            const response = await fetch(`/api/users/${userId}`);
+            if (!response.ok) {
+                throw new Error('Failed to load user data');
+            }
+            user = await response.json();
         }
 
-        const user = await response.json();
         populateForm(user);
 
     } catch (error) {
@@ -43,6 +151,14 @@ function populateForm(user) {
     document.getElementById('distinctName').value = user.distinctName || '';
     document.getElementById('email').value = user.email || '';
     document.getElementById('biography').value = user.biography || '';
+
+    // Update page title to reflect whose profile is being edited
+    const titleElement = document.getElementById('editTitle');
+    if (user.displayName) {
+        titleElement.textContent = `Edit ${user.displayName}'s Profile`;
+    } else {
+        titleElement.textContent = 'Edit Profile';
+    }
 
     // Load profile picture
     const profileImg = document.getElementById('currentProfileImg');
@@ -194,7 +310,7 @@ async function checkUsernameAvailability(username) {
         if (response.ok) {
             // Username exists and belongs to someone else
             const existingUser = await response.json();
-            const currentUserId = getCurrentUserId();
+            const currentUserId = await getUserIdForSubmission();
 
             if (existingUser.id !== currentUserId) {
                 showFieldError('distinctName', 'This username is already taken');
@@ -208,7 +324,7 @@ async function checkUsernameAvailability(username) {
 }
 
 async function submitForm() {
-    const userId = getCurrentUserId();
+    const userId = await getUserIdForSubmission();
     const saveBtn = document.querySelector('.save-btn');
 
     // Show loading state
@@ -258,7 +374,20 @@ async function submitForm() {
 
         // Redirect back to profile after a short delay
         setTimeout(() => {
-            window.location.href = '/profile/profile.html';
+            const urlParams = new URLSearchParams(window.location.search);
+            const redirect = urlParams.get('redirect');
+            const userHandle = urlParams.get('handle');
+            const userId = urlParams.get('id');
+
+            if (redirect) {
+                window.location.href = decodeURIComponent(redirect);
+            } else if (userHandle) {
+                window.location.href = `/profile/profile.html?handle=${userHandle}`;
+            } else if (userId) {
+                window.location.href = `/profile/profile.html?id=${userId}`;
+            } else {
+                window.location.href = '/profile/profile.html';
+            }
         }, 1500);
 
     } catch (error) {
@@ -288,7 +417,7 @@ async function uploadProfilePicture(userId) {
 }
 
 async function getProfilePictureFilename() {
-    const userId = getCurrentUserId();
+    const userId = await getUserIdForSubmission();
     try {
         const response = await fetch(`/api/users/${userId}`);
         const user = await response.json();

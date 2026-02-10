@@ -385,10 +385,12 @@ document.addEventListener("DOMContentLoaded", () => {
         throw new Error(response.statusText);
       }
 
-      ToastManager.success("Party created successfully! 🎉", "Success");
+        ToastManager.success("Party created successfully.", "Success");
     } catch (err) {
       console.error("Backend error:", err);
-      ToastManager.warning("Party saved locally. Will sync when connected.", "Offline Mode");
+        // Only save locally if backend fails
+        localStorage.setItem("parties", JSON.stringify(parties));
+        ToastManager.warning("Database temporarily unavailable. Saved locally, will sync when online.", "Offline Mode");
     }
 
     isSubmitting = false;

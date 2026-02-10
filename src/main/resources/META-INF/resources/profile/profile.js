@@ -169,6 +169,8 @@ document.addEventListener("DOMContentLoaded", function () {
     } else {
       loadUserStats(user.id);
       loadRelationshipStatus(user.id);
+      // For other users' profiles, also update the edit link in case admin wants to edit
+      updateEditProfileLink();
     }
   }
 
@@ -909,7 +911,10 @@ document.addEventListener("DOMContentLoaded", function () {
     const profileActions = document.getElementById("profileActions");
     const editAccountBtn = document.getElementById("editAccountBtn");
     if (profileActions) profileActions.classList.add("hidden");
-    if (editAccountBtn) editAccountBtn.style.display = "block";
+    if (editAccountBtn) {
+      editAccountBtn.style.display = "block";
+      updateEditProfileLink();
+    }
   }
 
   function showProfileActions() {
@@ -917,6 +922,39 @@ document.addEventListener("DOMContentLoaded", function () {
     const editAccountBtn = document.getElementById("editAccountBtn");
     if (profileActions) profileActions.classList.remove("hidden");
     if (editAccountBtn) editAccountBtn.style.display = "none";
+  }
+
+  function updateEditProfileLink() {
+    const editAccountBtn = document.getElementById("editAccountBtn");
+    if (!editAccountBtn) return;
+
+    const link = editAccountBtn.querySelector('a');
+    if (!link) return;
+
+    const targetUserId = viewedUserId || currentUserId;
+    const urlParams = new URLSearchParams(window.location.search);
+    const userHandle = urlParams.get('handle');
+    const userId = urlParams.get('id');
+    const currentUrl = window.location.href;
+    
+    if (targetUserId) {
+      // Build edit profile URL with proper parameters
+      let editUrl = '/editProfile/editProfile.html';
+      
+      if (userHandle) {
+        editUrl += `?handle=${userHandle}`;
+      } else if (userId) {
+        editUrl += `?id=${userId}`;
+      } else if (targetUserId !== currentUserId) {
+        // We're viewing another user's profile
+        editUrl += `?id=${targetUserId}&redirect=${encodeURIComponent(currentUrl)}`;
+      } else {
+        // Editing own profile
+        editUrl += `?redirect=${encodeURIComponent(currentUrl)}`;
+      }
+      
+      link.href = editUrl;
+    }
   }
 
   function loadRelationshipStatus(userId) {
