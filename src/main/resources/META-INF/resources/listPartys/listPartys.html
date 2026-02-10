@@ -6,11 +6,12 @@
     <title>Partys</title>
     <link rel="stylesheet" href="../global.css" />
     <link rel="stylesheet" href="../index.css" />
+    <link rel="stylesheet" href="../ux-components.css" />
     <link rel="stylesheet" href="./listPartys.css" />
     <script src="../nav.js" defer></script>
     <script src="../backend-functions.js" defer></script>
+    <script src="../ux-utils.js" defer></script>
     <script src="./listPartys.js" defer></script>
-    <script src="../user-switcher.js" defer></script>
     <script src="../user-context-helper.js" defer></script>
   </head>
   <body class="bg-light">
@@ -30,6 +31,37 @@
             </span>
           </a>
         </header>
+
+        <div class="search-filter-container">
+          <div class="search-wrapper">
+            <input
+              type="text"
+              id="partySearchInput"
+              class="search-input"
+              placeholder="Search parties..."
+              aria-label="Search parties"
+            />
+            <button type="button" id="searchClearBtn" class="search-clear" aria-label="Clear search" style="display: none;">
+              <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M18 6L6 18M6 6l12 12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+              </svg>
+            </button>
+          </div>
+          <div class="filter-chips" id="filterChips">
+            <button type="button" class="filter-chip filter-chip--active" data-filter="all">
+              All
+            </button>
+            <button type="button" class="filter-chip" data-filter="today">
+              Today
+            </button>
+            <button type="button" class="filter-chip" data-filter="week">
+              This Week
+            </button>
+            <button type="button" class="filter-chip" data-filter="public">
+              Public
+            </button>
+          </div>
+        </div>
 
         <!-- Parties List Container -->
         <div id="partiesContainer" class="parties-list">

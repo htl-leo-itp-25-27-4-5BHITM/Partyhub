@@ -2,17 +2,24 @@
   const STORAGE_KEY = 'partyhub_current_user';
   let isInitialized = false;
   
+  if (!isProfilePage()) return;
+  
   if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', initUserSwitcher);
   } else {
     initUserSwitcher();
   }
 
+  function isProfilePage() {
+    return window.location.pathname.includes('/profile/') || 
+           window.location.pathname.endsWith('profile.html');
+  }
+
   async function initUserSwitcher() {
     if (isInitialized) return;
     isInitialized = true;
-    createSwitcherUI();
     
+    createSwitcherUI();
     await loadUsers();
     await syncWithBackend();
   }
@@ -20,28 +27,45 @@
   function createSwitcherUI() {
     if (document.getElementById('user-switcher')) return;
 
-    const switcherContainer = document.createElement('div');
-    switcherContainer.id = 'user-switcher';
-    switcherContainer.innerHTML = `
-      <div class="user-switcher-wrapper">
-        <label for="user-dropdown">Current User:</label>
-        <select id="user-dropdown">
-          <option value="">Loading users...</option>
-        </select>
-        <span id="current-user-display"></span>
+    const switcher = document.createElement('div');
+    switcher.id = 'user-switcher';
+    switcher.innerHTML = `
+      <div class="user-switcher-trigger" id="userSwitcherTrigger">
+        <div class="current-user-info">
+          <span class="user-avatar" id="switcherAvatar"></span>
+          <span class="user-name" id="switcherName">Loading...</span>
+        </div>
+        <svg class="switcher-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M6 9l6 6 6-6"/>
+        </svg>
+      </div>
+      <div class="user-switcher-dropdown hidden" id="userSwitcherDropdown">
+        <div class="dropdown-header">Switch Account</div>
+        <div class="user-list" id="userList"></div>
       </div>
     `;
 
-    const header = document.querySelector('header') || document.body;
-    if (header.firstChild) {
-      header.insertBefore(switcherContainer, header.firstChild);
-    } else {
-      header.appendChild(switcherContainer);
+    const profileContainer = document.getElementById('profileContainer');
+    if (profileContainer) {
+      profileContainer.insertBefore(switcher, profileContainer.firstChild);
     }
 
-    const dropdown = document.getElementById('user-dropdown');
-    if (dropdown) {
-      dropdown.addEventListener('change', handleUserChange);
+    const trigger = document.getElementById('userSwitcherTrigger');
+    const dropdown = document.getElementById('userSwitcherDropdown');
+    
+    if (trigger && dropdown) {
+      trigger.addEventListener('click', (e) => {
+        e.stopPropagation();
+        dropdown.classList.toggle('hidden');
+        trigger.classList.toggle('active');
+      });
+
+      document.addEventListener('click', (e) => {
+        if (!switcher.contains(e.target)) {
+          dropdown.classList.add('hidden');
+          trigger.classList.remove('active');
+        }
+      });
     }
 
     addStyles();
@@ -54,72 +78,191 @@
     styles.id = 'user-switcher-styles';
     styles.textContent = `
       #user-switcher {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        padding: 12px 20px;
-        margin-bottom: 10px;
-        border-radius: 0 0 12px 12px;
-        box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        width: 100%;
+        max-width: 320px;
+        margin: 0 auto 16px;
         position: relative;
-        z-index: 1000;
+        z-index: 100;
       }
       
-      .user-switcher-wrapper {
+      .user-switcher-trigger {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 12px 16px;
+        background: linear-gradient(135deg, #1a1040 0%, #2a2259 100%);
+        border: 1px solid rgba(255, 46, 99, 0.3);
+        border-radius: 12px;
+        cursor: pointer;
+        transition: all 0.2s ease;
+      }
+      
+      .user-switcher-trigger:hover {
+        border-color: rgba(255, 46, 99, 0.6);
+        box-shadow: 0 4px 12px rgba(255, 46, 99, 0.15);
+      }
+      
+      .user-switcher-trigger.active {
+        border-color: #ff2e63;
+        border-bottom-left-radius: 0;
+        border-bottom-right-radius: 0;
+      }
+      
+      .current-user-info {
         display: flex;
         align-items: center;
         gap: 12px;
-        justify-content: center;
-        flex-wrap: wrap;
       }
       
-      .user-switcher-wrapper label {
-        color: white;
-        font-weight: 600;
+      .user-avatar {
+        width: 36px;
+        height: 36px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, #ff2e63, #ff6b9d);
+        display: flex;
+        align-items: center;
+        justify-content: center;
         font-size: 14px;
+        font-weight: 600;
+        color: white;
+        text-transform: uppercase;
+      }
+      
+      .user-name {
+        color: #ffffff;
+        font-size: 14px;
+        font-weight: 500;
+      }
+      
+      .switcher-chevron {
+        width: 20px;
+        height: 20px;
+        color: rgba(255, 255, 255, 0.6);
+        transition: transform 0.2s ease;
+      }
+      
+      .user-switcher-trigger.active .switcher-chevron {
+        transform: rotate(180deg);
+        color: #ff2e63;
+      }
+      
+      .user-switcher-dropdown {
+        position: absolute;
+        top: 100%;
+        left: 0;
+        right: 0;
+        background: #1a1040;
+        border: 1px solid rgba(255, 46, 99, 0.3);
+        border-top: none;
+        border-radius: 0 0 12px 12px;
+        overflow: hidden;
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+      }
+      
+      .user-switcher-dropdown.hidden {
+        display: none;
+      }
+      
+      .dropdown-header {
+        padding: 10px 16px;
+        font-size: 12px;
+        color: rgba(255, 255, 255, 0.5);
         text-transform: uppercase;
         letter-spacing: 0.5px;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.1);
       }
       
-      #user-dropdown {
-        padding: 8px 16px;
-        border: 2px solid rgba(255,255,255,0.3);
-        border-radius: 8px;
-        background: rgba(255,255,255,0.95);
-        color: #333;
+      .user-list {
+        max-height: 240px;
+        overflow-y: auto;
+      }
+      
+      .user-list::-webkit-scrollbar {
+        width: 6px;
+      }
+      
+      .user-list::-webkit-scrollbar-track {
+        background: transparent;
+      }
+      
+      .user-list::-webkit-scrollbar-thumb {
+        background: rgba(255, 255, 255, 0.2);
+        border-radius: 3px;
+      }
+      
+      .user-option {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 12px 16px;
+        cursor: pointer;
+        transition: background 0.15s ease;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+      }
+      
+      .user-option:last-child {
+        border-bottom: none;
+      }
+      
+      .user-option:hover {
+        background: rgba(255, 46, 99, 0.1);
+      }
+      
+      .user-option.active {
+        background: rgba(255, 46, 99, 0.15);
+      }
+      
+      .user-option-avatar {
+        width: 32px;
+        height: 32px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, #4f3b9a, #6c5ce7);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 12px;
+        font-weight: 600;
+        color: white;
+        text-transform: uppercase;
+        flex-shrink: 0;
+      }
+      
+      .user-option-info {
+        flex: 1;
+        min-width: 0;
+      }
+      
+      .user-option-name {
+        color: #ffffff;
         font-size: 14px;
         font-weight: 500;
-        cursor: pointer;
-        min-width: 220px;
-        transition: all 0.3s ease;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
       }
       
-      #user-dropdown:hover {
-        border-color: rgba(255,255,255,0.6);
-        background: white;
+      .user-option-handle {
+        color: rgba(255, 255, 255, 0.5);
+        font-size: 12px;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
       }
       
-      #user-dropdown:focus {
-        outline: none;
-        border-color: white;
-        box-shadow: 0 0 0 3px rgba(255,255,255,0.3);
+      .user-option-check {
+        width: 20px;
+        height: 20px;
+        color: #56f27c;
+        flex-shrink: 0;
+        opacity: 0;
       }
       
-      #current-user-display {
-        color: rgba(255,255,255,0.9);
-        font-size: 13px;
-        font-weight: 500;
-        background: rgba(255,255,255,0.2);
-        padding: 4px 10px;
-        border-radius: 12px;
+      .user-option.active .user-option-check {
+        opacity: 1;
       }
       
-      @media (max-width: 600px) {
-        .user-switcher-wrapper {
-          flex-direction: column;
-          gap: 8px;
-        }
-        
-        #user-dropdown {
-          width: 100%;
+      @media (max-width: 480px) {
+        #user-switcher {
           max-width: 280px;
         }
       }
@@ -128,8 +271,8 @@
   }
 
   async function loadUsers() {
-    const dropdown = document.getElementById('user-dropdown');
-    if (!dropdown) return;
+    const list = document.getElementById('userList');
+    if (!list) return;
     
     try {
       const response = await fetch('/api/users/all');
@@ -137,41 +280,34 @@
       
       const users = await response.json();
       
-      // Clear loading option
-      dropdown.innerHTML = '';
+      list.innerHTML = users.map(user => `
+        <div class="user-option" data-user-id="${user.id}" data-user='${JSON.stringify(user)}'>
+          <div class="user-option-avatar">${user.displayName ? user.displayName.charAt(0) : '?'}</div>
+          <div class="user-option-info">
+            <div class="user-option-name">${user.displayName || user.distinctName}</div>
+            <div class="user-option-handle">@${user.distinctName}</div>
+          </div>
+          <svg class="user-option-check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M20 6L9 17l-5-5"/>
+          </svg>
+        </div>
+      `).join('');
       
-      // Add default option
-      const defaultOption = document.createElement('option');
-      defaultOption.value = '';
-      defaultOption.textContent = '-- Select User --';
-      dropdown.appendChild(defaultOption);
-      
-      // Add users to dropdown
-      users.forEach(user => {
-        const option = document.createElement('option');
-        option.value = user.id;
-        option.textContent = `@${user.distinctName} (${user.displayName})`;
-        option.dataset.user = JSON.stringify(user);
-        dropdown.appendChild(option);
+      list.querySelectorAll('.user-option').forEach(option => {
+        option.addEventListener('click', () => handleUserChange(option));
       });
       
-      console.log('Loaded', users.length, 'users');
-      
     } catch (error) {
-      console.error('Error loading users:', error);
-      dropdown.innerHTML = '<option value="">Error loading users</option>';
+      list.innerHTML = '<div class="user-option"><div class="user-option-info"><div class="user-option-name" style="color: #ff4757;">Error loading users</div></div></div>';
     }
   }
 
   async function syncWithBackend() {
     try {
-      // First, try to get current user from backend
       const response = await fetch('/api/user-context/current');
       if (response.ok) {
         const backendUser = await response.json();
-        console.log('Backend user:', backendUser);
         
-        // Update localStorage to match backend
         const userData = {
           id: backendUser.id,
           displayName: backendUser.displayName,
@@ -179,18 +315,13 @@
         };
         localStorage.setItem(STORAGE_KEY, JSON.stringify(userData));
         
-        // Update UI
-        updateDropdownSelection(backendUser.id);
-        updateUserDisplay(userData);
-        
-        // Dispatch event so other components know
+        updateUI(userData);
+        highlightCurrentUser(userData.id);
         window.dispatchEvent(new CustomEvent('userChanged', { detail: userData }));
       } else {
-        // Backend doesn't have user, restore from localStorage
         await restoreFromLocalStorage();
       }
     } catch (error) {
-      console.error('Error syncing with backend:', error);
       await restoreFromLocalStorage();
     }
   }
@@ -200,145 +331,66 @@
     if (stored) {
       try {
         const user = JSON.parse(stored);
-        console.log('Restoring from localStorage:', user);
-        
-        // Try to set backend to this user
         await fetch(`/api/user-context/switch/${user.id}`, { method: 'POST' });
-        
-        updateDropdownSelection(user.id);
-        updateUserDisplay(user);
+        updateUI(user);
+        highlightCurrentUser(user.id);
         window.dispatchEvent(new CustomEvent('userChanged', { detail: user }));
       } catch (error) {
-        console.error('Error restoring from localStorage:', error);
+        console.error('Error restoring user:', error);
       }
     }
   }
 
-  async function handleUserChange(event) {
-    const userId = event.target.value;
-    const dropdown = event.target;
-    
-    if (!userId) {
-      try {
-        const response = await fetch('/api/user-context/reset', { method: 'POST' });
-        if (response.ok) {
-          const result = await response.json();
-          console.log('Reset to default:', result);
-          
-          localStorage.removeItem(STORAGE_KEY);
-          updateUserDisplay(null);
-          window.dispatchEvent(new CustomEvent('userChanged', { detail: null }));
-        }
-      } catch (error) {
-        console.error('Error resetting user:', error);
-      }
-      return;
-    }
-    
-    const selectedOption = dropdown.options[dropdown.selectedIndex];
-    const userData = JSON.parse(selectedOption.dataset.user);
+  async function handleUserChange(option) {
+    const userId = option.dataset.userId;
+    const userData = JSON.parse(option.dataset.user);
     
     try {
-      console.log('Switching to user:', userId);
       const response = await fetch(`/api/user-context/switch/${userId}`, { method: 'POST' });
-      if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.error || 'Failed to switch user');
-      }
+      if (!response.ok) throw new Error('Failed to switch user');
       
-      const result = await response.json();
-      console.log('Switch successful:', result);
       localStorage.setItem(STORAGE_KEY, JSON.stringify(userData));
-      updateUserDisplay(userData);
+      updateUI(userData);
+      highlightCurrentUser(userId);
       window.dispatchEvent(new CustomEvent('userChanged', { detail: userData }));
-      showNotification(`Switched to @${userData.distinctName}`);
+      
+      const dropdown = document.getElementById('userSwitcherDropdown');
+      const trigger = document.getElementById('userSwitcherTrigger');
+      if (dropdown) dropdown.classList.add('hidden');
+      if (trigger) trigger.classList.remove('active');
       
     } catch (error) {
       console.error('Error switching user:', error);
-      showNotification('Failed to switch user: ' + error.message, 'error');
-      await syncWithBackend();
     }
   }
 
-  function updateDropdownSelection(userId) {
-    const dropdown = document.getElementById('user-dropdown');
-    if (dropdown && userId) {
-      dropdown.value = userId;
+  function updateUI(user) {
+    const nameEl = document.getElementById('switcherName');
+    const avatarEl = document.getElementById('switcherAvatar');
+    
+    if (nameEl && user) {
+      nameEl.textContent = `@${user.distinctName}`;
+    }
+    if (avatarEl && user) {
+      avatarEl.textContent = user.displayName ? user.displayName.charAt(0).toUpperCase() : '?';
     }
   }
 
-  function updateUserDisplay(user) {
-    const display = document.getElementById('current-user-display');
-    if (display) {
-      if (user) {
-        display.textContent = `ID: ${user.id} • @${user.distinctName}`;
+  function highlightCurrentUser(userId) {
+    document.querySelectorAll('.user-option').forEach(option => {
+      if (option.dataset.userId === String(userId)) {
+        option.classList.add('active');
       } else {
-        display.textContent = 'No user selected';
+        option.classList.remove('active');
       }
-    }
-  }
-
-  function showNotification(message, type = 'success') {
-    let container = document.getElementById('user-switcher-notifications');
-    if (!container) {
-      container = document.createElement('div');
-      container.id = 'user-switcher-notifications';
-      container.style.cssText = `
-        position: fixed;
-        top: 20px;
-        right: 20px;
-        z-index: 10000;
-        display: flex;
-        flex-direction: column;
-        gap: 10px;
-      `;
-      document.body.appendChild(container);
-    }
-    
-    const notification = document.createElement('div');
-    notification.style.cssText = `
-      background: ${type === 'error' ? '#e74c3c' : '#27ae60'};
-      color: white;
-      padding: 12px 20px;
-      border-radius: 8px;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-      font-weight: 500;
-      animation: slideIn 0.3s ease;
-    `;
-    notification.textContent = message;
-    
-    container.appendChild(notification);
-    
-    setTimeout(() => {
-      notification.style.animation = 'slideOut 0.3s ease';
-      setTimeout(() => notification.remove(), 300);
-    }, 3000);
-  }
-
-  // Add animation styles
-  if (!document.getElementById('user-switcher-animations')) {
-    const animStyles = document.createElement('style');
-    animStyles.id = 'user-switcher-animations';
-    animStyles.textContent = `
-      @keyframes slideIn {
-        from { transform: translateX(100%); opacity: 0; }
-        to { transform: translateX(0); opacity: 1; }
-      }
-      @keyframes slideOut {
-        from { transform: translateX(0); opacity: 1; }
-        to { transform: translateX(100%); opacity: 0; }
-      }
-    `;
-    document.head.appendChild(animStyles);
+    });
   }
 
   window.UserSwitcher = {
     getCurrentUser: async function() {
       try {
         const response = await fetch('/api/user-context/current');
-        if (response.ok) {
-          return await response.json();
-        }
+        if (response.ok) return await response.json();
       } catch (error) {
         console.error('Error getting current user:', error);
       }
@@ -376,8 +428,8 @@
         console.error('Error resetting user:', error);
       }
       localStorage.removeItem(STORAGE_KEY);
-      updateDropdownSelection('');
-      updateUserDisplay(null);
+      updateUI(null);
+      highlightCurrentUser(null);
       window.dispatchEvent(new CustomEvent('userChanged', { detail: null }));
     },
     
@@ -393,15 +445,13 @@
           };
           
           localStorage.setItem(STORAGE_KEY, JSON.stringify(userData));
-          updateDropdownSelection(userId);
-          updateUserDisplay(userData);
+          updateUI(userData);
+          highlightCurrentUser(userId);
           window.dispatchEvent(new CustomEvent('userChanged', { detail: userData }));
-          showNotification(`Switched to @${userData.distinctName}`);
           return userData;
         }
       } catch (error) {
         console.error('Error switching user:', error);
-        showNotification('Failed to switch user', 'error');
         throw error;
       }
     },

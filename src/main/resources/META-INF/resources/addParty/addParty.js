@@ -17,6 +17,7 @@ document.addEventListener("DOMContentLoaded", () => {
      STATE
   ========================== */
   let currentStep = 0;
+  let isSubmitting = false;
 
   const state = {
     title: "",
@@ -77,43 +78,66 @@ document.addEventListener("DOMContentLoaded", () => {
     let valid = true;
 
     inputs.forEach((input) => {
+      FormValidator.clearValidation(input);
+
       const value = input.value.trim();
-      let error = false;
+      const fieldContainer = input.closest('.field') || input.parentElement;
+      let errorMessage = null;
 
-      // Pflichtfelder
-      if (
-        ["title", "time_start", "location_address"].includes(input.name) &&
-        value === ""
-      ) {
-        error = true;
+      if (["title", "time_start", "location_address"].includes(input.name) && value === "") {
+        errorMessage = "This field is required";
       }
 
-      // Adresse nur gültig wenn ausgewählt
-      if (
-        input.name === "location_address" &&
-        (!state.latitude || !state.longitude)
-      ) {
-        error = true;
+      if (input.name === "location_address" && (!state.latitude || !state.longitude)) {
+        errorMessage = "Please select a valid address from the suggestions";
       }
 
-      // Startdatum darf nicht Vergangenheit sein
       if (input.name === "time_start" && fpStart.selectedDates[0]) {
-        if (fpStart.selectedDates[0] < new Date()) error = true;
+        if (fpStart.selectedDates[0] < new Date()) {
+          errorMessage = "Start date cannot be in the past";
+        }
       }
 
-      // Enddatum nach Start
-      if (
-        input.name === "time_end" &&
-        fpStart.selectedDates[0] &&
-        fpEnd.selectedDates[0] &&
-        fpEnd.selectedDates[0] <= fpStart.selectedDates[0]
-      ) {
-        error = true;
+      if (input.name === "time_end" && fpStart.selectedDates[0] && fpEnd.selectedDates[0]) {
+        if (fpEnd.selectedDates[0] <= fpStart.selectedDates[0]) {
+          errorMessage = "End date must be after start date";
+        }
       }
 
-      input.classList.toggle("input-error", error);
-      if (error) valid = false;
+      if (input.type === "number") {
+        if (input.min && parseFloat(value) < parseFloat(input.min)) {
+          errorMessage = `Value must be at least ${input.min}`;
+        }
+        if (input.max && parseFloat(value) > parseFloat(input.max)) {
+          errorMessage = `Value must be at most ${input.max}`;
+        }
+      }
+
+      if (input.type === "url" && value && !FormValidator.patterns.url.test(value)) {
+        errorMessage = "Please enter a valid URL (starting with http:// or https://)";
+      }
+
+      if (errorMessage) {
+        const errorEl = document.createElement('div');
+        errorEl.className = 'form-field__error form-field__error--visible';
+        errorEl.innerHTML = `
+          <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2"/>
+            <path d="M12 8v4M12 16h.01" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+          </svg>
+          <span class="error-text">${errorMessage}</span>
+        `;
+        fieldContainer.appendChild(errorEl);
+        input.classList.add('form-field__input--error');
+        valid = false;
+      } else if (value) {
+        input.classList.add('form-field__input--success');
+      }
     });
+
+    if (!valid) {
+      ToastManager.warning('Please fill in all required fields correctly');
+    }
 
     return valid;
   }
@@ -145,7 +169,10 @@ document.addEventListener("DOMContentLoaded", () => {
       currentStep++;
       showStep(currentStep);
     } else {
-      // Submit the party
+      if (isSubmitting) return;
+      isSubmitting = true;
+      btn.classList.add('btn--loading');
+      btn.innerHTML = '<span class="btn__spinner"></span>Creating...';
       submitPartyToBackend(state);
     }
   });
@@ -330,12 +357,12 @@ document.addEventListener("DOMContentLoaded", () => {
     });
     localStorage.setItem("parties", JSON.stringify(parties));
 
-    // Try to send to backend (fire and forget)
+    // Try to send to backend
     try {
       const backendPayload = {
         title: partyData.title,
         description: partyData.description,
-        fee: partyData.entry_costs, // Map entry_costs to fee
+        fee: partyData.entry_costs,
         time_start: partyData.time_start,
         time_end: partyData.time_end,
         latitude: partyData.latitude,
@@ -348,25 +375,27 @@ document.addEventListener("DOMContentLoaded", () => {
         visibility: partyData.visibility,
         selectedUsers: partyData.selectedUsers,
       };
-      
+
       const response = await fetch("/api/party/add", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(backendPayload),
       });
-      
+
       if (!response.ok) {
-        console.error("Backend error:", response.statusText);
+        throw new Error(response.statusText);
       }
+
+      ToastManager.success("Party created successfully! 🎉", "Success");
     } catch (err) {
-      console.error("Backend not available:", err);
-      // Backend not available, but party is saved in localStorage
+      console.error("Backend error:", err);
+      ToastManager.warning("Party saved locally. Will sync when connected.", "Offline Mode");
     }
 
-    alert("Party hinzugefügt! 🎉");
-    // Navigate to index.html to see party on map
+    isSubmitting = false;
+
     setTimeout(() => {
       window.location.href = "/index.html";
-    }, 500);
+    }, 1500);
   }
 });

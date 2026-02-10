@@ -323,16 +323,19 @@ document.addEventListener('DOMContentLoaded', function () {
         const container = document.getElementById('partiesContainer');
         const template = document.getElementById('party-template');
         const noMsg = document.querySelector('#tabContentPartys .no-parties');
+        const noMsgState = document.getElementById('noPartiesState');
 
         if (!container || !template) return;
         container.innerHTML = '';
 
         if (filtered.length === 0) {
-            if (noMsg) noMsg.style.display = 'block';
+            if (noMsg) noMsg.style.display = 'none';
+            if (noMsgState) noMsgState.style.display = 'flex';
             return;
         }
 
         if (noMsg) noMsg.style.display = 'none';
+        if (noMsgState) noMsgState.style.display = 'none';
 
         filtered.forEach(p => {
             const node = template.content.cloneNode(true);
