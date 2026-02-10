@@ -495,7 +495,6 @@
     return div.innerHTML;
   }
 
-  // Public API
   window.UserSwitcher = {
     getCurrentUser: async function() {
       try {
@@ -550,7 +549,6 @@
     reloadUsers: loadUsers
   };
 
-  // Initialize when DOM is ready
   if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', init);
   } else {

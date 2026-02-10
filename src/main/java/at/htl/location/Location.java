@@ -18,7 +18,6 @@ public class Location {
     public Location() {
     }
 
-    // Getter und Setter
     public String getAddress() { return address; }
     public void setAddress(String name) { this.address = name; }
 

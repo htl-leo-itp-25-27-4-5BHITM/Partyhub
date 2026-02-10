@@ -73,10 +73,8 @@ function setupFormValidation() {
 function validateForm() {
     let isValid = true;
 
-    // Clear previous errors
     clearErrors();
 
-    // Validate display name
     const displayName = document.getElementById('displayName').value.trim();
     if (!displayName) {
         showFieldError('displayName', 'Display name is required');
@@ -86,7 +84,6 @@ function validateForm() {
         isValid = false;
     }
 
-    // Validate username
     const distinctName = document.getElementById('distinctName').value.trim();
     if (!distinctName) {
         showFieldError('distinctName', 'Username is required');
@@ -99,7 +96,6 @@ function validateForm() {
         isValid = false;
     }
 
-    // Validate email
     const email = document.getElementById('email').value.trim();
     if (!email) {
         showFieldError('email', 'Email is required');
@@ -109,7 +105,6 @@ function validateForm() {
         isValid = false;
     }
 
-    // Validate biography length
     const biography = document.getElementById('biography').value.trim();
     if (biography.length > 500) {
         showFieldError('biography', 'Biography must be less than 500 characters');
@@ -293,7 +288,6 @@ async function uploadProfilePicture(userId) {
 }
 
 async function getProfilePictureFilename() {
-    // Return the current profile picture filename from the user data
     const userId = getCurrentUserId();
     try {
         const response = await fetch(`/api/users/${userId}`);
@@ -320,22 +314,18 @@ function handleFileSelect(event) {
 
     if (!file) return;
 
-    // Validate file type
     if (!file.type.startsWith('image/')) {
         showError('Please select a valid image file');
         return;
     }
 
-    // Validate file size (max 5MB)
     if (file.size > 5 * 1024 * 1024) {
         showError('Image size must be less than 5MB');
         return;
     }
 
-    // Store the selected file
     selectedProfilePictureFile = file;
 
-    // Preview the image
     const reader = new FileReader();
     reader.onload = function(e) {
         document.getElementById('currentProfileImg').src = e.target.result;
@@ -367,7 +357,6 @@ function showSuccess(message) {
 }
 
 function showError(message) {
-    // Create a simple alert for now
     // You might want to implement a more sophisticated error display
     alert(message);
 }

@@ -1,18 +1,15 @@
 // Advanced Party Infos Page JavaScript
 document.addEventListener("DOMContentLoaded", function () {
-  // Get party ID from URL parameters
   const urlParams = new URLSearchParams(window.location.search);
   const partyId = urlParams.get('id');
 
   if (partyId) {
     loadPartyDetails(partyId);
   } else {
-    // If no party ID provided, show error or redirect
     document.querySelector('.party-title').textContent = 'Party Not Found';
     console.error('No party ID provided');
   }
 
-  // Set up invited section toggle
   const invitedSection = document.querySelector(".invited-section");
   const toggle =
     invitedSection && invitedSection.querySelector(".invited-toggle");
@@ -71,7 +68,6 @@ async function loadPartyDetails(partyId) {
     const party = await response.json();
     updatePartyDisplay(party);
 
-    // Check attendance status after loading party details
     await checkAttendanceStatus(partyId);
 
   } catch (error) {
@@ -112,9 +108,6 @@ function updateJoinButton(isAttending, attendeeCount) {
     joinBtn.querySelector('.btn-icon svg').innerHTML =
       '<path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" fill="currentColor"/>';
   }
-
-  // Update attendee count display (if you want to show it)
-  // You could add this to the meta row or somewhere else
 }
 
 async function handleJoinParty(partyId) {
@@ -149,19 +142,16 @@ async function updatePartyDisplay(party) {
   // Update title
   const titleElement = document.querySelector('.party-title');
   if (titleElement) {
-    // Remove any existing lock icon
     const lockIcon = titleElement.querySelector('.lock');
     if (lockIcon) lockIcon.remove();
 
     titleElement.childNodes[0].textContent = party.title || 'Loading...';
   }
 
-  // Update meta information
   const mediaCountElement = document.getElementById('media-count');
   const locationElement = document.getElementById('location-display');
   const dateElement = document.getElementById('party-date');
 
-  // Get media and display previews
   if (mediaCountElement) {
     try {
       const mediaResponse = await fetch(`/api/party/${party.id}/media`);
@@ -240,7 +230,6 @@ async function updatePartyDisplay(party) {
     if (partyTimeElement) partyTimeElement.textContent = 'TBA';
   }
 
-  // Update age restrictions
   const ageElement = document.getElementById('age-restriction');
   if (ageElement) {
     let ageText = 'All ages';
@@ -256,7 +245,6 @@ async function updatePartyDisplay(party) {
     ageElement.textContent = ageText;
   }
 
-  // Update max attendees
   const maxAttendeesElement = document.getElementById('max-attendees');
   if (maxAttendeesElement) {
     if (party.max_people) {
@@ -269,8 +257,6 @@ async function updatePartyDisplay(party) {
   console.log('Party details updated:', party);
 }
 
-
-// Helper functions for improved time formatting
 
 function formatPartyDate(date) {
   const now = new Date();
@@ -374,19 +360,14 @@ function formatTimeSpan(startDate, endDate) {
   // Add contextual information based on current time
   let contextInfo = '';
 
-  // If party hasn't started yet
   if (startDate > now) {
     const relative = formatRelativeTime(startDate);
     contextInfo = ` - ${relative}`;
-  }
-  // If party is ongoing
-  else if (startDate <= now && (!endDate || endDate > now)) {
+  } else if (startDate <= now && (!endDate || endDate > now)) {
     const relative = formatRelativeTime(startDate);
     contextInfo = ` - started ${relative}`;
   }
-  // For past events, no additional context needed
 
-  // Combine date and time range with context
   return `${dateStr} from ${timeRange}${contextInfo}`;
 }
 

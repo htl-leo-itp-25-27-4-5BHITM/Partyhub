@@ -146,9 +146,7 @@ public class UserResource {
         String basePath = "src/main/resources/";
         java.nio.file.Path filePath = null;
         
-        // Try to find user's profile picture
         if (pic != null && !pic.isEmpty()) {
-            // Normalize path - handle both "filename.jpg" and "uploads/profiles/filename.jpg"
             String fullPath;
             if (pic.startsWith("uploads/")) {
                 fullPath = basePath + pic;
@@ -157,13 +155,11 @@ public class UserResource {
             }
             filePath = Paths.get(fullPath);
             
-            // If file doesn't exist, fall back to default
             if (!Files.exists(filePath)) {
                 filePath = null;
             }
         }
         
-        // Use default if no valid profile picture found
         if (filePath == null) {
             java.nio.file.Path defaultPath = Paths.get(basePath + "uploads/profiles/default_profile-picture.jpg");
             if (Files.exists(defaultPath)) {

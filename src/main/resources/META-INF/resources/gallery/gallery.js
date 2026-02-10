@@ -1,6 +1,4 @@
-// Gallery Page JavaScript
 document.addEventListener("DOMContentLoaded", function () {
-  // Get party ID from URL parameters
   const urlParams = new URLSearchParams(window.location.search);
   const partyId = urlParams.get('id');
 
@@ -31,13 +29,11 @@ async function loadGallery(partyId) {
     }
     const party = await partyResponse.json();
 
-    // Update party name
     const partyNameElement = document.getElementById('party-name');
     if (partyNameElement) {
       partyNameElement.textContent = party.title || 'Party Gallery';
     }
 
-    // Load media for this party
     const mediaResponse = await fetch(`/api/party/${partyId}/media`);
     if (!mediaResponse.ok) {
       throw new Error('Failed to fetch media');
@@ -45,13 +41,11 @@ async function loadGallery(partyId) {
 
     const mediaList = await mediaResponse.json();
 
-    // Update photo count
     const photoCountElement = document.getElementById('photo-count');
     if (photoCountElement) {
       photoCountElement.textContent = `${mediaList.length} photo${mediaList.length !== 1 ? 's' : ''}`;
     }
 
-    // Display the gallery
     displayGallery(mediaList);
 
   } catch (error) {
@@ -72,7 +66,6 @@ function displayGallery(mediaList) {
     return;
   }
 
-  // Create gallery items
   mediaList.forEach((media, index) => {
     const galleryItem = document.createElement('div');
     galleryItem.className = 'gallery-item';

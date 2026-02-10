@@ -34,7 +34,6 @@ document.addEventListener("DOMContentLoaded", async () => {
     }
   }
 
-  // Add party markers from localStorage to map
   function addLocalStoragePartiesToMap() {
     const localParties = loadPartiesFromLocalStorage();
     localParties.forEach((party) => {
@@ -57,9 +56,6 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   addLocalStoragePartiesToMap();
 
-  // ---------------------------
-  // Helpers
-  // ---------------------------
   function toNumber(v) {
     if (v === null || v === undefined) return null;
     const n = typeof v === "string" ? Number(v.replace(",", ".")) : Number(v);
@@ -142,11 +138,8 @@ document.addEventListener("DOMContentLoaded", async () => {
     `;
   }
 
-  // ---------------------------
   // Filter: nur nächste 14 Tage (robust + Logs)
-  // ---------------------------
 
-  // parsePartyStart: handle ISO, numeric timestamp, and backend format "dd.MM.yyyy HH:mm"
   function parsePartyStart(p) {
     const raw = p?.time_start ?? p?.startDate ?? p?.date ?? null;
     if (!raw) return null;
@@ -212,9 +205,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     return ok;
   }
 
-  // ---------------------------
   // Parties laden + anzeigen
-  // ---------------------------
   async function loadAllPartiesToMap() {
     const parties = window.backend?.getAllParties
       ? await window.backend.getAllParties()
@@ -261,9 +252,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     }
   }
 
-  // ---------------------------
   // Geräte-Location anzeigen (optional)
-  // ---------------------------
   let centeredOnce = false;
 
   function showUserLocation(lat, lng, accuracy) {
@@ -296,18 +285,14 @@ document.addEventListener("DOMContentLoaded", async () => {
     );
   }
 
-  // ---------------------------
-  // “Tile-Salat”/Layout Fix
-  // ---------------------------
+  // "Tile-Salat"/Layout Fix
   const fixSize = () => map.invalidateSize(true);
   requestAnimationFrame(() => requestAnimationFrame(fixSize));
   setTimeout(fixSize, 200);
   setTimeout(fixSize, 600);
   window.addEventListener("resize", () => setTimeout(fixSize, 100));
 
-  // ---------------------------
   // Automatisch jeden Tag updaten (Mitternacht)
-  // ---------------------------
   function scheduleDailyRefresh() {
     const now = new Date();
     const nextMidnight = new Date(now);

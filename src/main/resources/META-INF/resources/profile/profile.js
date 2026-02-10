@@ -9,7 +9,6 @@ document.addEventListener('DOMContentLoaded', function () {
 
     if (!img) return;
 
-    // Helper function to try loading images from multiple URLs
     async function tryImageUrls(urls, timeout = 5000) {
         for (const url of urls) {
             try {
@@ -53,16 +52,13 @@ document.addEventListener('DOMContentLoaded', function () {
             currentUserId = newUser.id;
             isViewingOwnProfile = true;
             
-            // Update profile display immediately
             updateUserProfile(newUser);
             
-            // Update URL to reflect the switched user
             const newUrl = new URL(window.location.href);
             newUrl.searchParams.set('id', newUser.id);
             newUrl.searchParams.delete('handle');
             window.history.replaceState({}, '', newUrl);
             
-            // Show notification
             if (window.ToastManager) {
                 window.ToastManager.success(`Switched to @${newUser.distinctName}`);
             }

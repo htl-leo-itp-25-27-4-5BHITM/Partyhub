@@ -357,7 +357,6 @@ document.addEventListener("DOMContentLoaded", () => {
     });
     localStorage.setItem("parties", JSON.stringify(parties));
 
-    // Try to send to backend
     try {
       const backendPayload = {
         title: partyData.title,

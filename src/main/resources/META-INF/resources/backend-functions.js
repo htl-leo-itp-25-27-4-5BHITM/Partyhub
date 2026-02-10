@@ -1,5 +1,3 @@
-// Party-functions
-// Create Party in party-Table
 // DateTimeFormat needs to be the same
 
 async function createParty(payload) {
@@ -23,7 +21,6 @@ async function createParty(payload) {
     }
 }
 
-// Fetch all parties
 async function getAllParties() {
     try {
         const response = await fetch('/api/party/');
@@ -36,7 +33,6 @@ async function getAllParties() {
     }
 }
 
-// Sort parties
 async function sortParties(sortKey) {
     try {
         const response = await fetch(`/api/party/sort?sort=${sortKey}`);
@@ -48,7 +44,6 @@ async function sortParties(sortKey) {
     }
 }
 
-// Filter parties by content
 async function filterParties(content) {
     const filterPayload = { value: content };
     try {
@@ -67,7 +62,6 @@ async function filterParties(content) {
     }
 }
 
-// Get a party by ID
 async function getPartyById(partyId) {
     try {
         const response = await fetch(`/api/party/${partyId}`);
@@ -79,7 +73,6 @@ async function getPartyById(partyId) {
     }
 }
 
-// Update a party by ID
 async function updateParty(partyId, payload) {
     try {
         const response = await fetch(`/api/party/${partyId}`, {
@@ -95,7 +88,6 @@ async function updateParty(partyId, payload) {
     }
 }
 
-// Delete a party by ID
 async function deleteParty(partyId) {
     try {
         const response = await fetch(`/api/party/${partyId}`, { method: 'DELETE' });
@@ -141,8 +133,6 @@ async function getMediaForParty(partyId) {
     }
 }
 
-// User-functions
-// Fetch all users
 async function getAllUsers() {
     try {
         const response = await fetch('/api/users/');
@@ -154,7 +144,6 @@ async function getAllUsers() {
     }
 }
 
-// Get user by id
 async function getUserById(id) {
     try {
         const response = await fetch('/api/users/' + id);
@@ -166,7 +155,6 @@ async function getUserById(id) {
     }
 }
 
-// Get profile-picture by user id
 async function getProfilePicture(id) {
     try {
         const response = await fetch('/api/users/' + id + "/profile-picture");
@@ -178,7 +166,6 @@ async function getProfilePicture(id) {
     }
 }
 
-// Invite user to party using userId
 async function invite(recipient, partyId) {
     const invitationPayload = { recipient, partyId };
     try {
@@ -195,7 +182,6 @@ async function invite(recipient, partyId) {
     }
 }
 
-// Get users personally received invites
 async function getReceivedInvites() {
     try {
         const response = await fetch(`/api/invites/rec`);
@@ -207,7 +193,6 @@ async function getReceivedInvites() {
     }
 }
 
-// Get users personally sent invites
 async function getSentInvites() {
     try {
         const response = await fetch(`/api/invites/inv`);
