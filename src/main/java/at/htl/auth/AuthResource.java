@@ -37,6 +37,42 @@ public class AuthResource {
     OidcSession oidcSession;
 
     @GET
+    @Path("/login")
+    @Authenticated
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response login() {
+        // This endpoint requires authentication
+        // If not authenticated, Quarkus redirects to Keycloak automatically
+        // After successful login, user is redirected back here
+        User user = userContext.getCurrentUser();
+        String email = userContext.getCurrentUserEmail();
+
+        if (user != null) {
+            // User is authenticated and linked
+            return Response.ok(Map.of(
+                    "authenticated", true,
+                    "linked", true,
+                    "user", user,
+                    "message", "Login successful"
+            )).build();
+        } else if (email != null) {
+            // Authenticated but not linked
+            return Response.ok(Map.of(
+                    "authenticated", true,
+                    "linked", false,
+                    "email", email,
+                    "name", userContext.getCurrentUserName(),
+                    "message", "Authenticated but account not linked"
+            )).build();
+        }
+
+        // Should not reach here due to @Authenticated
+        return Response.status(Response.Status.UNAUTHORIZED)
+                .entity(Map.of("error", "Not authenticated"))
+                .build();
+    }
+
+    @GET
     @Path("/status")
     @Produces(MediaType.APPLICATION_JSON)
     public Response getAuthStatus() {

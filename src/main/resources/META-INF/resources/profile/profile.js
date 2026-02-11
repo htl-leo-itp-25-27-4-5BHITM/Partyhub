@@ -1,4 +1,23 @@
-document.addEventListener("DOMContentLoaded", function () {
+document.addEventListener("DOMContentLoaded", async function () {
+  // Check authentication first - redirect to Keycloak if not authenticated
+  try {
+    const authResponse = await fetch("/api/auth/status", {
+      credentials: "include"
+    });
+    const authData = await authResponse.json();
+
+    if (!authData.authenticated) {
+      // Redirect to login endpoint to trigger Keycloak authentication
+      window.location.href = "/api/auth/login";
+      return;
+    }
+  } catch (error) {
+    console.error("Auth check failed:", error);
+    // Redirect to login on error
+    window.location.href = "/api/auth/login";
+    return;
+  }
+
   const img = document.getElementById("profileImg");
   const displayNameElement = document.getElementById("displayName");
   const distinctNameElement = document.getElementById("distinctName");
