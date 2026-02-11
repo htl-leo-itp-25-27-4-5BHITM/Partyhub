@@ -6,6 +6,7 @@ INSERT INTO follow_status (id, name) VALUES (1, 'ausstehend');
 INSERT INTO follow_status (id, name) VALUES (2, 'akzeptiert');
 INSERT INTO follow_status (id, name) VALUES (3, 'blockiert');
 
+
 -- Insert User data
 INSERT INTO users (id, display_name, distinct_name, email, biography, profile_picture) VALUES
 (1, 'Anna Huber', 'anna_h', 'anna.huber@wien.at', 'Party-Enthusiastin und Event-Organisatorin aus Wien!', 'profile_picture1.jpg'),
@@ -85,3 +86,17 @@ INSERT INTO follow (user1_id, user2_id, status_id) VALUES
 (4, 5, 2),  -- Thomas folgt Sabine (akzeptiert)
 (5, 3, 2),  -- Sabine folgt Katrin (akzeptiert)
 (5, 4, 2);  -- Sabine folgt Thomas (akzeptiert)
+
+
+-- Setzt Sequenz auf: MAX(id) + 1
+SELECT setval(
+               pg_get_serial_sequence('location', 'id'),
+               (SELECT MAX(id) FROM location),
+               true
+       );
+
+-- Am Ende des gesamten SQL-Files:
+SELECT setval(pg_get_serial_sequence('location', 'id'), COALESCE((SELECT MAX(id) FROM location), 1), true);
+SELECT setval(pg_get_serial_sequence('party', 'id'), COALESCE((SELECT MAX(id) FROM party), 1), true);
+SELECT setval(pg_get_serial_sequence('user', 'id'), COALESCE((SELECT MAX(id) FROM users), 1), true);
+-- etc. für alle Tabellen mit Auto-ID

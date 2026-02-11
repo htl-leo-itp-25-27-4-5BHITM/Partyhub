@@ -13,6 +13,8 @@ public class InvitationResource {
     @Inject
     InvitationRepository invitationRepository;
 
+
+    //TODO Test
     @POST
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)

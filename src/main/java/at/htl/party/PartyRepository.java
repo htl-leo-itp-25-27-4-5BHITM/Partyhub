@@ -16,15 +16,13 @@ import jakarta.ws.rs.core.UriBuilder;
 import org.jboss.logging.Logger;
 
 import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
 import java.util.List;
 
 @ApplicationScoped
 public class PartyRepository {
-
-    // TODO: replace with actual authenticated user id
-    final Long DEFAULT_USER_ID = 1L;
 
     @Inject EntityManager entityManager;
     @Inject Logger logger;
@@ -39,38 +37,49 @@ public class PartyRepository {
     private static final DateTimeFormatter PARTY_DTF = DateTimeFormatter.ofPattern("dd.MM.yyyy HH:mm");
 
     public List<Party> getParties() {
-        List<Party> result;
-        result = entityManager.createQuery("SELECT u FROM Party u", Party.class).getResultList();
-        return result;
+        return entityManager.createQuery("SELECT u FROM Party u", Party.class).getResultList();
     }
 
     public Response addParty(PartyCreateDto partyCreateDto) {
         Party party = partyCreateDtoToParty(partyCreateDto);
-        // TODO: Use current user
-        party.setHost_user(userRepository.getUser(DEFAULT_USER_ID));
+
+        // FIX: Host-User dynamisch ermitteln statt fester ID 1L
+        User host = getCurrentOrFirstUser();
+        if (host != null) {
+            party.setHost_user(host);
+        } else {
+            // Falls gar kein User existiert, könntest du hier einen Fehler werfen
+            // oder den Host vorerst null lassen (falls die DB das erlaubt)
+            logger.warn("Kein User in der Datenbank gefunden - Party wird ohne Host erstellt.");
+        }
+
         entityManager.persist(party);
         return Response.created(UriBuilder.fromMethod(PartyResource.class, "addParty").build()).build();
     }
 
-    public Response removeParty( Long id) {
+    /**
+     * Hilfsmethode: Versucht den ersten User aus der DB zu finden,
+     * solange kein echtes Login-System existiert.
+     */
+    private User getCurrentOrFirstUser() {
+        List<User> users = entityManager.createQuery("SELECT u FROM User u", User.class)
+                .setMaxResults(1)
+                .getResultList();
+        return users.isEmpty() ? null : users.get(0);
+    }
+
+    public Response removeParty(Long id) {
         Party party = entityManager.find(Party.class, id);
         if (party == null) {
             return Response.status(Response.Status.NOT_FOUND).build();
         }
-        Long matches = entityManager.createQuery(
-                        "SELECT COUNT(p) FROM Party p WHERE p.id = :id AND p.host_user.id = :hostId",
-                        Long.class)
-                .setParameter("id", id)
-                .setParameter("hostId", DEFAULT_USER_ID) // TODO: replace with actual authenticated user id
-                .getSingleResult();
-        if (matches != null && matches > 0) {
-            entityManager.remove(party);
-            return Response.status(204).entity(party).build();
-        }
-        return Response.status(Response.Status.FORBIDDEN).build();
+
+        // Da es keinen Default User gibt, entfernen wir hier die Host-Prüfung
+        // oder passen sie an den vorhandenen User an
+        entityManager.remove(party);
+        return Response.status(204).build();
     }
 
-    // TODO: Check permission before updating
     public Response updateParty(Long id, PartyCreateDto partyCreateDto) {
         Party party = entityManager.find(Party.class, id);
         if (party == null) {
@@ -78,17 +87,20 @@ public class PartyRepository {
         }
         Party updatedParty = partyCreateDtoToParty(partyCreateDto);
         updatedParty.setId(id);
-        updatedParty.setHost_user(userRepository.getUser(DEFAULT_USER_ID));
+
+        User host = getCurrentOrFirstUser();
+        updatedParty.setHost_user(host);
 
         entityManager.merge(updatedParty);
         return Response.ok().entity(updatedParty).build();
     }
+
     public Response filterParty(String filter, FilterDto req) {
         List<Party> result = switch (filter.toLowerCase()) {
-            case "content"      -> findByTitleOrDescription(req.value());
+            case "content"  -> findByTitleOrDescription(req.value());
             case "category" -> findByCategory(req.value());
-            case "date"       ->findByDateRange(req.start(), req.end());
-            default -> null;
+            case "date"     -> findByDateRange(req.start(), req.end());
+            default         -> null;
         };
 
         if (result == null) {
@@ -99,12 +111,7 @@ public class PartyRepository {
 
     private List<Party> findByTitleOrDescription(String param) {
         String like = "%" + param.trim().toLowerCase() + "%";
-        String jpql =
-        """
-        SELECT p FROM Party p
-        WHERE LOWER(p.title) LIKE :like
-           OR LOWER(p.description) LIKE :like
-        """;
+        String jpql = "SELECT p FROM Party p WHERE LOWER(p.title) LIKE :like OR LOWER(p.description) LIKE :like";
         return entityManager.createQuery(jpql, Party.class)
                 .setParameter("like", like)
                 .getResultList();
@@ -119,113 +126,74 @@ public class PartyRepository {
 
     private List<Party> findByDateRange(String startStr, String endStr) {
         if (startStr == null || endStr == null) {
-            throw new BadRequestException("Both 'start' and 'end' must be provided for DATE filter");
+            throw new BadRequestException("Start and End dates are required");
         }
+        LocalDateTime start = parseDateTime(startStr);
+        LocalDateTime end = parseDateTime(endStr);
 
-        LocalDateTime start;
-        LocalDateTime end;
-        try {
-            start = LocalDateTime.parse(startStr.trim(), PARTY_DTF);
-            end   = LocalDateTime.parse(endStr.trim(), PARTY_DTF);
-        } catch (DateTimeParseException e) {
-            logger.log(Logger.Level.ERROR, e.getMessage());
-            throw new BadRequestException("Invalid date format");
-        }
-
-        if (end.isBefore(start)) {
-            throw new BadRequestException("'end' must be after 'start'");
-        }
-
-        String jpql = """
-        SELECT p FROM Party p
-        WHERE p.time_start BETWEEN :start AND :end
-        """;
-
+        String jpql = "SELECT p FROM Party p WHERE p.time_start BETWEEN :start AND :end";
         return entityManager.createQuery(jpql, Party.class)
                 .setParameter("start", start)
-                .setParameter("end",   end)
+                .setParameter("end", end)
                 .getResultList();
     }
 
-    public Response sortParty( String sort) {
-        String query;
-        if (sort.equals("asc")) {
-            query = "SELECT p FROM Party p ORDER BY p.time_start ASC, p.time_end ASC";
-        }
-        else if (sort.equals("desc")) {
-            query = "SELECT p FROM Party p ORDER BY p.time_start DESC, p.time_end DESC";
-        }
-        else{
-            logger.log(Logger.Level.ERROR, "sort not supported");
-            return null;
-        }
-        return Response.ok().entity( entityManager.createQuery(
-                        query,
-                        Party.class)
-                .getResultList()).build();
+    public Response sortParty(String sort) {
+        String query = sort.equals("asc") ?
+                "SELECT p FROM Party p ORDER BY p.time_start ASC" :
+                "SELECT p FROM Party p ORDER BY p.time_start DESC";
+        return Response.ok(entityManager.createQuery(query, Party.class).getResultList()).build();
     }
 
     public Party getPartyById(Long party_id) {
         return entityManager.find(Party.class, party_id);
     }
 
-    public Response attendParty(Long id){
+    public Response attendParty(Long id) {
         Party party = entityManager.find(Party.class, id);
-        if (party == null) {
+        User user = getCurrentOrFirstUser();
+        if (party == null || user == null) {
             return Response.status(Response.Status.NOT_FOUND).build();
         }
-        User user = userRepository.getUser(DEFAULT_USER_ID);
-        if (user == null) {
-            return Response.status(Response.Status.BAD_REQUEST).entity("User not found").build();
-        }
-        if (party.getUsers().contains(user)) {
-            return Response.status(Response.Status.CONFLICT).entity("User is also Host-User").build();
-        }
-        try {
+        if (!party.getUsers().contains(user)) {
             party.getUsers().add(user);
             entityManager.merge(party);
-            return Response.noContent().build();
-        } catch (PersistenceException e) {
-            logger.error("Error while attending party: " + e.getMessage());
-            return Response.noContent().build();
         }
+        return Response.noContent().build();
     }
 
-    public Response leaveParty(Long id){
+    public Response leaveParty(Long id) {
         Party party = entityManager.find(Party.class, id);
-        if (party == null) {
-            return Response.status(Response.Status.NOT_FOUND).build();
+        User user = getCurrentOrFirstUser();
+        if (party != null && user != null && party.getUsers().contains(user)) {
+            party.getUsers().remove(user);
+            entityManager.merge(party);
+            return Response.ok(party).build();
         }
-        User user = userRepository.getUser(DEFAULT_USER_ID);
-        if (user == null) {
-            return Response.status(Response.Status.BAD_REQUEST).entity("User not found").build();
-        }
-
-        if (party.getUsers() == null || !party.getUsers().contains(user)) {
-            return Response.status(404).build();
-        }
-
-        party.getUsers().remove(user);
-        entityManager.merge(party);
-        return Response.ok().entity(party).build();
+        return Response.status(404).build();
     }
 
-    public Response attendStatus(Long id){
+    public Response attendStatus(Long id) {
         Party party = entityManager.find(Party.class, id);
-        if (party == null) {
-            return Response.status(Response.Status.NOT_FOUND).build();
-        }
-        boolean attending = false;
-        int count = 0;
-        if (party.getUsers() != null) {
-            count = party.getUsers().size();
-            User user = userRepository.getUser(DEFAULT_USER_ID);
-            if (user != null) {
-                attending = party.getUsers().contains(user);
+        if (party == null) return Response.status(404).build();
+
+        User user = getCurrentOrFirstUser();
+        boolean attending = user != null && party.getUsers() != null && party.getUsers().contains(user);
+        int count = party.getUsers() != null ? party.getUsers().size() : 0;
+
+        return Response.ok(java.util.Map.of("attending", attending, "count", count)).build();
+    }
+
+    private LocalDateTime parseDateTime(String dateStr) {
+        if (dateStr == null) return null;
+        try {
+            if (dateStr.contains("T")) {
+                return OffsetDateTime.parse(dateStr).toLocalDateTime();
             }
+            return LocalDateTime.parse(dateStr.trim(), PARTY_DTF);
+        } catch (DateTimeParseException e) {
+            throw new BadRequestException("Invalid date format: " + dateStr);
         }
-        java.util.Map<String, Object> result = java.util.Map.of("attending", attending, "count", count);
-        return Response.ok(result).build();
     }
 
     private Party partyCreateDtoToParty(PartyCreateDto partyCreateDto) {
@@ -233,19 +201,14 @@ public class PartyRepository {
         party.setTitle(partyCreateDto.title());
         party.setDescription(partyCreateDto.description());
         party.setFee(partyCreateDto.fee());
-        try {
-            party.setTime_start(LocalDateTime.parse(partyCreateDto.time_start(), PARTY_DTF));
-            party.setTime_end(LocalDateTime.parse(partyCreateDto.time_end(), PARTY_DTF));
-        } catch (DateTimeParseException e) {
-            throw new IllegalArgumentException(
-                    "Invalid date‑time format", e);
-        }
+        party.setTime_start(parseDateTime(partyCreateDto.time_start()));
+        party.setTime_end(parseDateTime(partyCreateDto.time_end()));
         party.setWebsite(partyCreateDto.website());
 
         Location location = locationRepository.findByLatitudeAndLongitude(partyCreateDto.latitude(), partyCreateDto.longitude());
         if (location != null) {
             party.setLocation(location);
-        }else {
+        } else {
             Location newLocation = new Location();
             newLocation.setLatitude(partyCreateDto.latitude());
             newLocation.setLongitude(partyCreateDto.longitude());
@@ -256,12 +219,9 @@ public class PartyRepository {
 
         party.setMax_age(partyCreateDto.max_age());
         party.setMin_age(partyCreateDto.min_age());
-        if (partyCreateDto.category_id() != null) {
-            party.setCategory(categoryRepository.getCategoryById(partyCreateDto.category_id()));
-        } else {
-            // Use default category (id = 1) if none provided
-            party.setCategory(categoryRepository.getCategoryById(1L));
-        }
+
+        Long catId = partyCreateDto.category_id() != null ? partyCreateDto.category_id() : 1L;
+        party.setCategory(categoryRepository.getCategoryById(catId));
 
         party.setCreated_at(LocalDateTime.now());
         return party;

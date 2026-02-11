@@ -1,0 +1,13 @@
+//TODO Post geht noch nicht
+###
+POST http://localhost:8080/api/invitation
+Content-Type: application/json
+
+{
+  "recipient": 2,
+  "partyId": 1
+}
+
+###
+GET http://localhost:8080/api/invites/rec
+
