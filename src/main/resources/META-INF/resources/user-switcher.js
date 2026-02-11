@@ -328,12 +328,22 @@
 
   async function loadInitialState() {
     try {
-      const response = await fetch('/api/user-context/current');
+      // Use auth status endpoint which works with Keycloak session
+      const response = await fetch('/api/auth/status', {
+        credentials: 'include'
+      });
       if (response.ok) {
-        const user = await response.json();
-        currentUserData = user;
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(user));
-        updateUI(user);
+        const authData = await response.json();
+        if (authData.authenticated && authData.linked) {
+          currentUserData = authData.user;
+          localStorage.setItem(STORAGE_KEY, JSON.stringify(authData.user));
+          updateUI(authData.user);
+        } else if (authData.authenticated && !authData.linked) {
+          // Authenticated but not linked - show auth name
+          updateUIGuest(authData.name || authData.email);
+        } else {
+          updateUI(null);
+        }
       } else {
         await restoreFromStorage();
       }
@@ -350,11 +360,6 @@
         const user = JSON.parse(stored);
         currentUserData = user;
         updateUI(user);
-        
-        await fetch(`/api/user-context/switch/${user.id}`, { 
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' }
-        });
       } catch (error) {
         console.error('Failed to restore user from storage:', error);
         updateUI(null);
@@ -433,30 +438,22 @@
     const user = allUsers.find(u => String(u.id) === String(userId));
     if (!user) return;
 
-    try {
-      const response = await fetch(`/api/user-context/switch/${userId}`, { 
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' }
-      });
+    // With Keycloak auth, we can't just "switch" users via API
+    // Instead, we navigate to that user's profile page
+    const dropdown = document.getElementById('userSwitcherDropdown');
+    const trigger = document.getElementById('userSwitcherTrigger');
+    if (dropdown) dropdown.classList.add('hidden');
+    if (trigger) trigger.setAttribute('aria-expanded', 'false');
 
-      if (!response.ok) throw new Error('Failed to switch user');
+    // Check if we're viewing our own profile
+    const isOwnProfile = currentUserData && String(currentUserData.id) === String(userId);
 
-      currentUserData = user;
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(user));
-
-      const dropdown = document.getElementById('userSwitcherDropdown');
-      const trigger = document.getElementById('userSwitcherTrigger');
-      if (dropdown) dropdown.classList.add('hidden');
-      if (trigger) trigger.setAttribute('aria-expanded', 'false');
-
-      updateUI(user);
-      window.dispatchEvent(new CustomEvent('userChanged', { detail: user }));
-
-      renderUserList(allUsers);
-
-    } catch (error) {
-      console.error('Error switching user:', error);
-      showNotification('Failed to switch user. Please try again.', 'error');
+    if (isOwnProfile) {
+      // Already viewing own profile, just update UI
+      updateUI(currentUserData);
+    } else {
+      // Navigate to the selected user's profile
+      window.location.href = `/profile/profile.html?handle=${user.distinctName}`;
     }
   }
 
@@ -466,8 +463,8 @@
     const avatarImg = document.getElementById('switcherAvatarImg');
 
     if (!user) {
-      if (nameEl) nameEl.textContent = 'No user selected';
-      if (handleEl) handleEl.textContent = 'Select an account';
+      if (nameEl) nameEl.textContent = 'Not logged in';
+      if (handleEl) handleEl.textContent = 'Please log in';
       if (avatarImg) avatarImg.src = '/images/default_profile-picture.jpg';
       return;
     }
@@ -477,6 +474,16 @@
     if (avatarImg) {
       avatarImg.src = `/api/users/${user.id}/profile-picture`;
     }
+  }
+
+  function updateUIGuest(name) {
+    const nameEl = document.getElementById('switcherName');
+    const handleEl = document.getElementById('switcherHandle');
+    const avatarImg = document.getElementById('switcherAvatarImg');
+
+    if (nameEl) nameEl.textContent = name || 'Guest';
+    if (handleEl) handleEl.textContent = 'Account not linked';
+    if (avatarImg) avatarImg.src = '/images/default_profile-picture.jpg';
   }
 
   function showNotification(message, type = 'info') {
@@ -496,19 +503,23 @@
   }
 
   window.UserSwitcher = {
-    getCurrentUser: async function() {
+  getCurrentUser: async function() {
       try {
         const response = await fetch('/api/user-context/current');
         if (response.ok) {
           const user = await response.json();
-          currentUserData = user;
-          localStorage.setItem(STORAGE_KEY, JSON.stringify(user));
-          return user;
+          if (user.authenticated && user.linked) {
+            currentUserData = user;
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(user));
+            return user;
+          }
         }
       } catch (error) {
         console.error('Error getting current user:', error);
       }
-      return this.getCurrentUserSync();
+      
+      // If user is not logged in, return null
+      return null;
     },
 
     getCurrentUserId: async function() {
@@ -529,12 +540,18 @@
       return currentUserData;
     },
 
-    clearUser: async function() {
-      try {
-        await fetch('/api/user-context/reset', { method: 'POST' });
-      } catch (error) {
-        console.error('Error resetting user context:', error);
-      }
+  clearUser: async function() {
+    try {
+      // Clear server-side session first
+      const response = await fetch('/api/user-context/reset', { method: 'POST' });
+      
+      // Then call Keycloak logout
+      await fetch('/api/auth/logout', {
+        method: 'POST',
+        credentials: 'include'
+      });
+      
+      // Clear local storage
       localStorage.removeItem(STORAGE_KEY);
       currentUserData = null;
       updateUI(null);

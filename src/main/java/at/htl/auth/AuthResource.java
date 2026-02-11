@@ -197,12 +197,14 @@ public class AuthResource {
         return base + System.currentTimeMillis();
     }
 
-    @POST
+    @GET
     @Path("/logout")
-    @Authenticated
     @Produces(MediaType.APPLICATION_JSON)
     public Response logout() {
-        oidcSession.logout();
-        return Response.ok(Map.of("message", "Logged out successfully")).build();
+        logger.info("User logging out");
+        return Response.ok(Map.of(
+            "message", "Logged out successfully",
+            "logoutUrl", "http://localhost:8080/realms/party-realm/protocol/openid-connect/logout"
+        )).build();
     }
 }
