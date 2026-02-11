@@ -1,20 +1,164 @@
 document.addEventListener("DOMContentLoaded", async () => {
     let data = [];
 
+    // Helper: read logged-in user id from storages (sessionStorage preferred)
+    const STORAGE_KEY = 'loggedInUserId';
+    function getLoggedInUserId() {
+        try {
+            const s = sessionStorage.getItem(STORAGE_KEY);
+            if (s) return Number(s);
+            const l = localStorage.getItem(STORAGE_KEY);
+            return l ? Number(l) : null;
+        } catch (e) {
+            return null;
+        }
+    }
+    // allow updating later if not present in storage
+    let loggedInId = getLoggedInUserId();
+
+    // If no stored id, try to ask the backend which user is logged-in (best-effort)
+    async function fetchCurrentUserFromBackend() {
+        const endpoints = ['/api/auth/me', '/api/users/me', '/api/session', '/api/users/current'];
+        for (const u of endpoints) {
+            try {
+                const res = await fetch(u);
+                if (!res.ok) continue;
+                const data = await res.json().catch(() => null);
+                if (!data) continue;
+                if (typeof data === 'number') return Number(data);
+                if (data && typeof data === 'object') {
+                    if (data.id) return Number(data.id);
+                    if (data.user && data.user.id) return Number(data.user.id);
+                }
+            } catch (err) {
+                /* ignore and try next endpoint */
+            }
+        }
+        return null;
+    }
+
     try {
         const invitations = await getReceivedInvites();
+        console.debug('notifications: raw invitations', invitations);
+        console.debug('notifications: loggedInId (from storage)', loggedInId);
+
+        // If we don't have a stored id, try to fetch from backend session endpoints
+        if (!loggedInId) {
+            try {
+                const fetchedId = await fetchCurrentUserFromBackend();
+                if (fetchedId) {
+                    loggedInId = fetchedId;
+                    console.debug('notifications: loggedInId obtained from backend:', loggedInId);
+                } else {
+                    console.debug('notifications: no loggedInId from backend (anonymous)');
+                }
+            } catch (e) {
+                console.debug('notifications: fetchCurrentUserFromBackend failed', e);
+            }
+        }
+
         if (invitations) {
-            data = invitations.map(invitation => ({
-                id: invitation.id,
-                type: "invite",
-                actorName: invitation.sender.displayName || invitation.sender.distinctName,
-                actorAvatar: `/api/users/${invitation.sender.id}/profile-picture`,
-                actorProfile: `/profile/profile.html?handle=${invitation.sender.distinctName}`,
-                party: invitation.party.title,
-                partyId: invitation.party.id,
-                time: "vor kurzem",
-                invitationId: invitation.id
+            // robust helper: erkennen, ob eine Einladung für userId bestimmt ist
+            function isInviteForUser(inv, userId) {
+                if (!userId) return true; // keine stored id -> keine Einschränkung
+                const idStr = String(userId);
+                // direct fields
+                const candidates = [
+                    inv.recipient, inv.recipientId, inv.recipient_id, inv.to, inv.toUser, inv.to_user,
+                    inv.receiver, inv.receiverId, inv.receiver_id, inv.userId, inv.user_id
+                ];
+                // DEBUG: collect candidate string values for inspection
+                const candidateStrs = [];
+                for (const c of candidates) {
+                    if (c == null) continue;
+                    if (typeof c === 'object') {
+                        const v = c.id ?? c.userId ?? c.user_id ?? c.recipientId ?? c.recipient_id;
+                        candidateStrs.push(String(v ?? 'object'));
+                        if (v != null && String(v) === idStr) {
+                            console.debug('isInviteForUser: matched via object field', v, 'for invitation', inv.id ?? inv);
+                            return true;
+                        }
+                    } else {
+                        candidateStrs.push(String(c));
+                        if (String(c) === idStr) {
+                            console.debug('isInviteForUser: matched via direct field', c, 'for invitation', inv.id ?? inv);
+                            return true;
+                        }
+                    }
+                }
+                // If nothing matched, print candidates for debugging
+                console.debug('isInviteForUser: no match for invitation', inv.id ?? inv, 'candidates=', candidateStrs, 'looking for', idStr);
+                // nested shapes: invitation.party?.recipient etc.
+                try {
+                    const nested = (inv.recipient && typeof inv.recipient === 'object') ? (inv.recipient.id ?? inv.recipient.userId) : null;
+                    if (nested != null && String(nested) === idStr) return true;
+                } catch (e) {}
+                return false;
+            }
+
+            // Versuche zunächst die Einladungen zu filtern (robuste Prüffunktion).
+            let relevant = Array.isArray(invitations) ? invitations.filter(inv => isInviteForUser(inv, loggedInId)) : [];
+            console.debug('notifications: relevant invitations after filter ->', relevant.length);
+
+            // FALLBACK: falls die clientseitige Prüfung alle Einträge entfernt hat,
+            // aber das Backend bereits Items geliefert hat, verwende die Backend‑Liste.
+            if ((relevant.length === 0) && Array.isArray(invitations) && invitations.length > 0) {
+                console.warn('notifications: client filter removed all items — falling back to backend-provided invitations');
+                relevant = Array.from(invitations);
+            }
+
+            // Sammle Sender-IDs und lade Benutzerdaten (Cache)
+            const senderIds = new Set();
+            relevant.forEach(inv => {
+                // Der Sender kann in verschiedenen Feldern stecken; prüfen und sammeln
+                const s = inv.sender ?? inv.from ?? inv.senderUser ?? inv.sender_info;
+                const sid = (s && typeof s === 'object') ? (s.id ?? s.userId ?? s.user_id) : (inv.senderId ?? inv.sender_id ?? inv.fromId ?? inv.from_id ?? s);
+                if (sid != null) senderIds.add(String(sid));
+            });
+
+            const senderMap = {};
+            await Promise.all(Array.from(senderIds).map(async id => {
+                try {
+                    const u = await getUserById(id);
+                    if (u) senderMap[String(id)] = u;
+                } catch (e) {
+                    senderMap[String(id)] = null;
+                }
             }));
+
+            data = relevant.map(invitation => {
+                // resolve sender info robustly (fallback to fields inside invitation)
+                const sCandidate = invitation.sender ?? invitation.from ?? invitation.senderUser ?? invitation.sender_info;
+                const sid = (sCandidate && typeof sCandidate === 'object') ? (sCandidate.id ?? sCandidate.userId ?? sCandidate.user_id) : (invitation.senderId ?? invitation.sender_id ?? invitation.fromId ?? invitation.from_id ?? sCandidate);
+                const senderUser = sid ? senderMap[String(sid)] : null;
+                const actorName = senderUser?.displayName || senderUser?.distinctName || senderUser?.username || invitation.senderName || invitation.fromName || 'Unbekannt';
+                const actorAvatar = senderUser?.id ? `/api/users/${senderUser.id}/profile-picture` : defaultAvatarDataUri();
+                const actorProfile = senderUser?.distinctName ? `/profile/profile.html?handle=${senderUser.distinctName}` : (invitation.senderDistinctName ? `/profile/profile.html?handle=${invitation.senderDistinctName}` : '#');
+
+                return {
+                    id: invitation.id,
+                    type: "invite",
+                    actorName,
+                    actorAvatar,
+                    actorProfile,
+                    party: invitation.party?.title || invitation.party?.name || 'Event',
+                    partyId: invitation.party?.id,
+                    time: "vor kurzem",
+                    invitationId: invitation.id,
+                    _raw: invitation
+                };
+            });
+            console.debug('notifications: loaded', invitations.length, 'invitations, after filter ->', data.length);
+            // Zeige komplette Datenstruktur und eine kompakte Tabelle in der Console
+            console.debug('notifications: data (full)', data);
+            try {
+                console.table(data.map(d => ({
+                    id: d.id,
+                    actorName: d.actorName,
+                    party: d.party,
+                    invitationId: d.invitationId
+                })));
+            } catch (e) { /* ignore table errors in older consoles */ }
         }
     } catch (error) {
         console.error("Failed to load invitations:", error);
@@ -24,6 +168,16 @@ document.addEventListener("DOMContentLoaded", async () => {
     const list = document.getElementById("notifList");
     const tpl = document.getElementById("notifTpl");
     const toastContainer = document.getElementById("toastContainer");
+
+    // Inline default avatar to avoid 404s
+    function defaultAvatarDataUri() {
+        return 'data:image/svg+xml;utf8,' + encodeURIComponent(
+            `<svg xmlns="http://www.w3.org/2000/svg" width="80" height="80" viewBox="0 0 120 120">
+                <rect width="100%" height="100%" fill="#6b6b6b"/>
+                <text x="50%" y="50%" fill="#fff" font-size="24" font-family="Arial" text-anchor="middle" dominant-baseline="central">No Img</text>
+            </svg>`
+        );
+    }
 
     function showToast(message, type = "success") {
         const toast = document.createElement("div");
@@ -64,15 +218,19 @@ document.addEventListener("DOMContentLoaded", async () => {
             const card = clone.querySelector(".notif-card");
             card.dataset.id = item.id;
 
+            // Debug: log jede Notification beim Rendern (inkl. originales Rohobjekt)
+            console.debug('notifications: rendering item', { id: item.id, actorName: item.actorName, party: item.party, invitationId: item.invitationId, raw: item._raw });
+
             // set avatar image + profile link
             const avatarLink = clone.querySelector(".avatar-link");
             const avatarImg = clone.querySelector(".notif-avatar img");
-            avatarImg.src = item.actorAvatar || "/images/default_profile-picture.jpg";
+            avatarImg.src = item.actorAvatar || defaultAvatarDataUri();
             avatarImg.alt = item.actorName
                 ? item.actorName + " Profilbild"
                 : "Profilbild";
             avatarImg.onerror = function() {
-                this.src = "/images/default_profile-picture.jpg";
+                this.onerror = null;
+                this.src = defaultAvatarDataUri();
             };
             avatarLink.href = item.actorProfile || "#";
 

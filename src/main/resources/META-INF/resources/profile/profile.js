@@ -2,6 +2,16 @@ document.addEventListener('DOMContentLoaded', function () {
     const img = document.getElementById('profileImg');
     const displayNameElement = document.getElementById('displayName');
     const distinctNameElement = document.getElementById('distinctName');
+    // small inline default avatar (SVG) to avoid 404 to /images/default_profile-picture.jpg
+    function defaultAvatarDataUri() {
+        return 'data:image/svg+xml;utf8,' + encodeURIComponent(
+            `<svg xmlns="http://www.w3.org/2000/svg" width="80" height="80" viewBox="0 0 120 120">
+                <rect width="100%" height="100%" fill="#6b6b6b"/>
+                <text x="50%" y="50%" fill="#fff" font-size="24" font-family="Arial" text-anchor="middle" dominant-baseline="central">No Img</text>
+            </svg>`
+        );
+    }
+
     // global current user id used throughout this file
     let currentUserId = null;
     
@@ -153,11 +163,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 img.src = good;
             } else {
                 // kein externes Bild verfügbar -> setze direkt den eingebetteten SVG-Fallback (keine 404 mehr)
-                img.src = 'data:image/svg+xml;utf8,' +
-                    encodeURIComponent(`<svg xmlns="http://www.w3.org/2000/svg" width="120" height="120">
-                        <rect width="100%" height="100%" fill="#444"/>
-                        <text x="50%" y="50%" fill="#fff" font-size="18" font-family="Arial" text-anchor="middle" dominant-baseline="central">No Image</text>
-                    </svg>`);
+                img.src = defaultAvatarDataUri();
             }
         })();
 
@@ -177,11 +183,7 @@ document.addEventListener('DOMContentLoaded', function () {
         img.onerror = function() {
             console.warn("Profile picture onerror triggered:", this.src);
             this.onerror = null;
-            this.src = 'data:image/svg+xml;utf8,' +
-                encodeURIComponent(`<svg xmlns="http://www.w3.org/2000/svg" width="120" height="120">
-                    <rect width="100%" height="100%" fill="#444"/>
-                    <text x="50%" y="50%" fill="#fff" font-size="18" font-family="Arial" text-anchor="middle" dominant-baseline="central">No Image</text>
-                </svg>`);
+            this.src = defaultAvatarDataUri();
         };
     }
 
@@ -242,7 +244,7 @@ document.addEventListener('DOMContentLoaded', function () {
             const item = document.createElement('div');
             item.className = 'search-result-item';
             item.innerHTML = `
-                <img src="/api/users/${user.id}/profile-picture" class="search-result-avatar" onerror="this.src='/images/default_profile-picture.jpg'">
+                <img src="/api/users/${user.id}/profile-picture" class="search-result-avatar" onerror="this.onerror=null;this.src='${defaultAvatarDataUri()}';">
                 <div class="search-result-info">
                     <div class="search-result-name">${user.displayName || user.distinctName}</div>
                     <div class="search-result-distinct-name">@${user.distinctName}</div>
@@ -329,7 +331,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 usernameBtn.setAttribute('aria-expanded', 'false');
 
                 // persist selected as last-logged-in and load profile in-place
-                try { setStoredUserId(u.id); } catch (e) {}
+                try { setLoggedInUser(u.id); } catch (e) {}
                 loadUserDataById(u.id);
 
                 // update URL without reload (keep handle param absent, set id)
@@ -482,24 +484,27 @@ document.addEventListener('DOMContentLoaded', function () {
             const node = template.content.cloneNode(true);
             const article = node.querySelector('.party-card');
             
-            // Fülle sichtbare Felder: Template verwendet drei .info-box .info-value Elemente
+            // Vereinfachtes Rendering: nur Name + kompakte Meta-Zeile (Datum + optional Ort).
             const nameEl = node.querySelector('.party-name');
-            const infoValues = Array.from(node.querySelectorAll('.info-box .info-value'));
-            const dateEl = infoValues[0] || null;
-            const timeEl = infoValues[1] || null;
-            const locEl = infoValues[2] || null;
-
             if (nameEl) nameEl.textContent = p.title || p.name || p.partyName || 'Party';
-            if (dateEl) dateEl.textContent = p.time_start || p.date || p.start || (p.startDate || '');
-            if (timeEl) timeEl.textContent = p.time_end || p.end || (p.endDate || '');
-            if (locEl) {
-                if (p.location && typeof p.location === 'object' && p.location.name) locEl.textContent = p.location.name;
-                else if (p.location && typeof p.location === 'object' && (p.location.latitude || p.location.longitude)) {
-                    locEl.textContent = `${p.location.latitude?.toFixed(4) || ''}${p.location.longitude ? ', ' + (p.location.longitude?.toFixed(4) || '') : ''}`;
-                } else {
-                    locEl.textContent = p.location || p.venue || p.place || '';
-                }
+
+            // verstecke ausführliche Info-Boxen (falls Template welche enthält)
+            const infoBoxes = node.querySelectorAll('.info-box');
+            infoBoxes.forEach(b => { b.style.display = 'none'; });
+
+            // Erzeuge / fülle kompakte Meta-Zeile
+            let metaEl = node.querySelector('.party-meta');
+            if (!metaEl) {
+                metaEl = document.createElement('div');
+                metaEl.className = 'party-meta';
+                // füge direkt unter dem Namen ein
+                const textContainer = node.querySelector('.notif-text') || node.querySelector('.party-header') || nameEl.parentElement;
+                if (textContainer) textContainer.appendChild(metaEl);
             }
+            const dateStr = (p.time_start || p.date || p.start || p.startDate || '').toString();
+            const locStr = (p.location && typeof p.location === 'object') ? (p.location.name || '') : (p.location || p.venue || p.place || '');
+            metaEl.textContent = dateStr ? (locStr ? `${dateStr} • ${locStr}` : dateStr) : (locStr ? locStr : '');
+            metaEl.setAttribute('aria-hidden', metaEl.textContent ? 'false' : 'true');
 
             const deleteBtn = node.querySelector('.delete-btn');
             if (deleteBtn) {
