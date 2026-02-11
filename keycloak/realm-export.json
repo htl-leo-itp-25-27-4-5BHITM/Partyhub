@@ -110,48 +110,80 @@
   ],
   "users": [
     {
-      "username": "alice",
+      "username": "anna_h",
       "enabled": true,
-      "email": "alice@example.com",
+      "email": "anna.huber@wien.at",
       "emailVerified": true,
-      "firstName": "Alice",
-      "lastName": "Smith",
+      "firstName": "Anna",
+      "lastName": "Huber",
       "credentials": [
         {
           "type": "password",
-          "value": "alice123",
+          "value": "anna123",
           "temporary": false
         }
       ],
       "realmRoles": ["user"]
     },
     {
-      "username": "bob",
+      "username": "michi_w",
       "enabled": true,
-      "email": "bob@example.com",
+      "email": "michael.wagner@graz.at",
       "emailVerified": true,
-      "firstName": "Bob",
-      "lastName": "Jones",
+      "firstName": "Michael",
+      "lastName": "Wagner",
       "credentials": [
         {
           "type": "password",
-          "value": "bob123",
+          "value": "michi123",
           "temporary": false
         }
       ],
       "realmRoles": ["user"]
     },
     {
-      "username": "admin",
+      "username": "katrin_b",
       "enabled": true,
-      "email": "admin@example.com",
+      "email": "katrin.bauer@salzburg.at",
       "emailVerified": true,
-      "firstName": "Admin",
-      "lastName": "User",
+      "firstName": "Katrin",
+      "lastName": "Bauer",
       "credentials": [
         {
           "type": "password",
-          "value": "admin123",
+          "value": "katrin123",
+          "temporary": false
+        }
+      ],
+      "realmRoles": ["user"]
+    },
+    {
+      "username": "thomas_s",
+      "enabled": true,
+      "email": "thomas.schneider@linz.at",
+      "emailVerified": true,
+      "firstName": "Thomas",
+      "lastName": "Schneider",
+      "credentials": [
+        {
+          "type": "password",
+          "value": "thomas123",
+          "temporary": false
+        }
+      ],
+      "realmRoles": ["user"]
+    },
+    {
+      "username": "sabine_w",
+      "enabled": true,
+      "email": "sabine.weber@innsbruck.at",
+      "emailVerified": true,
+      "firstName": "Sabine",
+      "lastName": "Weber",
+      "credentials": [
+        {
+          "type": "password",
+          "value": "sabine123",
           "temporary": false
         }
       ],
