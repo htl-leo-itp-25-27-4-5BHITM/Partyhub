@@ -326,26 +326,76 @@ document.addEventListener("DOMContentLoaded", function () {
   }
 
   async function loadUserParties() {
-    if (!currentUserId) return;
-
-    let parties = [];
-    try {
-      const res = await fetch("/api/party/");
-      if (!res.ok) throw new Error(`HTTP ${res.status}`);
-      const json = await res.json().catch(() => null);
-      parties = normalizeToArray(json);
-    } catch (err) {
-      console.error("Failed to fetch /api/party/:", err);
-      parties = [];
-    }
-
-    const filtered = parties.filter((p) => {
-      const hostId = readHostUserId(p);
-      return hostId != null && String(hostId) === String(currentUserId);
-    });
-
-    renderParties(filtered);
+  if (!currentUserId) {
+    console.warn("loadUserParties: no currentUserId");
+    return;
   }
+
+  console.log("=== loadUserParties START ===");
+  console.log("Current profile user:", currentUserId);
+
+  let parties = [];
+
+  try {
+    const res = await fetch("/api/party/");
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+
+    const json = await res.json().catch(() => null);
+    parties = normalizeToArray(json);
+
+  } catch (err) {
+    console.error("Failed to fetch /api/party/:", err);
+    return;
+  }
+
+  // 👉 RAW backend data
+  console.log("RAW parties from backend:");
+  console.log(parties);
+
+  try {
+    console.table(parties.map(p => ({
+      id: p.id,
+      title: p.title,
+      host_user: p.host_user?.id ?? null
+    })));
+  } catch {}
+
+  // helper: host id lesen
+  function readHostUserId(p) {
+    const hu = p?.host_user;
+    if (hu && typeof hu === "object") return hu.id ?? null;
+    return p?.host_user_id ?? null;
+  }
+
+  // 👉 Filtering
+  const filtered = parties.filter(p => {
+    const hostId = readHostUserId(p);
+    const match = hostId != null && String(hostId) === String(currentUserId);
+
+    console.log(
+      `Party ${p.id}: host=${hostId} → match=${match}`
+    );
+
+    return match;
+  });
+
+  console.log("Filtered parties:");
+  console.log(filtered);
+
+  try {
+    console.table(filtered.map(p => ({
+      id: p.id,
+      title: p.title,
+      host_user: readHostUserId(p)
+    })));
+  } catch {}
+
+  console.log(`Result: ${filtered.length} / ${parties.length} parties`);
+  console.log("=== loadUserParties END ===");
+
+  renderParties(filtered);
+}
+
 
   function renderParties(parties) {
     const container = document.getElementById("partiesContainer");
