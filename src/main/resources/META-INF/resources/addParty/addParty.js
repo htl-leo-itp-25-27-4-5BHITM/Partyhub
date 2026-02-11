@@ -82,16 +82,16 @@ document.addEventListener("DOMContentLoaded", () => {
 
       // Pflichtfelder
       if (
-        ["title", "time_start", "location_address"].includes(input.name) &&
-        value === ""
+          ["title", "time_start", "location_address"].includes(input.name) &&
+          value === ""
       ) {
         error = true;
       }
 
       // Adresse nur gültig wenn ausgewählt
       if (
-        input.name === "location_address" &&
-        (!state.latitude || !state.longitude)
+          input.name === "location_address" &&
+          (!state.latitude || !state.longitude)
       ) {
         error = true;
       }
@@ -103,10 +103,10 @@ document.addEventListener("DOMContentLoaded", () => {
 
       // Enddatum nach Start
       if (
-        input.name === "time_end" &&
-        fpStart.selectedDates[0] &&
-        fpEnd.selectedDates[0] &&
-        fpEnd.selectedDates[0] <= fpStart.selectedDates[0]
+          input.name === "time_end" &&
+          fpStart.selectedDates[0] &&
+          fpEnd.selectedDates[0] &&
+          fpEnd.selectedDates[0] <= fpStart.selectedDates[0]
       ) {
         error = true;
       }
@@ -133,7 +133,7 @@ document.addEventListener("DOMContentLoaded", () => {
         }
         if (!input.checked) {
           state.selectedUsers = state.selectedUsers.filter(
-            (u) => u !== input.value,
+              (u) => u !== input.value,
           );
         }
       } else {
@@ -165,8 +165,8 @@ document.addEventListener("DOMContentLoaded", () => {
   document.querySelectorAll(".vis-card").forEach((card) => {
     card.addEventListener("click", () => {
       document
-        .querySelectorAll(".vis-card")
-        .forEach((c) => c.classList.remove("active"));
+          .querySelectorAll(".vis-card")
+          .forEach((c) => c.classList.remove("active"));
 
       card.classList.add("active");
       state.visibility = card.dataset.mode;
@@ -203,8 +203,8 @@ document.addEventListener("DOMContentLoaded", () => {
   async function searchAddress(query) {
     try {
       const res = await fetch(
-        `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}&limit=5`,
-        { headers: { "Accept-Language": "de" } },
+          `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}&limit=5`,
+          { headers: { "Accept-Language": "de" } },
       );
 
       const results = await res.json();
@@ -284,10 +284,10 @@ document.addEventListener("DOMContentLoaded", () => {
         addPartyMarker.setLatLng([state.latitude, state.longitude]);
       } else {
         addPartyMarker = L.marker([state.latitude, state.longitude])
-          .bindPopup(
-            `<strong>${state.title}</strong><br>${state.location_address}`,
-          )
-          .addTo(addPartyMap);
+            .bindPopup(
+                `<strong>${state.title}</strong><br>${state.location_address}`,
+            )
+            .addTo(addPartyMap);
       }
       addPartyMap.setView([state.latitude, state.longitude], 15);
     }
@@ -332,31 +332,42 @@ document.addEventListener("DOMContentLoaded", () => {
 
     // Try to send to backend (fire and forget)
     try {
+      // Konvertiere Datum zu ISO-Format
+      const timeStart = fpStart.selectedDates[0]
+          ? fpStart.selectedDates[0].toISOString()
+          : partyData.time_start;
+
+      const timeEnd = fpEnd.selectedDates[0]
+          ? fpEnd.selectedDates[0].toISOString()
+          : partyData.time_end;
+
       const backendPayload = {
         title: partyData.title,
-        description: partyData.description,
-        fee: partyData.entry_costs, // Map entry_costs to fee
-        time_start: partyData.time_start,
-        time_end: partyData.time_end,
-        latitude: partyData.latitude,
-        longitude: partyData.longitude,
+        description: partyData.description || null,
+        fee: partyData.entry_costs ? parseFloat(partyData.entry_costs) : null,
+        time_start: timeStart,
+        time_end: timeEnd || null,
+        latitude: parseFloat(partyData.latitude),
+        longitude: parseFloat(partyData.longitude),
         location_address: partyData.location_address,
-        min_age: partyData.min_age,
-        max_age: partyData.max_age,
-        website: partyData.website,
-        theme: partyData.theme,
+        min_age: parseInt(partyData.min_age) || 18,
+        max_age: partyData.max_age ? parseInt(partyData.max_age) : null,
+        website: partyData.website || null,
+        theme: partyData.theme || null,
         visibility: partyData.visibility,
-        selectedUsers: partyData.selectedUsers,
+        selectedUsers: partyData.selectedUsers || [],
       };
-      
+
       const response = await fetch("/api/party/add", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(backendPayload),
       });
-      
+
       if (!response.ok) {
         console.error("Backend error:", response.statusText);
+        const errorText = await response.text();
+        console.error("Backend response:", errorText);
       }
     } catch (err) {
       console.error("Backend not available:", err);
