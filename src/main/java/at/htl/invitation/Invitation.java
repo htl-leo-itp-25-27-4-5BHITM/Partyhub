@@ -4,6 +4,7 @@ import at.htl.party.Party;
 import at.htl.user.User;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 @Entity
 @Table(name = "invitation")
@@ -32,28 +33,35 @@ public class Invitation {
     @JoinColumn(name = "party_id")
     private Party party;
 
-    public Party getParty() {
-        return party;
-    }
 
     public void setParty(Party party) {
         this.party = party;
     }
 
-    public User getRecipient() {
-        return recipient;
-    }
 
     public void setRecipient(User recipient) {
         this.recipient = recipient;
     }
 
-    public User getSender() {
-        return sender;
-    }
+   
 
     public void setSender(User sender) {
         this.sender = sender;
+    }
+
+    @JsonProperty("sender_id")
+    public Long getSenderId() {
+        return sender != null ? sender.getId() : null;
+    }
+
+    @JsonProperty("recipient_id")
+    public Long getRecipientId() {
+        return recipient != null ? recipient.getId() : null;
+    }
+
+    @JsonProperty("party_id")
+    public Long getPartyId() {
+        return party != null ? party.getId() : null;
     }
 
     public Invitation() {
