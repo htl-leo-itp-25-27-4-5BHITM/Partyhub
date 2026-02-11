@@ -4,6 +4,7 @@ import at.htl.user.User;
 import at.htl.user.UserContext;
 import at.htl.user.UserCreateDto;
 import at.htl.user.UserRepository;
+import io.quarkus.oidc.OidcSession;
 import io.quarkus.security.Authenticated;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
@@ -31,6 +32,9 @@ public class AuthResource {
 
     @Inject
     Logger logger;
+
+    @Inject
+    OidcSession oidcSession;
 
     @GET
     @Path("/status")
@@ -155,5 +159,14 @@ public class AuthResource {
         }
         String base = name.toLowerCase().replaceAll("[^a-z0-9]", "");
         return base + System.currentTimeMillis();
+    }
+
+    @POST
+    @Path("/logout")
+    @Authenticated
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response logout() {
+        oidcSession.logout();
+        return Response.ok(Map.of("message", "Logged out successfully")).build();
     }
 }

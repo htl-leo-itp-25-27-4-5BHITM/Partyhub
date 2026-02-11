@@ -2,6 +2,8 @@ package at.htl.party;
 
 import at.htl.FilterDto;
 import at.htl.media.MediaRepository;
+import io.quarkus.security.Authenticated;
+import jakarta.annotation.security.PermitAll;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import jakarta.transaction.Transactional;
@@ -26,6 +28,7 @@ public class PartyResource {
     @Produces(MediaType.APPLICATION_JSON)
     @Path("/")
     @Transactional
+    @PermitAll
     public Response getParties(@QueryParam("host_user_id") Long hostUserId) {
         if (hostUserId != null) {
             List<at.htl.party.Party> parties = partyRepository.getPartiesByHost(hostUserId);
@@ -47,6 +50,7 @@ public class PartyResource {
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     @Path("/add")
+    @Authenticated
     public Response addParty(PartyCreateDto partyCreateDto) {
         return partyRepository.addParty(partyCreateDto);
     }
@@ -55,6 +59,7 @@ public class PartyResource {
     @Transactional
     @Produces(MediaType.APPLICATION_JSON)
     @Path("/{id}")
+    @PermitAll
     public Response getParty(@PathParam("id") Long id) {
         Party party = partyRepository.getPartyById(id);
         if (party == null) {
@@ -67,6 +72,7 @@ public class PartyResource {
     @Transactional
     @Produces(MediaType.APPLICATION_JSON)
     @Path("/{id}")
+    @Authenticated
     public Response removeParty(@PathParam("id") Long id) {
         return partyRepository.removeParty(id);
     }
@@ -76,6 +82,7 @@ public class PartyResource {
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     @Path("/{id}")
+    @Authenticated
     public Response updateParty(@PathParam("id") Long id, PartyCreateDto partyCreateDto) {
         return partyRepository.updateParty(id, partyCreateDto);
     }
@@ -84,6 +91,7 @@ public class PartyResource {
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
     @Path("/filter")
+    @PermitAll
     public Response filterParty(@QueryParam("filter") String filter, FilterDto filterDto) {
         return partyRepository.filterParty(filter, filterDto);
     }
@@ -91,6 +99,7 @@ public class PartyResource {
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     @Path("/sort")
+    @PermitAll
     public Response sortParty(@QueryParam("sort") String sort) {
         return partyRepository.sortParty(sort);
     }
@@ -99,6 +108,7 @@ public class PartyResource {
     @Produces(MediaType.APPLICATION_JSON)
     @Transactional
     @Path("/{id}/attend")
+    @Authenticated
     public Response attendParty(@PathParam("id") Long partyId) {
         return partyRepository.attendParty(partyId);
     }
@@ -107,6 +117,7 @@ public class PartyResource {
     @Produces(MediaType.APPLICATION_JSON)
     @Transactional
     @Path("/{id}/attend")
+    @Authenticated
     public Response leaveParty(@PathParam("id") Long partyId) {
         return partyRepository.leaveParty(partyId);
     }
@@ -114,6 +125,7 @@ public class PartyResource {
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     @Path("/{id}/attend/status")
+    @Authenticated
     public Response attendStatus(@PathParam("id") Long partyId) {
         return partyRepository.attendStatus(partyId);
     }
@@ -121,6 +133,7 @@ public class PartyResource {
     @GET
     @Path("/{id}/media")
     @Produces(MediaType.APPLICATION_JSON)
+    @PermitAll
     public Response getImages(@PathParam("id") long partyId) {
         return Response.ok().entity(mediaRepository.getImages(partyId)).build();
     }
@@ -130,6 +143,7 @@ public class PartyResource {
     @Consumes(MediaType.MULTIPART_FORM_DATA)
     @Produces(MediaType.APPLICATION_JSON)
     @Transactional
+    @Authenticated
     public Response upload(MediaRepository.FileUploadInput input, @PathParam("id") long partyId) {
         return mediaRepository.upload(input, partyId);
     }

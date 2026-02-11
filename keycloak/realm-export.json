@@ -61,7 +61,6 @@
         "*"
       ],
       "attributes": {
-        "pkce.code.challenge.method": "S256",
         "access.token.lifespan": "300",
         "client.session.idle.timeout": "1800",
         "client.session.max.lifespan": "36000"

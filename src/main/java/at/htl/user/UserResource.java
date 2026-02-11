@@ -2,6 +2,7 @@ package at.htl.user;
 
 import at.htl.follow.FollowRepository;
 import at.htl.media.MediaRepository;
+import io.quarkus.security.Authenticated;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import jakarta.transaction.Transactional;
@@ -47,6 +48,7 @@ public class UserResource {
         return user;
     }
 
+	@Authenticated
     @GET
     @Path("/all")
     public Response getUsers() {
