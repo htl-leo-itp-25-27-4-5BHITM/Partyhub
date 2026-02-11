@@ -474,7 +474,7 @@ document.addEventListener("DOMContentLoaded", function () {
       });
     });
 
-    const initial = document.querySelector(".tab-btn.active")?.id?.replace("tab", "") || "Partys";
+    const initial = /* force initial tab to "Partys" */ "Partys";
     showTab(initial);
   })();
 });
