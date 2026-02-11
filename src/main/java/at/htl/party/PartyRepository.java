@@ -227,6 +227,22 @@ public class PartyRepository {
         return Response.ok(result).build();
     }
 
+    public List<Party> getPartiesByHost(Long hostUserId) {
+        return entityManager.createQuery(
+                "SELECT p FROM Party p WHERE p.host_user.id = :hostUserId ORDER BY p.time_start ASC",
+                Party.class)
+                .setParameter("hostUserId", hostUserId)
+                .getResultList();
+    }
+
+    public List<Party> getAttendingParties(Long userId) {
+        return entityManager.createQuery(
+                "SELECT p FROM Party p JOIN p.users u WHERE u.id = :userId ORDER BY p.time_start ASC",
+                Party.class)
+                .setParameter("userId", userId)
+                .getResultList();
+    }
+
     private Party partyCreateDtoToParty(PartyCreateDto partyCreateDto) {
         Party party = new Party();
         party.setTitle(partyCreateDto.title());

@@ -26,6 +26,8 @@ public class UserResource {
     FollowRepository followRepository;
     @Inject
     MediaRepository mediaRepository;
+    @Inject
+    at.htl.party.PartyRepository partyRepository;
 
     @POST
     @Transactional
@@ -245,5 +247,16 @@ public class UserResource {
             return filename.substring(lastDotIndex);
         }
         return ".jpg";
+    }
+
+    @GET
+    @Path("/{id}/attending")
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response getAttendingParties(@PathParam("id") long id) {
+        List<at.htl.party.Party> parties = partyRepository.getAttendingParties(id);
+        List<at.htl.party.PartyDto> partyDtos = parties.stream()
+            .map(party -> new at.htl.party.PartyDto(party))
+            .toList();
+        return Response.ok().entity(partyDtos).build();
     }
 }

@@ -8,6 +8,9 @@ import jakarta.transaction.Transactional;
 import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
+import org.jboss.logging.Logger;
+
+import java.util.List;
 
 @ApplicationScoped
 @Path("/api/party")
@@ -16,13 +19,27 @@ public class PartyResource {
     PartyRepository partyRepository;
     @Inject
     MediaRepository mediaRepository;
+    @Inject
+    Logger logger;
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     @Path("/")
     @Transactional
-    public Response getParties() {
-        return Response.ok().entity( partyRepository.getParties()).build();
+    public Response getParties(@QueryParam("host_user_id") Long hostUserId) {
+        if (hostUserId != null) {
+            List<at.htl.party.Party> parties = partyRepository.getPartiesByHost(hostUserId);
+            logger.info("Found " + parties.size() + " parties for host_user_id: " + hostUserId);
+            List<PartyDto> partyDtos = parties.stream()
+                .map(party -> new PartyDto(party))
+                .toList();
+            return Response.ok().entity(partyDtos).build();
+        }
+        List<at.htl.party.Party> allParties = partyRepository.getParties();
+        List<PartyDto> allPartyDtos = allParties.stream()
+            .map(party -> new PartyDto(party))
+            .toList();
+        return Response.ok().entity(allPartyDtos).build();
     }
 
     @POST
@@ -116,4 +133,5 @@ public class PartyResource {
     public Response upload(MediaRepository.FileUploadInput input, @PathParam("id") long partyId) {
         return mediaRepository.upload(input, partyId);
     }
+
 }

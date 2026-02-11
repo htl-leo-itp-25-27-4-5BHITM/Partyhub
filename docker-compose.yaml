@@ -1,6 +1,6 @@
 services:
   postgres:
-    container_name: postgres
+    container_name: partyhub-postgres
     image: postgres:16-alpine
     ports:
       - 5432:5432
@@ -10,22 +10,25 @@ services:
       - POSTGRES_PASSWORD=demo
       - POSTGRES_USER=demo
       - POSTGRES_DB=demo
+
+  keycloak:
+    container_name: partyhub-keycloak
+    image: quay.io/keycloak/keycloak:24.0.5
+    command: start --import-realm
+    environment:
+      KEYCLOAK_ADMIN: admin
+      KEYCLOAK_ADMIN_PASSWORD: admin
+      KC_DB: postgres
+      KC_DB_SCHEMA: public
+      KC_DB_URL: jdbc:postgresql://postgres:5432/demo
+      KC_DB_USERNAME: demo
+      KC_DB_PASSWORD: demo
+    ports:
+      - "8080:8080"
+    volumes:
+      - ./keycloak/realm-export.json:/opt/keycloak/data/import/realm-export.json:ro
+    depends_on:
+      - postgres
+
 volumes:
   postgres:
-
-#  keycloak:
-#      container_name: keycloak
-#      image: quay.io/keycloak/keycloak:24.0.5
-#      command: start-dev --import-realm
-#      environment:
-#        KEYCLOAK_ADMIN: admin
-#        KEYCLOAK_ADMIN_PASSWORD: admin
-#        KC_DB: postgres
-#        KC_DB_SCHEMA: public
-#        KC_DB_URL: jdbc:postgresql://postgres:5432/demo
-#        KC_DB_USERNAME: demo
-#        KC_DB_PASSWORD: demo
-#      ports:
-#        - "8081:8080"
-#      volumes:
-#        - ./keycloak/realm-export.json:/opt/keycloak/data/import/realm-export.json:ro

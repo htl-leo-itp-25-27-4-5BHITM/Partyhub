@@ -319,9 +319,9 @@ document.addEventListener("DOMContentLoaded", function () {
         } catch (e) {}
       }
 
-      if (!Array.isArray(parties) || parties.length === 0) {
-        const res = await fetch(`/api/party?host_user_id=${currentUserId}`);
-        if (res.ok) parties = await res.json();
+      const res = await fetch(`/api/party?host_user_id=${currentUserId}`);
+      if (res.ok) {
+        parties = await res.json();
       }
 
       container.innerHTML = "";

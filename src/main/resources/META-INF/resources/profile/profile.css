@@ -528,7 +528,7 @@ body {
   display: flex;
   flex-direction: column;
   justify-content: flex-start;
-  aspect-ratio: 1 / 1;
+  height: 180px;
   overflow: visible;
   border: 1px solid rgba(255, 255, 255, 0.04);
   font-size: 0.92rem;
@@ -1267,7 +1267,7 @@ body {
   border: 1px solid rgba(255, 255, 255, 0.1);
   padding: 16px;
   border-radius: 16px;
-  min-height: 160px;
+  height: 180px;
   display: flex;
   flex-direction: column;
 }
@@ -1310,8 +1310,7 @@ body {
 
 /* Equal Card Sizes */
 .party-card {
-  min-height: 180px;
-  height: auto;
+  height: 180px !important;
 }
 
 .party-visibility-badge {
@@ -1859,8 +1858,7 @@ body {
   }
 
   .party-card {
-    aspect-ratio: auto;
-    min-height: 120px;
+    height: 140px !important;
   }
 }
 

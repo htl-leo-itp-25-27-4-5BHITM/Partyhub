@@ -1,5 +1,7 @@
 #!/usr/bin/env bash
-echo ">> Starting database"
+echo ">> docker compose down"
+docker-compose down;
+echo ">> Starting services"
 docker-compose up -d;
 
 echo ">> Building project"
