@@ -34,26 +34,24 @@ struct TimeTrackingView: View {
                                 if let endTime = entry.endTime {
                                     // Abgeschlossene Zeit
                                     VStack(alignment: .trailing) {
-                                        // Hier fügen wir das "bis" und die Endzeit hinzu
                                         Text("\(entry.startTime.formatted(.dateTime.hour().minute())) bis \(endTime.formatted(.dateTime.hour().minute()))")
                                             .font(.caption)
                                             .foregroundColor(.secondary)
 
                                         Text(formatDuration(from: entry.startTime, to: endTime))
                                             .fontWeight(.bold)
-                                            .font(.title3) // Etwas größer, damit es als Ergebnis hervorsticht
+                                            .font(.title3)
                                     }
                                 } else {
-                                    // AKTIVER TIMER (wenn App geöffnet wird)
                                     VStack(alignment: .trailing) {
                                         Text(formatDuration(from: entry.startTime, to: currentTime))
                                             .fontWeight(.bold)
-                                            .foregroundColor(.green)
-                                            .monospacedDigit() // Verhindert, dass Zahlen beim Zählen springen
+                                            .foregroundColor(.primaryPink)
+                                            .monospacedDigit()
                                         
                                         Text("aktiv")
                                             .font(.caption2)
-                                            .foregroundColor(.green)
+                                            .foregroundColor(.primaryPink)
                                     }
                                 }
                             }
@@ -67,7 +65,6 @@ struct TimeTrackingView: View {
                 #endif
             }
             .navigationTitle("Time Tracking")
-            // Hier wird die lokale Zeit aktualisiert, damit der Timer zählt
             .onReceive(timer) { input in
                 currentTime = input
             }
@@ -107,16 +104,30 @@ extension TimeTrackingView {
             
             HStack(spacing: 20) {
                 Button(action: simulateEntry) {
-                    Label("Start", systemImage: "play.fill")
+                    HStack{
+                        Text("Start")
+                    }.fontWeight(.bold)
+                        .foregroundColor(.white)
+                        .padding(.vertical, 12)
+                        .padding(.horizontal, 25)
+                        .background(Color.primaryDarkBlue)
+                        .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+                        .shadow(color:.primaryDarkBlue.opacity(0.5), radius: 10)
+                    
                 }
-                .buttonStyle(.borderedProminent)
-                .tint(.green)
                 
                 Button(action: simulateExit) {
-                    Label("Stopp", systemImage: "stop.fill")
+                    HStack{
+                        Text("Stop")
+                    }.fontWeight(.bold)
+                        .foregroundColor(.white)
+                        .padding(.vertical, 12)
+                        .padding(.horizontal, 25)
+                        .background(Color.primaryPink)
+                        .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+                        .shadow(color:.primaryPink.opacity(0.5), radius: 10)
                 }
-                .buttonStyle(.borderedProminent)
-                .tint(.red)
+
             }
             .padding(.bottom, 10)
         }

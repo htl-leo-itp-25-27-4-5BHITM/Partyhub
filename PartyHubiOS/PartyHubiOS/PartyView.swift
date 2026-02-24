@@ -25,7 +25,7 @@ struct PartyView: View {
                             .padding(.vertical, 12)
                             .padding(.horizontal, 25)
                             .background(Color.primaryDarkBlue)
-                            .cornerRadius(20)
+                            .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
                             .shadow(color:.primaryDarkBlue.opacity(0.5), radius: 10)
                         }
                     }
