@@ -9,14 +9,13 @@ struct PartyView: View {
             ScrollView {
                 VStack(spacing: 30) {
                     
-                    // Header Sektion (wie im Bild)
                     VStack(spacing: 15) {
                         Text("ALL PARTIES")
                             .font(.system(size: 55, weight: .black))
                             .foregroundColor(Color.primaryDarkBlue)
                         
                         
-                        Button(action: { /* Aktion hier */ }) {
+                        Button(action: { }) {
                             HStack {
                                 Text("Create New Party")
                                 Image(systemName: "plus")

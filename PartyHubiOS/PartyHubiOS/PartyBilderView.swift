@@ -69,6 +69,8 @@ struct PartyBilderView: View {
                         .background(Color.primaryDarkBlue)
                         .foregroundColor(.white)
                         .cornerRadius(10)
+                        .shadow(color:.primaryDarkBlue.opacity(0.5), radius: 10)
+
                 }
                 .padding()
                 .onChange(of: selectedItems) { _ in speichereBilder() }

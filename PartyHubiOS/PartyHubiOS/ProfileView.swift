@@ -39,6 +39,7 @@ struct ProfileView: View {
                         .background(.primaryDarkBlue)
                         .foregroundColor(.white)
                         .cornerRadius(10)
+                        .shadow(color:.primaryDarkBlue.opacity(0.5), radius: 10)
                 }
                 
                 Button(action: {}) {
@@ -48,6 +49,7 @@ struct ProfileView: View {
                         .background(Color(.systemGray5))
                         .foregroundColor(.primaryDarkBlue)
                         .cornerRadius(10)
+                        .shadow(color: .primary.opacity(0.3), radius: 10)
                 }
             }
             
