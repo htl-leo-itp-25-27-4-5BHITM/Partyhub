@@ -1,5 +1,6 @@
 package at.htl.party;
 
+import at.htl.category.Category;
 import at.htl.category.CategoryRepository;
 import at.htl.FilterDto;
 import at.htl.location.Location;
@@ -9,58 +10,63 @@ import at.htl.user.UserRepository;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import jakarta.persistence.EntityManager;
-import jakarta.persistence.PersistenceException;
+import jakarta.transaction.Transactional;
 import jakarta.ws.rs.BadRequestException;
+import jakarta.ws.rs.NotFoundException;
 import jakarta.ws.rs.core.Response;
 import jakarta.ws.rs.core.UriBuilder;
 import org.jboss.logging.Logger;
 
 import java.time.LocalDateTime;
-import java.time.OffsetDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
 import java.util.List;
+import java.util.Map;
 
 @ApplicationScoped
+@Transactional // Wichtig für DB-Schreiboperationen
 public class PartyRepository {
 
-    @Inject EntityManager entityManager;
-    @Inject Logger logger;
+    @Inject
+    EntityManager entityManager;
+
+    @Inject
+    Logger logger;
 
     @Inject
     LocationRepository locationRepository;
+
     @Inject
     CategoryRepository categoryRepository;
+
     @Inject
     UserRepository userRepository;
 
     private static final DateTimeFormatter PARTY_DTF = DateTimeFormatter.ofPattern("dd.MM.yyyy HH:mm");
 
     public List<Party> getParties() {
-        return entityManager.createQuery("SELECT u FROM Party u", Party.class).getResultList();
+        return entityManager.createQuery("SELECT p FROM Party p", Party.class).getResultList();
     }
 
     public Response addParty(PartyCreateDto partyCreateDto) {
         Party party = partyCreateDtoToParty(partyCreateDto);
 
-        // FIX: Host-User dynamisch ermitteln statt fester ID 1L
         User host = getCurrentOrFirstUser();
         if (host != null) {
             party.setHost_user(host);
         } else {
-            // Falls gar kein User existiert, könntest du hier einen Fehler werfen
-            // oder den Host vorerst null lassen (falls die DB das erlaubt)
             logger.warn("Kein User in der Datenbank gefunden - Party wird ohne Host erstellt.");
         }
 
         entityManager.persist(party);
-        return Response.created(UriBuilder.fromMethod(PartyResource.class, "addParty").build()).build();
+
+        return Response.created(
+                UriBuilder.fromResource(PartyResource.class)
+                        .path(String.valueOf(party.getId()))
+                        .build()
+        ).build();
     }
 
-    /**
-     * Hilfsmethode: Versucht den ersten User aus der DB zu finden,
-     * solange kein echtes Login-System existiert.
-     */
     private User getCurrentOrFirstUser() {
         List<User> users = entityManager.createQuery("SELECT u FROM User u", User.class)
                 .setMaxResults(1)
@@ -73,11 +79,8 @@ public class PartyRepository {
         if (party == null) {
             return Response.status(Response.Status.NOT_FOUND).build();
         }
-
-        // Da es keinen Default User gibt, entfernen wir hier die Host-Prüfung
-        // oder passen sie an den vorhandenen User an
         entityManager.remove(party);
-        return Response.status(204).build();
+        return Response.noContent().build();
     }
 
     public Response updateParty(Long id, PartyCreateDto partyCreateDto) {
@@ -85,14 +88,15 @@ public class PartyRepository {
         if (party == null) {
             return Response.status(Response.Status.NOT_FOUND).build();
         }
-        Party updatedParty = partyCreateDtoToParty(partyCreateDto);
-        updatedParty.setId(id);
+
+        Party updatedFields = partyCreateDtoToParty(partyCreateDto);
+        updatedFields.setId(id);
 
         User host = getCurrentOrFirstUser();
-        updatedParty.setHost_user(host);
+        updatedFields.setHost_user(host);
 
-        entityManager.merge(updatedParty);
-        return Response.ok().entity(updatedParty).build();
+        entityManager.merge(updatedFields);
+        return Response.ok(updatedFields).build();
     }
 
     public Response filterParty(String filter, FilterDto req) {
@@ -139,7 +143,7 @@ public class PartyRepository {
     }
 
     public Response sortParty(String sort) {
-        String query = sort.equals("asc") ?
+        String query = sort.equalsIgnoreCase("asc") ?
                 "SELECT p FROM Party p ORDER BY p.time_start ASC" :
                 "SELECT p FROM Party p ORDER BY p.time_start DESC";
         return Response.ok(entityManager.createQuery(query, Party.class).getResultList()).build();
@@ -170,58 +174,65 @@ public class PartyRepository {
             entityManager.merge(party);
             return Response.ok(party).build();
         }
-        return Response.status(404).build();
+        return Response.status(Response.Status.NOT_FOUND).build();
     }
 
     public Response attendStatus(Long id) {
         Party party = entityManager.find(Party.class, id);
-        if (party == null) return Response.status(404).build();
+        if (party == null) return Response.status(Response.Status.NOT_FOUND).build();
 
         User user = getCurrentOrFirstUser();
         boolean attending = user != null && party.getUsers() != null && party.getUsers().contains(user);
         int count = party.getUsers() != null ? party.getUsers().size() : 0;
 
-        return Response.ok(java.util.Map.of("attending", attending, "count", count)).build();
+        return Response.ok(Map.of("attending", attending, "count", count)).build();
     }
 
     private LocalDateTime parseDateTime(String dateStr) {
-        if (dateStr == null) return null;
+        if (dateStr == null || dateStr.isBlank()) return null;
         try {
             if (dateStr.contains("T")) {
-                return OffsetDateTime.parse(dateStr).toLocalDateTime();
+                // Ersetzt eventuelle Leerzeichen durch T für ISO-Konformität
+                return LocalDateTime.parse(dateStr.trim().replace(" ", "T"));
             }
             return LocalDateTime.parse(dateStr.trim(), PARTY_DTF);
         } catch (DateTimeParseException e) {
-            throw new BadRequestException("Invalid date format: " + dateStr);
+            throw new BadRequestException("Ungültiges Datumsformat: " + dateStr + ". Erwartet: yyyy-MM-ddTHH:mm:ss oder dd.MM.yyyy HH:mm");
         }
     }
 
-    private Party partyCreateDtoToParty(PartyCreateDto partyCreateDto) {
+    private Party partyCreateDtoToParty(PartyCreateDto dto) {
         Party party = new Party();
-        party.setTitle(partyCreateDto.title());
-        party.setDescription(partyCreateDto.description());
-        party.setFee(partyCreateDto.fee());
-        party.setTime_start(parseDateTime(partyCreateDto.time_start()));
-        party.setTime_end(parseDateTime(partyCreateDto.time_end()));
-        party.setWebsite(partyCreateDto.website());
+        party.setTitle(dto.title());
+        party.setDescription(dto.description());
+        party.setFee(dto.fee());
+        party.setTime_start(dto.time_start());
+        party.setTime_end(dto.time_end());
+        party.setWebsite(dto.website());
+        party.setMax_age(dto.max_age());
+        party.setMin_age(dto.min_age());
 
-        Location location = locationRepository.findByLatitudeAndLongitude(partyCreateDto.latitude(), partyCreateDto.longitude());
+        // Location Logik
+        Location location = locationRepository.findByLatitudeAndLongitude(dto.latitude(), dto.longitude());
         if (location != null) {
             party.setLocation(location);
         } else {
             Location newLocation = new Location();
-            newLocation.setLatitude(partyCreateDto.latitude());
-            newLocation.setLongitude(partyCreateDto.longitude());
-            newLocation.setAddress(partyCreateDto.location_address());
+            newLocation.setLatitude(dto.latitude());
+            newLocation.setLongitude(dto.longitude());
+            newLocation.setAddress(dto.location_address());
             entityManager.persist(newLocation);
             party.setLocation(newLocation);
         }
 
-        party.setMax_age(partyCreateDto.max_age());
-        party.setMin_age(partyCreateDto.min_age());
+        // Category Logik mit Fehlerbehandlung für 500er Error
+        Long catId = (dto.category_id() != null && dto.category_id() != 0) ? dto.category_id() : 1L;
+        Category category = categoryRepository.getCategoryById(catId);
 
-        Long catId = partyCreateDto.category_id() != null ? partyCreateDto.category_id() : 1L;
-        party.setCategory(categoryRepository.getCategoryById(catId));
+        if (category == null) {
+            throw new BadRequestException("Kategorie mit ID " + catId + " existiert nicht im System.");
+        }
+        party.setCategory(category);
 
         party.setCreated_at(LocalDateTime.now());
         return party;

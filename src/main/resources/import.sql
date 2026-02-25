@@ -100,3 +100,8 @@ SELECT setval(pg_get_serial_sequence('location', 'id'), COALESCE((SELECT MAX(id)
 SELECT setval(pg_get_serial_sequence('party', 'id'), COALESCE((SELECT MAX(id) FROM party), 1), true);
 SELECT setval(pg_get_serial_sequence('user', 'id'), COALESCE((SELECT MAX(id) FROM users), 1), true);
 -- etc. für alle Tabellen mit Auto-ID
+
+-- Falls du Standard-Quarkus-Sequenzen nutzt (GenerationType.SEQUENCE)
+SELECT setval('party_SEQ', (SELECT MAX(id) FROM party));
+SELECT setval('location_SEQ', (SELECT MAX(id) FROM location));
+SELECT setval('users_SEQ', (SELECT MAX(id) FROM users));
