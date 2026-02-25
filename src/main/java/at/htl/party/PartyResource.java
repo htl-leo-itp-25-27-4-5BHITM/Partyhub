@@ -9,6 +9,8 @@ import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 
+import java.util.List;
+
 @ApplicationScoped
 @Path("/api/party")
 public class PartyResource {
@@ -55,11 +57,14 @@ public class PartyResource {
     }
 
     @POST
-    @Transactional
-    @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
+    @Transactional
     @Path("/{id}")
     public Response updateParty(@PathParam("id") Long id, PartyCreateDto partyCreateDto) {
+        if (partyCreateDto == null) {
+            return Response.status(Response.Status.BAD_REQUEST)
+                    .entity("Payload missing").build();
+        }
         return partyRepository.updateParty(id, partyCreateDto);
     }
 
@@ -67,8 +72,28 @@ public class PartyResource {
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
     @Path("/filter")
-    public Response filterParty(@QueryParam("filter") String filter, FilterDto filterDto) {
-        return partyRepository.filterParty(filter, filterDto);
+    public Response filterParty(@QueryParam("filter") String filter, FilterDto req) {
+        // HTTP-Ebene: Sind die Parameter da?
+        if (filter == null || filter.isBlank()) {
+            return Response.status(400).entity("Query-Parameter 'filter' fehlt.").build();
+        }
+        if (req == null) {
+            return Response.status(400).entity("Request-Body (FilterDto) fehlt.").build();
+        }
+
+        // Delegation an Repository
+        List<Party> result = switch (filter.toLowerCase()) {
+            case "content"  -> (req.value() != null) ? partyRepository.findByTitleOrDescription(req.value()) : null;
+            case "category" -> (req.value() != null) ? partyRepository.findByCategory(req.value()) : null;
+            case "date"     -> (req.start() != null && req.end() != null) ? partyRepository.findByDateRange(req.start(), req.end()) : null;
+            default         -> null;
+        };
+
+        if (result == null) {
+            return Response.status(400).entity("Fehler: Ungültiger Filter oder unvollständige Daten.").build();
+        }
+
+        return Response.ok(result).build();
     }
 
     @GET
@@ -80,7 +105,6 @@ public class PartyResource {
 
     @POST
     @Produces(MediaType.APPLICATION_JSON)
-    @Transactional
     @Path("/{id}/attend")
     public Response attendParty(@PathParam("id") Long partyId) {
         return partyRepository.attendParty(partyId);

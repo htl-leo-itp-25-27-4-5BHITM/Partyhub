@@ -13,6 +13,7 @@ import jakarta.persistence.EntityManager;
 import jakarta.transaction.Transactional;
 import jakarta.ws.rs.BadRequestException;
 import jakarta.ws.rs.NotFoundException;
+import jakarta.ws.rs.QueryParam;
 import jakarta.ws.rs.core.Response;
 import jakarta.ws.rs.core.UriBuilder;
 import org.jboss.logging.Logger;
@@ -88,6 +89,7 @@ public class PartyRepository {
         if (party == null) {
             return Response.status(Response.Status.NOT_FOUND).build();
         }
+        party.setMax_age(partyCreateDto.max_age() != null ? partyCreateDto.max_age() : 0);
 
         Party updatedFields = partyCreateDtoToParty(partyCreateDto);
         updatedFields.setId(id);
@@ -99,21 +101,30 @@ public class PartyRepository {
         return Response.ok(updatedFields).build();
     }
 
-    public Response filterParty(String filter, FilterDto req) {
-        List<Party> result = switch (filter.toLowerCase()) {
-            case "content"  -> findByTitleOrDescription(req.value());
-            case "category" -> findByCategory(req.value());
-            case "date"     -> findByDateRange(req.start(), req.end());
-            default         -> null;
-        };
-
-        if (result == null) {
-            return Response.status(Response.Status.BAD_REQUEST).build();
+    public Response filterParty(@QueryParam("filter") String filter, FilterDto req) {
+        if (filter == null) {
+            return Response.status(Response.Status.BAD_REQUEST)
+                    .entity("Query-Parameter 'filter' fehlt.")
+                    .build();
         }
-        return Response.ok(result).build();
-    }
+         List<Party> result = switch (filter.toLowerCase()) {
+                case "content" -> findByTitleOrDescription(req.value());
+                case "category" -> findByCategory(req.value());
+                case "date" -> findByDateRange(req.start(), req.end());
+                default -> null;
+            };
 
-    private List<Party> findByTitleOrDescription(String param) {
+            if (result == null) {
+                return Response.status(Response.Status.BAD_REQUEST)
+                        .entity("Ungültiger Filter-Typ. Erlaubt sind: content, category, date.")
+                        .build();
+            }
+            return Response.ok(result).build();
+        }
+
+
+
+    List<Party> findByTitleOrDescription(String param) {
         String like = "%" + param.trim().toLowerCase() + "%";
         String jpql = "SELECT p FROM Party p WHERE LOWER(p.title) LIKE :like OR LOWER(p.description) LIKE :like";
         return entityManager.createQuery(jpql, Party.class)
@@ -121,14 +132,14 @@ public class PartyRepository {
                 .getResultList();
     }
 
-    private List<Party> findByCategory(String param) {
+    List<Party> findByCategory(String param) {
         String jpql = "SELECT p FROM Party p WHERE p.category.name = :param";
         return entityManager.createQuery(jpql, Party.class)
                 .setParameter("param", param)
                 .getResultList();
     }
 
-    private List<Party> findByDateRange(String startStr, String endStr) {
+    List<Party> findByDateRange(String startStr, String endStr) {
         if (startStr == null || endStr == null) {
             throw new BadRequestException("Start and End dates are required");
         }
@@ -151,18 +162,28 @@ public class PartyRepository {
 
     public Party getPartyById(Long party_id) {
         return entityManager.find(Party.class, party_id);
-    }
-
+    }@Transactional
     public Response attendParty(Long id) {
+        // 1. Laden der Entity
+        // Durch @Transactional ist das Objekt 'party' nun "managed".
         Party party = entityManager.find(Party.class, id);
         User user = getCurrentOrFirstUser();
+
+        // 2. Fehlerprüfung: Existiert die Party und der User?
         if (party == null || user == null) {
-            return Response.status(Response.Status.NOT_FOUND).build();
+            return Response.status(Response.Status.NOT_FOUND)
+                    .entity("Party oder User konnte nicht gefunden werden.")
+                    .build();
         }
+
+        // 3. Logik: Teilnahme eintragen
+        // JPA Dirty Checking: Wir ändern nur die Liste.
+        // Am Ende der Methode wird die Änderung automatisch in die DB geschrieben.
         if (!party.getUsers().contains(user)) {
             party.getUsers().add(user);
-            entityManager.merge(party);
+            // entityManager.merge(party); // <- Das wurde entfernt, da unnötig und bremst.
         }
+
         return Response.noContent().build();
     }
 

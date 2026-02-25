@@ -22,3 +22,45 @@ Content-Type: application/json
   "selectedUsers": []
 }
 
+###
+GET http://localhost:8080/api/party/1?
+    filter={{$random.alphanumeric(8)}}&
+    sort={{$random.alphanumeric(8)}}
+    Content-Type: application/json
+
+###
+DELETE http://localhost:8080/api/party/6?
+    sort={{$random.alphanumeric(8)}}&
+    filter={{$random.alphanumeric(8)}}
+    Content-Type: application/json
+
+###
+POST http://localhost:8080/api/party/5?sort={{$random.alphanumeric(8)}}&filter={{$random.alphanumeric(8)}}
+Content-Type: application/json
+
+{
+  "title": "HTL Release Party",
+  "description": "Feiern ohne NullPointerExceptions",
+  "fee": 5.0,
+  "time_end": "2026-03-01T04:00:00",
+  "website": "https://htl-leonding.ac.at",
+  "max_age": 25,
+  "min_age": 16,
+  "latitude": 48.2683,
+  "longitude": 14.2518
+}
+
+###
+POST http://localhost:8080/api/party/filter?filter=category
+Content-Type: application/json
+
+{
+  "value": "Musik"
+}
+
+###
+GET http://localhost:8080/api/party/sort?
+    sort={{$random.alphanumeric(8)}}
+
+###
+POST http://localhost:8080/api/party/5/attend
