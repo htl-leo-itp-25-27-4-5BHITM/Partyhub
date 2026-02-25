@@ -64,7 +64,7 @@ public class UserRepository {
         user.setDistinctName(createUserDto.distinctName());
         user.setEmail(createUserDto.email());
         user.setBiography(createUserDto.biography());
-        user.setProfileImage(createUserDto.profilePicture());
+        //TODO: Update profile_picture separately
         em.merge(user);
         return Response.ok(user).build();
     }

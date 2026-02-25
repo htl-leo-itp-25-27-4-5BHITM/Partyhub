@@ -101,19 +101,12 @@ public class PartyResource {
         return partyRepository.attendStatus(partyId);
     }
 
-    @GET
-    @Path("/{id}/media")
-    @Produces(MediaType.APPLICATION_JSON)
-    public Response getImages(@PathParam("id") long partyId) {
-        return Response.ok().entity(mediaRepository.getImages(partyId)).build();
-    }
-
     @POST
-    @Path("/{id}/media/upload")
+    @Path("/{partyId}/media/upload")
     @Consumes(MediaType.MULTIPART_FORM_DATA)
     @Produces(MediaType.APPLICATION_JSON)
     @Transactional
-    public Response upload(MediaRepository.FileUploadInput input, @PathParam("id") long partyId) {
-        return mediaRepository.upload(input, partyId);
+    public Response upload(MediaRepository.FileUploadInput input, @PathParam("partyId") long partyId, @QueryParam("user") long userId) {
+        return mediaRepository.upload(input, partyId, userId);
     }
 }
