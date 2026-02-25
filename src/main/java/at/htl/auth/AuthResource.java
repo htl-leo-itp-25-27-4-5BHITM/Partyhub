@@ -41,14 +41,10 @@ public class AuthResource {
     @Authenticated
     @Produces(MediaType.APPLICATION_JSON)
     public Response login() {
-        // This endpoint requires authentication
-        // If not authenticated, Quarkus redirects to Keycloak automatically
-        // After successful login, user is redirected back here
         User user = userContext.getCurrentUser();
         String email = userContext.getCurrentUserEmail();
 
         if (user != null) {
-            // User is authenticated and linked
             return Response.ok(Map.of(
                     "authenticated", true,
                     "linked", true,
@@ -56,7 +52,6 @@ public class AuthResource {
                     "message", "Login successful"
             )).build();
         } else if (email != null) {
-            // Authenticated but not linked
             return Response.ok(Map.of(
                     "authenticated", true,
                     "linked", false,
@@ -66,7 +61,6 @@ public class AuthResource {
             )).build();
         }
 
-        // Should not reach here due to @Authenticated
         return Response.status(Response.Status.UNAUTHORIZED)
                 .entity(Map.of("error", "Not authenticated"))
                 .build();
