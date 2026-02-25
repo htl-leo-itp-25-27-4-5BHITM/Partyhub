@@ -93,27 +93,33 @@ public class MediaRepository {
                 media.getParty().getId(),
                 media.getUrl()
         );
-    }
-    public Response getImgByMediaId(long id) {
+    }public Response getImgByMediaId(long id) {
         Media media = entityManager.find(Media.class, id);
-        String path;
-        //TODO:sanitize path
-        String pic = media.getUrl();
-        path = "src/main/resources/uploads/party" + media.getParty().getId() + "/" + pic;
-        try {
-            logger.info(Paths.get(path));
-            InputStream is = Files.newInputStream(Paths.get(path));
-            String lower = pic.toLowerCase();
-            String type = "application/octet-stream";
-            if (lower.endsWith(".jpg") || lower.endsWith(".jpeg")) type = "image/jpeg";
-            else if (lower.endsWith(".png")) type = "image/png";
-            else if (lower.endsWith(".gif")) type = "image/gif";
-            return Response.ok(is, type).build();
-        } catch (IOException e) {
-        }
-        return Response.status(Response.Status.NOT_FOUND).build();
-    }
 
+        if (media == null) {
+            return Response.status(Response.Status.NOT_FOUND).build();
+        }
+
+        String url = media.getUrl();
+        String resourcePath = "uploads/profiles/" + url;
+
+
+        InputStream is = Thread.currentThread().getContextClassLoader().getResourceAsStream(resourcePath);
+
+        if (is == null) {
+            logger.error("Datei nicht gefunden: " + resourcePath);
+            return Response.status(Response.Status.NOT_FOUND)
+                    .entity("Resource nicht gefunden: " + resourcePath)
+                    .type("text/plain")
+                    .build();
+        }
+
+        String type = "image/jpeg";
+        if (url.toLowerCase().endsWith(".png")) type = "image/png";
+        else if (url.toLowerCase().endsWith(".gif")) type = "image/gif";
+
+        return Response.ok(is, type).build();
+    }
 
     public long getMediaCountByUserId(Long userId) {
         return entityManager.createQuery(

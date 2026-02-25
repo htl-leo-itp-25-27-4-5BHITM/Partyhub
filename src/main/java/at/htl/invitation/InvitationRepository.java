@@ -22,7 +22,6 @@ public class InvitationRepository {
     @Inject
     Logger logger;
 
-    // TODO: Duplicate invitations replace the oldest invitation
     public Response invite(InvitationDto invitationDto){
         boolean exists = !entityManager.createQuery(
                         "select i from Invitation i where i.recipient.id = :recipientId and i.party.id = :partyId", Invitation.class)
