@@ -15,6 +15,7 @@ public class Media {
     @JoinColumn(name = "party_id")
     private Party party;
     @ManyToOne
+    @JoinColumn(name = "user_id")
     private User user;
     @Column(name = "file")
     private String file;
