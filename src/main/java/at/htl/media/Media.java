@@ -15,18 +15,19 @@ public class Media {
     @JoinColumn(name = "party_id")
     private Party party;
     @ManyToOne
+    @JoinColumn(name = "user_id")
     private User user;
-    @Column(name = "url")
-    private String url;
+    @Column(name = "file")
+    private String file;
 
     public Media() {
 
     }
 
-    public Media(Party party, User user, String url) {
+    public Media(Party party, User user, String file) {
         this.party = party;
         this.user = user;
-        this.url = url;
+        this.file = file;
     }
 
     public Long getId() {
@@ -53,11 +54,11 @@ public class Media {
         this.user = user;
     }
 
-    public String getUrl() {
-        return url;
+    public String getFile() {
+        return file;
     }
 
-    public void setUrl(String url) {
-        this.url = url;
+    public void setFile(String file) {
+        this.file = file;
     }
 }

@@ -1,6 +1,7 @@
 package at.htl.user;
 
 import at.htl.party.Party;
+import at.htl.profile_picture.ProfilePicture;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 
@@ -27,8 +28,9 @@ public class User {
     @Column(nullable = true)
     private String biography;
 
-    @Column(name = "profile_picture", nullable = true)
-    private String profileImage;
+    @OneToOne(cascade = CascadeType.ALL, mappedBy = "user")
+    @JsonIgnore
+    private ProfilePicture profilePicture;
 
     @ManyToMany(mappedBy = "users")
     @JsonIgnore
@@ -77,11 +79,12 @@ public class User {
         this.distinctName = distinctName;
     }
 
-    public String getProfileImage() {
-        return profileImage;
+    public ProfilePicture getProfilePicture() {
+        return profilePicture;
     }
 
-    public void setProfileImage(String profileImage) {
-        this.profileImage = profileImage;
+    //TODO: Delete old ProfilePicture before applying the new ProfilePicture
+    public void setProfilePicture(ProfilePicture profilePicture) {
+        this.profilePicture = profilePicture;
     }
 }

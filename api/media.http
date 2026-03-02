@@ -1,2 +1,7 @@
 ###
-GET http://localhost:8080/api/media/2
+GET localhost:8080/api/media/2
+###
+GET localhost:8080/api/media/party/2/all
+###
+GET localhost:8080/api/media/user/2/all
+
