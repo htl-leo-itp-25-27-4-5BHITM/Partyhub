@@ -7,6 +7,7 @@ import jakarta.persistence.*;
 
 import java.util.Set;
 
+
 @Entity
 @Table(name="users")
 @TableGenerator(name="users")
@@ -44,25 +45,6 @@ public class User {
         this.id = id;
     }
 
-    public String getEmail() { return email; }
-    public void setEmail(String email) { this.email = email; }
-
-    public String getBiography() {
-        return biography;
-    }
-
-    public void setBiography(String biography) {
-        this.biography = biography;
-    }
-
-    public Set<Party> getParty() {
-        return party;
-    }
-
-    public void setParty(Set<Party> party) {
-        this.party = party;
-    }
-
     public String getDisplayName() {
         return displayName;
     }
@@ -79,12 +61,41 @@ public class User {
         this.distinctName = distinctName;
     }
 
+<<<<<<< HEAD
     public ProfilePicture getProfilePicture() {
         return profilePicture;
+=======
+    public String getEmail() {
+        return email;
+    }
+
+    public void setEmail(String email) {
+        this.email = email;
+    }
+
+    public String getBiography() {
+        return biography;
+    }
+
+    public void setBiography(String biography) {
+        this.biography = biography;
+    }
+
+    public String getProfileImage() {
+        return profileImage;
+>>>>>>> abfe44f (#69 update User.java)
     }
 
     //TODO: Delete old ProfilePicture before applying the new ProfilePicture
     public void setProfilePicture(ProfilePicture profilePicture) {
         this.profilePicture = profilePicture;
+    }
+
+    public Set<Party> getParty() {
+        return party;
+    }
+
+    public void setParty(Set<Party> party) {
+        this.party = party;
     }
 }
