@@ -68,4 +68,7 @@ POST http://localhost:8080/api/party/5/attend
 ###
 DELETE http://localhost:8080/api/party/5/leave
 
-
+###
+GET http://localhost:8080/api/party/1/attend/status?user=1
+X-User-Id: 1
+Accept: application/json
