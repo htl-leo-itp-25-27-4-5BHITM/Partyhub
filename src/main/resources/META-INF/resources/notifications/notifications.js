@@ -4,18 +4,12 @@ document.addEventListener("DOMContentLoaded", async () => {
   const list = document.getElementById("notifList");
   const tpl = document.getElementById("notifTpl");
 
-  function getLoggedInUserId() {
-    try {
-      const s = sessionStorage.getItem("loggedInUserId");
-      if (s) return Number(s);
-      const l = localStorage.getItem("loggedInUserId");
-      if (l) return Number(l);
-    } catch {}
-    return null;
-  }
-
-  const currentUserId = getLoggedInUserId();
+  const currentUserId = window.getCurrentUserId();
   console.log("Current user:", currentUserId);
+
+  if (!currentUserId) {
+    console.warn("No user logged in");
+  }
 
   // Robust: liest IDs egal ob als *_id, *Id oder als Objekt {id:...}
   function readId(inv, base) {
@@ -41,7 +35,12 @@ document.addEventListener("DOMContentLoaded", async () => {
   }
 
   async function getReceivedInvites() {
-    const res = await fetch("/api/invites/rec");
+    const userId = window.getCurrentUserId();
+    if (!userId) {
+      console.warn("No user logged in for getReceivedInvites");
+      return [];
+    }
+    const res = await fetch(`/api/invites/rec?user=${userId}`);
     if (!res.ok) throw new Error("Fetch failed: " + res.status);
     const json = await res.json();
 

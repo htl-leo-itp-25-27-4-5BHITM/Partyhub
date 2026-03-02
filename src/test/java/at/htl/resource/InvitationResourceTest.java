@@ -13,6 +13,7 @@ public class InvitationResourceTest extends TestBase {
     @Test
     void testGetReceivedInvites() {
         given()
+            .queryParam("user", 1)
             .when().get("/api/invites/rec")
             .then()
             .statusCode(200)
@@ -22,6 +23,7 @@ public class InvitationResourceTest extends TestBase {
     @Test
     void testGetSentInvites() {
         given()
+            .queryParam("user", 1)
             .when().get("/api/invites/inv")
             .then()
             .statusCode(200)
@@ -31,8 +33,25 @@ public class InvitationResourceTest extends TestBase {
     @Test
     void testDeleteInvite_notFound() {
         given()
+            .queryParam("user", 1)
             .when().delete("/api/invites/delete/999")
             .then()
             .statusCode(404);
+    }
+
+    @Test
+    void testGetReceivedInvites_noUser() {
+        given()
+            .when().get("/api/invites/rec")
+            .then()
+            .statusCode(400);
+    }
+
+    @Test
+    void testGetSentInvites_noUser() {
+        given()
+            .when().get("/api/invites/inv")
+            .then()
+            .statusCode(400);
     }
 }

@@ -86,7 +86,11 @@ async function fetchParties() {
 }
 
 async function attendParty(partyId) {
-    const userId = document.getElementById('currentUserId').value || '1';
+    const userId = window.getCurrentUserId() || document.getElementById('currentUserId')?.value;
+    if (!userId) {
+        alert('Bitte melde dich an');
+        return;
+    }
     try {
         const res = await fetch(`/api/party/${partyId}/attend`, {
             method: 'POST',
@@ -109,7 +113,11 @@ async function attendParty(partyId) {
 }
 
 async function unattendParty(partyId) {
-    const userId = document.getElementById('currentUserId').value || '1';
+    const userId = window.getCurrentUserId() || document.getElementById('currentUserId')?.value;
+    if (!userId) {
+        alert('Bitte melde dich an');
+        return;
+    }
     try {
         const res = await fetch(`/api/party/${partyId}/attend`, {
             method: 'DELETE',

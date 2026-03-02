@@ -12,7 +12,6 @@ import jakarta.inject.Inject;
 import jakarta.persistence.EntityManager;
 import jakarta.transaction.Transactional;
 import jakarta.ws.rs.BadRequestException;
-import jakarta.ws.rs.NotFoundException;
 import jakarta.ws.rs.QueryParam;
 import jakarta.ws.rs.core.Response;
 import jakarta.ws.rs.core.UriBuilder;
@@ -25,7 +24,7 @@ import java.util.List;
 import java.util.Map;
 
 @ApplicationScoped
-@Transactional // Wichtig für DB-Schreiboperationen
+@Transactional
 public class PartyRepository {
 
     @Inject
@@ -49,15 +48,22 @@ public class PartyRepository {
         return entityManager.createQuery("SELECT p FROM Party p", Party.class).getResultList();
     }
 
-    public Response addParty(PartyCreateDto partyCreateDto) {
-        Party party = partyCreateDtoToParty(partyCreateDto);
-
-        User host = getCurrentOrFirstUser();
-        if (host != null) {
-            party.setHost_user(host);
-        } else {
-            logger.warn("Kein User in der Datenbank gefunden - Party wird ohne Host erstellt.");
+    public Response addParty(PartyCreateDto partyCreateDto, Long userId) {
+        if (userId == null) {
+            return Response.status(Response.Status.BAD_REQUEST)
+                    .entity("{\"error\": \"User ID required\"}")
+                    .build();
         }
+
+        User host = entityManager.find(User.class, userId);
+        if (host == null) {
+            return Response.status(Response.Status.NOT_FOUND)
+                    .entity("{\"error\": \"User not found\"}")
+                    .build();
+        }
+
+        Party party = partyCreateDtoToParty(partyCreateDto);
+        party.setHost_user(host);
 
         entityManager.persist(party);
 
@@ -66,13 +72,6 @@ public class PartyRepository {
                         .path(String.valueOf(party.getId()))
                         .build()
         ).build();
-    }
-
-    private User getCurrentOrFirstUser() {
-        List<User> users = entityManager.createQuery("SELECT u FROM User u", User.class)
-                .setMaxResults(1)
-                .getResultList();
-        return users.isEmpty() ? null : users.get(0);
     }
 
     public Response removeParty(Long id) {
@@ -84,17 +83,27 @@ public class PartyRepository {
         return Response.noContent().build();
     }
 
-    public Response updateParty(Long id, PartyCreateDto partyCreateDto) {
+    public Response updateParty(Long id, PartyCreateDto partyCreateDto, Long userId) {
+        if (userId == null) {
+            return Response.status(Response.Status.BAD_REQUEST)
+                    .entity("{\"error\": \"User ID required\"}")
+                    .build();
+        }
+
         Party party = entityManager.find(Party.class, id);
         if (party == null) {
             return Response.status(Response.Status.NOT_FOUND).build();
         }
-        party.setMax_age(partyCreateDto.max_age() != null ? partyCreateDto.max_age() : 0);
+
+        User host = entityManager.find(User.class, userId);
+        if (host == null) {
+            return Response.status(Response.Status.NOT_FOUND)
+                    .entity("{\"error\": \"User not found\"}")
+                    .build();
+        }
 
         Party updatedFields = partyCreateDtoToParty(partyCreateDto);
         updatedFields.setId(id);
-
-        User host = getCurrentOrFirstUser();
         updatedFields.setHost_user(host);
 
         entityManager.merge(updatedFields);
@@ -162,14 +171,26 @@ public class PartyRepository {
 
     public Party getPartyById(Long party_id) {
         return entityManager.find(Party.class, party_id);
-    }@Transactional
-    public Response attendParty(Long id) {
-        Party party = entityManager.find(Party.class, id);
-        User user = getCurrentOrFirstUser();
+    }
 
-        if (party == null || user == null) {
+    public Response attendParty(Long partyId, Long userId) {
+        if (userId == null) {
+            return Response.status(Response.Status.BAD_REQUEST)
+                    .entity("{\"error\": \"User ID required\"}")
+                    .build();
+        }
+
+        Party party = entityManager.find(Party.class, partyId);
+        User user = entityManager.find(User.class, userId);
+
+        if (party == null) {
             return Response.status(Response.Status.NOT_FOUND)
-                    .entity("Party oder User konnte nicht gefunden werden.")
+                    .entity("{\"error\": \"Party not found\"}")
+                    .build();
+        }
+        if (user == null) {
+            return Response.status(Response.Status.NOT_FOUND)
+                    .entity("{\"error\": \"User not found\"}")
                     .build();
         }
 
@@ -180,10 +201,28 @@ public class PartyRepository {
         return Response.noContent().build();
     }
 
-    public Response leaveParty(Long id) {
-        Party party = entityManager.find(Party.class, id);
-        User user = getCurrentOrFirstUser();
-        if (party != null && user != null && party.getUsers().contains(user)) {
+    public Response leaveParty(Long partyId, Long userId) {
+        if (userId == null) {
+            return Response.status(Response.Status.BAD_REQUEST)
+                    .entity("{\"error\": \"User ID required\"}")
+                    .build();
+        }
+
+        Party party = entityManager.find(Party.class, partyId);
+        User user = entityManager.find(User.class, userId);
+
+        if (party == null) {
+            return Response.status(Response.Status.NOT_FOUND)
+                    .entity("{\"error\": \"Party not found\"}")
+                    .build();
+        }
+        if (user == null) {
+            return Response.status(Response.Status.NOT_FOUND)
+                    .entity("{\"error\": \"User not found\"}")
+                    .build();
+        }
+
+        if (party.getUsers().contains(user)) {
             party.getUsers().remove(user);
             entityManager.merge(party);
             return Response.ok(party).build();
@@ -191,12 +230,28 @@ public class PartyRepository {
         return Response.status(Response.Status.NOT_FOUND).build();
     }
 
-    public Response attendStatus(Long id) {
-        Party party = entityManager.find(Party.class, id);
-        if (party == null) return Response.status(Response.Status.NOT_FOUND).build();
+    public Response attendStatus(Long partyId, Long userId) {
+        if (userId == null) {
+            return Response.status(Response.Status.BAD_REQUEST)
+                    .entity("{\"error\": \"User ID required\"}")
+                    .build();
+        }
 
-        User user = getCurrentOrFirstUser();
-        boolean attending = user != null && party.getUsers() != null && party.getUsers().contains(user);
+        Party party = entityManager.find(Party.class, partyId);
+        if (party == null) {
+            return Response.status(Response.Status.NOT_FOUND)
+                    .entity("{\"error\": \"Party not found\"}")
+                    .build();
+        }
+
+        User user = entityManager.find(User.class, userId);
+        if (user == null) {
+            return Response.status(Response.Status.NOT_FOUND)
+                    .entity("{\"error\": \"User not found\"}")
+                    .build();
+        }
+
+        boolean attending = party.getUsers() != null && party.getUsers().contains(user);
         int count = party.getUsers() != null ? party.getUsers().size() : 0;
 
         return Response.ok(Map.of("attending", attending, "count", count)).build();
@@ -206,7 +261,6 @@ public class PartyRepository {
         if (dateStr == null || dateStr.isBlank()) return null;
         try {
             if (dateStr.contains("T")) {
-                // Ersetzt eventuelle Leerzeichen durch T für ISO-Konformität
                 return LocalDateTime.parse(dateStr.trim().replace(" ", "T"));
             }
             return LocalDateTime.parse(dateStr.trim(), PARTY_DTF);
@@ -226,7 +280,6 @@ public class PartyRepository {
         party.setMax_age(dto.max_age());
         party.setMin_age(dto.min_age());
 
-        // Location Logik
         Location location = locationRepository.findByLatitudeAndLongitude(dto.latitude(), dto.longitude());
         if (location != null) {
             party.setLocation(location);
@@ -239,7 +292,6 @@ public class PartyRepository {
             party.setLocation(newLocation);
         }
 
-        // Category Logik mit Fehlerbehandlung für 500er Error
         Long catId = (dto.category_id() != null && dto.category_id() != 0) ? dto.category_id() : 1L;
         Category category = categoryRepository.getCategoryById(catId);
 

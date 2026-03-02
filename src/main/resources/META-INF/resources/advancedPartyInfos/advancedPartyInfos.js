@@ -81,8 +81,13 @@ async function loadPartyDetails(partyId) {
 }
 
 async function checkAttendanceStatus(partyId) {
+  const userId = window.getCurrentUserId();
+  if (!userId) {
+    console.warn("No user logged in");
+    return;
+  }
   try {
-    const response = await fetch(`/api/party/${partyId}/attend/status`);
+    const response = await fetch(`/api/party/${partyId}/attend/status?user=${userId}`);
     if (!response.ok) {
       throw new Error('Failed to check attendance status');
     }
@@ -121,11 +126,17 @@ async function handleJoinParty(partyId) {
   const joinBtn = document.getElementById('joinPartyBtn');
   if (!joinBtn) return;
 
+  const userId = window.getCurrentUserId();
+  if (!userId) {
+    alert('Bitte melde dich an');
+    return;
+  }
+
   const isCurrentlyJoined = joinBtn.classList.contains('joined');
   const method = isCurrentlyJoined ? 'DELETE' : 'POST';
 
   try {
-    const response = await fetch(`/api/party/${partyId}/attend`, {
+    const response = await fetch(`/api/party/${partyId}/attend?user=${userId}`, {
       method: method,
       headers: {
         'Content-Type': 'application/json'

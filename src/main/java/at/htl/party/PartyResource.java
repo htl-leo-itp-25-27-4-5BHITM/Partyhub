@@ -32,8 +32,11 @@ public class PartyResource {
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     @Path("/add")
-    public Response addParty(PartyCreateDto partyCreateDto) {
-        return partyRepository.addParty(partyCreateDto);
+    public Response addParty(PartyCreateDto partyCreateDto,
+                           @QueryParam("user") Long userId,
+                           @HeaderParam("X-User-Id") Long headerUserId) {
+        Long actualUserId = userId != null ? userId : headerUserId;
+        return partyRepository.addParty(partyCreateDto, actualUserId);
     }
 
     @GET
@@ -60,12 +63,15 @@ public class PartyResource {
     @Produces(MediaType.APPLICATION_JSON)
     @Transactional
     @Path("/{id}")
-    public Response updateParty(@PathParam("id") Long id, PartyCreateDto partyCreateDto) {
+    public Response updateParty(@PathParam("id") Long id, PartyCreateDto partyCreateDto,
+                               @QueryParam("user") Long userId,
+                               @HeaderParam("X-User-Id") Long headerUserId) {
         if (partyCreateDto == null) {
             return Response.status(Response.Status.BAD_REQUEST)
                     .entity("Payload missing").build();
         }
-        return partyRepository.updateParty(id, partyCreateDto);
+        Long actualUserId = userId != null ? userId : headerUserId;
+        return partyRepository.updateParty(id, partyCreateDto, actualUserId);
     }
 
     @POST
@@ -104,23 +110,32 @@ public class PartyResource {
     @POST
     @Produces(MediaType.APPLICATION_JSON)
     @Path("/{id}/attend")
-    public Response attendParty(@PathParam("id") Long partyId) {
-        return partyRepository.attendParty(partyId);
+    public Response attendParty(@PathParam("id") Long partyId,
+                               @QueryParam("user") Long userId,
+                               @HeaderParam("X-User-Id") Long headerUserId) {
+        Long actualUserId = userId != null ? userId : headerUserId;
+        return partyRepository.attendParty(partyId, actualUserId);
     }
 
     @DELETE
     @Produces(MediaType.APPLICATION_JSON)
     @Transactional
     @Path("/{id}/attend")
-    public Response leaveParty(@PathParam("id") Long partyId) {
-        return partyRepository.leaveParty(partyId);
+    public Response leaveParty(@PathParam("id") Long partyId,
+                              @QueryParam("user") Long userId,
+                              @HeaderParam("X-User-Id") Long headerUserId) {
+        Long actualUserId = userId != null ? userId : headerUserId;
+        return partyRepository.leaveParty(partyId, actualUserId);
     }
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     @Path("/{id}/attend/status")
-    public Response attendStatus(@PathParam("id") Long partyId) {
-        return partyRepository.attendStatus(partyId);
+    public Response attendStatus(@PathParam("id") Long partyId,
+                                 @QueryParam("user") Long userId,
+                                 @HeaderParam("X-User-Id") Long headerUserId) {
+        Long actualUserId = userId != null ? userId : headerUserId;
+        return partyRepository.attendStatus(partyId, actualUserId);
     }
 
     @POST
@@ -128,7 +143,16 @@ public class PartyResource {
     @Consumes(MediaType.MULTIPART_FORM_DATA)
     @Produces(MediaType.APPLICATION_JSON)
     @Transactional
-    public Response upload(MediaRepository.FileUploadInput input, @PathParam("partyId") long partyId, @QueryParam("user") long userId) {
-        return mediaRepository.upload(input, partyId, userId);
+    public Response upload(MediaRepository.FileUploadInput input, 
+                           @PathParam("partyId") long partyId, 
+                           @QueryParam("user") Long userId,
+                           @HeaderParam("X-User-Id") Long headerUserId) {
+        Long actualUserId = userId != null ? userId : headerUserId;
+        if (actualUserId == null) {
+            return Response.status(Response.Status.BAD_REQUEST)
+                    .entity("{\"error\": \"User ID required\"}")
+                    .build();
+        }
+        return mediaRepository.upload(input, partyId, actualUserId);
     }
 }

@@ -88,6 +88,7 @@ public class PartyResourceTest extends TestBase {
         given()
             .contentType(ContentType.JSON)
             .body(requestBody)
+            .queryParam("user", 1)
             .when().post("/api/party/999")
             .then()
             .statusCode(404);
@@ -116,6 +117,7 @@ public class PartyResourceTest extends TestBase {
     @Test
     void testAttendParty_notFound() {
         given()
+            .queryParam("user", 1)
             .when().post("/api/party/999/attend")
             .then()
             .statusCode(404);
@@ -124,6 +126,7 @@ public class PartyResourceTest extends TestBase {
     @Test
     void testLeaveParty_notFound() {
         given()
+            .queryParam("user", 1)
             .when().delete("/api/party/999/attend")
             .then()
             .statusCode(404);
@@ -132,8 +135,33 @@ public class PartyResourceTest extends TestBase {
     @Test
     void testAttendStatus_notFound() {
         given()
+            .queryParam("user", 1)
             .when().get("/api/party/999/attend/status")
             .then()
             .statusCode(404);
+    }
+
+    @Test
+    void testAttendParty_noUser() {
+        given()
+            .when().post("/api/party/999/attend")
+            .then()
+            .statusCode(400);
+    }
+
+    @Test
+    void testLeaveParty_noUser() {
+        given()
+            .when().delete("/api/party/999/attend")
+            .then()
+            .statusCode(400);
+    }
+
+    @Test
+    void testAttendStatus_noUser() {
+        given()
+            .when().get("/api/party/999/attend/status")
+            .then()
+            .statusCode(400);
     }
 }

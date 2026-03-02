@@ -49,6 +49,10 @@ public class Invitation {
         this.sender = sender;
     }
 
+    public User getSender() {
+        return sender;
+    }
+
     @JsonProperty("sender_id")
     public Long getSenderId() {
         return sender != null ? sender.getId() : null;

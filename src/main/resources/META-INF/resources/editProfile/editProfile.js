@@ -5,7 +5,7 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 function initializeEditPage() {
-    const userId = getCurrentUserId();
+    const userId = window.getCurrentUserId();
 
     if (!userId) {
         showError('User not logged in');
@@ -15,10 +15,6 @@ function initializeEditPage() {
     loadUserData(userId);
     setupFormValidation();
     setupProfilePictureUpload();
-}
-
-function getCurrentUserId() {
-    return 1;
 }
 
 async function loadUserData(userId) {
@@ -199,7 +195,7 @@ async function checkUsernameAvailability(username) {
         if (response.ok) {
             // Username exists and belongs to someone else
             const existingUser = await response.json();
-            const currentUserId = getCurrentUserId();
+            const currentUserId = window.getCurrentUserId();
 
             if (existingUser.id !== currentUserId) {
                 showFieldError('distinctName', 'This username is already taken');
@@ -213,7 +209,7 @@ async function checkUsernameAvailability(username) {
 }
 
 async function submitForm() {
-    const userId = getCurrentUserId();
+    const userId = window.getCurrentUserId();
     const saveBtn = document.querySelector('.save-btn');
 
     // Show loading state
@@ -294,7 +290,7 @@ async function uploadProfilePicture(userId) {
 
 async function getProfilePictureFilename() {
     // Return the current profile picture filename from the user data
-    const userId = getCurrentUserId();
+    const userId = window.getCurrentUserId();
     try {
         const response = await fetch(`/api/users/${userId}`);
         const user = await response.json();

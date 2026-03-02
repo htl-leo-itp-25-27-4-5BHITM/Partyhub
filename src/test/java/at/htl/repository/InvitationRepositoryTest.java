@@ -32,7 +32,6 @@ public class InvitationRepositoryTest {
 
     @BeforeEach
     void setUp() {
-        // Clean up in proper order due to foreign key constraints
         entityManager.createQuery("DELETE FROM Follow").executeUpdate();
         entityManager.createQuery("DELETE FROM Invitation").executeUpdate();
         entityManager.createQuery("DELETE FROM Media").executeUpdate();
@@ -89,13 +88,25 @@ public class InvitationRepositoryTest {
         Party party = createTestParty(sender);
 
         InvitationDto dto = new InvitationDto(party.getId(), recipient.getId());
-        Response response = invitationRepository.invite(dto);
+        Response response = invitationRepository.invite(dto, sender.getId());
         
         assertEquals(200, response.getStatus());
         
-        // Verify invitation was created
         List<Invitation> invitations = entityManager.createQuery("SELECT i FROM Invitation i", Invitation.class).getResultList();
         assertEquals(1, invitations.size());
+    }
+
+    @Test
+    void testInvite_noUser() {
+        User recipient = createTestUser("Recipient User", "recipient");
+        entityManager.flush();
+
+        Party party = createTestParty(recipient);
+
+        InvitationDto dto = new InvitationDto(party.getId(), recipient.getId());
+        Response response = invitationRepository.invite(dto, null);
+        
+        assertEquals(400, response.getStatus());
     }
 
     @Test
@@ -107,13 +118,13 @@ public class InvitationRepositoryTest {
         Party party = createTestParty(sender);
 
         InvitationDto dto = new InvitationDto(party.getId(), recipient.getId());
-        invitationRepository.invite(dto);
+        invitationRepository.invite(dto, sender.getId());
         entityManager.flush();
 
         List<Invitation> invitations = entityManager.createQuery("SELECT i FROM Invitation i", Invitation.class).getResultList();
         assertEquals(1, invitations.size());
 
-        Response response = invitationRepository.deleteInvite(invitations.get(0).getId());
+        Response response = invitationRepository.deleteInvite(invitations.get(0).getId(), sender.getId());
         assertEquals(200, response.getStatus());
 
         List<Invitation> afterDelete = entityManager.createQuery("SELECT i FROM Invitation i", Invitation.class).getResultList();
@@ -127,7 +138,7 @@ public class InvitationRepositoryTest {
         entityManager.flush();
         createTestParty(sender);
 
-        Response response = invitationRepository.deleteInvite(999L);
+        Response response = invitationRepository.deleteInvite(999L, sender.getId());
         assertEquals(404, response.getStatus());
     }
 }

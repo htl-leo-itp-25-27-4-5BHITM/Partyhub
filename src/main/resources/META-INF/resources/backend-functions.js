@@ -2,10 +2,18 @@
 // Create Party in party-Table
 // DateTimeFormat needs to be the same
 
+function getUserIdFromStorage() {
+    return window.getCurrentUserId?.() ?? null;
+}
+
 async function createParty(payload) {
     // ...existing implementation...
+    const userId = getUserIdFromStorage();
+    if (!userId) {
+        return { ok: false, error: "User not logged in" };
+    }
     try {
-        const response = await fetch("/api/party/add", {
+        const response = await fetch(`/api/party/add?user=${userId}`, {
             method: "POST",
             headers: {
                 "Content-Type": "application/json"
@@ -109,8 +117,13 @@ async function deleteParty(partyId) {
 
 // Attend a party
 async function attendParty(partyId) {
+    const userId = getUserIdFromStorage();
+    if (!userId) {
+        console.error('User not logged in');
+        return false;
+    }
     try {
-        const response = await fetch(`/api/party/${partyId}/attend`, { method: 'POST' });
+        const response = await fetch(`/api/party/${partyId}/attend?user=${userId}`, { method: 'POST' });
         return response.ok;
     } catch (error) {
         console.error('Error attending the party:', error);
@@ -120,8 +133,13 @@ async function attendParty(partyId) {
 
 // Leave a party
 async function leaveParty(partyId) {
+    const userId = getUserIdFromStorage();
+    if (!userId) {
+        console.error('User not logged in');
+        return false;
+    }
     try {
-        const response = await fetch(`/api/party/${partyId}/attend`, { method: 'DELETE' });
+        const response = await fetch(`/api/party/${partyId}/attend?user=${userId}`, { method: 'DELETE' });
         return response.ok;
     } catch (error) {
         console.error('Error leaving the party:', error);
@@ -180,9 +198,13 @@ async function getProfilePicture(id) {
 
 // Invite user to party using userId
 async function invite(recipient, partyId) {
+    const userId = getUserIdFromStorage();
+    if (!userId) {
+        return { ok: false, error: "User not logged in" };
+    }
     const invitationPayload = { recipient, partyId };
     try {
-        const response = await fetch(`/api/invites/`, {
+        const response = await fetch(`/api/invites/?user=${userId}`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(invitationPayload)
@@ -197,8 +219,13 @@ async function invite(recipient, partyId) {
 
 // Get users personally received invites
 async function getReceivedInvites() {
+    const userId = getUserIdFromStorage();
+    if (!userId) {
+        console.error('User not logged in');
+        return [];
+    }
     try {
-        const response = await fetch(`/api/invites/rec`);
+        const response = await fetch(`/api/invites/rec?user=${userId}`);
         if (!response.ok) throw new Error('Network response was not ok');
         return await response.json();
     } catch (error) {
@@ -209,8 +236,13 @@ async function getReceivedInvites() {
 
 // Get users personally sent invites
 async function getSentInvites() {
+    const userId = getUserIdFromStorage();
+    if (!userId) {
+        console.error('User not logged in');
+        return [];
+    }
     try {
-        const response = await fetch(`/api/invites/inv`);
+        const response = await fetch(`/api/invites/inv?user=${userId}`);
         if (!response.ok) throw new Error('Network response was not ok');
         return await response.json();
     } catch (error) {
@@ -220,8 +252,13 @@ async function getSentInvites() {
 }
 
 async function deleteInvite(invitationId) {
+    const userId = getUserIdFromStorage();
+    if (!userId) {
+        console.error('User not logged in');
+        return { ok: false, error: "User not logged in" };
+    }
     try {
-        const response = await fetch(`/api/invites/delete/` + invitationId, {
+        const response = await fetch(`/api/invites/delete/${invitationId}?user=${userId}`, {
             method: 'DELETE',
             headers: {
                 'Content-Type': 'application/json'

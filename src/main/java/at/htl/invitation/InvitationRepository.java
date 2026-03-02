@@ -22,7 +22,20 @@ public class InvitationRepository {
     @Inject
     Logger logger;
 
-    public Response invite(InvitationDto invitationDto){
+    public Response invite(InvitationDto invitationDto, Long senderId){
+        if (senderId == null) {
+            return Response.status(Response.Status.BAD_REQUEST)
+                    .entity("{\"error\": \"Sender User ID required\"}")
+                    .build();
+        }
+
+        User sender = entityManager.find(User.class, senderId);
+        if (sender == null) {
+            return Response.status(Response.Status.NOT_FOUND)
+                    .entity("{\"error\": \"Sender user not found\"}")
+                    .build();
+        }
+
         boolean exists = !entityManager.createQuery(
                         "select i from Invitation i where i.recipient.id = :recipientId and i.party.id = :partyId", Invitation.class)
                 .setParameter("recipientId", invitationDto.recipient())
@@ -34,28 +47,51 @@ public class InvitationRepository {
         Invitation invitation = new Invitation();
         invitation.setParty(partyRepository.getPartyById(invitationDto.partyId()));
         invitation.setRecipient(userRepository.getUser(invitationDto.recipient()));
-        // TODO: Use current user
-        invitation.setSender(userRepository.getUser(1L));
+        invitation.setSender(sender);
         entityManager.persist(invitation);
         return Response.ok().build();
     }
 
-    public List<Invitation> getReceivedInvites(){
-        User user = entityManager.find(User.class, 1L);
+    public List<Invitation> getReceivedInvites(Long userId){
+        if (userId == null) {
+            return List.of();
+        }
+        User user = entityManager.find(User.class, userId);
+        if (user == null) {
+            return List.of();
+        }
         return entityManager.createQuery("select u from Invitation u where u.recipient = :user", Invitation.class).setParameter("user", user).getResultList();
     }
 
-    public List<Invitation> getSentInvites(){
-        User user = entityManager.find(User.class, 1L);
+    public List<Invitation> getSentInvites(Long userId){
+        if (userId == null) {
+            return List.of();
+        }
+        User user = entityManager.find(User.class, userId);
+        if (user == null) {
+            return List.of();
+        }
         return entityManager.createQuery("select u from Invitation u where u.sender = :user", Invitation.class).setParameter("user", user).getResultList();
     }
 
-    // TODO: Check user permission
-    public Response deleteInvite(Long id){
+    public Response deleteInvite(Long id, Long userId){
+        if (userId == null) {
+            return Response.status(Response.Status.BAD_REQUEST)
+                    .entity("{\"error\": \"User ID required\"}")
+                    .build();
+        }
+        
         Invitation invitation = entityManager.find(Invitation.class, id);
         if (invitation == null) {
             return Response.status(Response.Status.NOT_FOUND).build();
         }
+
+        if (invitation.getSender() == null || !invitation.getSender().getId().equals(userId)) {
+            return Response.status(Response.Status.FORBIDDEN)
+                    .entity("{\"error\": \"Not authorized to delete this invitation\"}")
+                    .build();
+        }
+        
         entityManager.remove(invitation);
         return Response.ok().build();
     }
