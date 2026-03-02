@@ -29,6 +29,7 @@ public class User {
     private String biography;
 
     @OneToOne(cascade = CascadeType.ALL, mappedBy = "user")
+    @JsonIgnore
     private ProfilePicture profilePicture;
 
     @ManyToMany(mappedBy = "users")
