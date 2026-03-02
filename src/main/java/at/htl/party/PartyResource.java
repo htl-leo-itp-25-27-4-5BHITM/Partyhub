@@ -73,7 +73,6 @@ public class PartyResource {
     @Consumes(MediaType.APPLICATION_JSON)
     @Path("/filter")
     public Response filterParty(@QueryParam("filter") String filter, FilterDto req) {
-        // HTTP-Ebene: Sind die Parameter da?
         if (filter == null || filter.isBlank()) {
             return Response.status(400).entity("Query-Parameter 'filter' fehlt.").build();
         }
@@ -81,7 +80,6 @@ public class PartyResource {
             return Response.status(400).entity("Request-Body (FilterDto) fehlt.").build();
         }
 
-        // Delegation an Repository
         List<Party> result = switch (filter.toLowerCase()) {
             case "content"  -> (req.value() != null) ? partyRepository.findByTitleOrDescription(req.value()) : null;
             case "category" -> (req.value() != null) ? partyRepository.findByCategory(req.value()) : null;

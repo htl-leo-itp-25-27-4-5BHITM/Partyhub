@@ -28,7 +28,7 @@ public class UserResource {
     @Inject
     MediaRepository mediaRepository;
 
-    @GET
+    @POST
     @Transactional
     @Consumes(MediaType.APPLICATION_JSON)
     @Path("/")

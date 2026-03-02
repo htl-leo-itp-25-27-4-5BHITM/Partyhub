@@ -164,24 +164,17 @@ public class PartyRepository {
         return entityManager.find(Party.class, party_id);
     }@Transactional
     public Response attendParty(Long id) {
-        // 1. Laden der Entity
-        // Durch @Transactional ist das Objekt 'party' nun "managed".
         Party party = entityManager.find(Party.class, id);
         User user = getCurrentOrFirstUser();
 
-        // 2. Fehlerprüfung: Existiert die Party und der User?
         if (party == null || user == null) {
             return Response.status(Response.Status.NOT_FOUND)
                     .entity("Party oder User konnte nicht gefunden werden.")
                     .build();
         }
 
-        // 3. Logik: Teilnahme eintragen
-        // JPA Dirty Checking: Wir ändern nur die Liste.
-        // Am Ende der Methode wird die Änderung automatisch in die DB geschrieben.
         if (!party.getUsers().contains(user)) {
             party.getUsers().add(user);
-            // entityManager.merge(party); // <- Das wurde entfernt, da unnötig und bremst.
         }
 
         return Response.noContent().build();
