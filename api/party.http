@@ -72,3 +72,15 @@ DELETE http://localhost:8080/api/party/5/leave
 GET http://localhost:8080/api/party/1/attend/status?user=1
 X-User-Id: 1
 Accept: application/json
+
+###
+POST http://localhost:8080/api/party/1/media/upload?user=1
+X-User-Id: 1
+Content-Type: multipart/form-data; boundary=boundary
+
+--boundary
+Content-Disposition: form-data; name="file"; filename="party_bild.jpg"
+Content-Type: image/jpeg
+
+< ./testing.jpg
+--boundary--

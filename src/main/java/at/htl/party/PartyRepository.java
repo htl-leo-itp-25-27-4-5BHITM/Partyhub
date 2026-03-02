@@ -131,8 +131,6 @@ public class PartyRepository {
             return Response.ok(result).build();
         }
 
-
-
     List<Party> findByTitleOrDescription(String param) {
         String like = "%" + param.trim().toLowerCase() + "%";
         String jpql = "SELECT p FROM Party p WHERE LOWER(p.title) LIKE :like OR LOWER(p.description) LIKE :like";
