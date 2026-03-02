@@ -437,6 +437,20 @@ document.addEventListener("DOMContentLoaded", function () {
         };
       }
 
+      // ADDED: Edit button -> open addParty with prefilled data
+      const editBtn = node.querySelector(".edit-btn");
+      if (editBtn) {
+        editBtn.onclick = (e) => {
+          e.stopPropagation();
+          try {
+            // store the full party object so addParty can fall back to it if backend unavailable
+            localStorage.setItem("editingParty", JSON.stringify(p));
+          } catch {}
+          // navigate to addParty page with party id param
+          window.location.href = `/addParty/addParty.html?id=${encodeURIComponent(p.id)}`;
+        };
+      }
+
       container.appendChild(node);
     });
   }
