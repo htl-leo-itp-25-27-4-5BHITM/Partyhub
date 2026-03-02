@@ -7,14 +7,13 @@ import jakarta.persistence.*;
 
 import java.util.Set;
 
-
 @Entity
 @Table(name="users")
 @TableGenerator(name="users")
 @Inheritance(strategy = InheritanceType.JOINED)
 public class User {
-    public User(){
 
+    public User() {
     }
 
     @Id
@@ -23,9 +22,12 @@ public class User {
 
     @Column(name = "display_name")
     private String displayName;
+
     @Column(name = "distinct_name")
     private String distinctName;
+
     private String email;
+
     @Column(nullable = true)
     private String biography;
 
@@ -61,10 +63,6 @@ public class User {
         this.distinctName = distinctName;
     }
 
-<<<<<<< HEAD
-    public ProfilePicture getProfilePicture() {
-        return profilePicture;
-=======
     public String getEmail() {
         return email;
     }
@@ -81,9 +79,8 @@ public class User {
         this.biography = biography;
     }
 
-    public String getProfileImage() {
-        return profileImage;
->>>>>>> abfe44f (#69 update User.java)
+    public ProfilePicture getProfilePicture() {
+        return profilePicture;
     }
 
     //TODO: Delete old ProfilePicture before applying the new ProfilePicture
