@@ -100,7 +100,7 @@ public class DataSeeder {
                 {"Tom Wagner", "tom.wagner", "tom@example.com", "Social butterfly"}
         };
 
-        String[] profilePics = {"max_avatar.png", "anna_avatar.png", "lukas_avatar.png", "sophie_avatar.png", "tom_avatar.png"};
+        String[] profilePics = {"max_avatar.jpg", "anna_avatar.jpg", "lukas_avatar.jpg", "sophie_avatar.jpg", "tom_avatar.jpg"};
 
         for (int i = 0; i < userData.length; i++) {
             User user = new User();

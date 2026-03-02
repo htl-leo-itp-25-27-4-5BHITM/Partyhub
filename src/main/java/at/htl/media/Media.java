@@ -61,4 +61,8 @@ public class Media {
     public void setFile(String file) {
         this.file = file;
     }
+
+    public String getUrl() {
+        return file;
+    }
 }
