@@ -64,3 +64,8 @@ GET http://localhost:8080/api/party/sort?
 
 ###
 POST http://localhost:8080/api/party/5/attend
+
+###
+DELETE http://localhost:8080/api/party/5/leave
+
+

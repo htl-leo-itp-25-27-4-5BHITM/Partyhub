@@ -113,7 +113,7 @@ public class PartyResource {
     @DELETE
     @Produces(MediaType.APPLICATION_JSON)
     @Transactional
-    @Path("/{id}/attend")
+    @Path("/{id}/leave")
     public Response leaveParty(@PathParam("id") Long partyId) {
         return partyRepository.leaveParty(partyId);
     }

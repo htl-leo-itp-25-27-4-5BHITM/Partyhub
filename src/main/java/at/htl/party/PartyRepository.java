@@ -162,7 +162,8 @@ public class PartyRepository {
 
     public Party getPartyById(Long party_id) {
         return entityManager.find(Party.class, party_id);
-    }@Transactional
+    }
+    @Transactional
     public Response attendParty(Long id) {
         // 1. Laden der Entity
         // Durch @Transactional ist das Objekt 'party' nun "managed".
@@ -187,15 +188,39 @@ public class PartyRepository {
         return Response.noContent().build();
     }
 
+    @Transactional
     public Response leaveParty(Long id) {
-        Party party = entityManager.find(Party.class, id);
         User user = getCurrentOrFirstUser();
-        if (party != null && user != null && party.getUsers().contains(user)) {
-            party.getUsers().remove(user);
-            entityManager.merge(party);
-            return Response.ok(party).build();
+        if (user == null) {
+            return Response.status(Response.Status.NOT_FOUND).entity("User nicht gefunden").build();
         }
-        return Response.status(Response.Status.NOT_FOUND).build();
+
+        // Wir löschen die Verknüpfung direkt über eine Query.
+        // Das verhindert, dass Hibernate die 'users'-Liste lädt und
+        // in eine Endlosschleife (StackOverflow) gerät.
+        // Annahme: Deine Party-Entity hat ein Feld 'users' (die Liste der Teilnehmer)
+
+        int deleted = entityManager.createQuery(
+                        "DELETE FROM Party p WHERE p.id = :partyId AND :user MEMBER OF p.users")
+                .setParameter("partyId", id)
+                .setParameter("user", user)
+                .executeUpdate();
+
+        // Falls das oben fehlschlägt, hier die sicherste manuelle Variante:
+        if (deleted == 0) {
+            Party party = entityManager.find(Party.class, id);
+            if (party != null && party.getUsers() != null) {
+                // Wir entfernen den User nur, wenn er wirklich drin ist
+                boolean removed = party.getUsers().removeIf(u -> u.getId().equals(user.getId()));
+                if (removed) {
+                    entityManager.merge(party);
+                    return Response.noContent().build();
+                }
+            }
+            return Response.status(Response.Status.BAD_REQUEST).entity("User war kein Mitglied.").build();
+        }
+
+        return Response.noContent().build();
     }
 
     public Response attendStatus(Long id) {
