@@ -33,6 +33,6 @@ jobs:
       - name: Deploy to Kubernetes
         run: |
             echo "Applying Kubernetes manifests"
-            kubectl delete -f k8s/keycloak.yaml
-            kubectl apply -f k8s/keycloak.yaml
+            kubectl delete -f k8s/quarkus.yaml
+            kubectl apply -f k8s/quarkus.yaml
             echo "Deployment successful."
