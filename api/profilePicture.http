@@ -4,16 +4,14 @@ GET http://localhost:8080/api/users/1/profile-picture
 ###
 GET http://localhost:8080/api/users/1/profile-picture-filename
 
-<> 2026-03-02T172035.200.json
-
-
+//TODO funktioniert noch nicht ganz
 ###
 POST http://localhost:8080/api/users/5/upload-profile-picture
 Content-Type: multipart/form-data; boundary=WebAppBoundary
 
 --WebAppBoundary
-Content-Disposition: form-data; name="file"; filename="my-pic.jpg"
+Content-Disposition: form-data; name="file"; filename="testing.jpg"
 Content-Type: image/jpeg
 
-< ./testing.jpg
+< testing.jpg
 --WebAppBoundary--
