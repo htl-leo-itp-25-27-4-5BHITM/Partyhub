@@ -4,7 +4,6 @@ GET http://localhost:8080/api/users/1/profile-picture
 ###
 GET http://localhost:8080/api/users/1/profile-picture-filename
 
-//TODO funktioniert noch nicht ganz
 ###
 POST http://localhost:8080/api/users/5/upload-profile-picture
 Content-Type: multipart/form-data; boundary=WebAppBoundary
