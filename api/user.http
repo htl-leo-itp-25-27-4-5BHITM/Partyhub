@@ -1,0 +1,46 @@
+###
+GET http://localhost:8080/api/users/all
+
+###
+GET http://localhost:8080/api/users/all/search?
+    name={{$random.alphanumeric(8)}}
+
+<> 2026-03-03T161642.200.json
+
+
+###
+GET http://localhost:8080/api/users/1
+
+<> 2026-03-03T161712.200.json
+
+
+###
+GET http://localhost:8080/api/users/handle/anna_h
+Accept: application/json
+
+<> 2026-03-03T161823.200.json
+
+###
+GET http://localhost:8080/api/users/1/followers/count
+
+<> 2026-03-03T161849.200.json
+
+###
+GET http://localhost:8080/api/users/3/following/count
+
+<> 2026-03-03T161912.200.json
+<> 2026-03-03T161907.200.json
+
+###
+PUT http://localhost:8080/api/users/5
+Content-Type: application/json
+
+{
+  "id": 5,
+  "displayName": "Sabine Weber",
+  "distinctName": "sabine_w",
+  "email": "sabine.weber@wien.at",
+  "biography": "Immer auf der Suche nach neuen Events"
+}
+
+<> 2026-03-03T162041.200.json
