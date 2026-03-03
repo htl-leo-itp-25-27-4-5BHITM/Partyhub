@@ -9,14 +9,14 @@ import java.util.Set;
 
 @Entity
 @Table(name="profile_picture")
-@TableGenerator(name="profile_picture")
 public class ProfilePicture {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
     @Column(name = "picture_name", nullable = true)
     private String picture_name;
-    @OneToOne(cascade = CascadeType.ALL)
+    @OneToOne
+    @JoinColumn(name = "user_id", unique = true)
     private User user;
 
     public ProfilePicture() {

@@ -5,6 +5,7 @@ import jakarta.inject.Inject;
 import jakarta.persistence.EntityManager;
 import jakarta.ws.rs.core.Response;
 import jakarta.transaction.Transactional;
+import org.jboss.logging.Logger;
 
 import java.util.List;
 
@@ -12,6 +13,8 @@ import java.util.List;
 public class UserRepository {
     @Inject
     EntityManager em;
+    @Inject
+    Logger logger;
 
     public UserRepository() {
 
@@ -54,18 +57,18 @@ public class UserRepository {
         return Response.ok(user).build();
     }
 
-    @Transactional
     public Response updateUser(Long id, UserCreateDto createUserDto) {
+        logger.info("UserRepository.updateUser called with id: " + id);
         User user = getUser(id);
         if (user == null) {
+            logger.warn("User not found: " + id);
             return Response.status(Response.Status.NOT_FOUND).build();
         }
         user.setDisplayName(createUserDto.displayName());
         user.setDistinctName(createUserDto.distinctName());
         user.setEmail(createUserDto.email());
         user.setBiography(createUserDto.biography());
-        //TODO: Update profile_picture separately
-        em.merge(user);
-        return Response.ok(user).build();
+        User merged = em.merge(user);
+        return Response.ok(merged).build();
     }
 }
