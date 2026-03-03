@@ -184,16 +184,14 @@ async function getUserById(id) {
     }
 }
 
-// Get profile-picture by user id
+// Get profile-picture URL by user id
+function getProfilePictureUrl(id) {
+    return `/api/users/${id}/profile-picture`;
+}
+
+// Get profile-picture by user id (returns the URL for img src)
 async function getProfilePicture(id) {
-    try {
-        const response = await fetch('/api/users/' + id + "/profile-picture");
-        if (!response.ok) throw new Error('Network response was not ok');
-        return await response.json();
-    } catch (error) {
-        console.error('Error fetching profile-picture:', error);
-        return null;
-    }
+    return `/api/users/${id}/profile-picture`;
 }
 
 // Invite user to party using userId

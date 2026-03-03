@@ -182,7 +182,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         invitationId: inv.id ?? inv.invitationId ?? null,
         partyId: partyId != null ? Number(partyId) : null,
         text: message,
-        actorAvatar: sender?.id ? `/api/users/${sender.id}/profile-picture` : "./images/profile.jpeg",
+        actorAvatar: sender?.id ? `/api/users/${sender.id}/profile-picture` : "/images/default_profile-picture.svg",
         actorProfile: sender?.distinctName ? `/profile/profile.html?handle=${sender.distinctName}` : "#",
         _raw: inv
       };
@@ -206,10 +206,10 @@ document.addEventListener("DOMContentLoaded", async () => {
 
       const img = clone.querySelector(".notif-avatar img");
       if (img) {
-        img.src = item.actorAvatar || "./images/profile.jpeg";
+        img.src = item.actorAvatar || "/images/default_profile-picture.svg";
         img.onerror = function () {
           this.onerror = null;
-          this.src = "./images/profile.jpeg";
+          this.src = "/images/default_profile-picture.svg";
         };
       }
 

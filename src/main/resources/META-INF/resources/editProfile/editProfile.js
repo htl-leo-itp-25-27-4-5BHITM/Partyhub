@@ -45,7 +45,7 @@ function populateForm(user) {
     if (user.profileImage) {
         profileImg.src = `/api/users/${user.id}/profile-picture`;
     } else {
-        profileImg.src = '/images/default_profile-picture.jpg';
+        profileImg.src = '/images/default_profile-picture.svg';
     }
 }
 
@@ -285,18 +285,18 @@ async function uploadProfilePicture(userId) {
     }
 
     const result = await response.json();
-    return result.filename ? 'uploads/profiles/' + result.filename : null;
+    return result.filename ? result.filename : null;
 }
 
 async function getProfilePictureFilename() {
-    // Return the current profile picture filename from the user data
     const userId = window.getCurrentUserId();
+    if (!userId) return '/images/default_profile-picture.svg';
     try {
-        const response = await fetch(`/api/users/${userId}`);
-        const user = await response.json();
-        return user.profileImage || 'default_profile-picture.jpg';
+        const response = await fetch(`/api/users/${userId}/profile-picture-filename`);
+        const data = await response.json();
+        return data.filename ? `/api/users/${userId}/profile-picture` : '/images/default_profile-picture.svg';
     } catch (error) {
-        return 'default_profile-picture.jpg';
+        return '/images/default_profile-picture.svg';
     }
 }
 

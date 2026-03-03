@@ -21,7 +21,7 @@ import java.time.Instant;
 @Path("/api/users/")
 public class ProfilePictureResource {
     private static final String UPLOAD_DIR = "src/main/resources/uploads/profiles/";
-    private static final String DEFAULT_IMAGE = "src/main/resources/META-INF/resources/images/default_profile-picture.jpg";
+    private static final String DEFAULT_IMAGE = "/META-INF/resources/images/default_profile-picture.svg";
     private static final long MAX_FILE_SIZE = 5 * 1024 * 1024;
 
     @Inject
@@ -64,13 +64,9 @@ public class ProfilePictureResource {
     }
 
     private Response serveDefaultImage() {
-        try {
-            if (Files.exists(Paths.get(DEFAULT_IMAGE))) {
-                InputStream is = Files.newInputStream(Paths.get(DEFAULT_IMAGE));
-                return Response.ok(is, "image/jpeg").build();
-            }
-        } catch (IOException e) {
-            logger.log(Logger.Level.ERROR, "Failed to read default image: " + e.getMessage());
+        InputStream is = getClass().getResourceAsStream(DEFAULT_IMAGE);
+        if (is != null) {
+            return Response.ok(is, "image/svg+xml").build();
         }
         return Response.status(Response.Status.NOT_FOUND).build();
     }
