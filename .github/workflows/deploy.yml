@@ -1,0 +1,31 @@
+# https://coresynapseai.com/2025/08/09/automating-kubernetes-deployments-with-github-actions/
+name: Deploy Backend
+
+on:
+  push:
+    branches: [ "main" ]
+jobs:
+  build-and-push:
+    runs-on: ubuntu-latest 
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4 
+
+      - name: Set up kubectl
+        uses: azure/setup-kubectl@v3 
+        with:
+          version: 'v1.28.0' 
+
+      - name: Configure Kubeconfig
+        run: |
+          mkdir -p ~/.kube
+          echo "${{ secrets.KUBE_CONFIG_DATA }}" | base64 -d > ~/.kube/config
+          chmod 600 ~/.kube/config 
+
+      - name: Deploy to Kubernetes
+        run: |
+            echo "Applying Kubernetes manifests"
+            kubectl apply -f k8s/deployment.yaml
+            kubectl apply -f k8s/service.yaml
+            echo "Deployment successful."
