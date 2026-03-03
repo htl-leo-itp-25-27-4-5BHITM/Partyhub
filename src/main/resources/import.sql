@@ -1,107 +1,147 @@
--- Import data for PartyHub application
--- Insert data in order to respect foreign key constraints
+-- =========================
+-- USERS
+-- =========================
+INSERT INTO users (id, display_name, distinct_name, email, biography) VALUES
+                                                                          (1, 'Anna Huber', 'anna_h', 'anna.huber@wien.at', 'Event-Liebhaberin aus Wien'),
+                                                                          (2, 'Michael Wagner', 'michi_w', 'michael.wagner@wien.at', 'Tech & Party Fan'),
+                                                                          (3, 'Katrin Bauer', 'katrin_b', 'katrin.bauer@wien.at', 'Musik begeistert'),
+                                                                          (4, 'Thomas Schneider', 'thomas_s', 'thomas.schneider@wien.at', 'Organisiert gerne Events'),
+                                                                          (5, 'Sabine Weber', 'sabine_w', 'sabine.weber@wien.at', 'Immer auf der Suche nach neuen Events');
 
--- Insert FollowStatus data first
-INSERT INTO follow_status (id, name) VALUES (1, 'ausstehend');
-INSERT INTO follow_status (id, name) VALUES (2, 'akzeptiert');
-INSERT INTO follow_status (id, name) VALUES (3, 'blockiert');
-
-
--- Insert User data
-INSERT INTO users (id, display_name, distinct_name, email, biography, profile_picture) VALUES
-                                                                                           (1, 'Anna Huber', 'anna_h', 'anna.huber@wien.at', 'Party-Enthusiastin und Event-Organisatorin aus Wien!', 'profile_picture1.jpg'),
-                                                                                           (2, 'Michael Wagner', 'michi_w', 'michael.wagner@graz.at', 'Liebhaber von geselligen Veranstaltungen und neuen Bekanntschaften', 'profile_picture2.jpg'),
-                                                                                           (3, 'Katrin Bauer', 'katrin_b', 'katrin.bauer@salzburg.at', 'Musikliebhaberin und Tanzflächen-Expertin', 'profile_picture3.jpg'),
-                                                                                           (4, 'Thomas Schneider', 'thomas_s', 'thomas.schneider@linz.at', 'Professioneller Event-Planer für besondere Momente', 'profile_picture4.jpg'),
-                                                                                           (5, 'Sabine Weber', 'sabine_w', 'sabine.weber@innsbruck.at', 'Genießerin und geselliger Schmetterling', 'profile_picture5.jpg');
-
--- Insert Category data
+-- =========================
+-- CATEGORIES
+-- =========================
 INSERT INTO category (id, name) VALUES
                                     (1, 'Musik'),
-                                    (2, 'Sport'),
-                                    (3, 'Kunst'),
-                                    (4, 'Essen & Trinken'),
-                                    (5, 'Technologie'),
-                                    (6, 'Networking'),
-                                    (7, 'Wohltätigkeit'),
-                                    (8, 'Bildung');
+                                    (2, 'Technologie'),
+                                    (3, 'Sport'),
+                                    (4, 'Kunst'),
+                                    (5, 'Networking');
 
--- Insert Location data
+-- =========================
+-- LOCATIONS (Wien)
+-- =========================
 INSERT INTO location (id, longitude, latitude, address) VALUES
-                                                            (1, 16.3738, 48.2082  , 'Stephansplatz, 1010 Wien, Österreich'),
-                                                            (2, 16.3680, 48.2020  ,'Hofburg, 1010 Wien, Österreich'),
-                                                            (3, 16.3850, 48.2150  ,'Praterstern, 1020 Wien, Österreich'),
-                                                            (4, 16.3600, 48.2000  ,'Linke Wienzeile, 1060 Wien, Österreich'),
-                                                            (5, 16.3750, 48.2100  ,'Lugeck / Fleischmarkt, 1010 Wien, Österreich');
+                                                            (1, 16.3738, 48.2082, 'Stephansplatz, 1010 Wien'),
+                                                            (2, 16.3600, 48.2000, 'MuseumsQuartier, 1070 Wien'),
+                                                            (3, 16.4200, 48.2180, 'Donauinsel, 1220 Wien'),
+                                                            (4, 16.3725, 48.2030, 'Karlsplatz, 1040 Wien'),
+                                                            (5, 16.3419, 48.1970, 'Schönbrunn, 1130 Wien');
 
--- Insert Party data
-INSERT INTO party (id, host_user_id, category_id, location_id, title, time_start, time_end, max_people, min_age, max_age, website, description, fee, created_at) VALUES
-                                                                                                                                                                     (1, 1, 1, 1, 'Sommer Musik Festival', '2025-03-10 18:00:00', '2025-03-10 23:00:00', 200, 18, 35, 'https://summermusic.at', 'Begleite uns zu einem fantastischen Sommer-Musik-Festival mit mehreren DJs und Live-Auftritten! Wiener Atmosphäre garantiert.', 25.00, '2024-06-01 10:00:00'),
-                                                                                                                                                                     (2, 2, 4, 2, 'Weinverkostung Abend', '2026-03-05 19:00:00', '2026-03-05 22:00:00', 50, 21, 60, 'https://weinverkostung.at', 'Exklusive Weinverkostung mit Weinen aus aller Welt. Fachkundige Sommelier-Betreuung inklusive. Wiener Weinviertel-Spezialitäten.', 45.00, '2024-06-15 14:30:00'),
-                                                                                                                                                                     (3, 3, 2, 3, 'Beachvolleyball Turnier', '2026-03-03 10:00:00', '2026-03-03 17:00:00', 100, 16, 40, 'https://beachvolley.at', 'Jährliches Beachvolleyball-Turnier am Donaukanal. Teams willkommen, Einzelspieler können bestehende Teams verstärken!', 10.00, '2024-07-01 09:15:00'),
-                                                                                                                                                                     (4, 4, 5, 4, 'Tech Meetup: KI & Zukunft', '2026-03-07 18:30:00', '2026-03-07 21:30:00', 80, 18, 50, 'https://techmeetup.at', 'Diskussion über neueste KI-Technologie und ihre Auswirkungen auf unsere Zukunft. Speaker aus führenden Tech-Unternehmen.', 0.00, '2024-08-01 16:45:00'),
-                                                                                                                                                                     (5, 5, 3, 5, 'Kunstgalerie Eröffnung', '2026-03-09 17:00:00', '2026-03-09 20:00:00', 60, 18, 65, 'https://kunstgalerie.at', 'Eröffnungsabend unserer zeitgenössischen Kunstausstellung mit lokalen und internationalen Künstlern. Wiener Kunstszene hautnah erleben.', 15.00, '2024-09-15 11:20:00');
+-- =========================
+-- PARTYS IN WIEN
+-- =========================
+INSERT INTO party (
+    id,
+    host_user_id,
+    category_id,
+    location_id,
+    title,
+    time_start,
+    time_end,
+    max_people,
+    min_age,
+    max_age,
+    website,
+    description,
+    fee,
+    created_at
+) VALUES
+      (1, 1, 1, 1,
+       'Vienna Summer Beats',
+       '2026-06-15 18:00:00',
+       '2026-06-15 23:00:00',
+       200, 18, 35,
+       'https://viennabeats.at',
+       'Open-Air DJ Event am Stephansplatz.',
+       25.00,
+       '2026-01-01 10:00:00'),
 
--- Insert party-user relationships (many-to-many)
+      (2, 2, 2, 2,
+       'AI Meetup Vienna',
+       '2026-05-10 18:30:00',
+       '2026-05-10 21:30:00',
+       80, 18, 60,
+       'https://aivienna.at',
+       'Diskussion über KI & Zukunft.',
+       0.00,
+       '2026-01-10 12:00:00'),
+
+      (3, 3, 3, 3,
+       'Donauinsel Volleyball Cup',
+       '2026-07-20 10:00:00',
+       '2026-07-20 17:00:00',
+       100, 16, 40,
+       'https://volleyvienna.at',
+       'Beachvolleyball Turnier an der Donau.',
+       10.00,
+       '2026-02-01 09:00:00'),
+
+      (4, 4, 4, 4,
+       'Art Night Vienna',
+       '2026-04-05 17:00:00',
+       '2026-04-05 21:00:00',
+       60, 18, 65,
+       'https://artnight.at',
+       'Moderne Kunst & Networking.',
+       15.00,
+       '2026-02-10 14:00:00'),
+
+      (5, 5, 5, 5,
+       'Startup Networking Vienna',
+       '2026-05-25 19:00:00',
+       '2026-05-25 22:00:00',
+       120, 18, 50,
+       'https://startupvienna.at',
+       'Treffen für Gründer & Investoren.',
+       5.00,
+       '2026-03-01 16:00:00');
+
+-- =========================
+-- PARTY_USER (ManyToMany)
+-- =========================
 INSERT INTO party_user (party_id, user_id) VALUES
-                                               (1, 1), (1, 2), (1, 3),
-                                               (2, 2), (2, 4), (2, 5),
-                                               (3, 3), (3, 1),
-                                               (4, 4), (4, 5), (4, 1),
-                                               (5, 5), (5, 3), (5, 4);
+                                               (1, 2),
+                                               (1, 3),
+                                               (2, 1),
+                                               (3, 5),
+                                               (4, 2),
+                                               (5, 3);
 
--- Insert Media data
-INSERT INTO media (id, party_id, user_id, url) VALUES
-                                                   (1, 1, 1, 'profile_picture1.jpg'),
-                                                   (2, 1, 2, 'profile_picture2.jpg'),
-                                                   (3, 2, 2, 'profile_picture3.jpg'),
-                                                   (4, 2, 4, 'profile_picture4.jpg'),
-                                                   (5, 3, 3, 'profile_picture5.jpg'),
-                                                   (6, 4, 4, 'default_profile-picture.jpg'),
-                                                   (7, 5, 5, ''),
-                                                   (8, 5, 3, 'galerie_innenraum.jpg');
+-- =========================
+-- MEDIA
+-- =========================
+INSERT INTO media (id, party_id, user_id, file) VALUES
+                                                    (1, 1, 1, 'vienna_beats.jpg'),
+                                                    (2, 2, 2, 'ai_meetup.jpg'),
+                                                    (3, 3, 3, 'volleyball.jpg'),
+                                                    (4, 4, 4, 'artnight.jpg'),
+                                                    (5, 5, 5, 'networking.jpg');
 
--- Insert Invitation data - Einladungen für Events
+-- =========================
+-- INVITATIONS
+-- =========================
 INSERT INTO invitation (id, sender_id, recipient_id, party_id) VALUES
-                                                                   (1, 1, 2, 1),  -- Anna lädt Michael zum Musikfestival ein
-                                                                   (2, 1, 5, 1),  -- Anna lädt Sabine zum Musikfestival ein
-                                                                   (3, 2, 3, 2),  -- Michael lädt Katrin zur Weinverkostung ein
-                                                                   (4, 2, 4, 2),  -- Michael lädt Thomas zur Weinverkostung ein
-                                                                   (5, 3, 1, 3),  -- Katrin lädt Anna zum Beachvolleyball ein
-                                                                   (6, 3, 5, 3),  -- Katrin lädt Sabine zum Beachvolleyball ein
-                                                                   (7, 4, 2, 4),  -- Thomas lädt Michael zum Tech Meetup ein
-                                                                   (8, 4, 3, 4),  -- Thomas lädt Katrin zum Tech Meetup ein
-                                                                   (9, 5, 1, 5),  -- Sabine lädt Anna zur Kunsteröffnung ein
-                                                                   (10, 5, 4, 5); -- Sabine lädt Thomas zur Kunsteröffnung ein
+                                                                   (1, 1, 2, 1),
+                                                                   (2, 2, 3, 2),
+                                                                   (3, 3, 4, 3),
+                                                                   (4, 4, 5, 4),
+                                                                   (5, 5, 1, 5);
 
--- Insert Follow relationships - Follow-Beziehungen
+-- =========================
+-- FOLLOW STATUS
+-- =========================
+INSERT INTO follow_status (id, name) VALUES
+                                         (1, 'ausstehend'),
+                                         (2, 'akzeptiert'),
+                                         (3, 'blockiert');
+
+-- =========================
+-- FOLLOW RELATION
+-- =========================
 INSERT INTO follow (user1_id, user2_id, status_id) VALUES
-                                                       (1, 2, 2),  -- Anna folgt Michael (akzeptiert)
-                                                       (1, 3, 2),  -- Anna folgt Katrin (akzeptiert)
-                                                       (2, 1, 2),  -- Michael folgt Anna (akzeptiert)
-                                                       (2, 4, 2),  -- Michael folgt Thomas (akzeptiert)
-                                                       (3, 1, 2),  -- Katrin folgt Anna (akzeptiert)
-                                                       (3, 5, 1),  -- Katrin folgt Sabine (ausstehend)
-                                                       (4, 2, 2),  -- Thomas folgt Michael (akzeptiert)
-                                                       (4, 5, 2),  -- Thomas folgt Sabine (akzeptiert)
-                                                       (5, 3, 2),  -- Sabine folgt Katrin (akzeptiert)
-                                                       (5, 4, 2);  -- Sabine folgt Thomas (akzeptiert)
-
-
--- Setzt Sequenz auf: MAX(id) + 1
-SELECT setval(
-               pg_get_serial_sequence('location', 'id'),
-               (SELECT MAX(id) FROM location),
-               true
-       );
-
--- Am Ende des gesamten SQL-Files:
-SELECT setval(pg_get_serial_sequence('location', 'id'), COALESCE((SELECT MAX(id) FROM location), 1), true);
-SELECT setval(pg_get_serial_sequence('party', 'id'), COALESCE((SELECT MAX(id) FROM party), 1), true);
-SELECT setval(pg_get_serial_sequence('user', 'id'), COALESCE((SELECT MAX(id) FROM users), 1), true);
--- etc. für alle Tabellen mit Auto-ID
-
--- Falls du Standard-Quarkus-Sequenzen nutzt (GenerationType.SEQUENCE)
-SELECT setval('party_SEQ', (SELECT MAX(id) FROM party));
-SELECT setval('location_SEQ', (SELECT MAX(id) FROM location));
-SELECT setval('users_SEQ', (SELECT MAX(id) FROM users));
+                                                       (1, 2, 2),
+                                                       (2, 1, 2),
+                                                       (3, 1, 1),
+                                                       (4, 5, 2),
+                                                       (5, 3, 2);

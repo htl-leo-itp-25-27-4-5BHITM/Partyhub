@@ -129,9 +129,24 @@ document.addEventListener("DOMContentLoaded", async () => {
     const locName = escapeHtml(p.location?.name ?? "");
     const category = escapeHtml(p.category?.name ?? "");
 
+    const detailsUrl = `/advancedPartyInfos/advancedPartyInfos.html?id=${encodeURIComponent(
+      String(p.id ?? "")
+    )}`;
+
     return `
-      <div style="min-width:200px">
-        <div style="font-weight:700;margin-bottom:6px">${title}</div>
+      <div style="min-width:200px;position:relative;">
+        <div style="font-weight:700;margin-bottom:6px;display:flex;align-items:center;justify-content:space-between">
+          <div style="flex:1;margin-right:8px">${title}</div>
+          <!-- Details / fullscreen icon -->
+          <a href="${detailsUrl}" title="Open details" style="text-decoration:none;color:inherit;display:inline-flex;align-items:center" aria-label="Open party details">
+            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="M8 3H5a2 2 0 0 0-2 2v3"></path>
+              <path d="M16 3h3a2 2 0 0 1 2 2v3"></path>
+              <path d="M8 21H5a2 2 0 0 1-2-2v-3"></path>
+              <path d="M16 21h3a2 2 0 0 0 2-2v-3"></path>
+            </svg>
+          </a>
+        </div>
         <div style="opacity:.85;margin-bottom:8px">
           ${category ? `${category}<br>` : ""}
           ${start || end ? `${start}${end ? " → " + end : ""}<br>` : ""}

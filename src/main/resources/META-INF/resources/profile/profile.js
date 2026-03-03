@@ -1,9 +1,13 @@
 document.addEventListener("DOMContentLoaded", function () {
+  // -----------------------------
+  // Elements
+  // -----------------------------
   const img = document.getElementById("profileImg");
   const displayNameElement = document.getElementById("displayName");
   const distinctNameElement = document.getElementById("distinctName");
 
-  if (!img) return;
+  // Wichtig: NICHT returnen, sonst läuft GAR NICHTS (Dropdown/Tabs/Partys/etc.)
+  // if (!img) return;
 
   // -----------------------------
   // Helpers
@@ -18,6 +22,10 @@ document.addEventListener("DOMContentLoaded", function () {
         </svg>`
       )
     );
+  }
+
+  function safeSetImgSrc(src) {
+    if (img) img.src = src;
   }
 
   async function tryImageUrls(urls, timeout = 2500) {
@@ -52,20 +60,36 @@ document.addEventListener("DOMContentLoaded", function () {
     return [];
   }
 
+  function readHostUserId(p) {
+    const hu = p?.host_user;
+    if (hu && typeof hu === "object") return hu.id ?? null;
+    return p?.host_user_id ?? null;
+  }
+
   // -----------------------------
   // Storage: selected user (fake login)
   // -----------------------------
   const STORAGE_KEY = "loggedInUserId";
+
+  function parseFiniteNumber(x) {
+    const n = Number(x);
+    return Number.isFinite(n) ? n : null;
+  }
+
   function getStoredUserId() {
     try {
       const s = sessionStorage.getItem(STORAGE_KEY);
-      if (s) return Number(s);
+      const n1 = s != null ? parseFiniteNumber(s) : null;
+      if (n1 != null) return n1;
+
       const l = localStorage.getItem(STORAGE_KEY);
-      return l ? Number(l) : null;
+      const n2 = l != null ? parseFiniteNumber(l) : null;
+      return n2;
     } catch {
       return null;
     }
   }
+
   function setStoredUserId(id) {
     try {
       if (id == null) {
@@ -77,6 +101,7 @@ document.addEventListener("DOMContentLoaded", function () {
       }
     } catch {}
   }
+
   window.setLoggedInUser = setStoredUserId;
 
   // -----------------------------
@@ -98,7 +123,9 @@ document.addEventListener("DOMContentLoaded", function () {
     }
 
     if (userIdParam) {
-      loadUserDataById(userIdParam);
+      const n = parseFiniteNumber(userIdParam);
+      if (n != null) loadUserDataById(n);
+      else failUserLoad("Invalid id param");
       return;
     }
 
@@ -112,6 +139,13 @@ document.addEventListener("DOMContentLoaded", function () {
     loadUserDataById(1);
   })();
 
+  function failUserLoad(reason) {
+    console.error("User load failed:", reason);
+    if (displayNameElement) displayNameElement.textContent = "User not found";
+    if (distinctNameElement) distinctNameElement.textContent = "@unknown";
+    safeSetImgSrc(defaultAvatarDataUri());
+  }
+
   // -----------------------------
   // Load user
   // -----------------------------
@@ -124,14 +158,12 @@ document.addEventListener("DOMContentLoaded", function () {
       .then(updateUserProfile)
       .catch((err) => {
         console.error("Failed to load user by handle:", err);
-        if (displayNameElement) displayNameElement.textContent = "User not found";
-        if (distinctNameElement) distinctNameElement.textContent = "@unknown";
-        img.src = defaultAvatarDataUri();
+        failUserLoad(err?.message || err);
       });
   }
 
   function loadUserDataById(userId) {
-    fetch(`/api/users/${userId}`)
+    fetch(`/api/users/${encodeURIComponent(userId)}`)
       .then((r) => {
         if (!r.ok) throw new Error(`HTTP ${r.status}`);
         return r.json();
@@ -139,33 +171,40 @@ document.addEventListener("DOMContentLoaded", function () {
       .then(updateUserProfile)
       .catch((err) => {
         console.error("Failed to load user by id:", err);
-        if (displayNameElement) displayNameElement.textContent = "User not found";
-        if (distinctNameElement) distinctNameElement.textContent = "@unknown";
-        img.src = defaultAvatarDataUri();
+        failUserLoad(err?.message || err);
       });
   }
 
   function updateUserProfile(user) {
     currentUserId = user?.id ?? null;
+
     if (currentUserId != null) setStoredUserId(currentUserId);
 
-    if (displayNameElement) displayNameElement.textContent = user.displayName || "";
-    if (distinctNameElement) distinctNameElement.textContent = user.distinctName ? `@${user.distinctName}` : "";
+    if (displayNameElement) displayNameElement.textContent = user?.displayName || "";
+    if (distinctNameElement) {
+      distinctNameElement.textContent = user?.distinctName ? `@${user.distinctName}` : "";
+    }
 
-    // Profile image: ONLY endpoint that exists
+    // Profile image
     (async () => {
+      if (!currentUserId) {
+        safeSetImgSrc(defaultAvatarDataUri());
+        return;
+      }
       const url = await tryImageUrls([`/api/users/${currentUserId}/profile-picture`]);
-      img.src = url || defaultAvatarDataUri();
+      safeSetImgSrc(url || defaultAvatarDataUri());
     })();
 
     // Parties for selected user
     loadUserParties().catch((e) => console.debug("loadUserParties failed", e));
   }
 
-  img.onerror = function () {
-    this.onerror = null;
-    this.src = defaultAvatarDataUri();
-  };
+  if (img) {
+    img.onerror = function () {
+      this.onerror = null;
+      this.src = defaultAvatarDataUri();
+    };
+  }
 
   // -----------------------------
   // Search
@@ -185,6 +224,11 @@ document.addEventListener("DOMContentLoaded", function () {
     if (!searchDropdown) return;
     searchDropdown.classList.remove("hidden");
     searchDropdown.setAttribute("aria-hidden", "false");
+  }
+
+  // damit Klicks im Dropdown es nicht sofort schließen, falls du später einen global click-closer machst
+  if (searchDropdown) {
+    searchDropdown.addEventListener("click", (e) => e.stopPropagation());
   }
 
   function displaySearchResults(results) {
@@ -209,6 +253,8 @@ document.addEventListener("DOMContentLoaded", function () {
       item.addEventListener("click", () => {
         hideSearchDropdown();
         setStoredUserId(u.id);
+
+        // handle endpoint erwartet handle-string (bei dir distinctName)
         loadUserDataByHandle(u.distinctName);
 
         const newUrl = new URL(window.location.href);
@@ -228,7 +274,8 @@ document.addEventListener("DOMContentLoaded", function () {
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const data = await res.json();
       displaySearchResults(Array.isArray(data) ? data : []);
-    } catch {
+    } catch (e) {
+      console.debug("performSearch failed", e);
       hideSearchDropdown();
     }
   }
@@ -245,8 +292,11 @@ document.addEventListener("DOMContentLoaded", function () {
     });
   }
 
+  // Optional: Klick außerhalb schließt Search
+  document.addEventListener("click", () => hideSearchDropdown());
+
   // -----------------------------
-  // Username dropdown (ONLY /api/users/all to avoid 500)
+  // Username dropdown (ONLY /api/users/all)
   // -----------------------------
   const usernameBtn = document.getElementById("usernameBtn");
   const usernameDropdown = document.getElementById("usernameDropdown");
@@ -254,10 +304,16 @@ document.addEventListener("DOMContentLoaded", function () {
 
   function closeUsernameDropdown() {
     if (!usernameDropdown) return;
-    try { usernameBtn?.focus(); } catch {}
     usernameDropdown.classList.add("hidden");
     usernameDropdown.setAttribute("aria-hidden", "true");
     usernameBtn?.setAttribute("aria-expanded", "false");
+  }
+
+  function openUsernameDropdown() {
+    if (!usernameDropdown) return;
+    usernameDropdown.classList.remove("hidden");
+    usernameDropdown.setAttribute("aria-hidden", "false");
+    usernameBtn?.setAttribute("aria-expanded", "true");
   }
 
   async function fetchUsersAll() {
@@ -276,7 +332,8 @@ document.addEventListener("DOMContentLoaded", function () {
       btn.type = "button";
       btn.className = "username-item";
       btn.innerHTML = `<span>@${u.distinctName}</span>`;
-      btn.addEventListener("click", () => {
+      btn.addEventListener("click", (e) => {
+        e.stopPropagation();
         closeUsernameDropdown();
         setStoredUserId(u.id);
         loadUserDataById(u.id);
@@ -290,17 +347,21 @@ document.addEventListener("DOMContentLoaded", function () {
     });
   }
 
+  if (usernameDropdown) {
+    // Klick im Dropdown soll NICHT durch den document-click sofort schließen
+    usernameDropdown.addEventListener("click", (e) => e.stopPropagation());
+  }
+
   if (usernameBtn && usernameDropdown) {
     usernameBtn.addEventListener("click", async (e) => {
+      e.preventDefault();
       e.stopPropagation();
+
       const isOpen = !usernameDropdown.classList.contains("hidden");
       if (isOpen) {
         closeUsernameDropdown();
         return;
       }
-
-      usernameBtn.setAttribute("aria-expanded", "true");
-      usernameDropdown.setAttribute("aria-hidden", "false");
 
       try {
         const users = await fetchUsersAll();
@@ -310,7 +371,7 @@ document.addEventListener("DOMContentLoaded", function () {
         renderUsernameList([]);
       }
 
-      usernameDropdown.classList.remove("hidden");
+      openUsernameDropdown();
     });
 
     document.addEventListener("click", () => closeUsernameDropdown());
@@ -319,83 +380,32 @@ document.addEventListener("DOMContentLoaded", function () {
   // -----------------------------
   // Parties: ONLY /api/party/ and filter by Party.host_user.id
   // -----------------------------
-  function readHostUserId(p) {
-    const hu = p?.host_user;
-    if (hu && typeof hu === "object") return hu.id ?? null;
-    return p?.host_user_id ?? null; // falls du später getter hinzufügst
-  }
-
   async function loadUserParties() {
-  if (!currentUserId) {
-    console.warn("loadUserParties: no currentUserId");
-    return;
+    if (!currentUserId) {
+      console.warn("loadUserParties: no currentUserId");
+      renderParties([]); // optional: clear UI
+      return;
+    }
+
+    let parties = [];
+    try {
+      const res = await fetch("/api/party/");
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const json = await res.json().catch(() => null);
+      parties = normalizeToArray(json);
+    } catch (err) {
+      console.error("Failed to fetch /api/party/:", err);
+      renderParties([]);
+      return;
+    }
+
+    const filtered = parties.filter((p) => {
+      const hostId = readHostUserId(p);
+      return hostId != null && String(hostId) === String(currentUserId);
+    });
+
+    renderParties(filtered);
   }
-
-  console.log("=== loadUserParties START ===");
-  console.log("Current profile user:", currentUserId);
-
-  let parties = [];
-
-  try {
-    const res = await fetch("/api/party/");
-    if (!res.ok) throw new Error(`HTTP ${res.status}`);
-
-    const json = await res.json().catch(() => null);
-    parties = normalizeToArray(json);
-
-  } catch (err) {
-    console.error("Failed to fetch /api/party/:", err);
-    return;
-  }
-
-  // 👉 RAW backend data
-  console.log("RAW parties from backend:");
-  console.log(parties);
-
-  try {
-    console.table(parties.map(p => ({
-      id: p.id,
-      title: p.title,
-      host_user: p.host_user?.id ?? null
-    })));
-  } catch {}
-
-  // helper: host id lesen
-  function readHostUserId(p) {
-    const hu = p?.host_user;
-    if (hu && typeof hu === "object") return hu.id ?? null;
-    return p?.host_user_id ?? null;
-  }
-
-  // 👉 Filtering
-  const filtered = parties.filter(p => {
-    const hostId = readHostUserId(p);
-    const match = hostId != null && String(hostId) === String(currentUserId);
-
-    console.log(
-      `Party ${p.id}: host=${hostId} → match=${match}`
-    );
-
-    return match;
-  });
-
-  console.log("Filtered parties:");
-  console.log(filtered);
-
-  try {
-    console.table(filtered.map(p => ({
-      id: p.id,
-      title: p.title,
-      host_user: readHostUserId(p)
-    })));
-  } catch {}
-
-  console.log(`Result: ${filtered.length} / ${parties.length} parties`);
-  console.log("=== loadUserParties END ===");
-
-  renderParties(filtered);
-}
-
 
   function renderParties(parties) {
     const container = document.getElementById("partiesContainer");
@@ -432,21 +442,22 @@ document.addEventListener("DOMContentLoaded", function () {
         deleteBtn.onclick = async (e) => {
           e.stopPropagation();
           if (!confirm("Löschen?")) return;
-          const res = await fetch(`/api/party/${p.id}`, { method: "DELETE" });
+
+          // Oft braucht man hier den trailing slash:
+          const res = await fetch(`/api/party/${encodeURIComponent(p.id)}/`, { method: "DELETE" });
+
           if (res.ok) loadUserParties();
+          else console.error("Delete failed:", res.status);
         };
       }
 
-      // ADDED: Edit button -> open addParty with prefilled data
       const editBtn = node.querySelector(".edit-btn");
       if (editBtn) {
         editBtn.onclick = (e) => {
           e.stopPropagation();
           try {
-            // store the full party object so addParty can fall back to it if backend unavailable
             localStorage.setItem("editingParty", JSON.stringify(p));
           } catch {}
-          // navigate to addParty page with party id param
           window.location.href = `/addParty/addParty.html?id=${encodeURIComponent(p.id)}`;
         };
       }
@@ -488,7 +499,6 @@ document.addEventListener("DOMContentLoaded", function () {
       });
     });
 
-    const initial = /* force initial tab to "Partys" */ "Partys";
-    showTab(initial);
+    showTab("Partys");
   })();
 });
