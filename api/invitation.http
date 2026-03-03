@@ -1,13 +1,20 @@
-//TODO Post geht noch nicht
-###
-POST http://localhost:8080/api/invitation
+POST http://localhost:8080/api/invites?user=1
 Content-Type: application/json
 
 {
-  "recipient": 2,
+  "recipient": 3,
   "partyId": 1
 }
-
 ###
 GET http://localhost:8080/api/invites/rec
 
+
+###
+GET http://localhost:8080/api/invites/inv?user=1
+
+<> 2026-03-03T163213.200.json
+
+###
+DELETE http://localhost:8080/api/invites/delete/5
+X-User-Id: 1
+Accept: application/json

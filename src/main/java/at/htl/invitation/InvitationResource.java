@@ -18,7 +18,6 @@ public class InvitationResource {
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     @Transactional
-    @Path("/")
     public Response invite(InvitationDto invitationDto,
                           @QueryParam("user") Long userId,
                           @HeaderParam("X-User-Id") Long headerUserId) {
