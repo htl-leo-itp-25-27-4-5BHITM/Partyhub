@@ -5,7 +5,7 @@ on:
   push:
     branches: [ "main" ]
     paths:
-      - 'k8s/**'
+      - 'src/**'
       - 'deploy.yaml'
 
 jobs:
