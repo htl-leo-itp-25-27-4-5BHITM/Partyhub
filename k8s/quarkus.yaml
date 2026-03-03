@@ -22,7 +22,7 @@ spec:
           env:
           - name: QUARKUS_PROFILE
             value: prod
-          image: ghcr.io/htl-leo-itp-25-27-4-5bhitm/partyhub-quarkus:latest
+          image: ghcr.io/htl-leo-itp-25-27-4-5bhitm/partyhub-backend:latest
           imagePullPolicy: Always
           ports:
             - containerPort: 8080
