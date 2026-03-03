@@ -4,9 +4,16 @@ name: Deploy Backend
 on:
   push:
     branches: [ "main" ]
+    paths:
+      - 'k8s/**'
+      - 'deploy.yaml'
+
 jobs:
   build-and-push:
-    runs-on: ubuntu-latest 
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
 
     steps:
       - name: Checkout code
