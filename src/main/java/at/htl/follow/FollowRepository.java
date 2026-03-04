@@ -26,6 +26,7 @@ public class FollowRepository {
                 .setParameter("userId", userId)
                 .getSingleResult();
     }
+
     public long getFollowingCount(long userId) {
         return entityManager.createQuery(
                 "SELECT COUNT(f) FROM Follow f WHERE f.user1_id = :userId AND f.status.status_id = 2",
@@ -52,14 +53,15 @@ public class FollowRepository {
                 .getResultList();
     }
 
+// 1. Alle ausstehenden Anfragen (Status 1) abrufen
     public List<User> getPendingFollowerRequests(long userId) {
         return entityManager.createQuery(
                 "SELECT u FROM User u JOIN Follow f ON u.id = f.user1_id " +
-                "WHERE f.user2_id = :userId AND f.status.status_id = 1",
-                User.class)
+                        "WHERE f.user2_id = :userId AND f.status.status_id = 1", User.class)
                 .setParameter("userId", userId)
                 .getResultList();
     }
+
     public boolean isFollowing(long user1Id, long user2Id) {
         List<Follow> follows = entityManager.createQuery(
                 "SELECT f FROM Follow f WHERE f.user1_id = :user1Id AND f.user2_id = :user2Id AND f.status.status_id = 2",
@@ -100,6 +102,7 @@ public class FollowRepository {
         entityManager.persist(follow);
         return Response.ok().entity("{\"message\": \"Follow request sent\"}").build();
     }
+
     @Transactional
     public Response acceptFollowRequest(long user1Id, long user2Id) {
         Follow follow = entityManager.createQuery(
@@ -123,6 +126,7 @@ public class FollowRepository {
 
         return Response.ok().entity("{\"message\": \"Follow request accepted\"}").build();
     }
+
     @Transactional
     public Response removeFollow(long user1Id, long user2Id) {
         Follow follow = entityManager.createQuery(
