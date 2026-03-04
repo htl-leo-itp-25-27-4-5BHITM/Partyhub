@@ -20,14 +20,12 @@ A social event platform for organizing and discovering parties, meetups, and soc
 - **API**: REST with Jackson serialization
 - **Authentication**: JWT with SmallRye
 - **Documentation**: Swagger UI for API exploration
-- **Frontend**: Qute templates for server-side rendering
 
 ## Prerequisites
 
 - Java 21 or later
 - Maven 3.8+
 - PostgreSQL 12+ (for production)
-- Node.js and npm (for frontend dependencies, if applicable)
 
 ## Installation
 
@@ -43,12 +41,6 @@ cd Partyhub
 ```bash
 ./deploy-local.sh
 ```
-
-This script will:
-- Configure the database
-- Run migrations
-- Start the Quarkus development server
-
 ### 3. Open the application
 
 **Website**: http://localhost:8080
@@ -76,8 +68,6 @@ Partyhub/
 ```
 
 ## Database Schema
-
-Based on the current `import.sql`, the database includes:
 
 - **users**: User accounts with display names, emails, and biographies
 - **profile_picture**: One-to-one relationship with users
