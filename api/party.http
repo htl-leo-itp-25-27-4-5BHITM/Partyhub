@@ -22,11 +22,14 @@ Content-Type: application/json
   "selectedUsers": []
 }
 
+?? status == 201
 ###
 GET http://localhost:8080/api/party/1?
     filter={{$random.alphanumeric(8)}}&
     sort={{$random.alphanumeric(8)}}
     Content-Type: application/json
+
+    ?? status == 204
 
 ###
 DELETE http://localhost:8080/api/party/6?
