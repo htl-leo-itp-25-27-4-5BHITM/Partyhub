@@ -2,15 +2,13 @@
 name: Deploy Backend
 
 on:
-  push:
-    branches: [ "main" ]
-    paths:
-      - 'src/**'
-      - '.github/workflows/deploy.yml'
-      - 'k8s/**'
+  workflow_run:
+    workflows: ["Build and Push Backend"]
+    types:
+      - completed
 
 jobs:
-  build-and-push:
+  deploy:
     runs-on: ubuntu-latest
     permissions:
       contents: read

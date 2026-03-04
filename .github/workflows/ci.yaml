@@ -5,7 +5,7 @@ on:
     branches: [ "main" ]
     paths:
       - 'src/**' 
-      - '.github/workflows/cicd.yaml'
+      - '.github/workflows/'
 
 env:
   REGISTRY: ghcr.io
