@@ -1,89 +1,120 @@
+@baseUrl = http://localhost:8080/api
+
+GET {{baseUrl}}/parties
+?? status == 200
 
 ###
-POST http://localhost:8080/api/party/add
+
+### 2️⃣ Neue Party erstellen (POST)
+# @name createParty
+POST {{baseUrl}}/parties
 Content-Type: application/json
 
 {
-  "title": "testing",
-  "description": "testing",
-  "fee": 0,
-  "time_start": "2026-02-25T15:00:00",
-  "time_end": "2026-02-25T16:00:00",
-  "max_people": 0,
-  "min_age": 0,
-  "max_age": 0,
-  "website": "",
-  "latitude": 0,
-  "longitude": 0,
-  "location_address": "",
-  "category_id": 0,
-  "theme": "",
-  "visibility": "",
-  "selectedUsers": []
+  "title": "Test Party",
+  "description": "Party zum Testen",
+  "fee": 10.0,
+  "time_start": "2026-03-10T20:00",
+  "time_end": "2026-03-10T23:00",
+  "website": "https://party.example.com",
+  "min_age": 18,
+  "max_age": 99,
+  "latitude": 48.2082,
+  "longitude": 16.3738,
+  "location_address": "Wien, Österreich",
+  "category_id": 1
 }
-
 ?? status == 201
-###
-GET http://localhost:8080/api/party/1?
-    filter={{$random.alphanumeric(8)}}&
-    sort={{$random.alphanumeric(8)}}
-    Content-Type: application/json
-
-    ?? status == 204
 
 ###
-DELETE http://localhost:8080/api/party/6?
-    sort={{$random.alphanumeric(8)}}&
-    filter={{$random.alphanumeric(8)}}
-    Content-Type: application/json
+
+# @forceRef createParty
+GET {{baseUrl}}/parties/{{createParty.response.body.id}}
+?? status == 200
 
 ###
-POST http://localhost:8080/api/party/5?sort={{$random.alphanumeric(8)}}&filter={{$random.alphanumeric(8)}}
+
+
+PUT {{baseUrl}}/parties/{{createParty.response.body.id}}
 Content-Type: application/json
 
 {
-  "title": "HTL Release Party",
-  "description": "Feiern ohne NullPointerExceptions",
-  "fee": 5.0,
-  "time_end": "2026-03-01T04:00:00",
-  "website": "https://htl-leonding.ac.at",
-  "max_age": 25,
-  "min_age": 16,
-  "latitude": 48.2683,
-  "longitude": 14.2518
+  "title": "Updated Test Party",
+  "description": "Updated Description",
+  "fee": 15.0,
+  "time_start": "2026-03-11T20:00",
+  "time_end": "2026-03-11T23:00",
+  "website": "https://party-updated.example.com",
+  "min_age": 18,
+  "max_age": 99,
+  "latitude": 48.2082,
+  "longitude": 16.3738,
+  "location_address": "Wien, Österreich",
+  "category_id": 1
 }
+?? status == 200
 
 ###
-POST http://localhost:8080/api/party/filter?filter=category
+
+PUT {{baseUrl}}/parties/attend/{{createParty.response.body.id}}?userId=1
+?? status == 204
+
+###
+
+GET {{baseUrl}}/parties/{{createParty.response.body.id}}/attend-status?userId=1
+?? status == 200
+
+###
+
+### 7️⃣ Leave Party (User 1)
+PUT {{baseUrl}}/parties/leave/{{createParty.response.body.id}}?userId=1
+?? status == 200
+
+###
+
+POST {{baseUrl}}/parties/filter
 Content-Type: application/json
 
 {
-  "value": "Musik"
+  "filter": "content",
+  "value": "Test"
 }
+?? status == 200
 
 ###
-GET http://localhost:8080/api/party/sort?
-    sort={{$random.alphanumeric(8)}}
+
+POST {{baseUrl}}/parties/filter
+Content-Type: application/json
+
+{
+  "filter": "category",
+  "value": "Party"
+}
+?? status == 200
 
 ###
-POST http://localhost:8080/api/party/5/attend
+
+POST {{baseUrl}}/parties/filter
+Content-Type: application/json
+
+{
+  "filter": "date",
+  "start": "2026-03-01T00:00",
+  "end": "2026-03-31T23:59"
+}
+?? status == 200
 
 ###
-DELETE http://localhost:8080/api/party/5/leave
+
+GET {{baseUrl}}/parties/sort?sort=asc
+?? status == 200
 
 ###
-GET http://localhost:8080/api/party/1/attend/status?user=1
-X-User-Id: 1
-Accept: application/json
+
+GET {{baseUrl}}/parties/sort?sort=desc
+?? status == 200
 
 ###
-POST http://localhost:8080/api/party/1/media/upload?user=1
-X-User-Id: 1
-Content-Type: multipart/form-data; boundary=boundary
 
---boundary
-Content-Disposition: form-data; name="file"; filename="party_bild.jpg"
-Content-Type: image/jpeg
-
-< ./testing.jpg
---boundary--
+DELETE {{baseUrl}}/parties/{{createParty.response.body.id}}
+?? status == 204

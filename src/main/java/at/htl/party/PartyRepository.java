@@ -1,12 +1,17 @@
 package at.htl.party;
 
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
+import java.util.List;
+import java.util.Map;
+
+import at.htl.FilterDto;
 import at.htl.category.Category;
 import at.htl.category.CategoryRepository;
-import at.htl.FilterDto;
 import at.htl.location.Location;
 import at.htl.location.LocationRepository;
 import at.htl.user.User;
-import at.htl.user.UserRepository;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import jakarta.persistence.EntityManager;
@@ -15,13 +20,6 @@ import jakarta.ws.rs.BadRequestException;
 import jakarta.ws.rs.QueryParam;
 import jakarta.ws.rs.core.Response;
 import jakarta.ws.rs.core.UriBuilder;
-import org.jboss.logging.Logger;
-
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
-import java.time.format.DateTimeParseException;
-import java.util.List;
-import java.util.Map;
 
 @ApplicationScoped
 @Transactional
@@ -30,8 +28,8 @@ public class PartyRepository {
     @Inject
     EntityManager entityManager;
 
-    @Inject
-    Logger logger;
+    //@Inject
+    //Logger logger;
 
     @Inject
     LocationRepository locationRepository;
@@ -39,8 +37,8 @@ public class PartyRepository {
     @Inject
     CategoryRepository categoryRepository;
 
-    @Inject
-    UserRepository userRepository;
+    //@Inject
+    //UserRepository userRepository;
 
     private static final DateTimeFormatter PARTY_DTF = DateTimeFormatter.ofPattern("dd.MM.yyyy HH:mm");
 

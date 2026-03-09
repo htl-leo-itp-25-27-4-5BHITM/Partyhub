@@ -1,37 +1,60 @@
-###
+### Alle User holen
 GET http://localhost:8080/api/users/all
 
+?? status == 200
 ###
-GET http://localhost:8080/api/users/all/search?
-    name={{$random.alphanumeric(8)}}
 
-<> 2026-03-03T161642.200.json
+@searchName = anna
+# Suche User
+# @name searchUsersByName
+GET http://localhost:8080/api/users/all/search?name={{searchName}}
 
-
+?? status == 200
 ###
+# @forceRef searchUsersByName
+GET http://localhost:8080/api/users/{{searchUsersByName.response.body[0].id}}
+?? status == 200
+
+### User direkt per ID holen
 GET http://localhost:8080/api/users/1
-
-<> 2026-03-03T161712.200.json
-
+?? status == 200
 
 ###
+
+### User per Handle holen
 GET http://localhost:8080/api/users/handle/anna_h
 Accept: application/json
 
-<> 2026-03-03T161823.200.json
+?? status == 200
 
 ###
+
+### Follower Count von User 1
 GET http://localhost:8080/api/users/1/followers/count
 
-<> 2026-03-03T161849.200.json
+?? status == 200
 
-###
+
+### Following Count von User 3
 GET http://localhost:8080/api/users/3/following/count
 
-<> 2026-03-03T161912.200.json
-<> 2026-03-03T161907.200.json
+?? status == 200
 
-###
+### User anlegen
+POST http://localhost:8080/api/users
+Content-Type: application/json
+
+{
+  "displayName": "Max Mustermann",
+  "distinctName": "max_m",
+  "email": "max.mustermann@test.at",
+  "biography": "Neuer User"
+}
+
+?? status == 201
+
+
+### 
 PUT http://localhost:8080/api/users/5
 Content-Type: application/json
 
@@ -43,4 +66,4 @@ Content-Type: application/json
   "biography": "Immer auf der Suche nach neuen Events"
 }
 
-<> 2026-03-03T162041.200.json
+?? status == 200
