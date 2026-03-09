@@ -115,7 +115,3 @@ The application provides a comprehensive REST API with the following endpoints:
 7. Sprint: 28.01.2026
 8. Sprint: 11.02.2026
 9. Sprint: 04.03.2026
-
-## License
-
-This project is licensed under the MIT License - see the LICENSE file for details.

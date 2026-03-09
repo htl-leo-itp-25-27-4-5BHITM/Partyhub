@@ -37,7 +37,6 @@ public class UserResource {
 
     private static final String UPLOAD_DIR = "src/main/resources/uploads/profiles/";
     private static final String DEFAULT_IMAGE = "/META-INF/resources/images/default_profile-picture.svg";
-    private static final long MAX_FILE_SIZE = 5 * 1024 * 1024;
 
     @POST
     @Transactional
@@ -139,7 +138,6 @@ public class UserResource {
         return Response.ok(merged).build();
     }
 
-    // ===================== PROFILE PICTURE ENDPOINTS =====================
 
     @GET
     @Path("/{id}/profile-picture")
