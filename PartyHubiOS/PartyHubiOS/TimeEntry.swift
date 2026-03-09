@@ -6,6 +6,7 @@ class TimeEntry {
     var locationIdentifier: String
     var startTime: Date
     var endTime: Date?
+    var party: Party?
     
     init(locationIdentifier: String, startTime: Date = .now) {
         self.locationIdentifier = locationIdentifier
@@ -13,7 +14,7 @@ class TimeEntry {
     }
     
     var durationInHours: Double {
-        guard let end = endTime else { return 0.0 }
+        let end = endTime ?? .now
         return end.timeIntervalSince(startTime) / 3600.0
     }
 }

@@ -10,9 +10,22 @@
 		524121CD2F1FABC80036975E /* PartyHubiOS.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = PartyHubiOS.app; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
+/* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
+		52BFFD8A2F5F2856006115BA /* Exceptions for "PartyHubiOS" folder in "PartyHubiOS" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Info.plist,
+			);
+			target = 524121CC2F1FABC80036975E /* PartyHubiOS */;
+		};
+/* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
+
 /* Begin PBXFileSystemSynchronizedRootGroup section */
 		524121CF2F1FABC80036975E /* PartyHubiOS */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				52BFFD8A2F5F2856006115BA /* Exceptions for "PartyHubiOS" folder in "PartyHubiOS" target */,
+			);
 			path = PartyHubiOS;
 			sourceTree = "<group>";
 		};
@@ -240,6 +253,7 @@
 				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
 				MTL_ENABLE_DEBUG_INFO = NO;
 				MTL_FAST_MATH = YES;
+				ONLY_ACTIVE_ARCH = YES;
 				SDKROOT = iphoneos;
 				SWIFT_COMPILATION_MODE = wholemodule;
 				VALIDATE_PRODUCT = YES;
@@ -256,6 +270,7 @@
 				DEVELOPMENT_TEAM = XCZ33TVZZX;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = PartyHubiOS/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = PartyHub;
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
@@ -289,6 +304,7 @@
 				DEVELOPMENT_TEAM = XCZ33TVZZX;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = PartyHubiOS/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = PartyHub;
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
