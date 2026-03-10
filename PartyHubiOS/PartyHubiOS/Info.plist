@@ -8,5 +8,10 @@
 	<string>PartyHub braucht deinen Standort um automatisch zu erkennen wenn du eine Party betrittst.
 Value: PartyHub braucht deinen Standort um automatisch zu erkennen wenn du eine Party betrittst.
 </string>
+	<key>NSAppTransportSecurity</key>
+	<dict>
+		<key>NSAllowsArbitraryLoads</key>
+		<true/>
+	</dict>
 </dict>
 </plist>
