@@ -1,10 +1,12 @@
 package at.htl.user_location;
 
+import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import jakarta.persistence.EntityManager;
 
 import java.util.List;
 
+@ApplicationScoped
 public class UserLocationRepository {
     @Inject
     EntityManager em;
