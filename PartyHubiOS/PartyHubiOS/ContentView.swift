@@ -34,7 +34,3 @@ struct ContentView: View {
     }
 
 }
-#Preview {
-    ContentView()
-        .modelContainer(for: TimeEntry.self, inMemory: true)
-}
