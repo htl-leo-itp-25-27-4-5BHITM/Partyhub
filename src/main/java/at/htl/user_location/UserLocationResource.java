@@ -10,7 +10,7 @@ import jakarta.ws.rs.core.MediaType;
 import java.util.List;
 
 @ApplicationScoped
-@Path("/userLocation")
+@Path("/api/userLocation")
 public class UserLocationResource {
     @Inject
     UserLocationRepository userlocRep;
