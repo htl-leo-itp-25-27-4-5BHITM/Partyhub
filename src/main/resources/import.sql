@@ -268,3 +268,12 @@ INSERT INTO follow (user1_id, user2_id, status_id) VALUES
                                                        (8,10, 2),
                                                        (9, 6, 2),
                                                        (10,3, 3);
+
+INSERT INTO user_location (latitude, longitude, user_id)
+VALUES (48.2797, 14.2533, 1);
+
+INSERT INTO user_location (latitude, longitude, user_id)
+VALUES (48.2812, 14.2508, 2);
+
+INSERT INTO user_location (latitude, longitude, user_id)
+VALUES (48.2779, 14.2571, 3);

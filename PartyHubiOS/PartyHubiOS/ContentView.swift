@@ -2,7 +2,10 @@ import SwiftUI
 import SwiftData
 
 struct ContentView: View {
+    @State private var locationManager = LocationManager()
+
     var body: some View {
+
         TabView {
             HomeView()
                 .tabItem {
@@ -19,9 +22,14 @@ struct ContentView: View {
                     Label("Photo", systemImage: "photo.stack")
                 }
             
-            TimeTrackingView()
+            /*TimeTrackingView()
                 .tabItem {
                     Label("Time", systemImage: "timer")
+                }
+             */
+            MapView(locationManager: LocationManager())
+                .tabItem {
+                    Label("Map", systemImage: "map")
                 }
             
             ProfileView()

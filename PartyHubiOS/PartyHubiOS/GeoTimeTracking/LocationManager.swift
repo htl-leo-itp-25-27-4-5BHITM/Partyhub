@@ -7,6 +7,12 @@ class LocationManager: NSObject, CLLocationManagerDelegate {
     private let manager = CLLocationManager()
     var authorizationStatus: CLAuthorizationStatus = .notDetermined
     var lastEvent: String = ""
+    var currentLocation: CLLocationCoordinate2D?
+    
+    func locationManager(_ manager: CLLocationManager, didUpdateLocations locations: [CLLocation]) {
+        currentLocation = locations.last?.coordinate
+    }
+
     
     var modelContext: ModelContext?
     
@@ -96,4 +102,7 @@ class LocationManager: NSObject, CLLocationManagerDelegate {
         }
         
     }
+
+
+
 }
