@@ -27,7 +27,7 @@ struct HomeView: View {
                 self.location = loc
             }
             LocationDisplayHelper.shared.start()
-        }.applyPrimaryStyle().padding()
+        }
     }
 
 }
