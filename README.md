@@ -1,12 +1,12 @@
 # PartyHub
 
 <p align="center">
+  <img src="logo.png" alt="PartyHub Logo" width="200">
+</p>
+<p align="center">
   <a href="https://github.com/htl-leo-itp-25-27-4-5BHITM/Partyhub/actions/workflows/deploy.yml"><img src="https://img.shields.io/github/actions/workflow/status/htl-leo-itp-25-27-4-5BHITM/Partyhub/deploy.yml?branch=main&style=for-the-badge" alt="Deploy status"></a>
 </p>
 
-<p align="center">
-  <img src="logo.png" alt="PartyHub Logo" width="200">
-</p>
 
 A social event platform for organizing and discovering parties, meetups, and social gatherings.
 
