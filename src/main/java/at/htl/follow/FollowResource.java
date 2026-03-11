@@ -1,22 +1,26 @@
 package at.htl.follow;
 
+import java.util.List;
+
 import at.htl.user.User;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
-import jakarta.ws.rs.*;
+import jakarta.ws.rs.DELETE;
+import jakarta.ws.rs.GET;
+import jakarta.ws.rs.POST;
+import jakarta.ws.rs.PUT;
+import jakarta.ws.rs.Path;
+import jakarta.ws.rs.PathParam;
+import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
-import org.jboss.logging.Logger;
-
-import java.util.List;
 
 @ApplicationScoped
 @Path("/follow")
 public class FollowResource {
     @Inject
     FollowRepository followRepository;
-    @Inject
-    Logger logger;
+    // @Inject Logger logger;
 
     @GET
     @Path("/follower/{id}/count")

@@ -1,14 +1,13 @@
 package at.htl.follow;
 
+import java.util.List;
+
 import at.htl.user.User;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import jakarta.persistence.EntityManager;
 import jakarta.transaction.Transactional;
 import jakarta.ws.rs.core.Response;
-import org.jboss.logging.Logger;
-
-import java.util.List;
 
 @ApplicationScoped
 public class FollowRepository {
@@ -16,8 +15,7 @@ public class FollowRepository {
     @Inject
     EntityManager entityManager;
 
-    @Inject
-    Logger logger;
+    //@Inject Logger logger;
 
     public long getFollowerCount(long userId) {
         return entityManager.createQuery(
@@ -100,8 +98,7 @@ public class FollowRepository {
         follow.setStatus(pendingStatus);
 
         entityManager.persist(follow);
-        return Response.ok().entity("{\"message\": \"Follow request sent\"}").build();
-    }
+        return Response.status(Response.Status.CREATED).entity("{\"message\": \"Follow request sent\"}").build();    }
 
     @Transactional
     public Response acceptFollowRequest(long user1Id, long user2Id) {
@@ -126,25 +123,24 @@ public class FollowRepository {
 
         return Response.ok().entity("{\"message\": \"Follow request accepted\"}").build();
     }
+@Transactional
+public Response removeFollow(long user1Id, long user2Id) {
+    Follow follow = entityManager.createQuery(
+            "SELECT f FROM Follow f WHERE f.user1_id = :user1Id AND f.user2_id = :user2Id",
+            Follow.class)
+            .setParameter("user1Id", user1Id)
+            .setParameter("user2Id", user2Id)
+            .getResultStream()
+            .findFirst()
+            .orElse(null);
 
-    @Transactional
-    public Response removeFollow(long user1Id, long user2Id) {
-        Follow follow = entityManager.createQuery(
-                "SELECT f FROM Follow f WHERE f.user1_id = :user1Id AND f.user2_id = :user2Id",
-                Follow.class)
-                .setParameter("user1Id", user1Id)
-                .setParameter("user2Id", user2Id)
-                .getResultStream()
-                .findFirst()
-                .orElse(null);
-
-        if (follow == null) {
-            return Response.status(Response.Status.NOT_FOUND)
-                    .entity("{\"message\": \"No follow relationship found\"}")
-                    .build();
-        }
-
-        entityManager.remove(follow);
-        return Response.ok().entity("{\"message\": \"Follow removed\"}").build();
+    if (follow == null) {
+        return Response.status(Response.Status.NOT_FOUND)
+                .entity("{\"message\": \"No follow relationship found\"}")
+                .build();
     }
+
+    entityManager.remove(follow);
+    return Response.noContent().build();
+}
 }
