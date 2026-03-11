@@ -1,15 +1,23 @@
 package at.htl.party;
 
+import java.util.List;
+
 import at.htl.FilterDto;
 import at.htl.media.MediaRepository;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import jakarta.transaction.Transactional;
-import jakarta.ws.rs.*;
+import jakarta.ws.rs.Consumes;
+import jakarta.ws.rs.DELETE;
+import jakarta.ws.rs.GET;
+import jakarta.ws.rs.HeaderParam;
+import jakarta.ws.rs.POST;
+import jakarta.ws.rs.Path;
+import jakarta.ws.rs.PathParam;
+import jakarta.ws.rs.Produces;
+import jakarta.ws.rs.QueryParam;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
-
-import java.util.List;
 
 @ApplicationScoped
 @Path("/api/party")
@@ -21,7 +29,7 @@ public class PartyResource {
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
-    @Path("/")
+    @Path("")
     @Transactional
     public Response getParties() {
         return Response.ok().entity( partyRepository.getParties()).build();

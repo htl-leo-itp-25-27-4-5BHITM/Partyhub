@@ -1,21 +1,21 @@
-@baseUrl = http://localhost:8080/api
+@baseUrl = http://localhost:8080/api/party
+@partyId = 11
 
-GET {{baseUrl}}/parties
+### Get all parties
+GET {{baseUrl}}
+
 ?? status == 200
 
-###
-
-### 2️⃣ Neue Party erstellen (POST)
-# @name createParty
-POST {{baseUrl}}/parties
+### Create Party
+POST {{baseUrl}}/add?user=1
 Content-Type: application/json
 
 {
   "title": "Test Party",
   "description": "Party zum Testen",
   "fee": 10.0,
-  "time_start": "2026-03-10T20:00",
-  "time_end": "2026-03-10T23:00",
+  "time_start": "2026-03-10T20:00:00",
+  "time_end": "2026-03-10T23:00:00",
   "website": "https://party.example.com",
   "min_age": 18,
   "max_age": 99,
@@ -24,26 +24,24 @@ Content-Type: application/json
   "location_address": "Wien, Österreich",
   "category_id": 1
 }
+
 ?? status == 201
 
-###
+### Get Party by ID
+GET {{baseUrl}}/{{partyId}}
 
-# @forceRef createParty
-GET {{baseUrl}}/parties/{{createParty.response.body.id}}
 ?? status == 200
 
-###
-
-
-PUT {{baseUrl}}/parties/{{createParty.response.body.id}}
+### Update Party
+POST {{baseUrl}}/{{partyId}}?user=1
 Content-Type: application/json
 
 {
   "title": "Updated Test Party",
   "description": "Updated Description",
   "fee": 15.0,
-  "time_start": "2026-03-11T20:00",
-  "time_end": "2026-03-11T23:00",
+  "time_start": "2026-03-11T20:00:00",
+  "time_end": "2026-03-11T23:00:00",
   "website": "https://party-updated.example.com",
   "min_age": 18,
   "max_age": 99,
@@ -52,69 +50,66 @@ Content-Type: application/json
   "location_address": "Wien, Österreich",
   "category_id": 1
 }
+
 ?? status == 200
 
-###
+### Attend Party
+POST {{baseUrl}}/{{partyId}}/attend?user=1
 
-PUT {{baseUrl}}/parties/attend/{{createParty.response.body.id}}?userId=1
 ?? status == 204
 
-###
+### Attend Status
+GET {{baseUrl}}/{{partyId}}/attend/status?user=1
 
-GET {{baseUrl}}/parties/{{createParty.response.body.id}}/attend-status?userId=1
 ?? status == 200
 
-###
+### Leave Party
+DELETE {{baseUrl}}/{{partyId}}/attend?user=1
 
-### 7️⃣ Leave Party (User 1)
-PUT {{baseUrl}}/parties/leave/{{createParty.response.body.id}}?userId=1
 ?? status == 200
 
-###
-
-POST {{baseUrl}}/parties/filter
+### Filter by content
+POST {{baseUrl}}/filter?filter=content
 Content-Type: application/json
 
 {
-  "filter": "content",
   "value": "Test"
 }
+
 ?? status == 200
 
-###
-
-POST {{baseUrl}}/parties/filter
+### Filter by category
+POST {{baseUrl}}/filter?filter=category
 Content-Type: application/json
 
 {
-  "filter": "category",
-  "value": "Party"
+  "value": "Musik"
 }
+
 ?? status == 200
 
-###
-
-POST {{baseUrl}}/parties/filter
+### Filter by date
+POST {{baseUrl}}/filter?filter=date
 Content-Type: application/json
 
 {
-  "filter": "date",
-  "start": "2026-03-01T00:00",
-  "end": "2026-03-31T23:59"
+  "start": "2026-03-01T00:00:00",
+  "end": "2026-03-31T23:59:00"
 }
+
 ?? status == 200
 
-###
+### Sort asc
+GET {{baseUrl}}/sort?sort=asc
 
-GET {{baseUrl}}/parties/sort?sort=asc
 ?? status == 200
 
-###
+### Sort desc
+GET {{baseUrl}}/sort?sort=desc
 
-GET {{baseUrl}}/parties/sort?sort=desc
 ?? status == 200
 
-###
+### Delete Party
+DELETE {{baseUrl}}/{{partyId}}
 
-DELETE {{baseUrl}}/parties/{{createParty.response.body.id}}
 ?? status == 204
