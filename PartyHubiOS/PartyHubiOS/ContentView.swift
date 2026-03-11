@@ -2,10 +2,9 @@ import SwiftUI
 import SwiftData
 
 struct ContentView: View {
-    @State private var locationManager = LocationManager()
+    @Environment(LocationManager.self) private var locationManager  // ← aus App holen, NICHT neu erstellen
 
     var body: some View {
-
         TabView {
             HomeView()
                 .tabItem {
@@ -27,11 +26,16 @@ struct ContentView: View {
                     Label("Time", systemImage: "timer")
                 }
              */
-            MapView(locationManager: LocationManager())
+            MapView(locationManager: locationManager)
                 .tabItem {
                     Label("Map", systemImage: "map")
                 }
-            
+             
+            /*UserLocationListView()
+                .tabItem {
+                    Label("Users", systemImage: "person.2")
+                }
+            */
             ProfileView()
                 .tabItem {
                     Label("Profile", systemImage: "person")
@@ -40,8 +44,8 @@ struct ContentView: View {
         .tint(.primaryPink)
         .modelContainer(for: TimeEntry.self)
     }
-
 }
+
 #Preview {
     ContentView()
         .modelContainer(for: TimeEntry.self, inMemory: true)

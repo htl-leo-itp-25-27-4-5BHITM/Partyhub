@@ -26,7 +26,7 @@ struct PartyHubiOSApp: App {
     @MainActor
     func setupApp() {
         let context = container.mainContext
-        locationManager.modelContext = context
+        locationManager.modelContext = context  // hier setzen, mainContext ist auf MainActor verfügbar
         
         let descriptor = FetchDescriptor<Party>()
         let existing = (try? context.fetch(descriptor)) ?? []
@@ -44,7 +44,7 @@ struct PartyHubiOSApp: App {
                 location: "Mein Ort",
                 latitude: 48.123327,
                 longitude: 14.022701,
-                radiusMeters: 50  
+                radiusMeters: 50
             )
             context.insert(schule)
             context.insert(meineParty)

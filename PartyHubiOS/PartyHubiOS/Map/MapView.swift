@@ -1,8 +1,3 @@
-//
-//  MapView.swift - SCHRITT 2: Eigener Standort mit Icon
-//  PartyHubiOS
-//
-
 import SwiftUI
 import MapKit
 
@@ -18,26 +13,41 @@ struct MapView: View {
     @State private var position: MapCameraPosition = .userLocation(fallback: .automatic)
 
     var body: some View {
-        Map(position: $position) {
-            if let coord = locationManager.currentLocation {
-                Annotation("Du", coordinate: coord) {
-                    ZStack {
-                        Circle()
-                            .fill(Color.primaryDarkBlue)
-                            .frame(width: 46, height: 46)
-                            .shadow(color: .primaryDarkBlue.opacity(0.4), radius: 8)
+        ZStack(alignment: .top) {
+            Map(position: $position) {
+                if let coord = locationManager.currentLocation {
+                    Annotation("Du", coordinate: coord) {
+                        ZStack {
+                            Circle()
+                                .fill(locationManager.isAtParty
+                                      ? Color.green.opacity(0.25)
+                                      : Color.gray.opacity(0.2))
+                                .frame(width: 56, height: 56)
 
-                        Image(systemName: "person.circle.fill")
-                            .resizable()
-                            .foregroundStyle(.white)
-                            .frame(width: 36, height: 36)
+                            Circle()
+                                .fill(locationManager.isAtParty
+                                      ? Color.green
+                                      : Color.gray)
+                                .frame(width: 46, height: 46)
+                                .shadow(color: locationManager.isAtParty
+                                        ? .green.opacity(0.5)
+                                        : .gray.opacity(0.4),
+                                        radius: 8)
+
+                            Image(systemName: "person.circle.fill")
+                                .resizable()
+                                .foregroundStyle(.white)
+                                .frame(width: 36, height: 36)
+                        }
+                        .animation(.easeInOut(duration: 0.4), value: locationManager.isAtParty)
                     }
                 }
             }
-        }
-        .ignoresSafeArea()
-        .onAppear {
-            locationManager.requestPermission()
+            .ignoresSafeArea()
+            .onAppear {
+                locationManager.requestPermission()
+            }
+
         }
     }
 }
