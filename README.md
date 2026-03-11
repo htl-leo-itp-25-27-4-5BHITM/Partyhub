@@ -1,5 +1,13 @@
 # PartyHub
 
+<p align="center">
+  <img src="logo.png" alt="PartyHub Logo" width="200">
+</p>
+<p align="center">
+  <a href="https://github.com/htl-leo-itp-25-27-4-5BHITM/Partyhub/actions/workflows/deploy.yml"><img src="https://img.shields.io/github/actions/workflow/status/htl-leo-itp-25-27-4-5BHITM/Partyhub/deploy.yml?branch=main&style=for-the-badge" alt="Deploy status"></a>
+</p>
+
+
 A social event platform for organizing and discovering parties, meetups, and social gatherings.
 
 ## Features
@@ -7,25 +15,16 @@ A social event platform for organizing and discovering parties, meetups, and soc
 - **User Management**: Registration, profiles with pictures, biographies
 - **Event Creation**: Hosts can create parties with details, categories, and locations
 - **Social Features**: Follow users, send invitations, join parties
-- **Media Sharing**: Upload and share photos from events
+- **Media Sharing**: Upload and share media from events
 - **Location-Based**: Events with geographic coordinates and addresses
-- **Category System**: Filter events by music, tech, sports, art, networking, food, wellness, and education
 - **Age Restrictions**: Set minimum and maximum age limits for events
-- **Payment Integration**: Fee-based events with online payment support
 
 ## Tech Stack
 
 - **Backend**: Quarkus 3.28.2 (Java 21)
 - **Database**: PostgreSQL with Hibernate ORM
-- **API**: REST with Jackson serialization
 - **Authentication**: JWT with SmallRye
 - **Documentation**: Swagger UI for API exploration
-
-## Prerequisites
-
-- Java 21 or later
-- Maven 3.8+
-- PostgreSQL 12+ (for production)
 
 ## Installation
 
@@ -47,6 +46,10 @@ cd Partyhub
 
 **API Documentation**: http://localhost:8080/q/swagger-ui/
 
+## Production
+
+**Website**: https://it220274.cloud.htl-leonding.ac.at
+
 ## Project Structure
 
 ```
@@ -55,35 +58,28 @@ Partyhub/
 │   ├── java/at/htl/partyhub/
 │   │   ├── model/          # JPA Entities
 │   │   ├── repository/     # Data Access Objects
-│   │   ├── service/        # Business Logic
 │   │   ├── resource/       # REST Endpoints
-│   │   └── dto/            # Data Transfer Objects
-│   └── resources/          # Static files, templates
-├── src/test/                # Test files
+│   │   └── dto/            
+│   └── resources/          # Static files
+├── src/test/                
 ├── src/main/resources/
-│   ├── application.properties # Database config
-│   └── import.sql           # Sample data
-├── pom.xml                 # Maven dependencies
-└── deploy-local.sh         # Development setup script
+│   ├── application.properties # Application config
+├── pom.xml                 
+└── deploy-local.sh 
 ```
-
-## Database Schema
-
-- **users**: User accounts with display names, emails, and biographies
-- **profile_picture**: One-to-one relationship with users
-- **category**: Event categories (music, tech, sports, etc.)
-- **location**: Geographic locations with coordinates and addresses
-- **party**: Event details, timing, capacity, and fees
-- **party_user**: Many-to-many relationship between users and parties
-- **media**: Photos uploaded by users for parties
-- **invitation**: Direct invitations between users for specific parties
-- **follow**: User follow relationships with status tracking
-- **follow_status**: Status values (pending, accepted, blocked)
 
 ## Running Tests
 
 ```bash
 mvn clean test
+```
+
+Code coverage is generated using **JaCoCo**.
+
+After tests complete, view the HTML coverage report at:
+
+```
+target/jacoco-report/index.html
 ```
 
 ## Building the Project
@@ -100,18 +96,19 @@ The application provides a comprehensive REST API with the following endpoints:
 - **Users**: `/api/users/*` - User CRUD operations
 - **Parties**: `/api/parties/*` - Event management
 - **Categories**: `/api/categories/*` - Category management
-- **Media**: `/api/media/*` - Photo upload and retrieval
+- **Media**: `/api/media/*` - Media upload and retrieval
 - **Invitations**: `/api/invitations/*` - Invitation management
 - **Follow**: `/api/follow/*` - Social connections
 
 ## Sprint Review Dates
 
-1. Sprint: 08.10.2025
-2. Sprint: 05.11.2025
-3. Sprint: 19.11.2025
-4. Sprint: 03.12.2025
-5. Sprint: 17.12.2025
-6. Sprint: 14.01.2026
-7. Sprint: 28.01.2026
-8. Sprint: 11.02.2026
-9. Sprint: 04.03.2026
+1.  Sprint: 08.10.2025
+2.  Sprint: 05.11.2025
+3.  Sprint: 19.11.2025
+4.  Sprint: 03.12.2025
+5.  Sprint: 17.12.2025
+6.  Sprint: 14.01.2026
+7.  Sprint: 28.01.2026
+8.  Sprint: 11.02.2026
+9.  Sprint: 04.03.2026
+10. Sprint: 18.03.2026
