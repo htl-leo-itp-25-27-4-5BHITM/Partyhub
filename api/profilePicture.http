@@ -1,8 +1,12 @@
 ###
 GET http://localhost:8080/api/users/1/profile-picture
 
+?? status == 200
+
 ###
 GET http://localhost:8080/api/users/1/profile-picture-filename
+
+?? status == 200
 
 ###
 POST http://localhost:8080/api/users/5/upload-profile-picture
@@ -14,3 +18,5 @@ Content-Type: image/jpeg
 
 < testing.jpg
 --WebAppBoundary--
+
+?? status == 200
