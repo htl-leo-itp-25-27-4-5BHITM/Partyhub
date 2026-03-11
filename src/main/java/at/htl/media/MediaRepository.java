@@ -1,16 +1,5 @@
 package at.htl.media;
 
-import at.htl.party.Party;
-import at.htl.party.PartyRepository;
-import at.htl.user.UserRepository;
-import jakarta.enterprise.context.ApplicationScoped;
-import jakarta.inject.Inject;
-import jakarta.persistence.EntityManager;
-import jakarta.ws.rs.*;
-import jakarta.ws.rs.core.Response;
-import org.jboss.logging.Logger;
-import org.jboss.resteasy.reactive.multipart.FileUpload;
-
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
@@ -19,6 +8,18 @@ import java.time.Instant;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
+
+import org.jboss.logging.Logger;
+import org.jboss.resteasy.reactive.multipart.FileUpload;
+
+import at.htl.party.Party;
+import at.htl.party.PartyRepository;
+import at.htl.user.UserRepository;
+import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.inject.Inject;
+import jakarta.persistence.EntityManager;
+import jakarta.ws.rs.FormParam;
+import jakarta.ws.rs.core.Response;
 
 @ApplicationScoped
 public class MediaRepository {
@@ -60,25 +61,34 @@ public class MediaRepository {
 
     public Response getMediaById(long id) {
         Media media = entityManager.find(Media.class, id);
+
         if (media == null) {
-            logger.log(Logger.Level.WARN, "Media not found with id: " + id);
+            logger.warn("Media not found with id: " + id);
             return Response.status(Response.Status.NOT_FOUND).build();
         }
-        try {
-            String mediaName = media.getFile();
-            String path = "src/main/resources/uploads/" + mediaName;
-            InputStream is = Files.newInputStream(Paths.get(path));
-            String type = "application/octet-stream";
-            String lower = mediaName.toLowerCase();
-            if (lower.endsWith(".jpg") || lower.endsWith(".jpeg")) type = "image/jpeg";
-            else if (lower.endsWith(".png")) type = "image/png";
-            else if (lower.endsWith(".gif")) type = "image/gif";
-            else if (lower.endsWith(".webp")) type = "image/webp";
-            return Response.ok(is, type).build();
-        } catch (IOException e) {
-            logger.log(Logger.Level.ERROR, "Failed to read media file: " + e.getMessage());
+
+        String url = media.getFile();
+        String resourcePath = "uploads/" + url;
+
+        InputStream is = Thread.currentThread()
+                .getContextClassLoader()
+                .getResourceAsStream(resourcePath);
+
+        if (is == null) {
+            logger.error("File not found at resource path: " + resourcePath);
+            return Response.status(Response.Status.NOT_FOUND)
+                    .entity("Resource not found: " + resourcePath)
+                    .type("text/plain")
+                    .build();
         }
-        return Response.status(Response.Status.NOT_FOUND).build();
+
+        String type = "image/jpeg";
+        String lower = url.toLowerCase();
+        if (lower.endsWith(".png"))  type = "image/png";
+        else if (lower.endsWith(".gif"))  type = "image/gif";
+        else if (lower.endsWith(".webp")) type = "image/webp";
+
+        return Response.ok(is, type).build();
     }
 
     public List<MediaDto> getMediaByUser(Long userId) {
@@ -190,48 +200,34 @@ public class MediaRepository {
     }
 
     public Response getImgByMediaId(long id) {
-        Media media = entityManager.find(Media.class, id);
+    Media media = entityManager.find(Media.class, id);
 
-        if (media == null) {
-            return Response.status(Response.Status.NOT_FOUND).build();
-        }
+    if (media == null) {
+        return Response.status(Response.Status.NOT_FOUND).build();
+    }
 
-        String url = media.getUrl();
-        String resourcePath = "uploads/" + url;
+    String url = media.getUrl();
+    java.nio.file.Path filePath = Paths.get("src/main/resources/uploads", url);
 
-        InputStream is = Thread.currentThread().getContextClassLoader().getResourceAsStream(resourcePath);
+    if (!Files.exists(filePath)) {
+        logger.error("Datei nicht gefunden: " + filePath.toAbsolutePath());
+        return Response.status(Response.Status.NOT_FOUND)
+                .entity("Resource nicht gefunden: " + filePath)
+                .type("text/plain")
+                .build();
+    }
 
-        if (is == null) {
-            logger.error("Datei nicht gefunden: " + resourcePath);
-            return Response.status(Response.Status.NOT_FOUND)
-                    .entity("Resource nicht gefunden: " + resourcePath)
-                    .type("text/plain")
-                    .build();
-        }
-
+    try {
+        InputStream is = Files.newInputStream(filePath);
         String type = "image/jpeg";
-        if (url.toLowerCase().endsWith(".png")) type = "image/png";
-        else if (url.toLowerCase().endsWith(".gif")) type = "image/gif";
-        else if (url.toLowerCase().endsWith(".webp")) type = "image/webp";
-
+        String lower = url.toLowerCase();
+        if (lower.endsWith(".png"))  type = "image/png";
+        else if (lower.endsWith(".gif"))  type = "image/gif";
+        else if (lower.endsWith(".webp")) type = "image/webp";
         return Response.ok(is, type).build();
+    } catch (IOException e) {
+        logger.error("Failed to read file: " + e.getMessage());
+        return Response.status(Response.Status.INTERNAL_SERVER_ERROR).build();
     }
-
-    public long getMediaCountByUserId(Long userId) {
-        return entityManager.createQuery(
-                "SELECT COUNT(m) FROM Media m WHERE m.user.id = :userId",
-                Long.class)
-                .setParameter("userId", userId)
-                .getSingleResult();
-    }
-
-    public List<MediaDto> getMediaByUserId(Long userId) {
-        List<Media> mediaList = entityManager.createQuery(
-                "SELECT m FROM Media m WHERE m.user.id = :userId",
-                Media.class)
-                .setParameter("userId", userId)
-                .getResultList();
-        return mediaList.stream().map(this::toMediaDto).collect(Collectors.toList());
-    }
-
+}
 }

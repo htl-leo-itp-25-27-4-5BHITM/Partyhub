@@ -1,7 +1,14 @@
 ###
-GET localhost:8080/api/media/2
-###
-GET localhost:8080/api/media/party/2/all
-###
-GET localhost:8080/api/media/user/2/all
+GET http://localhost:8080/api/media/2
 
+?? status == 200
+
+###
+GET http://localhost:8080/api/media/party/2/all
+
+?? status == 200
+
+###
+GET http://localhost:8080/api/media/user/2/all
+
+?? status == 200
