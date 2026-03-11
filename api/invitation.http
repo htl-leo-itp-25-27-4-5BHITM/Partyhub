@@ -5,16 +5,38 @@ Content-Type: application/json
   "recipient": 3,
   "partyId": 1
 }
-###
-GET http://localhost:8080/api/invites/rec
-
+?? status == 201
 
 ###
 GET http://localhost:8080/api/invites/inv?user=1
 
+?? status == 200
+
 <> 2026-03-03T163213.200.json
 
 ###
-DELETE http://localhost:8080/api/invites/delete/5
-X-User-Id: 1
+POST http://localhost:8080/api/invites?user=1
+Content-Type: application/json
+
+{
+  "recipient": 3,
+  "partyId": 1
+}
+
+?? status == 201
+
+###
+GET http://localhost:8080/api/invites/rec?user=3
+
+?? status == 200
+
+###
+GET http://localhost:8080/api/invites/inv?user=1
+
+?? status == 200
+
+###
+DELETE http://localhost:8080/api/invites/delete/1?user=1
 Accept: application/json
+
+?? status == 204
