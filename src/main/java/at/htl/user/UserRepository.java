@@ -1,13 +1,13 @@
 package at.htl.user;
 
+import java.util.List;
+
+import org.jboss.logging.Logger;
+
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import jakarta.persistence.EntityManager;
 import jakarta.ws.rs.core.Response;
-import jakarta.transaction.Transactional;
-import org.jboss.logging.Logger;
-
-import java.util.List;
 
 @ApplicationScoped
 public class UserRepository {
@@ -54,7 +54,7 @@ public class UserRepository {
 
     public Response createUser(User user) {
         em.persist(user);
-        return Response.ok(user).build();
+        return Response.status(Response.Status.CREATED).entity(user).build();
     }
 
     public Response updateUser(Long id, UserCreateDto createUserDto) {

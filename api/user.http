@@ -1,27 +1,26 @@
-### Alle User holen
+@searchName = anna
+@searchResultId = 1
+
+###
 GET http://localhost:8080/api/users/all
 
 ?? status == 200
-###
 
-@searchName = anna
-# Suche User
+### Search users by name
 # @name searchUsersByName
 GET http://localhost:8080/api/users/all/search?name={{searchName}}
 
 ?? status == 200
-###
-# @forceRef searchUsersByName
-GET http://localhost:8080/api/users/{{searchUsersByName.response.body[0].id}}
-?? status == 200
 
+###
+GET http://localhost:8080/api/users/{{searchResultId}}
+
+?? status == 200
 ### User direkt per ID holen
 GET http://localhost:8080/api/users/1
 ?? status == 200
 
-###
-
-### User per Handle holen
+### 
 GET http://localhost:8080/api/users/handle/anna_h
 Accept: application/json
 

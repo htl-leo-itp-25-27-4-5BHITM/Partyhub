@@ -277,3 +277,14 @@ VALUES (48.2812, 14.2508, 2);
 
 INSERT INTO user_location (latitude, longitude, user_id)
 VALUES (48.2779, 14.2571, 3);
+
+-- -------------------------
+-- RESET SEQUENCES
+-- -------------------------
+SELECT setval('users_id_seq', (SELECT MAX(id) FROM users));
+SELECT setval('profile_picture_id_seq', (SELECT MAX(id) FROM profile_picture));
+SELECT setval('category_id_seq', (SELECT MAX(id) FROM category));
+SELECT setval('location_id_seq', (SELECT MAX(id) FROM location));
+SELECT setval('party_id_seq', (SELECT MAX(id) FROM party));
+SELECT setval('media_id_seq', (SELECT MAX(id) FROM media));
+SELECT setval('invitation_id_seq', (SELECT MAX(id) FROM invitation));

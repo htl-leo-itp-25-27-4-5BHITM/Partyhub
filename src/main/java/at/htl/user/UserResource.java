@@ -1,25 +1,34 @@
 package at.htl.user;
 
-import at.htl.follow.FollowRepository;
-import at.htl.media.MediaRepository;
-import at.htl.profile_picture.ProfilePicture;
-import jakarta.enterprise.context.ApplicationScoped;
-import jakarta.inject.Inject;
-import jakarta.persistence.EntityManager;
-import jakarta.transaction.Transactional;
-import jakarta.ws.rs.*;
-import jakarta.ws.rs.core.MediaType;
-import jakarta.ws.rs.core.Response;
-import org.jboss.logging.Logger;
-import org.jboss.resteasy.reactive.multipart.FileUpload;
-import jakarta.annotation.security.PermitAll;
-
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.time.Instant;
 import java.util.List;
+
+import org.jboss.logging.Logger;
+import org.jboss.resteasy.reactive.multipart.FileUpload;
+
+import at.htl.follow.FollowRepository;
+import at.htl.media.MediaRepository;
+import at.htl.profile_picture.ProfilePicture;
+import jakarta.annotation.security.PermitAll;
+import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.inject.Inject;
+import jakarta.persistence.EntityManager;
+import jakarta.transaction.Transactional;
+import jakarta.ws.rs.Consumes;
+import jakarta.ws.rs.FormParam;
+import jakarta.ws.rs.GET;
+import jakarta.ws.rs.POST;
+import jakarta.ws.rs.PUT;
+import jakarta.ws.rs.Path;
+import jakarta.ws.rs.PathParam;
+import jakarta.ws.rs.Produces;
+import jakarta.ws.rs.QueryParam;
+import jakarta.ws.rs.core.MediaType;
+import jakarta.ws.rs.core.Response;
 
 @ApplicationScoped
 @Path("/api/users")
@@ -41,7 +50,7 @@ public class UserResource {
     @POST
     @Transactional
     @Consumes(MediaType.APPLICATION_JSON)
-    @Path("/")
+    @Path("")
     public Response createUser(UserCreateDto userCreateDto) {
         return userRepository.createUser(createUserDtoToUser(userCreateDto));
     }
