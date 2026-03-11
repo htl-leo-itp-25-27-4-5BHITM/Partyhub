@@ -1,3 +1,11 @@
+<p align="center">
+  <a href="https://github.com/htl-leo-itp-25-27-4-5BHITM/Partyhub/actions/workflows/deploy.yml"><img src="https://img.shields.io/github/actions/workflow/status/htl-leo-itp-25-27-4-5BHITM/Partyhub/deploy.yml?branch=main&style=for-the-badge" alt="Deploy status"></a>
+</p>
+
+<p align="center">
+  <img src="logo.png" alt="PartyHub Logo" width="200">
+</p>
+
 # PartyHub
 
 A social event platform for organizing and discovering parties, meetups, and social gatherings.
@@ -7,7 +15,7 @@ A social event platform for organizing and discovering parties, meetups, and soc
 - **User Management**: Registration, profiles with pictures, biographies
 - **Event Creation**: Hosts can create parties with details, categories, and locations
 - **Social Features**: Follow users, send invitations, join parties
-- **Media Sharing**: Upload and share photos from events
+- **Media Sharing**: Upload and share media from events
 - **Location-Based**: Events with geographic coordinates and addresses
 - **Category System**: Filter events by music, tech, sports, art, networking, food, wellness, and education
 - **Age Restrictions**: Set minimum and maximum age limits for events
@@ -17,15 +25,8 @@ A social event platform for organizing and discovering parties, meetups, and soc
 
 - **Backend**: Quarkus 3.28.2 (Java 21)
 - **Database**: PostgreSQL with Hibernate ORM
-- **API**: REST with Jackson serialization
 - **Authentication**: JWT with SmallRye
 - **Documentation**: Swagger UI for API exploration
-
-## Prerequisites
-
-- Java 21 or later
-- Maven 3.8+
-- PostgreSQL 12+ (for production)
 
 ## Installation
 
@@ -46,6 +47,10 @@ cd Partyhub
 **Website**: http://localhost:8080
 
 **API Documentation**: http://localhost:8080/q/swagger-ui/
+
+## Production
+
+**Website**: https://it220274.cloud.htl-leonding.ac.at
 
 ## Project Structure
 
@@ -86,6 +91,14 @@ Partyhub/
 mvn clean test
 ```
 
+Code coverage is generated using **JaCoCo**.
+
+After tests complete, view the HTML coverage report at:
+
+```
+target/jacoco-report/index.html
+```
+
 ## Building the Project
 
 ```bash
@@ -100,7 +113,7 @@ The application provides a comprehensive REST API with the following endpoints:
 - **Users**: `/api/users/*` - User CRUD operations
 - **Parties**: `/api/parties/*` - Event management
 - **Categories**: `/api/categories/*` - Category management
-- **Media**: `/api/media/*` - Photo upload and retrieval
+- **Media**: `/api/media/*` - Media upload and retrieval
 - **Invitations**: `/api/invitations/*` - Invitation management
 - **Follow**: `/api/follow/*` - Social connections
 
