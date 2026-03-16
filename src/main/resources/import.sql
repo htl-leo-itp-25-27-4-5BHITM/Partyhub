@@ -278,6 +278,40 @@ VALUES (48.2812, 14.2508, 2);
 INSERT INTO user_location (latitude, longitude, user_id)
 VALUES (48.2779, 14.2571, 3);
 
+
+INSERT INTO location (longitude, latitude, address) VALUES
+(14.2549992, 48.2652571, 'Deine Adresse, Leonding');
+
+-- Then add the party (use the location id that was just created)
+INSERT INTO party (
+    host_user_id, category_id, location_id,
+    title, time_start, time_end,
+    max_people, min_age, max_age,
+    website, description, fee, created_at
+) VALUES (
+    1,                                    
+    3,                                   
+    (SELECT MAX(id) FROM location),      
+    'Meine Party',                       
+    '2026-03-16 18:00:00',               
+    '2026-03-16 23:00:00',               
+    50,                                   
+    18,                                   
+    99,                                  
+    null,                               
+    'Meine eigene Party',                 
+    0.00,                             
+    NOW()
+);
+
+-- Add yourself as attendee
+INSERT INTO party_user (party_id, user_id) VALUES
+((SELECT MAX(id) FROM party), 1);        -- your user id
+
+-- Add your location to user_location
+INSERT INTO user_location (latitude, longitude, user_id) VALUES
+(48.2652571, 14.2549992, 1);             -- your coordinates and user id
+
 -- -------------------------
 -- RESET SEQUENCES
 -- -------------------------
