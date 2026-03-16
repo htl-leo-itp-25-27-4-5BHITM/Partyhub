@@ -278,6 +278,42 @@ VALUES (48.2812, 14.2508, 2);
 INSERT INTO user_location (latitude, longitude, user_id)
 VALUES (48.2779, 14.2571, 3);
 
+
+-- -------------------------
+-- LOCATION (Leonding)
+-- -------------------------
+INSERT INTO location (id, longitude, latitude, address) VALUES
+                                                            (11, 14.2517532, 48.2684159, 'HTL Leonding, Leonding'),
+                                                            (12, 14.022701,  48.123327,  'Mein Ort');
+
+-- -------------------------
+-- PARTY
+-- -------------------------
+INSERT INTO party (
+    id, host_user_id, category_id, location_id,
+    title, time_start, time_end,
+    max_people, min_age, max_age,
+    website, description, fee, created_at
+) VALUES
+      (11, 1, 1, 11,
+       'HTL Leonding',
+       '2026-03-16 08:00:00', '2026-03-16 18:00:00',
+       200, 14, 25,
+       'https://htl-leonding.at',
+       'HTL Leonding Schulveranstaltung.',
+       0.00, NOW()),
+
+      (12, 1, 1, 12,
+       'Meine Party',
+       '2026-03-16 20:00:00', '2026-03-17 02:00:00',
+       50, 16, 99,
+       '',
+       'Meine eigene Party.',
+       0.00, NOW());
+
+-- Reset sequences
+SELECT setval('location_id_seq', (SELECT MAX(id) FROM location));
+SELECT setval('party_id_seq',    (SELECT MAX(id) FROM party));
 -- -------------------------
 -- RESET SEQUENCES
 -- -------------------------
