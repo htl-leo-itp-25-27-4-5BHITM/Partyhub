@@ -5,68 +5,111 @@ import SwiftData
 struct PartyHubiOSApp: App {
     @State private var locationManager = LocationManager()
     let container: ModelContainer
-
     init() {
         do {
+            let appSupport = URL.applicationSupportDirectory
+            try FileManager.default.createDirectory(at: appSupport, withIntermediateDirectories: true)
+            
             container = try ModelContainer(for: Party.self, TimeEntry.self)
         } catch {
             fatalError("ModelContainer Fehler: \(error)")
         }
     }
-
+    
+    
     var body: some Scene {
         WindowGroup {
             ContentView()
                 .environment(locationManager)
                 .modelContainer(container)
-                .onAppear { setupApp() }
+                .task {
+                    await setupApp()
+                }
         }
     }
-
     @MainActor
-    func setupApp() {
+    func setupApp() async {
         let context = container.mainContext
         locationManager.modelContext = context
-
-        Task {
-            await fetchAndStoreParties(context: context)
-            let allParties = (try? context.fetch(FetchDescriptor<Party>())) ?? []
-            locationManager.requestPermission()
-            locationManager.registerGeofences(for: allParties)
-            locationManager.checkIfAlreadyInsideRegions()
-        }
+        
+        await fetchAndStoreParties(context: context)
+        
+        let allParties = (try? context.fetch(FetchDescriptor<Party>())) ?? []
+        print("Parties in DB:", allParties.count)
+        
+        locationManager.requestPermission()
+        locationManager.registerGeofences(for: allParties)
+        locationManager.checkIfAlreadyInsideRegions()
     }
-
+    
     func fetchAndStoreParties(context: ModelContext) async {
         guard let url = URL(string: "\(Config.backendURL)/api/party") else { return }
         guard let (data, _) = try? await URLSession.shared.data(from: url) else { return }
-
+        
+        print("Fetching parties…")
+        
+        let decoder = JSONDecoder()
+        decoder.keyDecodingStrategy = .convertFromSnakeCase
+        
         struct PartyResponse: Codable {
             let id: Int
             let title: String
             let location: LocationResponse
+            
+            let hostUser: HostUserResponse?
+            let category: CategoryResponse?
+            let timeStart: String?
+            let timeEnd: String?
+            let maxPeople: Int?
+            let minAge: Int?
+            let maxAge: Int?
+            let website: String?
+            let description: String?
+            let fee: Int?
+            let createdAt: String?
         }
+        
+        struct HostUserResponse: Codable {
+            let id: Int?
+            let displayName: String?
+        }
+        
+        struct CategoryResponse: Codable {
+            let id: Int?
+            let name: String?
+        }
+        
         struct LocationResponse: Codable {
             let latitude: Double
             let longitude: Double
-            let address: String
+            let address: String?
         }
+        
+        guard let decoded = try? decoder.decode([PartyResponse].self, from: data) else {
+            print("Decoding failed")
+            print(String(data: data, encoding: .utf8) ?? "NO STRING")
 
-        guard let decoded = try? JSONDecoder().decode([PartyResponse].self, from: data) else { return }
-
+            return
+        }
+        
+        print("Decoded parties:", decoded.count)
+        
         let existing = (try? context.fetch(FetchDescriptor<Party>())) ?? []
         for party in existing { context.delete(party) }
-
+        
         for p in decoded {
             let party = Party(
+                backendId: p.id,
                 name: p.title,
-                location: p.location.address,
+                location: p.location.address ?? "",
                 latitude: p.location.latitude,
                 longitude: p.location.longitude,
                 radiusMeters: 100
             )
             context.insert(party)
         }
+        
         try? context.save()
     }
+
 }

@@ -25,7 +25,8 @@ struct PartyBilderView: View {
                 LazyVGrid(columns: [GridItem(.adaptive(minimum: 100))], spacing: 10) {
                     ForEach(geladeneBilder, id: \.self) { url in
                         ZStack(alignment: .topTrailing) {
-                            if let daten = try? Data(contentsOf: url), let bild = UIImage(data: daten) {
+                            if let daten = try? Data(contentsOf: url),
+                               let bild = UIImage(data: daten) {
                                 Image(uiImage: bild)
                                     .resizable()
                                     .scaledToFill()
@@ -69,17 +70,17 @@ struct PartyBilderView: View {
                         .background(Color.primaryDarkBlue)
                         .foregroundColor(.white)
                         .cornerRadius(10)
-                        .shadow(color:.primaryDarkBlue.opacity(0.5), radius: 10)
-
+                        .shadow(color: .primaryDarkBlue.opacity(0.5), radius: 10)
                 }
                 .padding()
-                .onChange(of: selectedItems) { _ in speichereBilder() }
+                // iOS 17-konforme Variante, ohne Phantom-Variablen:
+                .onChange(of: selectedItems.count) { _, _ in
+                    speichereBilder()
+                }
             }
         }
         .onAppear { ladeBilderAusOrdner() }
     }
-
-
 
     func waehleBildAus(url: URL) {
         if ausgewaehlteBilderZumLoeschen.contains(url) {
@@ -92,7 +93,7 @@ struct PartyBilderView: View {
     func loescheAusgewaehlteBilder() {
         let fm = FileManager.default
         for url in ausgewaehlteBilderZumLoeschen {
-            try? fm.removeItem(at: url) 
+            try? fm.removeItem(at: url)
         }
         ausgewaehlteBilderZumLoeschen.removeAll()
         istImBearbeitungsModus = false
@@ -102,11 +103,14 @@ struct PartyBilderView: View {
     func speichereBilder() {
         for item in selectedItems {
             item.loadTransferable(type: Data.self) { result in
-                if case .success(let data) = result, let imageData = data {
+                if case .success(let data) = result,
+                   let imageData = data {
                     let folder = getPartyFolder()
                     let fileURL = folder.appendingPathComponent("Bild_\(UUID().uuidString).jpg")
                     try? imageData.write(to: fileURL)
-                    DispatchQueue.main.async { ladeBilderAusOrdner() }
+                    DispatchQueue.main.async {
+                        ladeBilderAusOrdner()
+                    }
                 }
             }
         }

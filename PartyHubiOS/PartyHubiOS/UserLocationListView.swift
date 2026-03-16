@@ -1,16 +1,16 @@
+import Foundation
+import CoreLocation
 import SwiftUI
+
+
 import Foundation
 import CoreLocation
 
-// MARK: - Model
 struct UserLocation: Codable, Identifiable {
-    let id = UUID()
+    let id: Int
     let latitude: Double
     let longitude: Double
-
-    enum CodingKeys: String, CodingKey {
-        case latitude, longitude
-    }
+    let partyId: Int
 
     func isInsideParty(_ party: Party) -> Bool {
         let userCoord = CLLocation(latitude: latitude, longitude: longitude)
@@ -19,7 +19,8 @@ struct UserLocation: Codable, Identifiable {
     }
 }
 
-// MARK: - ViewModel
+import Foundation
+
 @Observable
 class UserLocationViewModel {
     var locations: [UserLocation] = []
@@ -46,19 +47,26 @@ class UserLocationViewModel {
         URLSession.shared.dataTask(with: url) { data, _, error in
             DispatchQueue.main.async {
                 self.isLoading = false
-                if let data = data {
-                    do {
-                        self.locations = try JSONDecoder().decode([UserLocation].self, from: data)
-                    } catch {
-                        self.errorMessage = error.localizedDescription
-                    }
+
+                if let error = error {
+                    self.errorMessage = error.localizedDescription
+                    return
+                }
+
+                guard let data = data else { return }
+
+                do {
+                    self.locations = try JSONDecoder().decode([UserLocation].self, from: data)
+                } catch {
+                    self.errorMessage = error.localizedDescription
                 }
             }
         }.resume()
     }
 }
 
-// MARK: - View
+import SwiftUI
+
 struct UserLocationListView: View {
     @State private var viewModel = UserLocationViewModel()
 
@@ -70,6 +78,8 @@ struct UserLocationListView: View {
                     VStack(alignment: .leading) {
                         Text("Lat: \(location.latitude, specifier: "%.6f")")
                         Text("Lon: \(location.longitude, specifier: "%.6f")")
+                            .foregroundStyle(.secondary)
+                        Text("Party ID: \(location.partyId)")
                             .foregroundStyle(.secondary)
                     }
                 }
