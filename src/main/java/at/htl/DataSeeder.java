@@ -44,7 +44,7 @@ public class DataSeeder {
     }
 
     private boolean isDataSeeded() {
-        Long count = em.createQuery("SELECT COUNT(f) FROM FollowStatus f", Long.class).getSingleResult();
+        Long count = em.createQuery("SELECT COUNT(c) FROM Category c", Long.class).getSingleResult();
         return count > 0;
     }
 

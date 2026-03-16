@@ -1,5 +1,6 @@
 import SwiftUI
 import Foundation
+import CoreLocation
 
 // MARK: - Model
 struct UserLocation: Codable, Identifiable {
@@ -10,6 +11,12 @@ struct UserLocation: Codable, Identifiable {
     enum CodingKeys: String, CodingKey {
         case latitude, longitude
     }
+
+    func isInsideParty(_ party: Party) -> Bool {
+        let userCoord = CLLocation(latitude: latitude, longitude: longitude)
+        let partyCoord = CLLocation(latitude: party.latitude, longitude: party.longitude)
+        return userCoord.distance(from: partyCoord) <= party.radiusMeters
+    }
 }
 
 // MARK: - ViewModel
@@ -18,9 +25,22 @@ class UserLocationViewModel {
     var locations: [UserLocation] = []
     var isLoading = false
     var errorMessage: String?
+    private var pollingTimer: Timer?
+
+    func startPolling() {
+        fetchLocations()
+        pollingTimer = Timer.scheduledTimer(withTimeInterval: 15, repeats: true) { _ in
+            self.fetchLocations()
+        }
+    }
+
+    func stopPolling() {
+        pollingTimer?.invalidate()
+        pollingTimer = nil
+    }
 
     func fetchLocations() {
-        guard let url = URL(string: "http://localhost:8080/userLocation") else { return }
+        guard let url = URL(string: "\(Config.backendURL)/api/userLocation") else { return }
         isLoading = true
 
         URLSession.shared.dataTask(with: url) { data, _, error in

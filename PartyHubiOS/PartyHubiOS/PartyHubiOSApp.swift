@@ -5,7 +5,7 @@ import SwiftData
 struct PartyHubiOSApp: App {
     @State private var locationManager = LocationManager()
     let container: ModelContainer
-    
+
     init() {
         do {
             container = try ModelContainer(for: Party.self, TimeEntry.self)
@@ -13,7 +13,7 @@ struct PartyHubiOSApp: App {
             fatalError("ModelContainer Fehler: \(error)")
         }
     }
-    
+
     var body: some Scene {
         WindowGroup {
             ContentView()
@@ -22,38 +22,51 @@ struct PartyHubiOSApp: App {
                 .onAppear { setupApp() }
         }
     }
-    
+
     @MainActor
     func setupApp() {
         let context = container.mainContext
-        locationManager.modelContext = context  // hier setzen, mainContext ist auf MainActor verfügbar
-        
-        let descriptor = FetchDescriptor<Party>()
-        let existing = (try? context.fetch(descriptor)) ?? []
-        
-        if existing.isEmpty {
-            let schule = Party(
-                name: "HTL Leonding",
-                location: "Schule, Leonding",
-                latitude: 48.2684159,
-                longitude: 14.2517532,
-                radiusMeters: 80
-            )
-            let meineParty = Party(
-                name: "Meine Party",
-                location: "Mein Ort",
-                latitude: 48.123327,
-                longitude: 14.022701,
-                radiusMeters: 50
-            )
-            context.insert(schule)
-            context.insert(meineParty)
-            try? context.save()
+        locationManager.modelContext = context
+
+        Task {
+            await fetchAndStoreParties(context: context)
+            let allParties = (try? context.fetch(FetchDescriptor<Party>())) ?? []
+            locationManager.requestPermission()
+            locationManager.registerGeofences(for: allParties)
+            locationManager.checkIfAlreadyInsideRegions()
         }
-        
-        let allParties = (try? context.fetch(descriptor)) ?? []
-        locationManager.requestPermission()
-        locationManager.registerGeofences(for: allParties)
-        locationManager.checkIfAlreadyInsideRegions()
+    }
+
+    func fetchAndStoreParties(context: ModelContext) async {
+        guard let url = URL(string: "\(Config.backendURL)/api/party") else { return }
+        guard let (data, _) = try? await URLSession.shared.data(from: url) else { return }
+
+        struct PartyResponse: Codable {
+            let id: Int
+            let title: String
+            let location: LocationResponse
+        }
+        struct LocationResponse: Codable {
+            let latitude: Double
+            let longitude: Double
+            let address: String
+        }
+
+        guard let decoded = try? JSONDecoder().decode([PartyResponse].self, from: data) else { return }
+
+        let existing = (try? context.fetch(FetchDescriptor<Party>())) ?? []
+        for party in existing { context.delete(party) }
+
+        for p in decoded {
+            let party = Party(
+                name: p.title,
+                location: p.location.address,
+                latitude: p.location.latitude,
+                longitude: p.location.longitude,
+                radiusMeters: 100
+            )
+            context.insert(party)
+        }
+        try? context.save()
     }
 }
