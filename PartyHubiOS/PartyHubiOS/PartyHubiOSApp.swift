@@ -5,55 +5,121 @@ import SwiftData
 struct PartyHubiOSApp: App {
     @State private var locationManager = LocationManager()
     let container: ModelContainer
-    
     init() {
         do {
-            container = try ModelContainer(for: Party.self, TimeEntry.self)
+            let appSupport = URL.applicationSupportDirectory.appendingPathComponent("PartyHub")
+            try FileManager.default.createDirectory(at: appSupport, withIntermediateDirectories: true)
+            
+            print("SwiftData storage path: \(appSupport)")
+            
+            let schema = Schema([Party.self, TimeEntry.self])
+            let modelConfiguration = ModelConfiguration(
+                schema: schema,
+                url: appSupport.appendingPathComponent("PartyHub.sqlite"),
+                allowsSave: true
+            )
+            
+            container = try ModelContainer(for: schema, configurations: [modelConfiguration])
         } catch {
+            print("SwiftData Error: \(error)")
             fatalError("ModelContainer Fehler: \(error)")
         }
     }
+    
     
     var body: some Scene {
         WindowGroup {
             ContentView()
                 .environment(locationManager)
                 .modelContainer(container)
-                .onAppear { setupApp() }
+                .task {
+                    await setupApp()
+                }
         }
     }
-    
     @MainActor
-    func setupApp() {
+    func setupApp() async {
         let context = container.mainContext
-        locationManager.modelContext = context  // hier setzen, mainContext ist auf MainActor verfügbar
+        locationManager.modelContext = context
         
-        let descriptor = FetchDescriptor<Party>()
-        let existing = (try? context.fetch(descriptor)) ?? []
+        await fetchAndStoreParties(context: context)
         
-        if existing.isEmpty {
-            let schule = Party(
-                name: "HTL Leonding",
-                location: "Schule, Leonding",
-                latitude: 48.2684159,
-                longitude: 14.2517532,
-                radiusMeters: 80
-            )
-            let meineParty = Party(
-                name: "Meine Party",
-                location: "Mein Ort",
-                latitude: 48.123327,
-                longitude: 14.022701,
-                radiusMeters: 50
-            )
-            context.insert(schule)
-            context.insert(meineParty)
-            try? context.save()
-        }
+        let allParties = (try? context.fetch(FetchDescriptor<Party>())) ?? []
+        print("Parties in DB:", allParties.count)
         
-        let allParties = (try? context.fetch(descriptor)) ?? []
         locationManager.requestPermission()
         locationManager.registerGeofences(for: allParties)
         locationManager.checkIfAlreadyInsideRegions()
     }
+    
+    func fetchAndStoreParties(context: ModelContext) async {
+        guard let url = URL(string: "\(Config.backendURL)/api/party") else { return }
+        guard let (data, _) = try? await URLSession.shared.data(from: url) else { return }
+        
+        print("Fetching parties…")
+        
+        let decoder = JSONDecoder()
+        decoder.keyDecodingStrategy = .convertFromSnakeCase
+        
+        struct PartyResponse: Codable {
+            let id: Int
+            let title: String
+            let location: LocationResponse
+            
+            let hostUser: HostUserResponse?
+            let category: CategoryResponse?
+            let timeStart: String?
+            let timeEnd: String?
+            let maxPeople: Int?
+            let minAge: Int?
+            let maxAge: Int?
+            let website: String?
+            let description: String?
+            let fee: Int?
+            let createdAt: String?
+        }
+        
+        struct HostUserResponse: Codable {
+            let id: Int?
+            let displayName: String?
+        }
+        
+        struct CategoryResponse: Codable {
+            let id: Int?
+            let name: String?
+        }
+        
+        struct LocationResponse: Codable {
+            let latitude: Double
+            let longitude: Double
+            let address: String?
+        }
+        
+        guard let decoded = try? decoder.decode([PartyResponse].self, from: data) else {
+            print("Decoding failed")
+            print(String(data: data, encoding: .utf8) ?? "NO STRING")
+
+            return
+        }
+        
+        print("Decoded parties:", decoded.count)
+        
+        let existing = (try? context.fetch(FetchDescriptor<Party>())) ?? []
+        for party in existing { context.delete(party) }
+        
+        for p in decoded {
+            let party = Party(
+                backendId: p.id,
+                name: p.title,
+                location: p.location.address ?? "",
+                latitude: p.location.latitude,
+                longitude: p.location.longitude,
+                radiusMeters: 100
+            )
+            context.insert(party)
+        }
+        
+        try? context.save()
+    }
+
 }

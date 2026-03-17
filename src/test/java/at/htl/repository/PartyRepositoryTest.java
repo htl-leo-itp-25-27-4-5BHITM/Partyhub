@@ -32,6 +32,7 @@ public class PartyRepositoryTest {
     @BeforeEach
     void setUp() {
         // Clean up in proper order due to foreign key constraints
+        entityManager.createQuery("DELETE FROM UserLocation").executeUpdate();
         entityManager.createQuery("DELETE FROM Follow").executeUpdate();
         entityManager.createQuery("DELETE FROM Invitation").executeUpdate();
         entityManager.createQuery("DELETE FROM Media").executeUpdate();

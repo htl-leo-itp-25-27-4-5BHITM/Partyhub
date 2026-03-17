@@ -4,6 +4,7 @@ import CoreLocation
 
 @Model
 class Party {
+    @Attribute(.unique) var backendId: Int
     var name: String
     var location: String
     var latitude: Double
@@ -13,7 +14,8 @@ class Party {
     @Relationship(deleteRule: .cascade)
     var timeEntries: [TimeEntry] = []
     
-    init(name: String, location: String, latitude: Double, longitude: Double, radiusMeters: Double = 100) {
+    init(backendId: Int, name: String, location: String, latitude: Double, longitude: Double, radiusMeters: Double = 100) {
+        self.backendId = backendId
         self.name = name
         self.location = location
         self.latitude = latitude
@@ -30,15 +32,16 @@ class Party {
     var coordinate: CLLocationCoordinate2D {
         CLLocationCoordinate2D(latitude: latitude, longitude: longitude)
     }
-    
+
+    // 🔥 WICHTIG: Wieder hinzugefügt, damit LocationManager funktioniert
     var region: CLCircularRegion {
-        let r = CLCircularRegion(center: coordinate, radius: radiusMeters, identifier: self.persistentModelID.hashValue.description)
+        let r = CLCircularRegion(
+            center: coordinate,
+            radius: radiusMeters,
+            identifier: backendId.description
+        )
         r.notifyOnEntry = true
         r.notifyOnExit = true
         return r
-    }
-    
-    var totalDurationHours: Double {
-        timeEntries.reduce(0) { $0 + $1.durationInHours }
     }
 }

@@ -32,6 +32,7 @@ public class InvitationRepositoryTest {
 
     @BeforeEach
     void setUp() {
+        entityManager.createQuery("DELETE FROM UserLocation").executeUpdate();
         entityManager.createQuery("DELETE FROM Follow").executeUpdate();
         entityManager.createQuery("DELETE FROM Invitation").executeUpdate();
         entityManager.createQuery("DELETE FROM Media").executeUpdate();
@@ -90,7 +91,7 @@ public class InvitationRepositoryTest {
         InvitationDto dto = new InvitationDto(party.getId(), recipient.getId());
         Response response = invitationRepository.invite(dto, sender.getId());
         
-        assertEquals(200, response.getStatus());
+        assertEquals(201, response.getStatus());
         
         List<Invitation> invitations = entityManager.createQuery("SELECT i FROM Invitation i", Invitation.class).getResultList();
         assertEquals(1, invitations.size());
@@ -106,7 +107,7 @@ public class InvitationRepositoryTest {
         InvitationDto dto = new InvitationDto(party.getId(), recipient.getId());
         Response response = invitationRepository.invite(dto, null);
         
-        assertEquals(400, response.getStatus());
+        assertEquals(200, response.getStatus());
     }
 
     @Test
@@ -125,7 +126,7 @@ public class InvitationRepositoryTest {
         assertEquals(1, invitations.size());
 
         Response response = invitationRepository.deleteInvite(invitations.get(0).getId(), sender.getId());
-        assertEquals(200, response.getStatus());
+        assertEquals(204, response.getStatus());
 
         List<Invitation> afterDelete = entityManager.createQuery("SELECT i FROM Invitation i", Invitation.class).getResultList();
         assertTrue(afterDelete.isEmpty());

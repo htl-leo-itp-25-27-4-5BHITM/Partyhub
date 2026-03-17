@@ -42,11 +42,7 @@ struct ContentView: View {
                 }
         }
         .tint(.primaryPink)
-        .modelContainer(for: TimeEntry.self)
+        // .modelContainer(for: TimeEntry.self)
     }
 }
 
-#Preview {
-    ContentView()
-        .modelContainer(for: TimeEntry.self, inMemory: true)
-}

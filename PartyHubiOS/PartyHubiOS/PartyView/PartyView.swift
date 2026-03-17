@@ -1,11 +1,24 @@
 import SwiftUI
 import SwiftData
 import Combine
+import CoreLocation
 
 struct PartyView: View {
-    @Query(sort: \Party.name) var parties: [Party]
+    @Query var parties: [Party]
     @Environment(LocationManager.self) var locationManager
     @Environment(\.modelContext) private var modelContext
+    
+    var sortedParties: [Party] {
+        guard let userCoord = locationManager.currentLocation else {
+            return parties
+        }
+        let userLocation = CLLocation(latitude: userCoord.latitude, longitude: userCoord.longitude)
+        return parties.sorted {
+            let locA = CLLocation(latitude: $0.latitude, longitude: $0.longitude)
+            let locB = CLLocation(latitude: $1.latitude, longitude: $1.longitude)
+            return locA.distance(from: userLocation) < locB.distance(from: userLocation)
+        }
+    }
     
     var body: some View {
         NavigationStack {
@@ -40,12 +53,12 @@ struct PartyView: View {
                             .padding(.horizontal)
                     }
                     
-                    if parties.isEmpty {
+                    if sortedParties.isEmpty {
                         ContentUnavailableView("Keine Partys", systemImage: "party.popper",
                             description: Text("Erstelle deine erste Party!"))
                     } else {
                         VStack(spacing: 15) {
-                            ForEach(parties) { party in
+                            ForEach(sortedParties) { party in
                                 NavigationLink(destination: PartyDetailView(party: party)) {
                                     PartyCard(party: party)
                                 }
