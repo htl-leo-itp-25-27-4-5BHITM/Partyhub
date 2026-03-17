@@ -1,403 +1,495 @@
-// Party-functions
-// Create Party in party-Table
-// DateTimeFormat needs to be the same
-
 function getUserIdFromStorage() {
-    return window.getCurrentUserId?.() ?? null;
+  return window.getCurrentUserId?.() ?? null;
 }
 
+// Party-functions
 async function createParty(payload) {
-    // ...existing implementation...
-    const userId = getUserIdFromStorage();
-    if (!userId) {
-        return { ok: false, error: "User not logged in" };
-    }
-    try {
-        const response = await fetch(`/api/party/add?user=${userId}`, {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json"
-            },
-            body: JSON.stringify(payload)
-        });
+  const userId = getUserIdFromStorage();
+  if (!userId) {
+    return { ok: false, error: "User not logged in" };
+  }
 
-        if (response.status === 201 || response.ok) {
-            return { ok: true, status: response.status, data: await response.json().catch(() => null) };
-        } else {
-            return { ok: false, status: response.status, text: await response.text().catch(() => null) };
-        }
-    } catch (error) {
-        return { ok: false, error };
+  try {
+    const response = await fetch(`/api/party/add?user=${userId}`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify(payload)
+    });
+
+    if (response.status === 201 || response.ok) {
+      return {
+        ok: true,
+        status: response.status,
+        data: await response.json().catch(() => null)
+      };
+    } else {
+      return {
+        ok: false,
+        status: response.status,
+        text: await response.text().catch(() => null)
+      };
     }
+  } catch (error) {
+    return { ok: false, error };
+  }
 }
 
-// Fetch all parties
 async function getAllParties() {
-    try {
-        const response = await fetch('/api/party/');
-        if (!response.ok) throw new Error('Network response was not ok');
-        const data = await response.json();
-        return data;
-    } catch (error) {
-        console.error('Error fetching parties:', error);
-        return null;
-    }
+  try {
+    const response = await fetch("/api/party/");
+    if (!response.ok) throw new Error("Network response was not ok");
+    return await response.json();
+  } catch (error) {
+    console.error("Error fetching parties:", error);
+    return null;
+  }
 }
 
-// Sort parties
 async function sortParties(sortKey) {
-    try {
-        const response = await fetch(`/api/party/sort?sort=${sortKey}`);
-        if (!response.ok) throw new Error('Network response was not ok');
-        return await response.json();
-    } catch (error) {
-        console.error('Error fetching sorted parties:', error);
-        return null;
-    }
+  try {
+    const response = await fetch(`/api/party/sort?sort=${sortKey}`);
+    if (!response.ok) throw new Error("Network response was not ok");
+    return await response.json();
+  } catch (error) {
+    console.error("Error fetching sorted parties:", error);
+    return null;
+  }
 }
 
-// Filter parties by content
 async function filterParties(content) {
-    const filterPayload = { value: content };
-    try {
-        const response = await fetch('/api/party/filter?filter=content', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify(filterPayload)
-        });
-        if (!response.ok) throw new Error('Network response was not ok');
-        return await response.json();
-    } catch (error) {
-        console.error('Error filtering parties:', error);
-        return null;
-    }
+  const filterPayload = { value: content };
+  try {
+    const response = await fetch("/api/party/filter?filter=content", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify(filterPayload)
+    });
+    if (!response.ok) throw new Error("Network response was not ok");
+    return await response.json();
+  } catch (error) {
+    console.error("Error filtering parties:", error);
+    return null;
+  }
 }
 
-// Get a party by ID
 async function getPartyById(partyId) {
-    try {
-        const response = await fetch(`/api/party/${partyId}`);
-        if (!response.ok) throw new Error('Network response was not ok');
-        return await response.json();
-    } catch (error) {
-        console.error('Error fetching party by ID:', error);
-        return null;
-    }
+  try {
+    const response = await fetch(`/api/party/${partyId}`);
+    if (!response.ok) throw new Error("Network response was not ok");
+    return await response.json();
+  } catch (error) {
+    console.error("Error fetching party by ID:", error);
+    return null;
+  }
 }
 
-// Update a party by ID
 async function updateParty(partyId, payload) {
-    try {
-        const response = await fetch(`/api/party/${partyId}`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(payload)
-        });
-        if (!response.ok) throw new Error('Network response was not ok');
-        return await response.json();
-    } catch (error) {
-        console.error('Error updating party:', error);
-        return null;
-    }
+  try {
+    const response = await fetch(`/api/party/${partyId}`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload)
+    });
+    if (!response.ok) throw new Error("Network response was not ok");
+    return await response.json();
+  } catch (error) {
+    console.error("Error updating party:", error);
+    return null;
+  }
 }
 
-// Delete a party by ID
 async function deleteParty(partyId) {
-    try {
-        const response = await fetch(`/api/party/${partyId}`, { method: 'DELETE' });
-        if (!response.ok) throw new Error('Network response was not ok');
-        return { ok: true };
-    } catch (error) {
-        console.error('Error deleting party:', error);
-        return { ok: false, error };
-    }
+  try {
+    const response = await fetch(`/api/party/${partyId}`, { method: "DELETE" });
+    if (!response.ok) throw new Error("Network response was not ok");
+    return { ok: true };
+  } catch (error) {
+    console.error("Error deleting party:", error);
+    return { ok: false, error };
+  }
 }
 
-// Attend a party
 async function attendParty(partyId) {
-    const userId = getUserIdFromStorage();
-    if (!userId) {
-        console.error('User not logged in');
-        return false;
-    }
-    try {
-        const response = await fetch(`/api/party/${partyId}/attend?user=${userId}`, { method: 'POST' });
-        return response.ok;
-    } catch (error) {
-        console.error('Error attending the party:', error);
-        return false;
-    }
+  const userId = getUserIdFromStorage();
+  if (!userId) {
+    console.error("User not logged in");
+    return false;
+  }
+  try {
+    const response = await fetch(`/api/party/${partyId}/attend?user=${userId}`, {
+      method: "POST"
+    });
+    return response.ok;
+  } catch (error) {
+    console.error("Error attending the party:", error);
+    return false;
+  }
 }
 
-// Leave a party
 async function leaveParty(partyId) {
-    const userId = getUserIdFromStorage();
-    if (!userId) {
-        console.error('User not logged in');
-        return false;
-    }
-    try {
-        const response = await fetch(`/api/party/${partyId}/attend?user=${userId}`, { method: 'DELETE' });
-        return response.ok;
-    } catch (error) {
-        console.error('Error leaving the party:', error);
-        return false;
-    }
+  const userId = getUserIdFromStorage();
+  if (!userId) {
+    console.error("User not logged in");
+    return false;
+  }
+  try {
+    const response = await fetch(`/api/party/${partyId}/attend?user=${userId}`, {
+      method: "DELETE"
+    });
+    return response.ok;
+  } catch (error) {
+    console.error("Error leaving the party:", error);
+    return false;
+  }
 }
 
-// Get media for a party
 async function getMediaForParty(partyId) {
-    try {
-        const response = await fetch(`/api/party/${partyId}/media`);
-        if (!response.ok) throw new Error('Network response was not ok');
-        return await response.json();
-    } catch (error) {
-        console.error('Error fetching party media:', error);
-        return null;
-    }
+  try {
+    const response = await fetch(`/api/party/${partyId}/media`);
+    if (!response.ok) throw new Error("Network response was not ok");
+    return await response.json();
+  } catch (error) {
+    console.error("Error fetching party media:", error);
+    return null;
+  }
 }
 
 // User-functions
-// Fetch all users
 async function getAllUsers() {
-    try {
-        const response = await fetch('/api/users/');
-        if (!response.ok) throw new Error('Network response was not ok');
-        return await response.json();
-    } catch (error) {
-        console.error('Error fetching users:', error);
-        return null;
-    }
+  try {
+    const response = await fetch("/api/users/");
+    if (!response.ok) throw new Error("Network response was not ok");
+    return await response.json();
+  } catch (error) {
+    console.error("Error fetching users:", error);
+    return null;
+  }
 }
 
-// Get user by id
 async function getUserById(id) {
-    try {
-        const response = await fetch('/api/users/' + id);
-        if (!response.ok) throw new Error('Network response was not ok');
-        return await response.json();
-    } catch (error) {
-        console.error('Error fetching user:', error);
-        return null;
-    }
+  try {
+    const response = await fetch("/api/users/" + id);
+    if (!response.ok) throw new Error("Network response was not ok");
+    return await response.json();
+  } catch (error) {
+    console.error("Error fetching user:", error);
+    return null;
+  }
 }
 
-// Get profile-picture URL by user id
 function getProfilePictureUrl(id) {
-    return `/api/users/${id}/profile-picture`;
+  return `/api/users/${id}/profile-picture`;
 }
 
-// Get profile-picture by user id (returns the URL for img src)
 async function getProfilePicture(id) {
-    return `/api/users/${id}/profile-picture`;
+  return `/api/users/${id}/profile-picture`;
 }
 
-// Invite user to party using userId
 async function invite(recipient, partyId) {
-    const userId = getUserIdFromStorage();
-    if (!userId) {
-        return { ok: false, error: "User not logged in" };
-    }
-    const invitationPayload = { recipient, partyId };
-    try {
-        const response = await fetch(`/api/invites/?user=${userId}`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(invitationPayload)
-        });
-        if (!response.ok) throw new Error('Network response was not ok');
-        return { ok: true };
-    } catch (error) {
-        console.error('Error during invitation:', error);
-        return { ok: false, error };
-    }
+  const userId = getUserIdFromStorage();
+  if (!userId) {
+    return { ok: false, error: "User not logged in" };
+  }
+
+  const invitationPayload = { recipient, partyId };
+
+  try {
+    const response = await fetch(`/api/invites/?user=${userId}`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(invitationPayload)
+    });
+    if (!response.ok) throw new Error("Network response was not ok");
+    return { ok: true };
+  } catch (error) {
+    console.error("Error during invitation:", error);
+    return { ok: false, error };
+  }
 }
 
-// Get users personally received invites
 async function getReceivedInvites() {
-    const userId = getUserIdFromStorage();
-    if (!userId) {
-        console.error('User not logged in');
-        return [];
-    }
-    try {
-        const response = await fetch(`/api/invites/rec?user=${userId}`);
-        if (!response.ok) throw new Error('Network response was not ok');
-        return await response.json();
-    } catch (error) {
-        console.error('Error fetching received invitation:', error);
-        return null;
-    }
+  const userId = getUserIdFromStorage();
+  if (!userId) {
+    console.error("User not logged in");
+    return [];
+  }
+
+  try {
+    const response = await fetch(`/api/invites/rec?user=${userId}`);
+    if (!response.ok) throw new Error("Network response was not ok");
+    return await response.json();
+  } catch (error) {
+    console.error("Error fetching received invitation:", error);
+    return null;
+  }
 }
 
-// Get users personally sent invites
 async function getSentInvites() {
-    const userId = getUserIdFromStorage();
-    if (!userId) {
-        console.error('User not logged in');
-        return [];
-    }
-    try {
-        const response = await fetch(`/api/invites/inv?user=${userId}`);
-        if (!response.ok) throw new Error('Network response was not ok');
-        return await response.json();
-    } catch (error) {
-        console.error('Error fetching sent invitation:', error);
-        return null;
-    }
+  const userId = getUserIdFromStorage();
+  if (!userId) {
+    console.error("User not logged in");
+    return [];
+  }
+
+  try {
+    const response = await fetch(`/api/invites/inv?user=${userId}`);
+    if (!response.ok) throw new Error("Network response was not ok");
+    return await response.json();
+  } catch (error) {
+    console.error("Error fetching sent invitation:", error);
+    return null;
+  }
 }
 
 async function deleteInvite(invitationId) {
-    const userId = getUserIdFromStorage();
-    if (!userId) {
-        console.error('User not logged in');
-        return { ok: false, error: "User not logged in" };
+  const userId = getUserIdFromStorage();
+  if (!userId) {
+    console.error("User not logged in");
+    return { ok: false, error: "User not logged in" };
+  }
+
+  try {
+    const response = await fetch(`/api/invites/delete/${invitationId}?user=${userId}`, {
+      method: "DELETE",
+      headers: {
+        "Content-Type": "application/json"
+      }
+    });
+
+    if (!response.ok) {
+      if (response.status === 404) {
+        throw new Error("Invitation not found");
+      }
+      throw new Error(`Failed to delete invitation: ${response.status}`);
     }
-    try {
-        const response = await fetch(`/api/invites/delete/${invitationId}?user=${userId}`, {
-            method: 'DELETE',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-        });
-        console.log('Delete invite response:', response);
-        if (!response.ok) {
-            if (response.status === 404) {
-                throw new Error('Invitation not found');
-            }
-            throw new Error(`Failed to delete invitation: ${response.status}`);
-        }
-        console.log('Invitation deleted successfully');
-        return true;
-    } catch (error) {
-        console.error('Error deleting invitation:', error);
-        throw error;
-    }
+
+    return true;
+  } catch (error) {
+    console.error("Error deleting invitation:", error);
+    throw error;
+  }
 }
-// Get parties created by a specific user (tries several endpoints, fallbacks)
+
+function normalizePartyArray(data) {
+  if (Array.isArray(data)) return data;
+  if (Array.isArray(data?.data)) return data.data;
+  if (Array.isArray(data?.items)) return data.items;
+  if (Array.isArray(data?.results)) return data.results;
+  if (Array.isArray(data?.parties)) return data.parties;
+  return [];
+}
+
 async function getPartiesByUser(userId) {
-    const candidates = [
-        `/api/users/${userId}/parties`,
-        `/api/party/user/${userId}`,
-        `/api/party?host_user_id=${userId}`,
-        `/api/party?hostId=${userId}`,
-        `/api/party?host_id=${userId}`,
-        `/api/party?ownerId=${userId}`,
-        `/api/party?userId=${userId}`,
-        `/api/party/owned/${userId}`,
-        `/api/party/owner/${userId}`,
-        `/api/party/` // last resort - list all
-    ];
+  try {
+    const raw = await getAllParties();
+    const all = normalizePartyArray(raw);
 
-    for (const u of candidates) {
-        try {
-            const res = await fetch(u);
-            if (!res.ok) {
-                console.debug(`getPartiesByUser: ${u} -> ${res.status}`);
-                continue;
-            }
-            const data = await res.json().catch(() => null);
-            if (!data) continue;
+    if (!Array.isArray(all)) return [];
 
-            // Normalize several possible shapes to an array "arr"
-            let arr = null;
-            if (Array.isArray(data)) arr = data;
-            else if (Array.isArray(data.parties)) arr = data.parties;
-            else if (Array.isArray(data.data)) arr = data.data;
-            else if (Array.isArray(data.results)) arr = data.results;
-            else if (typeof data === 'object') {
-                // try to find the first array value inside the response object
-                for (const k of Object.keys(data)) {
-                    if (Array.isArray(data[k])) { arr = data[k]; break; }
-                }
-            }
+    const id = String(userId);
 
-            if (Array.isArray(arr)) {
-                // Filter strictly for host/owner fields matching userId to be safe
-                const filtered = arr.filter(p => {
-                    if (!p) return false;
-                    const id = String(userId);
-                    if (p.host_user_id != null && String(p.host_user_id) === id) return true;
-                    if (p.hostId != null && String(p.hostId) === id) return true;
-                    if (p.host_id != null && String(p.host_id) === id) return true;
-                    if (p.hostUserId != null && String(p.hostUserId) === id) return true;
-                    if (p.ownerId != null && String(p.ownerId) === id) return true;
-                    if (p.creatorId != null && String(p.creatorId) === id) return true;
-                    if (p.userId != null && String(p.userId) === id) return true;
-                    if (p.owner != null && String(p.owner) === id) return true;
-                    if (p.host && typeof p.host === 'object' && (String(p.host.id) === id || String(p.host.userId) === id)) return true;
-                    return false;
-                });
-                console.debug(`getPartiesByUser: endpoint ${u} returned ${arr.length} item(s), filtered -> ${filtered.length}`);
-                // If we queried a direct user-scoped endpoint (not the generic /api/party/), return filtered (could be empty)
-                return filtered;
-            }
-            // If data itself is an object that looks like a single party, return it as single-element array when host matches
-            if (data && typeof data === 'object') {
-                const maybe = data;
-                const idStr = String(userId);
-                if (
-                    (maybe.host_user_id != null && String(maybe.host_user_id) === idStr) ||
-                    (maybe.hostId != null && String(maybe.hostId) === idStr) ||
-                    (maybe.ownerId != null && String(maybe.ownerId) === idStr) ||
-                    (maybe.creatorId != null && String(maybe.creatorId) === idStr) ||
-                    (maybe.host && typeof maybe.host === 'object' && String(maybe.host.id) === idStr)
-                ) {
-                    return [maybe];
-                }
-            }
-        } catch (err) {
-            console.debug(`getPartiesByUser: network error for ${u}`, err);
-            continue;
-        }
-    }
+    const result = all.filter((p) => {
+      if (!p) return false;
 
-    // fallback: fetch all parties and filter by many possible owner/host fields
-    try {
-        const all = await getAllParties();
-        if (!Array.isArray(all)) return [];
-        const result = all.filter(p => {
-            if (!p) return false;
-            const id = String(userId);
-            if (p.host_user_id != null && String(p.host_user_id) === id) return true;
-            if (p.hostId != null && String(p.hostId) === id) return true;
-            if (p.host_id != null && String(p.host_id) === id) return true;
-            if (p.hostUserId != null && String(p.hostUserId) === id) return true;
-            if (p.ownerId != null && String(p.ownerId) === id) return true;
-            if (p.creatorId != null && String(p.creatorId) === id) return true;
-            if (p.userId != null && String(p.userId) === id) return true;
-            if (p.owner != null && String(p.owner) === id) return true;
-            if (p.host && typeof p.host === 'object' && (String(p.host.id) === id || String(p.host.userId) === id)) return true;
-            return false;
-        });
-        console.debug(`getPartiesByUser: fallback filtered ${result.length} parties from all (${Array.isArray(all)?all.length:0})`);
-        return result;
-    } catch (err) {
-        console.error('getPartiesByUser fallback failed', err);
-        return [];
-    }
+      if (p.host_user_id != null && String(p.host_user_id) === id) return true;
+      if (p.hostId != null && String(p.hostId) === id) return true;
+      if (p.host_id != null && String(p.host_id) === id) return true;
+      if (p.hostUserId != null && String(p.hostUserId) === id) return true;
+      if (p.ownerId != null && String(p.ownerId) === id) return true;
+      if (p.creatorId != null && String(p.creatorId) === id) return true;
+      if (p.userId != null && String(p.userId) === id) return true;
+      if (p.owner != null && String(p.owner) === id) return true;
+      if (p.user != null && String(p.user) === id) return true;
+      if (p.creator != null && String(p.creator) === id) return true;
+
+      if (p.host && typeof p.host === "object") {
+        if (p.host.id != null && String(p.host.id) === id) return true;
+        if (p.host.userId != null && String(p.host.userId) === id) return true;
+      }
+
+      if (p.host_user && typeof p.host_user === "object") {
+        if (p.host_user.id != null && String(p.host_user.id) === id) return true;
+        if (p.host_user.userId != null && String(p.host_user.userId) === id) return true;
+      }
+
+      if (p.ownerUser && typeof p.ownerUser === "object") {
+        if (p.ownerUser.id != null && String(p.ownerUser.id) === id) return true;
+      }
+
+      if (p.creatorUser && typeof p.creatorUser === "object") {
+        if (p.creatorUser.id != null && String(p.creatorUser.id) === id) return true;
+      }
+
+      return false;
+    });
+
+    return result;
+  } catch (err) {
+    console.error("getPartiesByUser failed", err);
+    return [];
+  }
 }
 
-// Expose functions on a namespace to be used by other scripts (profile.js etc.)
+// Follow helpers
+async function getFollowers(userId) {
+  try {
+    const res = await fetch(`/follow/followers/${encodeURIComponent(userId)}`);
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const data = await res.json();
+    return Array.isArray(data) ? data : [];
+  } catch (err) {
+    console.error("getFollowers failed", err);
+    return [];
+  }
+}
+
+async function getFollowings(userId) {
+  try {
+    const res = await fetch(`/follow/followings/${encodeURIComponent(userId)}`);
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const data = await res.json();
+    return Array.isArray(data) ? data : [];
+  } catch (err) {
+    console.error("getFollowings failed", err);
+    return [];
+  }
+}
+
+async function isFollowing(userA, userB) {
+  try {
+    const res = await fetch(`/follow/is-following/${encodeURIComponent(userA)}/${encodeURIComponent(userB)}`);
+    if (!res.ok) return false;
+
+    const data = await res.json();
+
+    if (typeof data === "boolean") return data;
+    if (typeof data?.following === "boolean") return data.following;
+    if (typeof data?.isFollowing === "boolean") return data.isFollowing;
+    if (typeof data?.result === "boolean") return data.result;
+
+    return Boolean(data);
+  } catch (err) {
+    console.error("isFollowing failed", err);
+    return false;
+  }
+}
+
+async function followUser(targetUserId) {
+  const userId = getUserIdFromStorage();
+  if (!userId) return { ok: false, error: "Not logged in" };
+
+  try {
+    const alreadyFollowing = await isFollowing(userId, targetUserId);
+    if (alreadyFollowing) {
+      return { ok: true, status: 200, alreadyFollowing: true };
+    }
+
+    const res = await fetch(`/follow/request/${encodeURIComponent(userId)}/${encodeURIComponent(targetUserId)}`, {
+      method: "POST"
+    });
+
+    if (res.ok) {
+      return { ok: true, status: res.status };
+    }
+
+    if (res.status === 409) {
+      return { ok: true, status: 409, alreadyFollowing: true };
+    }
+
+    return { ok: false, status: res.status, text: await res.text().catch(() => null) };
+  } catch (err) {
+    console.error("followUser failed", err);
+    return { ok: false, error: err };
+  }
+}
+
+async function unfollowUser(targetUserId) {
+  const userId = getUserIdFromStorage();
+  if (!userId) return { ok: false, error: "Not logged in" };
+
+  try {
+    const currentlyFollowing = await isFollowing(userId, targetUserId);
+    if (!currentlyFollowing) {
+      return { ok: true, status: 200, alreadyNotFollowing: true };
+    }
+
+    const res = await fetch(`/follow/remove/${encodeURIComponent(userId)}/${encodeURIComponent(targetUserId)}`, {
+      method: "DELETE"
+    });
+
+    if (res.ok) {
+      return { ok: true, status: res.status };
+    }
+
+    if (res.status === 404 || res.status === 409) {
+      return { ok: true, status: res.status, alreadyNotFollowing: true };
+    }
+
+    return { ok: false, status: res.status, text: await res.text().catch(() => null) };
+  } catch (err) {
+    console.error("unfollowUser failed", err);
+    return { ok: false, error: err };
+  }
+}
+
+// --- NEW: unified follow-status helper ---
+async function getFollowStatus(userA, userB) {
+  // self-check
+  if (userA == null || userB == null) return { status: "not_following" };
+  if (String(userA) === String(userB)) return { status: "self" };
+
+  try {
+    // first check direct follow relationship
+    const following = await isFollowing(userA, userB);
+    if (following) return { status: "following" };
+
+    // fallback: check pending lists for userB (users who requested to follow userB)
+    try {
+      const res = await fetch(`/follow/pending/${encodeURIComponent(userB)}`);
+      if (res.ok) {
+        const data = await res.json().catch(() => null);
+        if (Array.isArray(data) && data.some((u) => String(u?.id) === String(userA))) {
+          return { status: "pending" };
+        }
+      }
+    } catch (err) {
+      // ignore, return not_following below
+    }
+
+    return { status: "not_following" };
+  } catch (err) {
+    console.error("getFollowStatus failed", err);
+    return { status: "not_following" };
+  }
+}
+
 window.backend = {
-    createParty,
-    getAllParties,
-    sortParties,
-    filterParties,
-    getPartyById,
-    getPartiesByUser, // <-- neu
-    updateParty,
-    deleteParty,
-    attendParty,
-    leaveParty,
-    getMediaForParty,
-    getAllUsers,
-    getUserById,
-    getProfilePicture,
-    invite,
-    getReceivedInvites,
-    getSentInvites,
-    deleteInvite
+  createParty,
+  getAllParties,
+  sortParties,
+  filterParties,
+  getPartyById,
+  getPartiesByUser,
+  updateParty,
+  deleteParty,
+  attendParty,
+  leaveParty,
+  getMediaForParty,
+  getAllUsers,
+  getUserById,
+  getProfilePicture,
+  invite,
+  getReceivedInvites,
+  getSentInvites,
+  deleteInvite,
+  getFollowers,
+  getFollowings,
+  isFollowing,
+  getFollowStatus,
+  followUser,
+  unfollowUser
 };

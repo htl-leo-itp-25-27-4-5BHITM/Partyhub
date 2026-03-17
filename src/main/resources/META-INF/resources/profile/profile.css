@@ -55,6 +55,7 @@
   stroke: #56f27c;
   fill: #56f27c;
 }
+
 .tab-btn .tab-icon svg {
   stroke: #fff;
   fill: #fff;
@@ -92,27 +93,168 @@
   display: block;
 }
 
-/* Edit Account Button */
-.edit-account-btn {
-  width: 90vw;
-  max-width: 420px;
-  background: #ff2e63;
-  color: #fff;
-  font-size: 1.1rem;
-  font-weight: 600;
-  border: none;
-  border-radius: 999px;
-  padding: 12px 0;
-  margin: 16px auto 0 auto;
-  cursor: pointer;
-  box-shadow: none;
-  transition: background 0.2s;
-  display: block;
-  text-align: center;
+/* =========================
+   MODERN ACTION BUTTONS
+   ALLES IN PINK
+   ========================= */
+#actionButton {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  margin-top: 12px;
 }
 
-.edit-account-btn:active {
-  background: #e02657;
+.edit-account-btn,
+.follow-action-main {
+  width: 90vw;
+  max-width: 420px;
+  min-height: 52px;
+  border: none;
+  border-radius: 18px;
+  padding: 14px 20px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  cursor: pointer;
+  position: relative;
+  overflow: hidden;
+
+  color: #fff;
+  font-size: 1rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  text-align: center;
+
+  background: linear-gradient(135deg, #ff5c8a 0%, #ff2e63 48%, #d91b57 100%);
+  box-shadow:
+    0 10px 24px rgba(255, 46, 99, 0.30),
+    inset 0 1px 0 rgba(255, 255, 255, 0.18),
+    inset 0 -1px 0 rgba(0, 0, 0, 0.18);
+
+  transition:
+    transform 0.18s ease,
+    box-shadow 0.18s ease,
+    filter 0.18s ease,
+    background 0.18s ease;
+}
+
+.edit-account-btn::before,
+.follow-action-main::before {
+  content: "";
+  position: absolute;
+  inset: 1px;
+  border-radius: 17px;
+  background: linear-gradient(
+    180deg,
+    rgba(255, 255, 255, 0.14),
+    rgba(255, 255, 255, 0.03)
+  );
+  pointer-events: none;
+}
+
+.edit-account-btn::after,
+.follow-action-main::after {
+  content: "";
+  position: absolute;
+  top: -120%;
+  left: -40%;
+  width: 50%;
+  height: 280%;
+  transform: rotate(20deg);
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 255, 255, 0.22),
+    transparent
+  );
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.2s ease;
+}
+
+.edit-account-btn:hover,
+.follow-action-main:hover {
+  transform: translateY(-1px) scale(1.01);
+  box-shadow:
+    0 14px 30px rgba(255, 46, 99, 0.36),
+    inset 0 1px 0 rgba(255, 255, 255, 0.2),
+    inset 0 -1px 0 rgba(0, 0, 0, 0.2);
+  filter: brightness(1.04);
+}
+
+.edit-account-btn:hover::after,
+.follow-action-main:hover::after {
+  opacity: 1;
+}
+
+.edit-account-btn:active,
+.follow-action-main:active {
+  transform: translateY(1px) scale(0.99);
+  box-shadow:
+    0 8px 18px rgba(255, 46, 99, 0.22),
+    inset 0 2px 6px rgba(0, 0, 0, 0.18);
+}
+
+.edit-account-btn:focus-visible,
+.follow-action-main:focus-visible {
+  outline: 2px solid rgba(255, 255, 255, 0.9);
+  outline-offset: 3px;
+}
+
+.edit-account-btn[disabled],
+.follow-action-main[disabled] {
+  opacity: 0.72;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow:
+    0 8px 16px rgba(255, 46, 99, 0.16),
+    inset 0 1px 0 rgba(255, 255, 255, 0.12);
+}
+
+/* Link inside Edit button */
+.edit-account-btn a {
+  color: inherit;
+  text-decoration: none;
+  font: inherit;
+  font-weight: inherit;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  position: relative;
+  z-index: 2;
+}
+
+/* Search result follow buttons auch pink */
+.follow-toggle-btn {
+  min-width: 92px;
+  border: none;
+  border-radius: 999px;
+  padding: 8px 14px;
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: #fff;
+  cursor: pointer;
+  background: linear-gradient(135deg, #ff5c8a 0%, #ff2e63 100%);
+  box-shadow: 0 6px 14px rgba(255, 46, 99, 0.28);
+  transition: transform 0.15s ease, filter 0.15s ease, box-shadow 0.15s ease;
+}
+
+.follow-toggle-btn:hover {
+  transform: translateY(-1px);
+  filter: brightness(1.04);
+  box-shadow: 0 8px 18px rgba(255, 46, 99, 0.34);
+}
+
+.follow-toggle-btn:active {
+  transform: translateY(1px) scale(0.98);
+}
+
+.follow-toggle-btn:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+  transform: none;
 }
 
 /* Tabs für Beiträge und Favoriten */
@@ -211,17 +353,18 @@ body {
 #searchBar {
   width: 100%;
   display: flex;
+  gap: 8px;
   justify-content: center;
   align-items: center;
   margin-top: 18px;
-  padding: 14px 0;
+  padding: 14px 36px;
   position: relative;
 }
 
 .searchBox {
   display: flex;
   align-items: center;
-  width: 90vw;
+  width: 100%;
   max-width: 420px;
   margin: 0 auto;
   background: rgba(79, 59, 154, 0.9);
@@ -249,7 +392,8 @@ body {
   object-fit: cover;
   object-position: center 32%;
   display: block;
-  box-shadow: 0 8px 20px rgba(255, 255, 255, 0.06) inset,
+  box-shadow:
+    0 8px 20px rgba(255, 255, 255, 0.06) inset,
     0 6px 18px rgba(0, 0, 0, 0.18);
 }
 
@@ -259,7 +403,6 @@ body {
   font-weight: 600;
   text-align: center;
   color: #fff;
-  /* make username white */
   text-shadow: 0 2px 4px rgba(0, 0, 0, 0.35);
 }
 
@@ -268,28 +411,6 @@ body {
   font-weight: 400;
   color: rgba(255, 255, 255, 0.8);
   margin-top: 4px;
-}
-
-/* give the search bar more horizontal breathing room */
-/* increase horizontal breathing room */
-#searchBar {
-  width: 100%;
-  display: flex;
-  gap: 8px;
-  justify-content: center;
-  padding: 14px 36px;
-}
-
-.searchBox {
-  display: flex;
-  align-items: center;
-  width: 100%;
-  max-width: 420px;
-  margin: 0 auto;
-  background: rgba(79, 59, 154, 0.9);
-  padding: 10px 18px;
-  border-radius: 999px;
-  gap: 10px;
 }
 
 .searchBox .searchIcon {
@@ -347,15 +468,9 @@ body {
   background: transparent;
   border-radius: 0;
   box-shadow: none;
-}
-
-#profileDetails > div::before {
-  content: attr(data-count);
-  display: block;
   font-size: 1.05rem;
   font-weight: 700;
   color: #fff;
-  margin-bottom: 2px;
   text-shadow: 0 1px 0 rgba(0, 0, 0, 0.3);
 }
 
@@ -365,6 +480,8 @@ body {
   font-size: 0.85rem;
   color: #fff;
   opacity: 0.9;
+  font-weight: 400;
+  margin-top: 2px;
 }
 
 #followersCount::after {
@@ -373,6 +490,8 @@ body {
   font-size: 0.85rem;
   color: #fff;
   opacity: 0.9;
+  font-weight: 400;
+  margin-top: 2px;
 }
 
 #postsCount::after {
@@ -381,7 +500,10 @@ body {
   font-size: 0.85rem;
   color: #fff;
   opacity: 0.9;
+  font-weight: 400;
+  margin-top: 2px;
 }
+
 .bottom-nav {
   display: flex !important;
   position: fixed !important;
@@ -406,7 +528,8 @@ body {
   }
 }
 
-.search-dropdown {
+.search-dropdown,
+#searchDropdown {
   position: absolute;
   top: 100%;
   left: 50%;
@@ -426,11 +549,13 @@ body {
   scrollbar-color: rgba(255, 255, 255, 0.3) transparent;
 }
 
-.search-dropdown.hidden {
+.search-dropdown.hidden,
+#searchDropdown.hidden {
   display: none;
 }
 
-.search-results {
+.search-results,
+.search-results-list {
   padding: 8px 0;
 }
 
@@ -486,20 +611,31 @@ body {
   text-overflow: ellipsis;
 }
 
-.search-dropdown::-webkit-scrollbar {
+.search-action {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.search-dropdown::-webkit-scrollbar,
+#searchDropdown::-webkit-scrollbar {
   width: 6px;
 }
 
-.search-dropdown::-webkit-scrollbar-track {
+.search-dropdown::-webkit-scrollbar-track,
+#searchDropdown::-webkit-scrollbar-track {
   background: transparent;
 }
 
-.search-dropdown::-webkit-scrollbar-thumb {
+.search-dropdown::-webkit-scrollbar-thumb,
+#searchDropdown::-webkit-scrollbar-thumb {
   background: rgba(255, 255, 255, 0.3);
   border-radius: 3px;
 }
 
-.search-dropdown::-webkit-scrollbar-thumb:hover {
+.search-dropdown::-webkit-scrollbar-thumb:hover,
+#searchDropdown::-webkit-scrollbar-thumb:hover {
   background: rgba(255, 255, 255, 0.5);
 }
 
@@ -542,36 +678,30 @@ body {
   max-width: 520px;
   margin: 12px auto 0;
   display: grid;
-  grid-template-columns: repeat(
-    2,
-    minmax(0, 1fr)
-  );
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 10px;
   box-sizing: border-box;
   padding: 4px;
 }
 
 .party-card {
-  /* make cards slightly smaller and more compact on profile */
   padding: 8px;
   border-radius: 10px;
-  background: rgba(255,255,255,0.03);
-  box-shadow: 0 4px 12px rgba(0,0,0,0.12);
-  transition: transform .12s ease, box-shadow .12s ease;
+  background: rgba(255, 255, 255, 0.03);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
+  transition: transform 0.12s ease, box-shadow 0.12s ease;
   display: flex;
   flex-direction: column;
   gap: 6px;
 }
 
-/* hide existing verbose info boxes on profile (we'll show a concise meta line) */
 .party-card .info-box {
   display: none !important;
 }
 
-/* compact meta line below the party name */
 .party-meta {
   font-size: 0.82rem;
-  color: rgba(255,255,255,0.72);
+  color: rgba(255, 255, 255, 0.72);
   font-weight: 500;
   line-height: 1.1;
   margin-top: 4px;
@@ -580,7 +710,6 @@ body {
   text-overflow: ellipsis;
 }
 
-/* slightly smaller name for compact layout */
 .party-name {
   font-size: 0.95rem;
   font-weight: 700;
@@ -588,13 +717,16 @@ body {
   color: #fff;
 }
 
-/* reduce padding for small screens */
 @media (max-width: 420px) {
-  .party-card { padding: 8px; }
-  .party-meta { font-size: 0.78rem; }
+  .party-card {
+    padding: 8px;
+  }
+
+  .party-meta {
+    font-size: 0.78rem;
+  }
 }
 
-/* Username button: show only the username text in the header */
 .username-btn {
   display: inline-flex;
   align-items: center;
@@ -608,10 +740,9 @@ body {
   text-align: left;
 }
 
-/* Header shows only the distinct username */
 .username-btn .username-avatar,
-.username-avatar { 
-  display: none; /* hide avatar in header; dropdown items still use .avatar */
+.username-avatar {
+  display: none;
 }
 
 .distinct-name {
@@ -620,17 +751,15 @@ body {
   color: #fff;
 }
 
-/* keep dropdown avatars visible (class .avatar used in list items) */
 .avatar {
   display: inline-block;
   width: 40px;
   height: 40px;
   border-radius: 50%;
   object-fit: cover;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.25);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
 }
 
-/* Username list items use existing .username-item styles if any; add small defaults */
 .username-item {
   display: flex;
   gap: 10px;
@@ -643,17 +772,16 @@ body {
   color: inherit;
   cursor: pointer;
 }
+
 .username-item:hover {
-  background: rgba(255,255,255,0.04);
+  background: rgba(255, 255, 255, 0.04);
 }
 
-/* Make username container relative so dropdown can be absolute and overlay content */
 #username {
   position: relative;
   z-index: 1;
 }
 
-/* username dropdown: overlay, not push content */
 #usernameDropdown {
   position: absolute;
   top: calc(100% + 8px);
@@ -662,60 +790,58 @@ body {
   width: min(90vw, 420px);
   background: rgba(34, 30, 54, 0.98);
   border-radius: 12px;
-  box-shadow: 0 8px 24px rgba(0,0,0,0.35);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
   padding: 6px 0;
   z-index: 3000;
   max-height: 320px;
   overflow-y: auto;
-  border: 1px solid rgba(255,255,255,0.06);
+  border: 1px solid rgba(255, 255, 255, 0.06);
   backdrop-filter: blur(6px);
 }
 
-/* hidden state */
 #usernameDropdown.hidden {
   display: none;
 }
 
-/* dropdown list items styling */
 .dropdown-list {
   display: flex;
   flex-direction: column;
   gap: 4px;
 }
 
-/* ensure avatar in dropdown visible */
 #usernameDropdown .avatar {
   width: 44px;
   height: 44px;
   flex-shrink: 0;
 }
 
-/* make sure dropdown doesn't affect layout when hidden */
-#usernameDropdown[aria-hidden="true"] { display: none; }
-
-/* small responsive tweak so dropdown fits on narrow screens */
-@media (max-width: 380px) {
-  #usernameDropdown { left: 8px; transform: none; width: calc(100% - 16px); }
+#usernameDropdown[aria-hidden="true"] {
+  display: none;
 }
 
-/* expandable party details */
+@media (max-width: 380px) {
+  #usernameDropdown {
+    left: 8px;
+    transform: none;
+    width: calc(100% - 16px);
+  }
+}
+
 .party-extra {
   display: block;
   margin-top: 8px;
-  background: rgba(0,0,0,0.18);
+  background: rgba(0, 0, 0, 0.18);
   border-radius: 8px;
   padding: 8px;
   max-height: 260px;
   overflow: auto;
-  border: 1px solid rgba(255,255,255,0.04);
+  border: 1px solid rgba(255, 255, 255, 0.04);
 }
 
-/* hidden helper */
 .party-extra.hidden {
   display: none;
 }
 
-/* JSON block */
 .party-json {
   color: #fff;
   font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, "Roboto Mono", "Courier New", monospace;
@@ -726,7 +852,6 @@ body {
   margin: 0;
 }
 
-/* small spacing for the details button (icon alignment) */
 .details-btn {
   display: inline-flex;
   align-items: center;
@@ -739,113 +864,141 @@ body {
   color: inherit;
   cursor: pointer;
 }
-.details-btn:focus { outline: 2px solid rgba(255,255,255,0.08); }
-  cursor: pointer;
+
+.details-btn:focus {
+  outline: 2px solid rgba(255, 255, 255, 0.08);
 }
-.username-item:hover {
-  background: rgba(255,255,255,0.04);
+
+/* Follow menu styling */
+.follow-menu-dropdown {
+  position: fixed;
+  width: 320px;
+  max-width: calc(100vw - 24px);
+  background: linear-gradient(180deg, rgba(28,26,44,0.96), rgba(34,30,54,0.98));
+  border-radius: 14px;
+  padding: 8px;
+  box-shadow: 0 18px 50px rgba(11,8,28,0.6), 0 6px 18px rgba(0,0,0,0.35);
+  border: 1px solid rgba(255,255,255,0.06);
+  backdrop-filter: blur(8px);
+  opacity: 0;
+  transform: translateY(-8px) scale(0.995);
+  transition: opacity 200ms ease, transform 220ms cubic-bezier(.2,.9,.2,1);
+  z-index: 4000;
+  overflow: hidden;
 }
+
+.follow-menu-open {
+  opacity: 1;
+  transform: translateY(0) scale(1);
+}
+
+.follow-menu-header {
   padding: 10px 12px;
-  background: transparent;
-  border: none;
-  text-align: left;
-  color: inherit;
-  cursor: pointer;
-}
-.username-item:hover {
-  background: rgba(255,255,255,0.04);
+  font-weight: 700;
+  color: #fff;
+  font-size: 0.95rem;
+  border-bottom: 1px solid rgba(255,255,255,0.03);
+  margin-bottom: 6px;
 }
 
-/* Make username container relative so dropdown can be absolute and overlay content */
-#username {
-  position: relative;
-  z-index: 1;
-}
-
-/* username dropdown: overlay, not push content */
-#usernameDropdown {
-  position: absolute;
-  top: calc(100% + 8px);
-  left: 50%;
-  transform: translateX(-50%);
-  width: min(90vw, 420px);
-  background: rgba(34, 30, 54, 0.98);
-  border-radius: 12px;
-  box-shadow: 0 8px 24px rgba(0,0,0,0.35);
-  padding: 6px 0;
-  z-index: 3000;
+.follow-menu-content {
   max-height: 320px;
-  overflow-y: auto;
-  border: 1px solid rgba(255,255,255,0.06);
-  backdrop-filter: blur(6px);
-}
-
-/* hidden state */
-#usernameDropdown.hidden {
-  display: none;
-}
-
-/* dropdown list items styling */
-.dropdown-list {
+  overflow: auto;
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 6px;
+  padding: 6px;
 }
 
-/* ensure avatar in dropdown visible */
-#usernameDropdown .avatar {
+/* Empty state */
+.follow-menu-empty {
+  padding: 18px;
+  color: rgba(255,255,255,0.7);
+  text-align: center;
+  font-size: 0.95rem;
+}
+
+/* Items */
+.follow-menu-item {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  padding: 8px;
+  width: 100%;
+  background: transparent;
+  border: none;
+  border-radius: 10px;
+  cursor: pointer;
+  text-align: left;
+  transition: background 120ms ease, transform 120ms ease;
+  color: inherit;
+}
+
+.follow-menu-item:hover {
+  background: rgba(255,255,255,0.03);
+  transform: translateY(-2px);
+}
+
+.follow-menu-item:active {
+  transform: translateY(0);
+}
+
+.follow-menu-item:focus {
+  outline: 2px solid rgba(95, 64, 190, 0.16);
+  outline-offset: 2px;
+  background: rgba(79,59,154,0.12);
+}
+
+/* Avatar */
+.follow-menu-avatar {
   width: 44px;
   height: 44px;
+  border-radius: 50%;
+  object-fit: cover;
+  box-shadow: 0 6px 18px rgba(0,0,0,0.35);
   flex-shrink: 0;
 }
 
-/* make sure dropdown doesn't affect layout when hidden */
-#usernameDropdown[aria-hidden="true"] { display: none; }
-
-/* small responsive tweak so dropdown fits on narrow screens */
-@media (max-width: 380px) {
-  #usernameDropdown { left: 8px; transform: none; width: calc(100% - 16px); }
+/* Info */
+.follow-menu-info {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  gap: 2px;
 }
 
-/* expandable party details */
-.party-extra {
-  display: block;
-  margin-top: 8px;
-  background: rgba(0,0,0,0.18);
-  border-radius: 8px;
-  padding: 8px;
-  max-height: 260px;
-  overflow: auto;
-  border: 1px solid rgba(255,255,255,0.04);
-}
-
-/* hidden helper */
-.party-extra.hidden {
-  display: none;
-}
-
-/* JSON block */
-.party-json {
+.follow-menu-name {
+  font-weight: 700;
   color: #fff;
-  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, "Roboto Mono", "Courier New", monospace;
-  font-size: 0.78rem;
-  line-height: 1.3;
-  white-space: pre-wrap;
-  word-break: break-word;
-  margin: 0;
+  font-size: 0.95rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
-/* small spacing for the details button (icon alignment) */
-.details-btn {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 36px;
-  height: 36px;
-  border-radius: 8px;
-  background: transparent;
-  border: none;
-  color: inherit;
-  cursor: pointer;
+.follow-menu-distinct {
+  color: rgba(255,255,255,0.74);
+  font-size: 0.85rem;
 }
-.details-btn:focus { outline: 2px solid rgba(255,255,255,0.08); }
+
+/* Scrollbar inside menu */
+.follow-menu-content::-webkit-scrollbar {
+  width: 8px;
+}
+.follow-menu-content::-webkit-scrollbar-thumb {
+  background: rgba(255,255,255,0.08);
+  border-radius: 6px;
+}
+.follow-menu-content::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+/* Make sure menu is accessible on small screens */
+@media (max-width: 420px) {
+  .follow-menu-dropdown {
+    left: 12px !important;
+    right: 12px !important;
+    width: auto;
+    max-width: calc(100vw - 24px);
+  }
+}

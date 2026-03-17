@@ -1,13 +1,15 @@
 document.addEventListener("DOMContentLoaded", function () {
-  // -----------------------------
-  // Elements
-  // -----------------------------
   const img = document.getElementById("profileImg");
   const displayNameElement = document.getElementById("displayName");
   const distinctNameElement = document.getElementById("distinctName");
 
-  // Wichtig: NICHT returnen, sonst läuft GAR NICHTS (Dropdown/Tabs/Partys/etc.)
-  // if (!img) return;
+  const searchInput = document.getElementById("searchInput");
+  const searchResults = document.getElementById("searchResults");
+  const searchDropdown = document.getElementById("searchDropdown");
+  let searchTimeout = null;
+
+  let viewedUserId = null;
+  let viewedUserFollowStatus = "not_following";
 
   // -----------------------------
   // Helpers
@@ -37,16 +39,20 @@ document.addEventListener("DOMContentLoaded", function () {
             t.onload = t.onerror = null;
             resolve(false);
           }, timeout);
+
           t.onload = () => {
             clearTimeout(timer);
             resolve(true);
           };
+
           t.onerror = () => {
             clearTimeout(timer);
             resolve(false);
           };
+
           t.src = u;
         });
+
         if (ok) return u;
       } catch {}
     }
@@ -60,15 +66,6 @@ document.addEventListener("DOMContentLoaded", function () {
     return [];
   }
 
-  function readHostUserId(p) {
-    const hu = p?.host_user;
-    if (hu && typeof hu === "object") return hu.id ?? null;
-    return p?.host_user_id ?? null;
-  }
-
-  // -----------------------------
-  // Storage: selected user (fake login)
-  // -----------------------------
   const STORAGE_KEY = "loggedInUserId";
 
   function parseFiniteNumber(x) {
@@ -102,15 +99,294 @@ document.addEventListener("DOMContentLoaded", function () {
     } catch {}
   }
 
+  window.getCurrentUserId = function () {
+    return getStoredUserId();
+  };
+
   window.setLoggedInUser = setStoredUserId;
 
   // -----------------------------
-  // Current shown profile user id
+  // Search dropdown
   // -----------------------------
-  let currentUserId = null;
+  function showSearchDropdown() {
+    if (!searchDropdown) return;
+    searchDropdown.classList.remove("hidden");
+    searchDropdown.style.display = "block";
+  }
+
+  function hideSearchDropdown() {
+    if (!searchDropdown) return;
+    searchDropdown.classList.add("hidden");
+    searchDropdown.style.display = "none";
+  }
 
   // -----------------------------
-  // Init: handle/id/stored/fallback
+  // Follow dropdown popup
+  // -----------------------------
+  let activeFollowMenu = null;
+
+  function closeFollowMenu() {
+    if (activeFollowMenu) {
+      activeFollowMenu.remove();
+      activeFollowMenu = null;
+    }
+  }
+
+  function positionFollowMenu(anchor, menu) {
+    const rect = anchor.getBoundingClientRect();
+
+    menu.style.position = "fixed";
+    menu.style.top = `${rect.bottom + 10}px`;
+    menu.style.left = `${Math.max(12, rect.left + rect.width / 2 - 160)}px`;
+
+    const maxLeft = window.innerWidth - 12 - 320;
+    const currentLeft = parseFloat(menu.style.left);
+    if (currentLeft > maxLeft) {
+      menu.style.left = `${Math.max(12, maxLeft)}px`;
+    }
+  }
+
+  function openUserProfileFromList(user) {
+    if (!user) return;
+
+    closeFollowMenu();
+
+    if (user.distinctName) {
+      loadUserDataByHandle(user.distinctName);
+
+      const newUrl = new URL(window.location.href);
+      newUrl.searchParams.set("handle", user.distinctName);
+      newUrl.searchParams.delete("id");
+      window.history.replaceState({}, "", newUrl);
+      return;
+    }
+
+    if (user.id != null) {
+      loadUserDataById(user.id);
+
+      const newUrl = new URL(window.location.href);
+      newUrl.searchParams.set("id", user.id);
+      newUrl.searchParams.delete("handle");
+      window.history.replaceState({}, "", newUrl);
+    }
+  }
+
+  function createFollowMenuItem(user) {
+    const item = document.createElement("button");
+    item.type = "button";
+    item.className = "follow-menu-item";
+    item.setAttribute("role", "menuitem");
+    item.tabIndex = 0;
+
+    const avatar = document.createElement("img");
+    avatar.className = "follow-menu-avatar";
+    avatar.src = `/api/users/${user.id}/profile-picture`;
+    avatar.alt = user.displayName || user.distinctName || "User";
+    avatar.onerror = function () {
+      this.onerror = null;
+      this.src = defaultAvatarDataUri();
+    };
+
+    const info = document.createElement("div");
+    info.className = "follow-menu-info";
+
+    const name = document.createElement("div");
+    name.className = "follow-menu-name";
+    name.textContent = user.displayName || user.name || user.distinctName || "Unknown User";
+
+    const distinct = document.createElement("div");
+    distinct.className = "follow-menu-distinct";
+    distinct.textContent = user.distinctName ? `@${user.distinctName}` : "";
+
+    info.appendChild(name);
+    info.appendChild(distinct);
+
+    item.appendChild(avatar);
+    item.appendChild(info);
+
+    item.addEventListener("click", (e) => {
+      e.stopPropagation();
+      openUserProfileFromList(user);
+    });
+
+    // Keyboard support: Enter / Space activates the item
+    item.addEventListener("keydown", (ev) => {
+      if (ev.key === "Enter" || ev.key === " ") {
+        ev.preventDefault();
+        item.click();
+      }
+    });
+
+    return item;
+  }
+
+  function showFollowMenu(anchor, users, title) {
+    closeFollowMenu();
+
+    const menu = document.createElement("div");
+    menu.className = "follow-menu-dropdown";
+    menu.setAttribute("role", "menu");
+    menu.setAttribute("tabindex", "-1");
+
+    const header = document.createElement("div");
+    header.className = "follow-menu-header";
+    header.textContent = title;
+
+    const content = document.createElement("div");
+    content.className = "follow-menu-content";
+
+    if (!users || users.length === 0) {
+      const empty = document.createElement("div");
+      empty.className = "follow-menu-empty";
+      // freundlicher deutscher Text
+      empty.textContent = "Keine Nutzer gefunden";
+      content.appendChild(empty);
+    } else {
+      users.forEach((user) => {
+        content.appendChild(createFollowMenuItem(user));
+      });
+    }
+
+    menu.appendChild(header);
+    menu.appendChild(content);
+    document.body.appendChild(menu);
+
+    positionFollowMenu(anchor, menu);
+    // damit resize/positionierung weiß, wo das Menü verankert ist
+    menu._anchorEl = anchor;
+    // Klasse für CSS-Animation (Einblenden / Hebung)
+    menu.classList.add("follow-menu-open");
+    // Fokus auf das Menü (so können Tasten wie Escape wirken)
+    try {
+      menu.focus();
+      // Fokus auf erstes Element, falls vorhanden
+      const firstItem = menu.querySelector(".follow-menu-item");
+      if (firstItem) firstItem.focus();
+    } catch (e) {
+      // ignore
+    }
+
+    // Keyboard: Escape schließt, Pfeiltasten bewegen Fokus innerhalb der Items
+    menu.addEventListener("keydown", (ev) => {
+      const items = Array.from(menu.querySelectorAll(".follow-menu-item"));
+      const idx = items.indexOf(document.activeElement);
+      if (ev.key === "Escape") {
+        ev.preventDefault();
+        closeFollowMenu();
+        return;
+      }
+      if (ev.key === "ArrowDown") {
+        ev.preventDefault();
+        const next = items[Math.min(items.length - 1, Math.max(0, idx + 1))] || items[0];
+        next?.focus();
+      } else if (ev.key === "ArrowUp") {
+        ev.preventDefault();
+        const prev = items[Math.min(items.length - 1, Math.max(0, idx - 1))] || items[items.length - 1];
+        prev?.focus();
+      }
+    });
+
+    activeFollowMenu = menu;
+  }
+
+  window.addEventListener("resize", () => {
+    if (activeFollowMenu) {
+      const anchor = activeFollowMenu._anchorEl;
+      if (anchor) positionFollowMenu(anchor, activeFollowMenu);
+    }
+  });
+
+  document.addEventListener("click", (e) => {
+    if (activeFollowMenu && !activeFollowMenu.contains(e.target)) {
+      closeFollowMenu();
+    }
+  });
+
+  // -----------------------------
+  // Follow status
+  // -----------------------------
+  async function syncViewedUserFollowStatus() {
+    const loggedInUserId = getStoredUserId();
+
+    if (loggedInUserId == null || viewedUserId == null) {
+      viewedUserFollowStatus = "not_following";
+      return viewedUserFollowStatus;
+    }
+
+    if (String(loggedInUserId) === String(viewedUserId)) {
+      viewedUserFollowStatus = "self";
+      return viewedUserFollowStatus;
+    }
+
+    try {
+      const result = await window.backend.getFollowStatus(loggedInUserId, viewedUserId);
+      viewedUserFollowStatus = result?.status || "not_following";
+      return viewedUserFollowStatus;
+    } catch (err) {
+      console.error("syncViewedUserFollowStatus failed", err);
+      viewedUserFollowStatus = "not_following";
+      return viewedUserFollowStatus;
+    }
+  }
+
+  function getActionButtonLabel() {
+    if (viewedUserFollowStatus === "following") return "Unfollow";
+    if (viewedUserFollowStatus === "pending") return "Requested";
+    return "Follow";
+  }
+
+  async function refreshProfileFollowState() {
+    if (viewedUserId == null) return;
+
+    try {
+      await syncViewedUserFollowStatus();
+      await renderActionButton();
+
+      const followers = await window.backend.getFollowers(viewedUserId);
+      const followings = await window.backend.getFollowings(viewedUserId);
+
+      const followersCountEl = document.getElementById("followersCount");
+      const followingCountEl = document.getElementById("followingCount");
+
+      if (followersCountEl) {
+        followersCountEl.textContent = String(Array.isArray(followers) ? followers.length : 0);
+      }
+
+      if (followingCountEl) {
+        followingCountEl.textContent = String(Array.isArray(followings) ? followings.length : 0);
+      }
+
+      attachFollowCountMenus(followers, followings);
+    } catch (err) {
+      console.error("refreshProfileFollowState failed", err);
+    }
+  }
+
+  function attachFollowCountMenus(followers, followings) {
+    const followersCountEl = document.getElementById("followersCount");
+    const followingCountEl = document.getElementById("followingCount");
+
+    if (followersCountEl) {
+      followersCountEl.style.cursor = "pointer";
+      followersCountEl.onclick = (e) => {
+        e.stopPropagation();
+        showFollowMenu(followersCountEl, followers, "Followers");
+        if (activeFollowMenu) activeFollowMenu._anchorEl = followersCountEl;
+      };
+    }
+
+    if (followingCountEl) {
+      followingCountEl.style.cursor = "pointer";
+      followingCountEl.onclick = (e) => {
+        e.stopPropagation();
+        showFollowMenu(followingCountEl, followings, "Following");
+        if (activeFollowMenu) activeFollowMenu._anchorEl = followingCountEl;
+      };
+    }
+  }
+
+  // -----------------------------
+  // Init
   // -----------------------------
   (function initProfileLoad() {
     const urlParams = new URLSearchParams(window.location.search);
@@ -135,15 +411,29 @@ document.addEventListener("DOMContentLoaded", function () {
       return;
     }
 
-    // dev fallback
     loadUserDataById(1);
   })();
 
   function failUserLoad(reason) {
     console.error("User load failed:", reason);
+    viewedUserId = null;
+    viewedUserFollowStatus = "not_following";
+
     if (displayNameElement) displayNameElement.textContent = "User not found";
     if (distinctNameElement) distinctNameElement.textContent = "@unknown";
     safeSetImgSrc(defaultAvatarDataUri());
+
+    const followersCountEl = document.getElementById("followersCount");
+    const followingCountEl = document.getElementById("followingCount");
+    const postsCountEl = document.getElementById("postsCount");
+
+    if (followersCountEl) followersCountEl.textContent = "0";
+    if (followingCountEl) followingCountEl.textContent = "0";
+    if (postsCountEl) postsCountEl.textContent = "0";
+
+    renderParties([]);
+    renderActionButton().catch(() => {});
+    closeFollowMenu();
   }
 
   // -----------------------------
@@ -175,86 +465,265 @@ document.addEventListener("DOMContentLoaded", function () {
       });
   }
 
-  function updateUserProfile(user) {
-    currentUserId = user?.id ?? null;
+  async function updateUserProfile(user) {
+    viewedUserId = user?.id ?? null;
+    viewedUserFollowStatus = "not_following";
+    closeFollowMenu();
 
-    if (currentUserId != null) setStoredUserId(currentUserId);
+    if (displayNameElement) {
+      displayNameElement.textContent = user?.displayName || user?.name || "";
+    }
 
-    if (displayNameElement) displayNameElement.textContent = user?.displayName || "";
     if (distinctNameElement) {
       distinctNameElement.textContent = user?.distinctName ? `@${user.distinctName}` : "";
     }
 
-    // Profile image
-    (async () => {
-      if (!currentUserId) {
-        safeSetImgSrc(defaultAvatarDataUri());
-        return;
-      }
-      const url = await tryImageUrls([`/api/users/${currentUserId}/profile-picture`]);
+    if (!viewedUserId) {
+      safeSetImgSrc(defaultAvatarDataUri());
+    } else {
+      const url = await tryImageUrls([`/api/users/${viewedUserId}/profile-picture`]);
       safeSetImgSrc(url || defaultAvatarDataUri());
-    })();
+    }
 
-    // Parties for selected user
-    loadUserParties().catch((e) => console.debug("loadUserParties failed", e));
+    await syncViewedUserFollowStatus();
+    await renderActionButton();
+    await loadUserParties().catch((e) => console.debug("loadUserParties failed", e));
+
+    try {
+      const followers = (await window.backend.getFollowers(viewedUserId)) || [];
+      const followings = (await window.backend.getFollowings(viewedUserId)) || [];
+
+      const followersCountEl = document.getElementById("followersCount");
+      const followingCountEl = document.getElementById("followingCount");
+
+      if (followersCountEl) {
+        followersCountEl.textContent = String(Array.isArray(followers) ? followers.length : 0);
+      }
+
+      if (followingCountEl) {
+        followingCountEl.textContent = String(Array.isArray(followings) ? followings.length : 0);
+      }
+
+      attachFollowCountMenus(followers, followings);
+    } catch (err) {
+      console.debug("load follow lists failed", err);
+    }
+
+    if (viewedUserId != null) {
+      try {
+        await refreshCreatedPartiesCount(viewedUserId);
+      } catch (err) {
+        console.debug("refreshCreatedPartiesCount failed", err);
+      }
+    }
   }
 
-  if (img) {
-    img.onerror = function () {
-      this.onerror = null;
-      this.src = defaultAvatarDataUri();
+  // -----------------------------
+  // Counts / button
+  // -----------------------------
+  async function refreshCreatedPartiesCount(userId) {
+    const postsCountEl = document.getElementById("postsCount");
+    if (!postsCountEl) return;
+
+    try {
+      const parties = await window.backend.getPartiesByUser(userId);
+      postsCountEl.textContent = String(Array.isArray(parties) ? parties.length : 0);
+    } catch (err) {
+      console.error("refreshCreatedPartiesCount failed", err);
+      postsCountEl.textContent = "0";
+    }
+  }
+
+  async function renderActionButton() {
+    const container = document.getElementById("actionButton");
+    if (!container) return;
+
+    container.innerHTML = "";
+
+    const loggedInUserId = getStoredUserId();
+    const profileUserId = viewedUserId;
+
+    if (profileUserId == null) return;
+
+    if (loggedInUserId == null) {
+      const btn = document.createElement("button");
+      btn.type = "button";
+      btn.className = "edit-account-btn";
+      btn.textContent = "Login to follow";
+      btn.disabled = true;
+      container.appendChild(btn);
+      return;
+    }
+
+    if (String(loggedInUserId) === String(profileUserId)) {
+      const btn = document.createElement("button");
+      btn.type = "button";
+      btn.className = "edit-account-btn";
+
+      const a = document.createElement("a");
+      a.href = "../editProfile/editProfile.html";
+      a.textContent = "Edit Account";
+      a.style.color = "inherit";
+      a.style.textDecoration = "none";
+
+      btn.appendChild(a);
+      container.appendChild(btn);
+      return;
+    }
+
+    const btn = document.createElement("button");
+    btn.type = "button";
+    btn.className = "follow-action-main";
+    btn.textContent = getActionButtonLabel();
+    btn.disabled = viewedUserFollowStatus === "pending";
+    container.appendChild(btn);
+
+    btn.onclick = async (ev) => {
+      ev.stopPropagation();
+      btn.disabled = true;
+
+      try {
+        await syncViewedUserFollowStatus();
+
+        if (viewedUserFollowStatus === "following") {
+          const res = await window.backend.unfollowUser(profileUserId);
+          if (!res?.ok) {
+            console.warn("unfollow failed", res);
+          }
+        } else if (viewedUserFollowStatus === "not_following") {
+          const res = await window.backend.followUser(profileUserId);
+          if (!res?.ok) {
+            console.warn("follow failed", res);
+          }
+        }
+
+        await refreshProfileFollowState();
+      } catch (err) {
+        console.error("follow action failed", err);
+      } finally {
+        if (viewedUserFollowStatus !== "pending") {
+          btn.disabled = false;
+        }
+      }
     };
   }
 
   // -----------------------------
   // Search
   // -----------------------------
-  const searchInput = document.getElementById("searchInput");
-  const searchDropdown = document.getElementById("searchDropdown");
-  const searchResults = document.getElementById("searchResults");
-  let searchTimeout = null;
-
-  function hideSearchDropdown() {
-    if (!searchDropdown) return;
-    searchDropdown.classList.add("hidden");
-    searchDropdown.setAttribute("aria-hidden", "true");
-  }
-
-  function showSearchDropdown() {
-    if (!searchDropdown) return;
-    searchDropdown.classList.remove("hidden");
-    searchDropdown.setAttribute("aria-hidden", "false");
-  }
-
-  // damit Klicks im Dropdown es nicht sofort schließen, falls du später einen global click-closer machst
-  if (searchDropdown) {
-    searchDropdown.addEventListener("click", (e) => e.stopPropagation());
-  }
-
   function displaySearchResults(results) {
     if (!searchResults) return;
+
     if (!results || results.length === 0) {
       hideSearchDropdown();
       return;
     }
 
     searchResults.innerHTML = "";
+
     results.forEach((u) => {
       const item = document.createElement("div");
       item.className = "search-result-item";
+
       item.innerHTML = `
         <img src="/api/users/${u.id}/profile-picture" class="search-result-avatar"
              onerror="this.onerror=null;this.src='${defaultAvatarDataUri()}';">
         <div class="search-result-info">
-          <div class="search-result-name">${u.displayName || u.distinctName || ""}</div>
+          <div class="search-result-name">${u.displayName || u.name || u.distinctName || ""}</div>
           <div class="search-result-distinct-name">@${u.distinctName || ""}</div>
         </div>
       `;
+
+      const action = document.createElement("div");
+      action.className = "search-action";
+
+      const btn = document.createElement("button");
+      btn.type = "button";
+      btn.className = "follow-toggle-btn";
+      btn.textContent = "Loading...";
+      btn.disabled = true;
+
+      action.appendChild(btn);
+      item.appendChild(action);
+
+      (async () => {
+        const current = getStoredUserId();
+
+        if (current == null || String(current) === String(u.id)) {
+          btn.textContent = "";
+          btn.disabled = true;
+          btn.style.visibility = "hidden";
+          return;
+        }
+
+        try {
+          let status = await window.backend.getFollowStatus(current, u.id);
+          let statusValue = status?.status || "not_following";
+
+          btn.textContent =
+            statusValue === "following"
+              ? "Unfollow"
+              : statusValue === "pending"
+              ? "Requested"
+              : "Follow";
+
+          btn.disabled = statusValue === "pending";
+          btn.style.visibility = "visible";
+
+          btn.addEventListener("click", async (ev) => {
+            ev.stopPropagation();
+            btn.disabled = true;
+
+            try {
+              status = await window.backend.getFollowStatus(current, u.id);
+              statusValue = status?.status || "not_following";
+
+              if (statusValue === "following") {
+                const resp = await window.backend.unfollowUser(u.id);
+                if (!resp?.ok) {
+                  console.warn("unfollow failed", resp);
+                }
+              } else if (statusValue === "not_following") {
+                const resp = await window.backend.followUser(u.id);
+                if (!resp?.ok) {
+                  console.warn("follow failed", resp);
+                }
+              }
+
+              status = await window.backend.getFollowStatus(current, u.id);
+              statusValue = status?.status || "not_following";
+
+              btn.textContent =
+                statusValue === "following"
+                  ? "Unfollow"
+                  : statusValue === "pending"
+                  ? "Requested"
+                  : "Follow";
+
+              btn.disabled = statusValue === "pending";
+
+              if (viewedUserId != null && String(viewedUserId) === String(u.id)) {
+                await syncViewedUserFollowStatus();
+                await refreshProfileFollowState();
+              }
+            } catch (err) {
+              console.error("search follow toggle failed", err);
+            } finally {
+              if (btn.textContent !== "Requested") {
+                btn.disabled = false;
+              }
+            }
+          });
+        } catch (err) {
+          btn.textContent = "";
+          btn.disabled = true;
+          btn.style.visibility = "hidden";
+        }
+      })();
+
       item.addEventListener("click", () => {
         hideSearchDropdown();
-        setStoredUserId(u.id);
 
-        // handle endpoint erwartet handle-string (bei dir distinctName)
         loadUserDataByHandle(u.distinctName);
 
         const newUrl = new URL(window.location.href);
@@ -262,6 +731,7 @@ document.addEventListener("DOMContentLoaded", function () {
         newUrl.searchParams.delete("id");
         window.history.replaceState({}, "", newUrl);
       });
+
       searchResults.appendChild(item);
     });
 
@@ -283,20 +753,20 @@ document.addEventListener("DOMContentLoaded", function () {
   if (searchInput) {
     searchInput.addEventListener("input", (e) => {
       const query = e.target.value.trim();
+
       if (searchTimeout) clearTimeout(searchTimeout);
+
       if (!query) {
         hideSearchDropdown();
         return;
       }
+
       searchTimeout = setTimeout(() => performSearch(query), 600);
     });
   }
 
-  // Optional: Klick außerhalb schließt Search
-  document.addEventListener("click", () => hideSearchDropdown());
-
   // -----------------------------
-  // Username dropdown (ONLY /api/users/all)
+  // Username dropdown
   // -----------------------------
   const usernameBtn = document.getElementById("usernameBtn");
   const usernameDropdown = document.getElementById("usernameDropdown");
@@ -304,16 +774,44 @@ document.addEventListener("DOMContentLoaded", function () {
 
   function closeUsernameDropdown() {
     if (!usernameDropdown) return;
+
+    // If some element inside the dropdown currently has focus, move focus back to the button
+    try {
+      const active = document.activeElement;
+      if (active && usernameDropdown.contains(active)) {
+        // move focus to the toggle before hiding so we don't hide a focused element
+        usernameBtn?.focus();
+      }
+    } catch (e) {
+      // ignore focus errors
+    }
+
     usernameDropdown.classList.add("hidden");
-    usernameDropdown.setAttribute("aria-hidden", "true");
+    // prefer inert if available (prevents focus); if not, set aria-hidden only after focus moved
+    if ("inert" in usernameDropdown) {
+      usernameDropdown.inert = true;
+      usernameDropdown.setAttribute("aria-hidden", "true");
+    } else {
+      usernameDropdown.setAttribute("aria-hidden", "true");
+    }
     usernameBtn?.setAttribute("aria-expanded", "false");
   }
 
   function openUsernameDropdown() {
     if (!usernameDropdown) return;
+    // remove inert / aria-hidden and show
+    if ("inert" in usernameDropdown) usernameDropdown.inert = false;
     usernameDropdown.classList.remove("hidden");
     usernameDropdown.setAttribute("aria-hidden", "false");
     usernameBtn?.setAttribute("aria-expanded", "true");
+
+    // Focus first focusable item in the dropdown so keyboard users can start navigating
+    try {
+      const first = usernameList?.querySelector("button, [tabindex]:not([tabindex='-1'])");
+      if (first) first.focus();
+    } catch (e) {
+      // ignore
+    }
   }
 
   async function fetchUsersAll() {
@@ -332,9 +830,11 @@ document.addEventListener("DOMContentLoaded", function () {
       btn.type = "button";
       btn.className = "username-item";
       btn.innerHTML = `<span>@${u.distinctName}</span>`;
+
       btn.addEventListener("click", (e) => {
         e.stopPropagation();
         closeUsernameDropdown();
+
         setStoredUserId(u.id);
         loadUserDataById(u.id);
 
@@ -343,12 +843,12 @@ document.addEventListener("DOMContentLoaded", function () {
         newUrl.searchParams.delete("handle");
         window.history.replaceState({}, "", newUrl);
       });
+
       usernameList.appendChild(btn);
     });
   }
 
   if (usernameDropdown) {
-    // Klick im Dropdown soll NICHT durch den document-click sofort schließen
     usernameDropdown.addEventListener("click", (e) => e.stopPropagation());
   }
 
@@ -378,33 +878,22 @@ document.addEventListener("DOMContentLoaded", function () {
   }
 
   // -----------------------------
-  // Parties: ONLY /api/party/ and filter by Party.host_user.id
+  // Parties
   // -----------------------------
   async function loadUserParties() {
-    if (!currentUserId) {
-      console.warn("loadUserParties: no currentUserId");
-      renderParties([]); // optional: clear UI
-      return;
-    }
-
-    let parties = [];
-    try {
-      const res = await fetch("/api/party/");
-      if (!res.ok) throw new Error(`HTTP ${res.status}`);
-      const json = await res.json().catch(() => null);
-      parties = normalizeToArray(json);
-    } catch (err) {
-      console.error("Failed to fetch /api/party/:", err);
+    if (viewedUserId == null) {
+      console.warn("loadUserParties: no viewedUserId");
       renderParties([]);
       return;
     }
 
-    const filtered = parties.filter((p) => {
-      const hostId = readHostUserId(p);
-      return hostId != null && String(hostId) === String(currentUserId);
-    });
-
-    renderParties(filtered);
+    try {
+      const parties = await window.backend.getPartiesByUser(viewedUserId);
+      renderParties(Array.isArray(parties) ? parties : []);
+    } catch (err) {
+      console.error("Failed to load user parties:", err);
+      renderParties([]);
+    }
   }
 
   function renderParties(parties) {
@@ -413,53 +902,94 @@ document.addEventListener("DOMContentLoaded", function () {
     const noMsg = document.querySelector("#tabContentPartys .no-parties");
 
     if (!container || !template) return;
+
     container.innerHTML = "";
 
     if (!parties || parties.length === 0) {
       if (noMsg) noMsg.style.display = "block";
       return;
     }
+
     if (noMsg) noMsg.style.display = "none";
+
+    const loggedInUserId = getStoredUserId();
+    const isOwnProfile =
+      loggedInUserId != null &&
+      viewedUserId != null &&
+      String(loggedInUserId) === String(viewedUserId);
 
     parties.forEach((p) => {
       const node = template.content.cloneNode(true);
 
-      const nameEl = node.querySelector(".party-name");
-      if (nameEl) nameEl.textContent = p.title || "Party";
-
-      // optional meta
-      let metaEl = node.querySelector(".party-meta");
-      if (!metaEl) {
-        metaEl = document.createElement("div");
-        metaEl.className = "party-meta";
-        const host = node.querySelector(".party-header") || nameEl?.parentElement;
-        if (host) host.appendChild(metaEl);
+      const article = node.querySelector(".party-card");
+      if (article && p.id != null) {
+        article.dataset.id = p.id;
       }
-      metaEl.textContent = (p.time_start || "").toString();
+
+      const nameEl = node.querySelector(".party-name");
+      if (nameEl) {
+        nameEl.textContent = p.title || p.name || "Party";
+      }
+
+      const infoValues = node.querySelectorAll(".info-value");
+      if (infoValues[0]) infoValues[0].textContent = p.date || p.time_start?.split?.("T")?.[0] || "-";
+      if (infoValues[1]) infoValues[1].textContent = p.time || p.time_start || "-";
+      if (infoValues[2]) infoValues[2].textContent = p.location || p.place || p.address || "-";
+
+      const extra = node.querySelector(".party-extra");
+      const jsonPre = node.querySelector(".party-json");
+      const detailsBtn = node.querySelector(".details-btn");
+
+      if (jsonPre) {
+        jsonPre.textContent = JSON.stringify(p, null, 2);
+      }
+
+      if (detailsBtn && extra) {
+        detailsBtn.onclick = (e) => {
+          e.stopPropagation();
+          const hidden = extra.classList.contains("hidden");
+          extra.classList.toggle("hidden", !hidden);
+          extra.setAttribute("aria-hidden", String(!hidden));
+          detailsBtn.setAttribute("aria-expanded", String(hidden));
+        };
+      }
 
       const deleteBtn = node.querySelector(".delete-btn");
       if (deleteBtn) {
-        deleteBtn.onclick = async (e) => {
-          e.stopPropagation();
-          if (!confirm("Löschen?")) return;
+        if (!isOwnProfile) {
+          deleteBtn.style.display = "none";
+        } else {
+          deleteBtn.onclick = async (e) => {
+            e.stopPropagation();
+            if (!confirm("Löschen?")) return;
 
-          // Oft braucht man hier den trailing slash:
-          const res = await fetch(`/api/party/${encodeURIComponent(p.id)}/`, { method: "DELETE" });
+            const res = await fetch(`/api/party/${encodeURIComponent(p.id)}/`, {
+              method: "DELETE"
+            });
 
-          if (res.ok) loadUserParties();
-          else console.error("Delete failed:", res.status);
-        };
+            if (res.ok) {
+              await loadUserParties();
+              await refreshCreatedPartiesCount(viewedUserId);
+            } else {
+              console.error("Delete failed:", res.status);
+            }
+          };
+        }
       }
 
       const editBtn = node.querySelector(".edit-btn");
       if (editBtn) {
-        editBtn.onclick = (e) => {
-          e.stopPropagation();
-          try {
-            localStorage.setItem("editingParty", JSON.stringify(p));
-          } catch {}
-          window.location.href = `/addParty/addParty.html?id=${encodeURIComponent(p.id)}`;
-        };
+        if (!isOwnProfile) {
+          editBtn.style.display = "none";
+        } else {
+          editBtn.onclick = (e) => {
+            e.stopPropagation();
+            try {
+              localStorage.setItem("editingParty", JSON.stringify(p));
+            } catch {}
+            window.location.href = `/addParty/addParty.html?id=${encodeURIComponent(p.id)}`;
+          };
+        }
       }
 
       container.appendChild(node);
@@ -467,7 +997,7 @@ document.addEventListener("DOMContentLoaded", function () {
   }
 
   // -----------------------------
-  // Tabs: reload parties when showing "Partys"
+  // Tabs
   // -----------------------------
   (function initTabs() {
     const ids = ["Partys", "Posts", "Favorites"];
@@ -479,18 +1009,24 @@ document.addEventListener("DOMContentLoaded", function () {
         if (btn) btn.classList.toggle("active", k === name);
         if (sec) sec.style.display = k === name ? "block" : "none";
       });
-      if (name === "Partys") loadUserParties().catch(() => {});
+
+      if (name === "Partys" && viewedUserId != null) {
+        loadUserParties().catch(() => {});
+      }
     }
 
     ids.forEach((k) => {
       const btn = document.getElementById(`tab${k}`);
       if (!btn) return;
+
       btn.setAttribute("type", "button");
+
       btn.addEventListener("click", (ev) => {
         ev.preventDefault();
         ev.stopPropagation();
         showTab(k);
       });
+
       btn.addEventListener("keydown", (ev) => {
         if (ev.key === "Enter" || ev.key === " ") {
           ev.preventDefault();
