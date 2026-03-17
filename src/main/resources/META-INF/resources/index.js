@@ -22,6 +22,99 @@ document.addEventListener("DOMContentLoaded", async () => {
   const partyLayer = L.layerGroup().addTo(map);
   const userLayer = L.layerGroup().addTo(map);
 
+  // Current user's location layer (different color)
+  const currentUserLayer = L.layerGroup().addTo(map);
+
+  // Load parties for dropdown
+  async function loadPartiesForDropdown() {
+    const select = document.getElementById("partySelect");
+    if (!select) return;
+    
+    try {
+      const response = await fetch("/api/party/");
+      if (!response.ok) throw new Error("Failed to fetch parties");
+      const parties = await response.json();
+      
+      // Keep the first option
+      select.innerHTML = '<option value="">Select a party to see attendees</option>';
+      
+      parties.forEach(party => {
+        const option = document.createElement("option");
+        option.value = party.id;
+        option.textContent = party.title || `Party #${party.id}`;
+        select.appendChild(option);
+      });
+    } catch (err) {
+      console.error("Error loading parties:", err);
+    }
+  }
+
+  // Load user locations for selected party
+  async function loadUserLocationsForParty(partyId) {
+    userLayer.clearLayers();
+    
+    if (!partyId) return;
+    
+    try {
+      const response = await fetch(`/api/userLocation/party/${partyId}`);
+      if (!response.ok) throw new Error("Failed to fetch user locations");
+      const locations = await response.json();
+      
+      const currentUserId = window.getCurrentUserId?.();
+      
+      locations.forEach(loc => {
+        if (loc.latitude && loc.longitude) {
+          const isCurrentUser = currentUserId && String(loc.user?.id) === String(currentUserId);
+          const layer = isCurrentUser ? currentUserLayer : userLayer;
+          
+          const marker = L.marker([loc.latitude, loc.longitude], {
+            icon: L.icon({
+              iconUrl: isCurrentUser 
+                ? "https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-green.png"
+                : "https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-blue.png",
+              shadowUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png",
+              iconSize: [25, 41],
+              iconAnchor: [12, 41],
+              popupAnchor: [1, -34],
+              shadowSize: [41, 41]
+            })
+          });
+          
+          const displayName = loc.user?.displayName || loc.user?.distinctName || `User #${loc.user?.id}`;
+          marker.bindPopup(`<strong>${escapeHtml(displayName)}</strong>`).addTo(layer);
+        }
+      });
+      
+      // Fit bounds to show all user markers
+      const allUserLayers = L.layerGroup();
+      userLayer.eachLayer(m => allUserLayers.addLayer(m));
+      currentUserLayer.eachLayer(m => allUserLayers.addLayer(m));
+      
+      const bounds = allUserLayers.getLayers().map(l => l.getLatLng());
+      if (bounds.length > 0) {
+        if (bounds.length === 1) {
+          map.setView(bounds[0], 15);
+        } else {
+          map.fitBounds(bounds, { padding: [30, 30] });
+        }
+      }
+    } catch (err) {
+      console.error("Error loading user locations:", err);
+    }
+  }
+
+  // Party selector change handler
+  const partySelect = document.getElementById("partySelect");
+  if (partySelect) {
+    partySelect.addEventListener("change", (e) => {
+      const partyId = e.target.value;
+      loadUserLocationsForParty(partyId);
+    });
+  }
+
+  // Load parties on startup
+  await loadPartiesForDropdown();
+
   // Load parties from localStorage and add to map
   function loadPartiesFromLocalStorage() {
     try {
@@ -277,13 +370,44 @@ document.addEventListener("DOMContentLoaded", async () => {
   }
 
   // ---------------------------
-  // Geräte-Location anzeigen (optional)
+  // Geräte-Location anzeigen (optional) - from API
   // ---------------------------
   let centeredOnce = false;
 
+  async function loadCurrentUserLocationFromApi() {
+    const currentUserId = window.getCurrentUserId?.();
+    if (!currentUserId) return;
+    
+    try {
+      const response = await fetch(`/api/userLocation/user/${currentUserId}`);
+      if (!response.ok) return;
+      const location = await response.json();
+      
+      if (location.latitude && location.longitude) {
+        currentUserLayer.clearLayers();
+        L.marker([location.latitude, location.longitude], {
+          icon: L.icon({
+            iconUrl: "https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-green.png",
+            shadowUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png",
+            iconSize: [25, 41],
+            iconAnchor: [12, 41],
+            popupAnchor: [1, -34],
+            shadowSize: [41, 41]
+          })
+        }).addTo(currentUserLayer).bindPopup("Du bist hier");
+        
+        if (!centeredOnce) {
+          map.setView([location.latitude, location.longitude], 15);
+          centeredOnce = true;
+        }
+      }
+    } catch (err) {
+      console.debug("Could not load user location from API:", err);
+    }
+  }
+
   function showUserLocation(lat, lng, accuracy) {
-    userLayer.clearLayers();
-    L.marker([lat, lng]).addTo(userLayer).bindPopup("Du bist hier");
+    L.marker([lat, lng]).addTo(userLayer).bindPopup("Du bist hier (Browser)");
 
     if (accuracy) {
       L.circle([lat, lng], { radius: accuracy }).addTo(userLayer);
@@ -341,6 +465,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   await loadAllPartiesToMap();
   scheduleDailyRefresh();
   startGeolocation();
+  await loadCurrentUserLocationFromApi();
 });
 
 async function getAllParties() {

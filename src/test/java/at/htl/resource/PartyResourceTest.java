@@ -26,6 +26,9 @@ public class PartyResourceTest extends TestBase {
 
     @BeforeEach
     void setUp() {
+        entityManager.createQuery("DELETE FROM UserLocation").executeUpdate();
+        entityManager.createQuery("DELETE FROM Invitation").executeUpdate();
+        entityManager.createQuery("DELETE FROM Media").executeUpdate();
         entityManager.createQuery("DELETE FROM Party").executeUpdate();
         entityManager.createQuery("DELETE FROM User").executeUpdate();
         entityManager.createQuery("DELETE FROM Category").executeUpdate();

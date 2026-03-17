@@ -29,6 +29,7 @@ public class FollowRepositoryTest {
     @BeforeEach
     void setUp() {
         // Clean up in proper order due to foreign key constraints
+        entityManager.createQuery("DELETE FROM UserLocation").executeUpdate();
         entityManager.createQuery("DELETE FROM Follow").executeUpdate();
         entityManager.createQuery("DELETE FROM Invitation").executeUpdate();
         entityManager.createQuery("DELETE FROM Media").executeUpdate();
@@ -138,7 +139,7 @@ public class FollowRepositoryTest {
         entityManager.flush();
 
         Response response = followRepository.createFollowRequest(user1.getId(), user2.getId());
-        assertEquals(200, response.getStatus());
+        assertEquals(201, response.getStatus());
     }
 
     @Test
@@ -182,7 +183,7 @@ public class FollowRepositoryTest {
         entityManager.flush();
 
         Response response = followRepository.removeFollow(user1.getId(), user2.getId());
-        assertEquals(200, response.getStatus());
+        assertEquals(204, response.getStatus());
 
         List<Follow> follows = entityManager.createQuery("SELECT f FROM Follow f", Follow.class).getResultList();
         assertTrue(follows.isEmpty());

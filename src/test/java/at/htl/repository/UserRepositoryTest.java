@@ -28,6 +28,7 @@ public class UserRepositoryTest {
     @BeforeEach
     void setUp() {
         // Clean up in proper order due to foreign key constraints
+        entityManager.createQuery("DELETE FROM UserLocation").executeUpdate();
         entityManager.createQuery("DELETE FROM Follow").executeUpdate();
         entityManager.createQuery("DELETE FROM Invitation").executeUpdate();
         entityManager.createQuery("DELETE FROM Media").executeUpdate();
@@ -128,7 +129,7 @@ public class UserRepositoryTest {
         user.setEmail("new@example.com");
 
         Response response = userRepository.createUser(user);
-        assertEquals(200, response.getStatus());
+        assertEquals(201, response.getStatus());
 
         List<User> users = userRepository.getUsers();
         assertEquals(1, users.size());
