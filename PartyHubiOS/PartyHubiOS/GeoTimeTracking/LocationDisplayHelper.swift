@@ -10,6 +10,8 @@ class LocationDisplayHelper: NSObject, CLLocationManagerDelegate {
         super.init()
         manager.delegate = self
         manager.desiredAccuracy = kCLLocationAccuracyBest
+        manager.allowsBackgroundLocationUpdates = true
+        manager.pausesLocationUpdatesAutomatically = false
     }
     
     func start() {
