@@ -35,21 +35,17 @@ struct MapView: View {
                     }
                 }
 
-                if let party = activeParty {
-                    ForEach(attendeeVM.locations) { user in
+                ForEach(attendeeVM.locations) { user in
+                    let coord = CLLocationCoordinate2D(
+                        latitude: user.latitude,
+                        longitude: user.longitude
+                    )
 
-                        if user.partyId == party.backendId {
+                    if let activeParty = activeParty {
+                        let atParty = user.isInsideParty(activeParty)
 
-                            let coord = CLLocationCoordinate2D(
-                                latitude: user.latitude,
-                                longitude: user.longitude
-                            )
-
-                            let atParty = user.isInsideParty(party)
-
-                            Annotation("", coordinate: coord) {
-                                AttendeePin(isAtParty: atParty, isSelf: false)
-                            }
+                        Annotation(user.user?.displayName ?? user.user?.distinctName ?? "User", coordinate: coord) {
+                            AttendeePin(isAtParty: atParty, isSelf: false)
                         }
                     }
                 }
@@ -57,10 +53,26 @@ struct MapView: View {
             .ignoresSafeArea()
             .onAppear {
                 locationManager.requestPermission()
-                attendeeVM.startPolling()
+                if let party = activeParty {
+                    attendeeVM.startPolling(partyId: Int64(party.backendId))
+                    if let userId = UserDefaults.standard.object(forKey: "currentUserId") as? Int64 {
+                        attendeeVM.startUploading(userId: userId)
+                    }
+                }
+            }
+            .onChange(of: activeParty) { _, newParty in
+                attendeeVM.stopPolling()
+                attendeeVM.stopUploading()
+                if let party = newParty {
+                    attendeeVM.startPolling(partyId: Int64(party.backendId))
+                    if let userId = UserDefaults.standard.object(forKey: "currentUserId") as? Int64 {
+                        attendeeVM.startUploading(userId: userId)
+                    }
+                }
             }
             .onDisappear {
                 attendeeVM.stopPolling()
+                attendeeVM.stopUploading()
             }
         }
     }
