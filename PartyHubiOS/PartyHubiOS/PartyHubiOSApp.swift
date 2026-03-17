@@ -7,11 +7,21 @@ struct PartyHubiOSApp: App {
     let container: ModelContainer
     init() {
         do {
-            let appSupport = URL.applicationSupportDirectory
+            let appSupport = URL.applicationSupportDirectory.appendingPathComponent("PartyHub")
             try FileManager.default.createDirectory(at: appSupport, withIntermediateDirectories: true)
             
-            container = try ModelContainer(for: Party.self, TimeEntry.self)
+            print("SwiftData storage path: \(appSupport)")
+            
+            let schema = Schema([Party.self, TimeEntry.self])
+            let modelConfiguration = ModelConfiguration(
+                schema: schema,
+                url: appSupport.appendingPathComponent("PartyHub.sqlite"),
+                allowsSave: true
+            )
+            
+            container = try ModelContainer(for: schema, configurations: [modelConfiguration])
         } catch {
+            print("SwiftData Error: \(error)")
             fatalError("ModelContainer Fehler: \(error)")
         }
     }
