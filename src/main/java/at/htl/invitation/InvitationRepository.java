@@ -80,7 +80,11 @@ public class InvitationRepository {
         return Response.status(Response.Status.NOT_FOUND).build();
     }
 
-    if (invitation.getSender() == null || !invitation.getSender().getId().equals(userId)) {
+    Long senderId = invitation.getSender() != null ? invitation.getSender().getId() : null;
+    Long recipientId = invitation.getRecipient() != null ? invitation.getRecipient().getId() : null;
+    
+    if ((senderId == null || !senderId.equals(userId)) && 
+        (recipientId == null || !recipientId.equals(userId))) {
         return Response.status(Response.Status.FORBIDDEN)
                 .entity("{\"error\": \"Not authorized to delete this invitation\"}")
                 .build();
