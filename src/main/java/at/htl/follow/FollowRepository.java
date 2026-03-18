@@ -51,7 +51,6 @@ public class FollowRepository {
                 .getResultList();
     }
 
-// 1. Alle ausstehenden Anfragen (Status 1) abrufen
     public List<User> getPendingFollowerRequests(long userId) {
         return entityManager.createQuery(
                 "SELECT u FROM User u JOIN Follow f ON u.id = f.user1_id " +
@@ -123,6 +122,7 @@ public class FollowRepository {
 
         return Response.ok().entity("{\"message\": \"Follow request accepted\"}").build();
     }
+
 @Transactional
 public Response removeFollow(long user1Id, long user2Id) {
     Follow follow = entityManager.createQuery(
