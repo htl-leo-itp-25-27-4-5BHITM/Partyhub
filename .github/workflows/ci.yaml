@@ -24,7 +24,7 @@ jobs:
           distribution: 'temurin'
           cache: 'maven'
       - name: Build with Maven
-        run: mvn -B clean verify
+        run: mvn -B clean verify quarkus:dev
       - uses: bahmutov/npm-install@v1
         with:
           working-directory: api
