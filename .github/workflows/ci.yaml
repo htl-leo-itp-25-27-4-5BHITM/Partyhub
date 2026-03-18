@@ -28,7 +28,7 @@ jobs:
       - name: Run httpyac tests
         run: |
           npm install httpyac
-          npm run test
+          httpyac api/*.http --all
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
       - name: Log in to the Container registry
