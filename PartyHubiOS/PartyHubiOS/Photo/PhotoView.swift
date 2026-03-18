@@ -1,10 +1,3 @@
-//
-//  PhotoView.swift
-//  PartyHubiOS
-//
-//  Created by Carla Dimmler on 27.01.26.
-//
-
 import SwiftUI
 
 struct PhotoView: View {
@@ -14,9 +7,12 @@ struct PhotoView: View {
                 NavigationLink("Bilder für Geburtstag hochladen") {
                     PartyBilderView(partyName: "Geburtstag_2024")
                 }
+                .frame(minHeight: 44)
             }
             .navigationTitle("Meine Partys")
-        }    }
+            .navigationBarTitleDisplayMode(.large)
+        }
+    }
 }
 
 #Preview {
