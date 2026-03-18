@@ -1,5 +1,5 @@
 -- FRIENDSHIP_STATUS
-INSERT INTO friendship_status (id, name) VALUES
+INSERT INTO follow_status (id, name) VALUES
                                              (1, 'ausstehend'),
                                              (2, 'akzeptiert'),
                                              (3, 'blockiert');
@@ -100,7 +100,7 @@ INSERT INTO invitation (id, sender_id, recipient_id, party_id) VALUES
                                                                    (116, 4, 10, 4);
 
 -- FRIENDSHIP
-INSERT INTO friendship (user1_id, user2_id, status_id) VALUES
+INSERT INTO follow (user1_id, user2_id, status_id) VALUES
                                                            (1,2,2),(1,3,2),(2,1,2),(2,8,2),(3,5,1),
                                                            (4,2,2),(5,7,2),(6,1,1),(7,9,2),(8,10,2),
                                                            (9,6,2),(10,3,3);
