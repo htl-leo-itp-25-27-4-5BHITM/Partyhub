@@ -26,6 +26,7 @@ jobs:
       - name: Build with Maven
         run: mvn -B clean verify
       - name: Run httpyac tests
+        uses: actions/setup-node@v6
         run: |
           npm install httpyac
           httpyac api/*.http --all
