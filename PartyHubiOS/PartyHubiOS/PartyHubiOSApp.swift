@@ -5,28 +5,33 @@ import SwiftData
 struct PartyHubiOSApp: App {
     @State private var locationManager = LocationManager()
     let container: ModelContainer
+
     init() {
         do {
             let appSupport = URL.applicationSupportDirectory.appendingPathComponent("PartyHub")
             try FileManager.default.createDirectory(at: appSupport, withIntermediateDirectories: true)
-            
+
             print("SwiftData storage path: \(appSupport)")
-            
+
             let schema = Schema([Party.self, TimeEntry.self])
             let modelConfiguration = ModelConfiguration(
                 schema: schema,
                 url: appSupport.appendingPathComponent("PartyHub.sqlite"),
                 allowsSave: true
             )
-            
+
             container = try ModelContainer(for: schema, configurations: [modelConfiguration])
+
+            // ← SOFORT setzen, nicht erst in setupApp()
+            // So funktioniert Geo-Fencing auch wenn iOS die App im Hintergrund startet
+            locationManager.modelContext = container.mainContext
+
         } catch {
             print("SwiftData Error: \(error)")
             fatalError("ModelContainer Fehler: \(error)")
         }
     }
-    
-    
+
     var body: some Scene {
         WindowGroup {
             ContentView()
@@ -37,35 +42,35 @@ struct PartyHubiOSApp: App {
                 }
         }
     }
+
     @MainActor
     func setupApp() async {
         let context = container.mainContext
         locationManager.modelContext = context
-        
+
         await fetchAndStoreParties(context: context)
-        
+
         let allParties = (try? context.fetch(FetchDescriptor<Party>())) ?? []
         print("Parties in DB:", allParties.count)
-        
+
         locationManager.requestPermission()
         locationManager.registerGeofences(for: allParties)
         locationManager.checkIfAlreadyInsideRegions()
     }
-    
+
     func fetchAndStoreParties(context: ModelContext) async {
         guard let url = URL(string: "\(Config.backendURL)/api/party") else { return }
         guard let (data, _) = try? await URLSession.shared.data(from: url) else { return }
-        
+
         print("Fetching parties…")
-        
+
         let decoder = JSONDecoder()
         decoder.keyDecodingStrategy = .convertFromSnakeCase
-        
+
         struct PartyResponse: Codable {
             let id: Int
             let title: String
             let location: LocationResponse
-            
             let hostUser: HostUserResponse?
             let category: CategoryResponse?
             let timeStart: String?
@@ -78,48 +83,43 @@ struct PartyHubiOSApp: App {
             let fee: Int?
             let createdAt: String?
         }
-        
+
         struct HostUserResponse: Codable {
             let id: Int?
             let displayName: String?
         }
-        
+
         struct CategoryResponse: Codable {
             let id: Int?
             let name: String?
         }
-        
+
         struct LocationResponse: Codable {
             let latitude: Double
             let longitude: Double
             let address: String?
         }
-        
-        guard let decoded = try? decoder.decode([PartyResponse].self, from: data) else {
-            print("Decoding failed")
-            print(String(data: data, encoding: .utf8) ?? "NO STRING")
 
-            return
+        guard let parties = try? decoder.decode([PartyResponse].self, from: data) else { return }
+
+        for p in parties {
+            let descriptor = FetchDescriptor<Party>(predicate: #Predicate { $0.backendId == p.id })
+            if let existing = try? context.fetch(descriptor).first {
+                existing.name     = p.title
+                existing.location = p.location.address ?? ""
+                existing.latitude  = p.location.latitude
+                existing.longitude = p.location.longitude
+            } else {
+                let party = Party(
+                    backendId:  p.id,
+                    name:       p.title,
+                    location:   p.location.address ?? "",
+                    latitude:   p.location.latitude,
+                    longitude:  p.location.longitude
+                )
+                context.insert(party)
+            }
         }
-        
-        print("Decoded parties:", decoded.count)
-        
-        let existing = (try? context.fetch(FetchDescriptor<Party>())) ?? []
-        for party in existing { context.delete(party) }
-        
-        for p in decoded {
-            let party = Party(
-                backendId: p.id,
-                name: p.title,
-                location: p.location.address ?? "",
-                latitude: p.location.latitude,
-                longitude: p.location.longitude,
-                radiusMeters: 100
-            )
-            context.insert(party)
-        }
-        
         try? context.save()
     }
-
 }

@@ -1,5 +1,6 @@
 import SwiftUI
 import SwiftData
+import PhotosUI
 import Combine
 
 struct PartyDetailView: View {
@@ -8,6 +9,12 @@ struct PartyDetailView: View {
     @State private var now = Date()
     let timer = Timer.publish(every: 1, on: .main, in: .common).autoconnect()
 
+    // MARK: – Foto State
+    @State private var selectedItems: [PhotosPickerItem] = []
+    @State private var geladeneBilder: [URL] = []
+    @State private var ausgewaehlteBilderZumLoeschen = Set<URL>()
+    @State private var istImBearbeitungsModus = false
+
     var finished: [TimeEntry] {
         party.timeEntries.filter { $0.endTime != nil }.sorted(by: { $0.startTime > $1.startTime })
     }
@@ -15,7 +22,7 @@ struct PartyDetailView: View {
     var body: some View {
         List {
 
-            // MARK: – Status Section
+            // MARK: – Status
             Section {
                 LabeledContent("Status") {
                     Text(party.isActive ? "Du bist gerade hier" : "Nicht anwesend")
@@ -54,7 +61,7 @@ struct PartyDetailView: View {
                 }
             }
 
-            // MARK: – Debug Buttons
+            // MARK: – Debug
             #if DEBUG
             Section("Debug") {
                 HStack(spacing: 12) {
@@ -88,10 +95,134 @@ struct PartyDetailView: View {
                 .listRowInsets(EdgeInsets(top: 12, leading: 16, bottom: 12, trailing: 16))
             }
             #endif
+
+            // MARK: – Fotos (ganz unten)
+            Section("Fotos") {
+                if !geladeneBilder.isEmpty {
+                    LazyVGrid(columns: [GridItem(.adaptive(minimum: 100))], spacing: 8) {
+                        ForEach(geladeneBilder, id: \.self) { url in
+                            ZStack(alignment: .topTrailing) {
+                                if let daten = try? Data(contentsOf: url),
+                                   let bild = UIImage(data: daten) {
+                                    Image(uiImage: bild)
+                                        .resizable()
+                                        .scaledToFill()
+                                        .frame(width: 100, height: 100)
+                                        .clipped()
+                                        .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
+                                        .opacity(ausgewaehlteBilderZumLoeschen.contains(url) ? 0.5 : 1.0)
+                                        .onTapGesture {
+                                            if istImBearbeitungsModus {
+                                                waehleBildAus(url: url)
+                                            }
+                                        }
+                                }
+                                if istImBearbeitungsModus {
+                                    Image(systemName: ausgewaehlteBilderZumLoeschen.contains(url)
+                                          ? "checkmark.circle.fill" : "circle")
+                                        .foregroundStyle(Color.primaryDarkBlue)
+                                        .padding(5)
+                                }
+                            }
+                        }
+                    }
+                    .listRowInsets(EdgeInsets(top: 12, leading: 16, bottom: 12, trailing: 16))
+                }
+
+                HStack(spacing: 12) {
+                    if istImBearbeitungsModus && !ausgewaehlteBilderZumLoeschen.isEmpty {
+                        Button(action: loescheAusgewaehlteBilder) {
+                            Text("\(ausgewaehlteBilderZumLoeschen.count) löschen")
+                                .frame(maxWidth: .infinity)
+                                .frame(height: 44)
+                        }
+                        .buttonStyle(.borderedProminent)
+                        .tint(.red)
+                        .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
+                    } else {
+                        PhotosPicker(selection: $selectedItems, matching: .images) {
+                            Text("Fotos hinzufügen")
+                                .frame(maxWidth: .infinity)
+                                .frame(height: 44)
+                        }
+                        .buttonStyle(.borderedProminent)
+                        .tint(Color.primaryDarkBlue)
+                        .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
+                        .onChange(of: selectedItems.count) { _, _ in
+                            speichereBilder()
+                        }
+                    }
+
+                    if !geladeneBilder.isEmpty {
+                        Button {
+                            istImBearbeitungsModus.toggle()
+                            ausgewaehlteBilderZumLoeschen.removeAll()
+                        } label: {
+                            Text(istImBearbeitungsModus ? "Fertig" : "Bearbeiten")
+                                .frame(maxWidth: .infinity)
+                                .frame(height: 44)
+                        }
+                        .buttonStyle(.bordered)
+                        .tint(Color.primaryDarkBlue)
+                        .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
+                    }
+                }
+                .listRowInsets(EdgeInsets(top: 4, leading: 16, bottom: 4, trailing: 16))
+            }
         }
         .navigationTitle(party.name)
         .navigationBarTitleDisplayMode(.large)
+        .onAppear { ladeBilderAusOrdner() }
         .onReceive(timer) { now = $0 }
+    }
+
+    // MARK: – Foto Funktionen
+    func waehleBildAus(url: URL) {
+        if ausgewaehlteBilderZumLoeschen.contains(url) {
+            ausgewaehlteBilderZumLoeschen.remove(url)
+        } else {
+            ausgewaehlteBilderZumLoeschen.insert(url)
+        }
+    }
+
+    func loescheAusgewaehlteBilder() {
+        let fm = FileManager.default
+        for url in ausgewaehlteBilderZumLoeschen {
+            try? fm.removeItem(at: url)
+        }
+        ausgewaehlteBilderZumLoeschen.removeAll()
+        istImBearbeitungsModus = false
+        ladeBilderAusOrdner()
+    }
+
+    func speichereBilder() {
+        for item in selectedItems {
+            item.loadTransferable(type: Data.self) { result in
+                if case .success(let data) = result,
+                   let imageData = data {
+                    let folder = getPartyFolder()
+                    let fileURL = folder.appendingPathComponent("Bild_\(UUID().uuidString).jpg")
+                    try? imageData.write(to: fileURL)
+                    DispatchQueue.main.async {
+                        ladeBilderAusOrdner()
+                    }
+                }
+            }
+        }
+        selectedItems = []
+    }
+
+    func ladeBilderAusOrdner() {
+        let pfad = getPartyFolder()
+        let dateien = try? FileManager.default.contentsOfDirectory(at: pfad, includingPropertiesForKeys: nil)
+        self.geladeneBilder = dateien ?? []
+    }
+
+    func getPartyFolder() -> URL {
+        let docs = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0]
+        let folder = docs.appendingPathComponent(party.name)
+        try? FileManager.default.createDirectory(at: folder, withIntermediateDirectories: true)
+        return folder
     }
 
     func deleteEntries(at offsets: IndexSet) {

@@ -16,16 +16,16 @@ struct ContentView: View {
                     Label("Party", systemImage: "party.popper")
                 }
             
-            PhotoView()
+            /*PhotoView()
                 .tabItem {
                     Label("Photo", systemImage: "photo.stack")
                 }
-            
-            /*TimeTrackingView()
+            */
+            TimeTrackingView()
                 .tabItem {
                     Label("Time", systemImage: "timer")
                 }
-             */
+             
             MapView(locationManager: locationManager)
                 .tabItem {
                     Label("Map", systemImage: "map")
@@ -35,11 +35,13 @@ struct ContentView: View {
                 .tabItem {
                     Label("Users", systemImage: "person.2")
                 }
-            */
+             */
+            
             ProfileView()
                 .tabItem {
                     Label("Profile", systemImage: "person")
                 }
+             
         }
         .tint(.primaryPink)
         // .modelContainer(for: TimeEntry.self)

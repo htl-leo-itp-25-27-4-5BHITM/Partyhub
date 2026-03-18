@@ -5,6 +5,23 @@
 	<key>UIBackgroundModes</key>
 	<array>
 		<string>location</string>
+		<string>fetch</string>
+		<string>processing</string>
+		<dict>
+			<key>NSLocationWhenInUseUsageDescription</key>
+			<string>PartyHub braucht deinen Standort um automatisch zu erkennen wenn du eine Party betrittst.</string>
+			<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
+			<string>PartyHub braucht deinen Standort um automatisch zu erkennen wenn du eine Party betrittst.</string>
+			<key>UIBackgroundModes</key>
+			<array>
+				<string>location</string>
+			</array>
+			<key>NSAppTransportSecurity</key>
+			<dict>
+				<key>NSAllowsArbitraryLoads</key>
+				<true/>
+			</dict>
+		</dict>
 	</array>
 </dict>
 </plist>

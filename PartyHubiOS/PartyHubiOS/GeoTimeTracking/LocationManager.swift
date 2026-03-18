@@ -5,6 +5,7 @@ import SwiftData
 @Observable
 class LocationManager: NSObject, CLLocationManagerDelegate {
     private let manager = CLLocationManager()
+
     var authorizationStatus: CLAuthorizationStatus = .notDetermined
     var lastEvent: String = ""
     var currentLocation: CLLocationCoordinate2D?
@@ -22,6 +23,8 @@ class LocationManager: NSObject, CLLocationManagerDelegate {
         super.init()
         manager.delegate = self
         manager.desiredAccuracy = kCLLocationAccuracyBest
+        manager.allowsBackgroundLocationUpdates = true
+        manager.pausesLocationUpdatesAutomatically = false
     }
 
     func requestPermission() {
