@@ -24,7 +24,16 @@ jobs:
           distribution: 'temurin'
           cache: 'maven'
       - name: Build with Maven
-        run: mvn -B clean verify quarkus:dev
+        run: mvn -B clean verify
+
+      - name: Start Quarkus Dev Server
+        run: mvn quarkus:dev -Dquarkus.http.host=0.0.0.0 &
+        env:
+          QUARKUS_PROFILE: dev
+      - name: Wait for Quarkus
+        run: |
+          timeout 120 bash -c 'until curl -sf http://localhost:8080/q/health/ready; do sleep 2; done'
+
       - uses: bahmutov/npm-install@v1
         with:
           working-directory: api
