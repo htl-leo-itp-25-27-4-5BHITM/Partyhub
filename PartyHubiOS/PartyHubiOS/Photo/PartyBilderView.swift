@@ -3,26 +3,18 @@ import PhotosUI
 
 struct PartyBilderView: View {
     let partyName: String
-    
+
     @State private var selectedItems: [PhotosPickerItem] = []
     @State private var geladeneBilder: [URL] = []
     @State private var ausgewaehlteBilderZumLoeschen = Set<URL>()
     @State private var istImBearbeitungsModus = false
-    
-    var body: some View {
-        VStack {
-            HStack {
-                Text(partyName).font(.title).bold()
-                Spacer()
-                Button(istImBearbeitungsModus ? "Fertig" : "Bearbeiten") {
-                    istImBearbeitungsModus.toggle()
-                    ausgewaehlteBilderZumLoeschen.removeAll()
-                }
-            }
-            .padding()
 
+    var body: some View {
+        VStack(spacing: 0) {
+
+            // MARK: – Foto Grid
             ScrollView {
-                LazyVGrid(columns: [GridItem(.adaptive(minimum: 100))], spacing: 10) {
+                LazyVGrid(columns: [GridItem(.adaptive(minimum: 100))], spacing: 8) {
                     ForEach(geladeneBilder, id: \.self) { url in
                         ZStack(alignment: .topTrailing) {
                             if let daten = try? Data(contentsOf: url),
@@ -32,7 +24,7 @@ struct PartyBilderView: View {
                                     .scaledToFill()
                                     .frame(width: 100, height: 100)
                                     .clipped()
-                                    .cornerRadius(10)
+                                    .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
                                     .opacity(ausgewaehlteBilderZumLoeschen.contains(url) ? 0.5 : 1.0)
                                     .onTapGesture {
                                         if istImBearbeitungsModus {
@@ -42,40 +34,56 @@ struct PartyBilderView: View {
                             }
 
                             if istImBearbeitungsModus {
-                                Image(systemName: ausgewaehlteBilderZumLoeschen.contains(url) ? "checkmark.circle.fill" : "circle")
-                                    .foregroundColor(.primaryDarkBlue)
+                                Image(systemName: ausgewaehlteBilderZumLoeschen.contains(url)
+                                      ? "checkmark.circle.fill" : "circle")
+                                    .foregroundStyle(Color.primaryDarkBlue)
                                     .padding(5)
                             }
                         }
                     }
                 }
-                .padding()
+                .padding(16)
             }
 
-            if istImBearbeitungsModus && !ausgewaehlteBilderZumLoeschen.isEmpty {
-                Button(action: loescheAusgewaehlteBilder) {
-                    Label("\(ausgewaehlteBilderZumLoeschen.count) Bilder löschen", systemImage: "trash")
-                        .foregroundColor(.white)
-                        .padding()
-                        .frame(maxWidth: .infinity)
-                        .background(Color.red)
-                        .cornerRadius(10)
+            // MARK: – Bottom Buttons
+            VStack(spacing: 0) {
+                Divider()
+
+                if istImBearbeitungsModus && !ausgewaehlteBilderZumLoeschen.isEmpty {
+                    Button(action: loescheAusgewaehlteBilder) {
+                        Label("\(ausgewaehlteBilderZumLoeschen.count) Bilder löschen", systemImage: "trash")
+                            .frame(maxWidth: .infinity)
+                            .frame(height: 44)
+                    }
+                    .buttonStyle(.borderedProminent)
+                    .tint(.red)
+                    .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
+                    .padding(16)
+
+                } else if !istImBearbeitungsModus {
+                    PhotosPicker(selection: $selectedItems, matching: .images) {
+                        Label("Fotos hinzufügen", systemImage: "plus")
+                            .frame(maxWidth: .infinity)
+                            .frame(height: 44)
+                    }
+                    .buttonStyle(.borderedProminent)
+                    .tint(Color.primaryDarkBlue)
+                    .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
+                    .padding(16)
+                    .onChange(of: selectedItems.count) { _, _ in
+                        speichereBilder()
+                    }
                 }
-                .padding()
-            } else if !istImBearbeitungsModus {
-                PhotosPicker(selection: $selectedItems, matching: .images) {
-                    Label("Fotos hinzufügen", systemImage: "plus")
-                        .padding()
-                        .frame(maxWidth: .infinity)
-                        .background(Color.primaryDarkBlue)
-                        .foregroundColor(.white)
-                        .cornerRadius(10)
-                        .shadow(color: .primaryDarkBlue.opacity(0.5), radius: 10)
-                }
-                .padding()
-                // iOS 17-konforme Variante, ohne Phantom-Variablen:
-                .onChange(of: selectedItems.count) { _, _ in
-                    speichereBilder()
+            }
+            .background(Color(.systemGroupedBackground))
+        }
+        .navigationTitle(partyName)
+        .navigationBarTitleDisplayMode(.large)
+        .toolbar {
+            ToolbarItem(placement: .primaryAction) {
+                Button(istImBearbeitungsModus ? "Fertig" : "Bearbeiten") {
+                    istImBearbeitungsModus.toggle()
+                    ausgewaehlteBilderZumLoeschen.removeAll()
                 }
             }
         }
