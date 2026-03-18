@@ -17,6 +17,15 @@ INSERT INTO users (id, display_name, distinct_name, email, biography) VALUES
                                                                           (9,  'Nina Fischer',     'nina_fischer',     '[nina.fischer@wien.at](mailto:nina.fischer@wien.at)',     'Yoga, Wellness, entspannte Events.'),
                                                                           (10, 'Elias Berger',     'elias_berger',     '[elias.berger@wien.at](mailto:elias.berger@wien.at)',     'Fotos, Musik, kleine Gigs.');
 
+-- USER_LOCATION
+INSERT INTO user_location (user_id, longitude, latitude) VALUES
+                                                               (1, 16.3738, 48.2082),
+                                                               (2, 16.3567, 48.2099),
+                                                               (3, 16.3839, 48.1985),
+                                                               (4, 16.3500, 48.2200),
+                                                               (5, 16.3900, 48.2150),
+                                                               (6, 16.3600, 48.2050);
+
 -- CATEGORY
 INSERT INTO category (id, name) VALUES
                                     (1, 'Musik'),
