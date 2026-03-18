@@ -3,24 +3,47 @@ import CoreLocation
 
 struct HomeView: View {
     @State private var location: CLLocation?
-    private let manager = CLLocationManager()
-    
+
     var body: some View {
-        VStack(spacing: 20) {
-            Text("Mein Standort")
-                .font(.title.bold())
-            
-            if let loc = location {
-                Text("Latitude: \(loc.coordinate.latitude, specifier: "%.6f")")
-                    .font(.system(.body, design: .monospaced))
-                Text("Longitude: \(loc.coordinate.longitude, specifier: "%.6f")")
-                    .font(.system(.body, design: .monospaced))
-                Text("Genauigkeit: \(Int(loc.horizontalAccuracy))m")
-                    .foregroundColor(.secondary)
-            } else {
-                Text("Standort wird ermittelt...")
-                    .foregroundColor(.secondary)
+        NavigationStack {
+            List {
+                Section {
+                    if let loc = location {
+                        LabeledContent("Breitengrad") {
+                            Text(loc.coordinate.latitude, format: .number.precision(.fractionLength(6)))
+                                .font(.system(.body, design: .monospaced))
+                                .foregroundStyle(.secondary)
+                        }
+                        .frame(minHeight: 44)
+
+                        LabeledContent("Längengrad") {
+                            Text(loc.coordinate.longitude, format: .number.precision(.fractionLength(6)))
+                                .font(.system(.body, design: .monospaced))
+                                .foregroundStyle(.secondary)
+                        }
+                        .frame(minHeight: 44)
+
+                        LabeledContent("Genauigkeit") {
+                            Text("\(Int(loc.horizontalAccuracy)) m")
+                                .foregroundStyle(.secondary)
+                        }
+                        .frame(minHeight: 44)
+
+                    } else {
+                        HStack(spacing: 12) {
+                            ProgressView()
+                            Text("Standort wird ermittelt …")
+                                .foregroundStyle(.secondary)
+                        }
+                        .frame(minHeight: 44)
+                    }
+                } header: {
+                    Label("Mein Standort", systemImage: "location.fill")
+                        .foregroundColor(Color.primaryGreen)
+                }
             }
+            .navigationTitle("Home")
+            .navigationBarTitleDisplayMode(.large)
         }
         .onAppear {
             LocationDisplayHelper.shared.onUpdate = { loc in
@@ -29,4 +52,8 @@ struct HomeView: View {
             LocationDisplayHelper.shared.start()
         }
     }
+}
+
+#Preview {
+    HomeView()
 }
