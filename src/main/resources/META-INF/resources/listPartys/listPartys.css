@@ -1,3 +1,9 @@
+/* ensure the same app fonts are available on this page */
+:root {
+  --app-body-font: "Poppins", system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --app-heading-font: "Poppins", system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+}
+
 /* Page Header Styling */
 .page-header {
   text-align: center;
@@ -6,45 +12,46 @@
 }
 
 .page-title {
-  font-size: var(--font-size-xxxxl);
-  color: var(--primary-color);
+  font-size: 1.6rem;
+  color: #ffffff;
   margin: 0 0 8px 0;
-  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1);
-  letter-spacing: 1px;
+  text-shadow: none;
+  letter-spacing: 0.4px;
+  font-weight: 700;
+  line-height: 1.05;
+
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+
+  /* Heading uses headline font */
+  font-family: var(--app-heading-font);
 }
 
-.page-subtitle {
-  font-size: var(--font-size-m);
-  color: #aaa;
-  margin: 0 0 24px 0;
-  font-style: italic;
-}
-
-/* Create Party Button */
+/* Create Party Button: use body font (keeps font usage consistent) */
 .create-party-btn {
   display: inline-flex;
   align-items: center;
   justify-content: center;
   gap: 8px;
-  background: var(--accent-color, #ff2e63);
-  color: white;
+  background: linear-gradient(180deg, #ff7a95 0%, #ff3b6b 100%);
+  color: #ffffff;
   text-decoration: none;
   border: none;
-  border-radius: var(--border-radius-xl, 16px);
-  padding: 12px 24px;
-  font-family: "Montserrat", sans-serif;
+  border-radius: 12px;
+  padding: 10px 20px;
+  font-family: var(--app-body-font);
   font-size: 16px;
   font-weight: 600;
   margin: 0 auto;
   cursor: pointer;
-  transition: all 0.2s ease;
-  box-shadow: 0 4px 12px rgba(255, 46, 99, 0.3);
+  transition: transform 0.14s ease, box-shadow 0.14s ease;
+  box-shadow: 0 10px 30px rgba(2,6,23,0.09);
 }
 
 .create-party-btn:hover {
-  background: var(--accent-color-green, #56f27c);
-  transform: translateY(-2px);
-  box-shadow: 0 6px 16px rgba(255, 46, 99, 0.4);
+  transform: translateY(-3px);
+  box-shadow: 0 18px 40px rgba(2,6,23,0.11);
 }
 
 .create-party-btn:active {
@@ -71,7 +78,7 @@
 .parties-list {
   max-height: calc(100vh - var(--nav-height) - 200px);
   overflow-y: auto;
-  padding: 16px 0 160px 0; /* More bottom padding for nav spacing */
+  padding: 12px 8px 180px 8px;
 }
 
 .parties-list .loading {
@@ -81,19 +88,23 @@
   font-size: 16px;
 }
 
+/* Card: helle Karte mit sanften Rand und großzügigem Innenabstand */
 .party-card-list {
-  background: linear-gradient(135deg, var(--bg-tertiary), var(--bg-secondary));
-  border-radius: var(--border-radius-l);
-  margin-bottom: 20px;
-  padding: 20px;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3), 0 2px 8px rgba(0, 0, 0, 0.2);
+  background: linear-gradient(180deg, #071227 0%, #0a1420 100%);
+  border-radius: 12px;
+  margin-bottom: 18px;
+  padding: 16px;
+  box-shadow: 0 10px 28px rgba(2,6,23,0.5);
   cursor: pointer;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  position: relative;
-  overflow: hidden;
+  transition: transform 0.18s cubic-bezier(.2,.9,.2,1), box-shadow 0.18s;
+  border: 1px solid rgba(255,255,255,0.03);
+  color: #ffffff;
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
 }
 
+/* dezente Akzent-Leiste, weniger dominant */
 .party-card-list::before {
   content: '';
   position: absolute;
@@ -101,122 +112,186 @@
   left: 0;
   right: 0;
   height: 4px;
-  background: linear-gradient(90deg, var(--accent-color), var(--accent-color-green));
-  opacity: 0;
-  transition: opacity 0.3s ease;
+  background: linear-gradient(90deg, var(--accent-color, #ff7a95), var(--accent-color-green, #4ad07a));
+  opacity: 0.18;
 }
 
+/* Hover: etwas weniger stark, sauberer Schein */
 .party-card-list:hover {
-  transform: translateY(-4px) scale(1.02);
-  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.15), 0 6px 16px rgba(0, 0, 0, 0.1);
+  transform: translateY(-6px) scale(1.003);
+  box-shadow: 0 20px 44px rgba(2,6,23,0.48);
 }
 
-.party-card-list:hover::before {
-  opacity: 1;
-}
-
-.party-card-list:active {
-  transform: translateY(-2px) scale(1.01);
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12), 0 4px 12px rgba(0, 0, 0, 0.08);
-}
-
+/* Header area: left = title, right = category / meta */
 .party-header-list {
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
-  margin-bottom: 16px;
+  margin-bottom: 8px;
   gap: 12px;
+  width: 100%;
 }
 
+/* Title in Karte: keep headline font for card titles */
 .party-name-list {
-  font-family: var(--font-display);
-  font-size: var(--font-size-l);
-  font-weight: normal;
-  color: var(--primary-color);
+  font-family: var(--app-heading-font);
+  font-size: 1.02rem;
+  font-weight: 700;
+  color: #f8fafc; /* fast weiß, aber angenehm */
   margin: 0;
-  flex: 1;
-  line-height: 1.3;
-  letter-spacing: 0.5px;
+  line-height: 1.2;
+  flex: 1 1 auto;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
+/* Category: kompakt, dezenter Hintergrund */
 .party-category {
-  background: var(--accent-color);
-  color: white;
-  padding: 6px 12px;
-  border-radius: var(--border-radius-m);
-  font-size: var(--font-size-xs);
-  font-family: var(--font-display);
-  font-weight: 600;
+  background: rgba(255,111,145,0.10);
+  color: #ff6b88;
+  padding: 6px 10px;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  font-weight: 700;
   text-transform: uppercase;
-  letter-spacing: 1px;
-  box-shadow: 0 2px 8px rgba(255, 46, 99, 0.2);
-  white-space: nowrap;
+  letter-spacing: 0.6px;
   flex-shrink: 0;
 }
 
+/* Meta / Datum / Ort: inherit body font (avoid extra fonts) */
 .party-meta {
   display: flex;
   flex-direction: column;
-  gap: 8px;
-  color: #ccc;
-  font-family: var(--font-body);
-  font-size: var(--font-size-s);
+  gap: 6px;
+  color: rgba(255,255,255,0.80);
+  font-family: inherit;
+  font-size: 0.9rem;
+  min-width: 140px;
+  align-items: flex-start;
 }
 
 .party-date, .party-location {
   display: flex;
   align-items: center;
-  gap: 4px;
+  gap: 8px;
+  color: rgba(255,255,255,0.82);
 }
-
 .party-date svg, .party-location svg {
   width: 16px;
   height: 16px;
-  color: var(--accent-color);
+  color: #ff8aa3; /* dezenter, wärmerer Akzent */
   flex-shrink: 0;
-  margin-right: 2px;
 }
 
+/* Attendees: dezenter, aber lesbar */
 .party-attendees {
   margin-top: 12px;
   padding-top: 12px;
-  border-top: 1px solid rgba(255, 255, 255, 0.1);
-  font-size: var(--font-size-s);
-  color: #aaa;
-  font-family: var(--font-body);
+  border-top: 1px solid rgba(255,255,255,0.03);
+  font-size: 0.9rem;
+  color: rgba(255,255,255,0.82);
+  width: 100%;
 }
-
 .party-attendees strong {
-  color: var(--primary-color);
-  font-weight: 600;
+  color: #ffffff;
+  font-weight: 700;
 }
 
-/* Responsive adjustments */
-@media (max-width: 480px) {
-  .page-title {
-    font-size: var(--font-size-xxl);
-  }
+/* Thumbnail: Schatten anpassen für dunkles Layout */
+.party-card-list .party-thumb {
+  width: 84px;
+  height: 84px;
+  flex-shrink: 0;
+  border-radius: 10px;
+  object-fit: cover;
+  box-shadow: 0 6px 20px rgba(2,6,23,0.55);
+  background: linear-gradient(180deg,#071227,#0a1420);
+}
 
+/* Bei sehr kleinen Bildschirmen die Karten in Column anordnen für bessere Lesbarkeit */
+@media (max-width: 640px) {
   .party-card-list {
-    margin-bottom: 16px;
-    padding: 16px;
-  }
-
-  .party-name-list {
-    font-size: var(--font-size-m);
-  }
-
-  .party-category {
-    padding: 4px 8px;
-    font-size: var(--font-size-xxs);
+    flex-direction: column;
+    padding: 14px;
   }
 
   .party-meta {
-    font-size: var(--font-size-xs);
-    gap: 6px;
+    flex-direction: row;
+    gap: 12px;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
   }
 
-  .party-attendees {
-    font-size: var(--font-size-xs);
+  .party-header-list {
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .party-name-list {
+    white-space: normal;
+    overflow: visible;
+  }
+
+  .party-card-list .party-thumb {
+    width: 100%;
+    height: 140px;
+    border-radius: 8px;
+  }
+}
+
+/* Light theme / BG-light overrides for better contrast and clarity */
+.bg-light .page-header {
+  background: transparent;
+  padding-bottom: 8px;
+}
+
+.bg-light .page-title {
+  color: #ffffff !important;
+  text-shadow: none;
+}
+
+.bg-light .page-subtitle {
+  color: #555 !important;
+  font-style: normal;
+}
+
+/* Make the create button readable on light bg */
+.bg-light .create-party-btn {
+  background: var(--accent-color, #ff2e63);
+  color: #fff;
+  box-shadow: 0 6px 18px rgba(0,0,0,0.08);
+}
+.bg-light .create-party-btn:hover {
+  background: var(--accent-color-green, #56f27c);
+  box-shadow: 0 8px 22px rgba(0,0,0,0.10);
+}
+
+/* Party card: switch to light card with dark text for clarity */
+.bg-light .party-card-list {
+  background: linear-gradient(180deg, #0b1220 0%, #0f1724 100%);
+  color: #ffffff;
+  border: 1px solid rgba(255,255,255,0.04);
+  box-shadow: 0 10px 28px rgba(2,6,23,0.55);
+}
+.bg-light .party-card-list::before {
+  opacity: 0.22;
+}
+.bg-light .party-name-list {
+  color: #f8fafc;
+}
+.bg-light .party-meta,
+.bg-light .party-attendees {
+  color: rgba(255,255,255,0.85);
+}
+
+/* Responsive: ensure spacing remains comfortable on small screens */
+@media (max-width: 480px) {
+  .bg-light .party-card-list {
+    padding: 14px;
+  }
+  .bg-light .page-subtitle {
+    margin-bottom: 12px;
   }
 }

@@ -6,98 +6,130 @@
     <title>Party Info</title>
 
     <link href="../global.css" rel="stylesheet" />
-    <link href="./advancedPartyInfos.css" rel="stylesheet" />
     <link href="../index.css" rel="stylesheet" />
+    <link href="./advancedPartyInfos.css" rel="stylesheet" />
+
     <script src="../user-utils.js" defer></script>
     <script src="../nav.js" defer></script>
     <script src="../backend-functions.js" defer></script>
     <script src="./advancedPartyInfos.js" defer></script>
   </head>
+
   <body class="bg-light">
     <div class="app-shell">
       <div class="container py-4">
         <main class="party-info-root">
-      <section class="party-card">
-        <div class="card-top">
-          <button class="back-btn" aria-label="Back">‹</button>
-          <h1 class="party-title">
-            Loading party...
-          </h1>
-        </div>
+          <section class="party-card">
+            <header class="card-header">
+              <button class="back-btn" aria-label="Back">‹</button>
+              <h1 class="party-title">Loading party...</h1>
+            </header>
 
-        <div class="meta-row">
-          <span id="media-count"></span>
-          <span class="sep">|</span>
-          <span id="location-display"></span>
-          <span class="sep">|</span>
-          <span id="party-date"></span>
-        </div>
+            <div class="meta-row">
+              <span class="meta-chip" id="media-count"></span>
+              <span class="meta-chip" id="location-display"></span>
+              <span class="meta-chip" id="party-date"></span>
+            </div>
 
-        <p class="description" id="party-description">
-        </p>
+            <p class="description" id="party-description"></p>
 
-        <a
-          class="website"
-          id="party-website"
-          href="#"
-          target="_blank"
-          rel="noopener"
-          style="display: none;"></a>
+            <a
+              class="website"
+              id="party-website"
+              href="#"
+              target="_blank"
+              rel="noopener"
+              style="display: none;"
+            ></a>
 
-        <div class="info-lines">
-          <div class="info-item"><strong>Theme:</strong> <span id="party-category"></span></div>
-          <div class="info-item"><strong>When:</strong> <span id="party-time"></span></div>
-          <div class="info-item"><strong>Age restriction:</strong> <span id="age-restriction"></span></div>
-          <div class="info-item"><strong>Max attendees:</strong> <span id="max-attendees"></span></div>
-        </div>
+            <section class="details-card">
+              <div class="details-grid">
+                <div class="info-item">
+                  <span class="label">Theme</span>
+                  <span class="value" id="party-category"></span>
+                </div>
+                <div class="info-item">
+                  <span class="label">When</span>
+                  <span class="value" id="party-time"></span>
+                </div>
+                <div class="info-item">
+                  <span class="label">Age restriction</span>
+                  <span class="value" id="age-restriction"></span>
+                </div>
+                <div class="info-item">
+                  <span class="label">Max attendees</span>
+                  <span class="value" id="max-attendees"></span>
+                </div>
+              </div>
+            </section>
 
-        <!-- Join Party Button -->
-        <button class="join-party-btn" id="joinPartyBtn" style="display: none;">
-          <span class="btn-text">Join Party</span>
-          <span class="btn-icon">
-            <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true">
-              <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" fill="currentColor"/>
-            </svg>
-          </span>
-        </button>
+            <div class="action-group">
+              <button class="join-party-btn" id="joinPartyBtn" style="display: none;">
+                <span class="btn-text">Join Party</span>
+                <span class="btn-icon">
+                  <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true">
+                    <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" fill="currentColor"/>
+                  </svg>
+                </span>
+              </button>
 
-        <button class="photos-btn">View Gallery <span class="arrow"><svg viewBox="0 0 24 24" width="14" height="14" aria-hidden="true"><path d="M9 6l6 6-6 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" fill="none"/></svg></span></button>
+              <button class="secondary-btn photos-btn">
+                <span>View Gallery</span>
+                <span class="arrow">
+                  <svg viewBox="0 0 24 24" width="14" height="14" aria-hidden="true">
+                    <path d="M9 6l6 6-6 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+                  </svg>
+                </span>
+              </button>
+            </div>
 
-        <div class="invited-section">
-          <button class="invited-toggle">
-            Invited Members <span class="arrow"><svg viewBox="0 0 24 24" width="14" height="14" aria-hidden="true"><path d="M9 6l6 6-6 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" fill="none"/></svg></span>
-          </button>
+            <section class="invited-section">
+              <button class="secondary-btn invited-toggle">
+                <span>Invited Members</span>
+                <span class="arrow">
+                  <svg viewBox="0 0 24 24" width="14" height="14" aria-hidden="true">
+                    <path d="M9 6l6 6-6 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+                  </svg>
+                </span>
+              </button>
 
-          <ul class="invited-list" aria-hidden="true">
-            <li class="invited-item accepted">
-              partymausViki <span class="status ok"><svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true" fill="none"><path d="M20 6L9 17l-5-5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
-            </li>
-            <li class="invited-item declined">
-              evapartying <span class="status no"><svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true" fill="none"><path d="M18 6L6 18M6 6l12 12" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
-            </li>
-          </ul>
-        </div>
-      </section>
-    </main>
-
+              <ul class="invited-list" aria-hidden="true">
+                <li class="invited-item accepted">
+                  <span>partymausViki</span>
+                  <span class="status ok">
+                    <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true" fill="none">
+                      <path d="M20 6L9 17l-5-5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                  </span>
+                </li>
+                <li class="invited-item declined">
+                  <span>evapartying</span>
+                  <span class="status no">
+                    <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true" fill="none">
+                      <path d="M18 6L6 18M6 6l12 12" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                  </span>
+                </li>
+              </ul>
+            </section>
+          </section>
         </main>
       </div>
 
       <nav class="bottom-nav" role="navigation" aria-label="Bottom navigation">
         <a class="nav-btn" href="/index.html" aria-label="Home">
-          <svg class="nav-icon icon--pink" width="28" height="28" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M3 6.5L8 4l7 2.5 6-2.5v11l-6 2.5L10 15 3 17.5v-11z" stroke="currentColor" stroke-width="1.2" stroke-linejoin="round" stroke-linecap="round"/></svg>
+          <svg class="nav-icon icon--pink" width="28" height="28" viewBox="0 0 24 24" fill="none"><path d="M3 6.5L8 4l7 2.5 6-2.5v11l-6 2.5L10 15 3 17.5v-11z" stroke="currentColor" stroke-width="1.2" stroke-linejoin="round" stroke-linecap="round"/></svg>
         </a>
         <a class="nav-btn" href="/listPartys/listPartys.html" aria-label="List Parties">
-          <svg class="nav-icon icon--pink" width="28" height="28" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><rect x="3" y="3" width="18" height="18" rx="3" stroke="currentColor" stroke-width="1.2"/><circle cx="8.5" cy="8.5" r="1.8" fill="currentColor"/><path d="M21 21l-6-6-5 5" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          <svg class="nav-icon icon--pink" width="28" height="28" viewBox="0 0 24 24" fill="none"><rect x="3" y="3" width="18" height="18" rx="3" stroke="currentColor" stroke-width="1.2"/><circle cx="8.5" cy="8.5" r="1.8" fill="currentColor"/><path d="M21 21l-6-6-5 5" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
         </a>
         <a class="nav-btn" href="/notifications/notifications.html" aria-label="Notifications">
-          <svg class="nav-icon icon--pink" width="28" height="28" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M12 22a2.5 2.5 0 0 0 2.45-2H9.55A2.5 2.5 0 0 0 12 22z" fill="currentColor"/><path d="M18 8a6 6 0 10-12 0v5l-2 2v1h16v-1l-2-2V8z" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          <svg class="nav-icon icon--pink" width="28" height="28" viewBox="0 0 24 24" fill="none"><path d="M12 22a2.5 2.5 0 0 0 2.45-2H9.55A2.5 2.5 0 0 0 12 22z" fill="currentColor"/><path d="M18 8a6 6 0 10-12 0v5l-2 2v1h16v-1l-2-2V8z" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
         </a>
         <a class="nav-btn" href="/profile/profile.html" aria-label="Profile">
-          <svg class="nav-icon icon--pink" width="28" height="28" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><circle cx="12" cy="8.5" r="3" stroke="currentColor" stroke-width="1.2"/><path d="M4 20a8 8 0 0 1 16 0" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          <svg class="nav-icon icon--pink" width="28" height="28" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="8.5" r="3" stroke="currentColor" stroke-width="1.2"/><path d="M4 20a8 8 0 0 1 16 0" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
         </a>
       </nav>
-
-    <script src="./advancedPartyInfos.js"></script>
+    </div>
   </body>
 </html>
