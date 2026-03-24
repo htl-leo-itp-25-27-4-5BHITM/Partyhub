@@ -4,6 +4,7 @@ import SwiftData
 @main
 struct PartyHubiOSApp: App {
     @State private var locationManager = LocationManager()
+    @State private var deepLinkPartyId: Int?
     let container: ModelContainer
 
     init() {
@@ -22,8 +23,6 @@ struct PartyHubiOSApp: App {
 
             container = try ModelContainer(for: schema, configurations: [modelConfiguration])
 
-            // ← SOFORT setzen, nicht erst in setupApp()
-            // So funktioniert Geo-Fencing auch wenn iOS die App im Hintergrund startet
             locationManager.modelContext = container.mainContext
 
         } catch {
@@ -40,7 +39,22 @@ struct PartyHubiOSApp: App {
                 .task {
                     await setupApp()
                 }
+                .onOpenURL { url in
+                    handleDeepLink(url)
+                }
         }
+    }
+
+    private func handleDeepLink(_ url: URL) {
+        guard url.scheme == "partyhub",
+              url.host == "party",
+              let components = URLComponents(url: url, resolvingAgainstBaseURL: false),
+              let idString = components.queryItems?.first(where: { $0.name == "id" })?.value,
+              let partyId = Int(idString) else {
+            return
+        }
+        deepLinkPartyId = partyId
+        NotificationCenter.default.post(name: .showPartyDetail, object: partyId)
     }
 
     @MainActor
