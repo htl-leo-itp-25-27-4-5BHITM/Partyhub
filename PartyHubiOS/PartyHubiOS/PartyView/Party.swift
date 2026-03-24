@@ -32,8 +32,7 @@ class Party {
     var coordinate: CLLocationCoordinate2D {
         CLLocationCoordinate2D(latitude: latitude, longitude: longitude)
     }
-
-    // 🔥 WICHTIG: Wieder hinzugefügt, damit LocationManager funktioniert
+    
     var region: CLCircularRegion {
         let r = CLCircularRegion(
             center: coordinate,

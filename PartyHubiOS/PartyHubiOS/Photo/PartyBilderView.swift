@@ -8,6 +8,8 @@ struct PartyBilderView: View {
     @State private var geladeneBilder: [URL] = []
     @State private var ausgewaehlteBilderZumLoeschen = Set<URL>()
     @State private var istImBearbeitungsModus = false
+    @State private var bildZumTeilen: UIImage?
+    @State private var zeigeShareSheet = false
 
     var body: some View {
         VStack(spacing: 0) {
@@ -31,6 +33,14 @@ struct PartyBilderView: View {
                                             waehleBildAus(url: url)
                                         }
                                     }
+                                    .contextMenu {
+                                        Button {
+                                            bildZumTeilen = bild
+                                            zeigeShareSheet = true
+                                        } label: {
+                                            Label("Teilen", systemImage: "square.and.arrow.up")
+                                        }
+                                    }
                             }
 
                             if istImBearbeitungsModus {
@@ -43,6 +53,11 @@ struct PartyBilderView: View {
                     }
                 }
                 .padding(16)
+            }
+            .sheet(isPresented: $zeigeShareSheet) {
+                if let image = bildZumTeilen {
+                    ShareSheet(image: image)
+                }
             }
 
             // MARK: – Bottom Buttons
@@ -137,4 +152,16 @@ struct PartyBilderView: View {
         try? FileManager.default.createDirectory(at: folder, withIntermediateDirectories: true)
         return folder
     }
+}
+
+struct ShareSheet: UIViewControllerRepresentable {
+    let image: UIImage
+
+    func makeUIViewController(context: Context) -> UIActivityViewController {
+        let activityItems: [Any] = [image]
+        let controller = UIActivityViewController(activityItems: activityItems, applicationActivities: nil)
+        return controller
+    }
+
+    func updateUIViewController(_ uiViewController: UIActivityViewController, context: Context) {}
 }

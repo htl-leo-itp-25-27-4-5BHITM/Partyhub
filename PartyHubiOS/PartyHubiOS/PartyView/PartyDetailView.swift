@@ -8,28 +8,35 @@ struct PartyDetailView: View {
     @Environment(\.modelContext) private var modelContext
     @State private var now = Date()
     let timer = Timer.publish(every: 1, on: .main, in: .common).autoconnect()
-
-    // MARK: – Foto State
+    
     @State private var selectedItems: [PhotosPickerItem] = []
     @State private var geladeneBilder: [URL] = []
     @State private var ausgewaehlteBilderZumLoeschen = Set<URL>()
     @State private var istImBearbeitungsModus = false
-
+    @State private var partyText: String = ""
+    
+    private var shareURL: URL? {
+        URL(string: "https://maps.apple.com/?ll=\(party.latitude),\(party.longitude)&q=\(party.name.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? "")")
+    }
+    
+    private var appDeepLink: URL? {
+        URL(string: "partyhub://party?id=\(party.backendId)")
+    }
+    
     var finished: [TimeEntry] {
         party.timeEntries.filter { $0.endTime != nil }.sorted(by: { $0.startTime > $1.startTime })
     }
-
+    
     var body: some View {
         List {
-
-            // MARK: – Status
+            
             Section {
                 LabeledContent("Status") {
                     Text(party.isActive ? "Du bist gerade hier" : "Nicht anwesend")
                         .foregroundStyle(party.isActive ? .green : .secondary)
                 }
                 .frame(minHeight: 44)
-
+                
                 if party.isActive, let entry = party.activeEntry {
                     LabeledContent("Dauer") {
                         Text(formatDuration(entry.startTime, to: now))
@@ -40,8 +47,7 @@ struct PartyDetailView: View {
                     .frame(minHeight: 44)
                 }
             }
-
-            // MARK: – Vergangene Besuche
+            
             if !finished.isEmpty {
                 Section("Vergangene Besuche") {
                     ForEach(finished) { entry in
@@ -60,9 +66,9 @@ struct PartyDetailView: View {
                     .onDelete(perform: deleteEntries)
                 }
             }
-
+            
             // MARK: – Debug
-            #if DEBUG
+#if DEBUG
             Section("Debug") {
                 HStack(spacing: 12) {
                     Button {
@@ -79,7 +85,7 @@ struct PartyDetailView: View {
                     .buttonStyle(.borderedProminent)
                     .tint(Color.primaryDarkBlue)
                     .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
-
+                    
                     Button {
                         party.activeEntry?.endTime = .now
                         try? modelContext.save()
@@ -94,8 +100,8 @@ struct PartyDetailView: View {
                 }
                 .listRowInsets(EdgeInsets(top: 12, leading: 16, bottom: 12, trailing: 16))
             }
-            #endif
-
+#endif
+            
             // MARK: – Fotos (ganz unten)
             Section("Fotos") {
                 if !geladeneBilder.isEmpty {
@@ -120,15 +126,15 @@ struct PartyDetailView: View {
                                 if istImBearbeitungsModus {
                                     Image(systemName: ausgewaehlteBilderZumLoeschen.contains(url)
                                           ? "checkmark.circle.fill" : "circle")
-                                        .foregroundStyle(Color.primaryDarkBlue)
-                                        .padding(5)
+                                    .foregroundStyle(Color.primaryDarkBlue)
+                                    .padding(5)
                                 }
                             }
                         }
                     }
                     .listRowInsets(EdgeInsets(top: 12, leading: 16, bottom: 12, trailing: 16))
                 }
-
+                
                 HStack(spacing: 12) {
                     if istImBearbeitungsModus && !ausgewaehlteBilderZumLoeschen.isEmpty {
                         Button(action: loescheAusgewaehlteBilder) {
@@ -152,7 +158,7 @@ struct PartyDetailView: View {
                             speichereBilder()
                         }
                     }
-
+                    
                     if !geladeneBilder.isEmpty {
                         Button {
                             istImBearbeitungsModus.toggle()
@@ -172,10 +178,34 @@ struct PartyDetailView: View {
         }
         .navigationTitle(party.name)
         .navigationBarTitleDisplayMode(.large)
-        .onAppear { ladeBilderAusOrdner() }
+        .toolbar {
+            ToolbarItem(placement: .primaryAction) {
+                Menu {
+                    if let url = shareURL {
+                        ShareLink(item: url, subject: Text(party.name), message: Text(partyText)) {
+                            Text("Maps-Link teilen")
+                        }
+                    }
+                    ShareLink(item: partyText) {
+                        Text("Als Text teilen")
+                    }
+                    if let deepLink = appDeepLink {
+                        ShareLink(item: deepLink) {
+                            Label("App-Link teilen", systemImage: "antenna.radiowaves.left.and.right")
+                        }
+                    }
+                } label: {
+                    Text("Teilen")
+                }
+            }
+        }
+        .onAppear {
+            ladeBilderAusOrdner()
+            partyText = "\(party.name)\n \(party.location)\n https://maps.apple.com/?ll=\(party.latitude),\(party.longitude)"
+        }
         .onReceive(timer) { now = $0 }
     }
-
+    
     // MARK: – Foto Funktionen
     func waehleBildAus(url: URL) {
         if ausgewaehlteBilderZumLoeschen.contains(url) {
@@ -184,60 +214,57 @@ struct PartyDetailView: View {
             ausgewaehlteBilderZumLoeschen.insert(url)
         }
     }
-
+    
     func loescheAusgewaehlteBilder() {
-        let fm = FileManager.default
         for url in ausgewaehlteBilderZumLoeschen {
-            try? fm.removeItem(at: url)
+            try? FileManager.default.removeItem(at: url)
         }
         ausgewaehlteBilderZumLoeschen.removeAll()
         istImBearbeitungsModus = false
         ladeBilderAusOrdner()
     }
-
+    
     func speichereBilder() {
         for item in selectedItems {
             item.loadTransferable(type: Data.self) { result in
-                if case .success(let data) = result,
-                   let imageData = data {
+                if case .success(let data) = result, let imageData = data {
                     let folder = getPartyFolder()
                     let fileURL = folder.appendingPathComponent("Bild_\(UUID().uuidString).jpg")
                     try? imageData.write(to: fileURL)
                     DispatchQueue.main.async {
-                        ladeBilderAusOrdner()
+                        self.ladeBilderAusOrdner()
                     }
                 }
             }
         }
         selectedItems = []
     }
-
+    
     func ladeBilderAusOrdner() {
         let pfad = getPartyFolder()
-        let dateien = try? FileManager.default.contentsOfDirectory(at: pfad, includingPropertiesForKeys: nil)
-        self.geladeneBilder = dateien ?? []
+        geladeneBilder = (try? FileManager.default.contentsOfDirectory(at: pfad, includingPropertiesForKeys: nil)) ?? []
     }
-
+    
     func getPartyFolder() -> URL {
         let docs = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0]
         let folder = docs.appendingPathComponent(party.name)
         try? FileManager.default.createDirectory(at: folder, withIntermediateDirectories: true)
         return folder
     }
-
+    
     func deleteEntries(at offsets: IndexSet) {
         for index in offsets {
             modelContext.delete(finished[index])
         }
     }
-
+    
     func formatDuration(_ start: Date, to end: Date) -> String {
         let diff = Int(end.timeIntervalSince(start))
         let h = diff / 3600
         let m = (diff % 3600) / 60
         let s = diff % 60
         return h > 0
-            ? String(format: "%dh %02dm %02ds", h, m, s)
-            : String(format: "%dm %02ds", m, s)
+        ? String(format: "%dh %02dm %02ds", h, m, s)
+        : String(format: "%dm %02ds", m, s)
     }
 }

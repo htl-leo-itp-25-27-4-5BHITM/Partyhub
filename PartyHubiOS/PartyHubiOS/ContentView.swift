@@ -2,7 +2,9 @@ import SwiftUI
 import SwiftData
 
 struct ContentView: View {
-    @Environment(LocationManager.self) private var locationManager  // ← aus App holen, NICHT neu erstellen
+    @Environment(LocationManager.self) private var locationManager
+    @State private var selectedParty: Party?
+    @Query private var parties: [Party]
 
     var body: some View {
         TabView {
@@ -16,27 +18,16 @@ struct ContentView: View {
                     Label("Party", systemImage: "party.popper")
                 }
             
-            /*PhotoView()
-                .tabItem {
-                    Label("Photo", systemImage: "photo.stack")
-                }
-            */
             TimeTrackingView()
                 .tabItem {
                     Label("Time", systemImage: "timer")
                 }
-             
+              
             MapView(locationManager: locationManager)
                 .tabItem {
                     Label("Map", systemImage: "map")
                 }
-             
-            /*UserLocationListView()
-                .tabItem {
-                    Label("Users", systemImage: "person.2")
-                }
-             */
-            
+              
             ProfileView()
                 .tabItem {
                     Label("Profile", systemImage: "person")
@@ -44,7 +35,16 @@ struct ContentView: View {
              
         }
         .tint(.primaryPink)
-        // .modelContainer(for: TimeEntry.self)
+        .onReceive(NotificationCenter.default.publisher(for: .showPartyDetail)) { notification in
+            if let partyId = notification.object as? Int {
+                selectedParty = parties.first(where: { $0.backendId == partyId })
+            }
+        }
+        .sheet(item: $selectedParty) { party in
+            NavigationStack {
+                PartyDetailView(party: party)
+            }
+        }
     }
 }
 
