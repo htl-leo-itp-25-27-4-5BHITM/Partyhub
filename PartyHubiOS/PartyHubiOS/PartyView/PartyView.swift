@@ -2,6 +2,7 @@ import SwiftUI
 import SwiftData
 import Combine
 import CoreLocation
+import MapKit
 
 struct PartyView: View {
     @Query var parties: [Party]
@@ -23,8 +24,6 @@ struct PartyView: View {
     var body: some View {
         NavigationStack {
             List {
-            
-                // MARK: – Party Rows (keine Section, kein Header)
                 if sortedParties.isEmpty {
                     HStack(spacing: 12) {
                         ProgressView()
@@ -35,7 +34,7 @@ struct PartyView: View {
                 } else {
                     ForEach(sortedParties) { party in
                         NavigationLink(destination: PartyDetailView(party: party)) {
-                            PartyRow(party: party)
+                            PartyRow(party: party, userLocation: locationManager.currentLocation)
                         }
                     }
                 }
@@ -55,14 +54,33 @@ struct PartyView: View {
     // MARK: – Party Row
     struct PartyRow: View {
         let party: Party
+        let userLocation: CLLocationCoordinate2D?
         @State private var now = Date()
+        @State private var drivingDistance: String? = nil
+        @State private var lastFetchedLocation: CLLocation? = nil  // NEU: letzter Standort beim Fetch
         let timer = Timer.publish(every: 1, on: .main, in: .common).autoconnect()
 
         var body: some View {
             VStack(alignment: .leading, spacing: 2) {
-                Text(party.name)
-                    .font(.headline)
-                    .foregroundStyle(.primary)
+                HStack {
+                    Text(party.name)
+                        .font(.headline)
+                        .foregroundStyle(.primary)
+
+                    Spacer()
+
+                    // Distanz nur anzeigen wenn NICHT gerade auf der Party
+                    if !party.isActive, let distance = drivingDistance {
+                        HStack(spacing: 2) {
+                            Image(systemName: "car.fill")
+                                .font(.caption2)
+                                .foregroundStyle(.secondary)
+                            Text(distance)
+                                .font(.caption)
+                                .foregroundStyle(.secondary)
+                        }
+                    }
+                }
 
                 Text(party.location)
                     .font(.subheadline)
@@ -78,6 +96,45 @@ struct PartyView: View {
             }
             .frame(minHeight: 44)
             .onReceive(timer) { now = $0 }
+            .onAppear {
+                fetchDrivingDistance()
+            }
+            .onChange(of: userLocation) { _, newLocation in
+                guard let newCoord = newLocation else { return }
+                let newCLLocation = CLLocation(latitude: newCoord.latitude, longitude: newCoord.longitude)
+
+                // NEU: nur neu laden wenn mehr als 50m bewegt
+                if let last = lastFetchedLocation {
+                    if newCLLocation.distance(from: last) > 50 {
+                        fetchDrivingDistance()
+                    }
+                }
+            }
+        }
+
+        private func fetchDrivingDistance() {
+            guard let userCoord = userLocation else { return }
+
+            // letzten Fetch-Standort speichern
+            lastFetchedLocation = CLLocation(latitude: userCoord.latitude, longitude: userCoord.longitude)
+
+            let request = MKDirections.Request()
+            request.source = MKMapItem(placemark: MKPlacemark(coordinate: userCoord))
+            request.destination = MKMapItem(placemark: MKPlacemark(coordinate: party.coordinate))
+            request.transportType = .automobile
+
+            let directions = MKDirections(request: request)
+            directions.calculateETA { response, error in
+                DispatchQueue.main.async {
+                    if let distance = response?.distance {
+                        if distance < 1000 {
+                            drivingDistance = String(format: "%.0f m", distance)
+                        } else {
+                            drivingDistance = String(format: "%.1f km", distance / 1000)
+                        }
+                    }
+                }
+            }
         }
 
         func formatDuration(_ start: Date, to end: Date) -> String {
