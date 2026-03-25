@@ -1,32 +1,45 @@
+-- =========================
+-- RESET (optional)
+-- =========================
+TRUNCATE TABLE follow, invitation, media, party_user, party, user_location, users, location, category, follow_status RESTART IDENTITY CASCADE;
+
+-- =========================
 -- FRIENDSHIP_STATUS
+-- =========================
 INSERT INTO follow_status (id, name) VALUES
-                                             (1, 'ausstehend'),
-                                             (2, 'akzeptiert'),
-                                             (3, 'blockiert');
+                                         (1, 'ausstehend'),
+                                         (2, 'akzeptiert'),
+                                         (3, 'blockiert');
 
+-- =========================
 -- USERS
+-- =========================
 INSERT INTO users (id, display_name, distinct_name, email, biography) VALUES
-                                                                          (1,  'Anna Huber',       'anna_huber',       '[anna.huber@wien.at](mailto:anna.huber@wien.at)',       'Event-Liebhaberin aus Wien.'),
-                                                                          (2,  'Michael Wagner',   'michael_wagner',   '[michael.wagner@wien.at](mailto:michael.wagner@wien.at)',   'Tech, Musik und neue Leute kennenlernen.'),
-                                                                          (3,  'Katrin Bauer',     'katrin_bauer',     '[katrin.bauer@wien.at](mailto:katrin.bauer@wien.at)',     'Tanzen, Konzerte, gute Stimmung.'),
-                                                                          (4,  'Thomas Schneider', 'thomas_schneider', '[thomas.schneider@wien.at](mailto:thomas.schneider@wien.at)', 'Organisiert gerne Veranstaltungen.'),
-                                                                          (5,  'Sabine Weber',     'sabine_weber',     '[sabine.weber@wien.at](mailto:sabine.weber@wien.at)',     'Networking & Kultur in Wien.'),
-                                                                          (6,  'Lukas Gruber',     'lukas_gruber',     '[lukas.gruber@wien.at](mailto:lukas.gruber@wien.at)',     'Sport & Outdoor – aber auch Partys!'),
-                                                                          (7,  'Mia Steiner',      'mia_steiner',      '[mia.steiner@wien.at](mailto:mia.steiner@wien.at)',      'Kunst, Food, Afterwork.'),
-                                                                          (8,  'David König',      'david_koenig',     '[david.koenig@wien.at](mailto:david.koenig@wien.at)',     'Meetups, Startups, Tech.'),
-                                                                          (9,  'Nina Fischer',     'nina_fischer',     '[nina.fischer@wien.at](mailto:nina.fischer@wien.at)',     'Yoga, Wellness, entspannte Events.'),
-                                                                          (10, 'Elias Berger',     'elias_berger',     '[elias.berger@wien.at](mailto:elias.berger@wien.at)',     'Fotos, Musik, kleine Gigs.');
+                                                                          (1,  'Anna Huber',       'anna_huber',       'anna.huber@linz.at',       'Event-Liebhaberin aus Linz.'),
+                                                                          (2,  'Michael Wagner',   'michael_wagner',   'michael.wagner@linz.at',   'Tech, Musik und neue Leute kennenlernen.'),
+                                                                          (3,  'Katrin Bauer',     'katrin_bauer',     'katrin.bauer@linz.at',     'Tanzen, Konzerte, gute Stimmung.'),
+                                                                          (4,  'Thomas Schneider', 'thomas_schneider', 'thomas.schneider@linz.at', 'Organisiert gerne Veranstaltungen.'),
+                                                                          (5,  'Sabine Weber',     'sabine_weber',     'sabine.weber@linz.at',     'Networking & Kultur.'),
+                                                                          (6,  'Lukas Gruber',     'lukas_gruber',     'lukas.gruber@linz.at',     'Sport & Outdoor – aber auch Partys!'),
+                                                                          (7,  'Mia Steiner',      'mia_steiner',      'mia.steiner@linz.at',      'Kunst, Food, Afterwork.'),
+                                                                          (8,  'David König',      'david_koenig',     'david.koenig@linz.at',     'Meetups, Startups, Tech.'),
+                                                                          (9,  'Nina Fischer',     'nina_fischer',     'nina.fischer@linz.at',     'Yoga, Wellness, entspannte Events.'),
+                                                                          (10, 'Elias Berger',     'elias_berger',     'elias.berger@linz.at',     'Fotos, Musik, kleine Gigs.');
 
--- USER_LOCATION
+-- =========================
+-- USER_LOCATION (Linz)
+-- =========================
 INSERT INTO user_location (user_id, longitude, latitude) VALUES
-                                                               (1, 16.3738, 48.2082),
-                                                               (2, 16.3567, 48.2099),
-                                                               (3, 16.3839, 48.1985),
-                                                               (4, 16.3500, 48.2200),
-                                                               (5, 16.3900, 48.2150),
-                                                               (6, 16.3600, 48.2050);
+                                                             (1, 14.2858, 48.3069),
+                                                             (2, 14.2900, 48.3050),
+                                                             (3, 14.2950, 48.3000),
+                                                             (4, 14.2800, 48.3100),
+                                                             (5, 14.3000, 48.3080),
+                                                             (6, 14.2750, 48.3040);
 
+-- =========================
 -- CATEGORY
+-- =========================
 INSERT INTO category (id, name) VALUES
                                     (1, 'Musik'),
                                     (2, 'Technologie'),
@@ -37,85 +50,84 @@ INSERT INTO category (id, name) VALUES
                                     (7, 'Wellness'),
                                     (8, 'Bildung');
 
--- LOCATION
+-- =========================
+-- LOCATION (Linz Umgebung)
+-- =========================
 INSERT INTO location (id, longitude, latitude) VALUES
-                                                   (1,  16.3738,    48.2082),
-                                                   (2,  16.3600,    48.2000),
-                                                   (3,  16.4200,    48.2180),
-                                                   (4,  16.3690,    48.2035),
-                                                   (5,  16.3122,    48.1845),
-                                                   (6,  16.3769,    48.2167),
-                                                   (7,  16.3550,    48.2080),
-                                                   (8,  16.3790,    48.2050),
-                                                   (9,  16.3950,    48.2160),
-                                                   (10, 16.3415,    48.2105),
-                                                   (11, 14.2517532, 48.2684159),
-                                                   (12, 14.022701,  48.123327);
+                                                   (1, 14.2858, 48.3069), -- Zentrum
+                                                   (2, 14.2905, 48.3055),
+                                                   (3, 14.2955, 48.3005),
+                                                   (4, 14.2820, 48.3070),
+                                                   (5, 14.2755, 48.3045),
+                                                   (6, 14.2890, 48.3090),
+                                                   (7, 14.2780, 48.3020),
+                                                   (8, 14.2920, 48.3030),
+                                                   (9, 14.3005, 48.3105),
+                                                   (10,14.2700, 48.3085),
+                                                   (11,14.2517, 48.2684), -- Leonding
+                                                   (12,14.0227, 48.1233); -- Umgebung
 
--- PARTY (Linz Umgebung)
+-- =========================
+-- PARTY (Linz)
+-- =========================
 INSERT INTO party (id, host_user_id, category_id, location_id, title, time_start, time_end, max_people, min_age, max_age, website, description, fee, created_at) VALUES
-                                                                                                                                                                     (12,  2, 1, 1,  'Linz Club Night @ Remembar',        '2026-03-27 22:00:00', '2026-03-28 04:00:00', 200, 18, 35, 'https://remembar.at',        'Charts & EDM Party im Club.',            12.00, NOW()),
-                                                                                                                                                                     (13,  3, 1, 2,  'Après Ski Party @ Linzer Alm',      '2026-03-28 21:00:00', '2026-03-29 03:30:00', 180, 18, 40, 'https://linzeralm.at',      'Feiern wie auf der Skihütte.',           10.00, NOW()),
-                                                                                                                                                                     (14,  4, 1, 3,  'Techno Night @ PRYSMA',             '2026-03-27 23:00:00', '2026-03-28 06:00:00', 150, 18, 35, 'https://prysma.at',         'Underground Techno Event.',              15.00, NOW()),
-                                                                                                                                                                     (15,  5, 1, 4,  'Latin Party @ M7 Club',             '2026-03-28 20:30:00', '2026-03-29 02:30:00', 120, 18, 45, 'https://m7club.at',         'Reggaeton & Salsa Night.',               8.00, NOW()),
-                                                                                                                                                                     (16,  6, 1, 5,  'HipHop Night @ BlackDiamon',        '2026-03-27 22:30:00', '2026-03-28 04:30:00', 160, 18, 35, 'https://blackdiamon.at',    'HipHop & Club Mix.',                     10.00, NOW()),
-                                                                                                                                                                     (17,  7, 6, 6,  'Afterwork Drinks @ Lennox',         '2026-03-26 18:00:00', '2026-03-26 23:00:00', 90,  18, 50, 'https://lennox.at',         'Drinks & entspannte Musik.',             0.00, NOW()),
-                                                                                                                                                                     (18,  8, 6, 7,  'Alternative Night @ Solaris',       '2026-03-28 20:00:00', '2026-03-29 01:00:00', 100, 18, 45, 'https://solaris.at',        'Indie & Alternative Sounds.',            5.00, NOW()),
-                                                                                                                                                                     (19,  9, 1, 8,  'Student Party @ Stadtwerkstatt',    '2026-03-27 21:30:00', '2026-03-28 03:00:00', 140, 18, 30, 'https://stwst.at',          'Studentenparty + DJs.',                  6.00, NOW()),
-                                                                                                                                                                     (20, 10, 1, 9,  'Open Air Party @ Donaupark Linz',   '2026-03-29 16:00:00', '2026-03-29 23:00:00', 220, 16, 40, 'https://donaupark-linz.at', 'Open Air mit DJs & Drinks.',             0.00, NOW()),
-                                                                                                                                                                     (21,  1, 1, 10, 'Indie Night @ Kapu Linz',           '2026-03-28 21:00:00', '2026-03-29 02:00:00', 110, 18, 40, 'https://kapu.or.at',         'Live Bands & Indie DJs.',                9.00, NOW()),
-                                                                                                                                                                     (10, 10,1, 9,  'Indie Live Session @ Praterstern',   '2026-03-23 19:30:00', '2026-03-23 22:30:00', 120, 16, 60, 'https://indie-session.at',   'Kleine Live-Gigs.',                    9.00, NOW()),
-                                                                                                                                                                     (11, 1, 1, 11, 'HTL Leonding',                       '2026-03-24 08:00:00', '2026-03-24 18:00:00', 200, 14, 25, 'https://htl-leonding.at',    'HTL Leonding Schulveranstaltung.',      0.00, NOW()),
-                                                                                                                                                                     (12, 1, 1, 12, 'Meine Party',                        '2026-03-25 20:00:00', '2026-03-25 02:00:00', 50,  16, 99, '',                           'Meine eigene Party.',                   0.00, NOW());
+                                                                                                                                                                     (1,  2, 1, 1,  'Linz Club Night @ Remembar',      '2026-03-27 22:00:00', '2026-03-28 04:00:00', 200, 18, 35, 'https://remembar.at',     'Charts & EDM Party.',            12.00, NOW()),
+                                                                                                                                                                     (2,  3, 1, 2,  'Après Ski Party @ Linzer Alm',    '2026-03-28 21:00:00', '2026-03-29 03:30:00', 180, 18, 40, 'https://linzeralm.at',   'Feiern wie auf der Skihütte.',   10.00, NOW()),
+                                                                                                                                                                     (3,  4, 1, 3,  'Techno Night @ PRYSMA',           '2026-03-27 23:00:00', '2026-03-28 06:00:00', 150, 18, 35, 'https://prysma.at',      'Underground Techno.',            15.00, NOW()),
+                                                                                                                                                                     (4,  5, 1, 4,  'Latin Party @ M7 Club',           '2026-03-28 20:30:00', '2026-03-29 02:30:00', 120, 18, 45, 'https://m7club.at',      'Reggaeton & Salsa.',             8.00, NOW()),
+                                                                                                                                                                     (5,  6, 1, 5,  'HipHop Night',                   '2026-03-27 22:30:00', '2026-03-28 04:30:00', 160, 18, 35, 'https://club.at',        'HipHop & Club Mix.',             10.00, NOW()),
+                                                                                                                                                                     (6,  7, 6, 6,  'Afterwork Drinks',               '2026-03-26 18:00:00', '2026-03-26 23:00:00', 90,  18, 50, 'https://bar.at',         'Drinks & entspannte Musik.',     0.00, NOW()),
+                                                                                                                                                                     (7,  8, 6, 7,  'Alternative Night',              '2026-03-28 20:00:00', '2026-03-29 01:00:00', 100, 18, 45, 'https://alt.at',         'Indie & Alternative.',           5.00, NOW()),
+                                                                                                                                                                     (8,  9, 1, 8,  'Student Party',                  '2026-03-27 21:30:00', '2026-03-28 03:00:00', 140, 18, 30, 'https://stwst.at',       'Studentenparty.',                6.00, NOW()),
+                                                                                                                                                                     (9, 10, 1, 9,  'Open Air Party',                 '2026-03-29 16:00:00', '2026-03-29 23:00:00', 220, 16, 40, 'https://linz.at',        'Open Air mit DJs.',              0.00, NOW()),
+                                                                                                                                                                     (10,1,  1,10, 'Indie Night @ Kapu',              '2026-03-28 21:00:00', '2026-03-29 02:00:00', 110, 18, 40, 'https://kapu.or.at',     'Live Bands & DJs.',              9.00, NOW());
 
+-- =========================
 -- PARTY_USER
+-- =========================
 INSERT INTO party_user (party_id, user_id) VALUES
-                                               (1,2),(1,3),(1,5),(1,8),
-                                               (2,1),(2,4),(2,7),(2,10),
-                                               (3,1),(3,5),(3,7),
-                                               (4,2),(4,3),(4,8),
-                                               (5,1),(5,2),(5,6),(5,7),(5,8),
-                                               (6,3),(6,4),(6,5),(6,9),
-                                               (7,1),(7,3),(7,5),(7,10),
-                                               (8,2),(8,6),(8,7),(8,10),
-                                               (9,1),(9,7),(9,8),
-                                               (10,2),(10,3),(10,4),(10,5),(10,9);
+                                               (1,2),(1,3),(1,5),
+                                               (2,1),(2,4),(2,7),
+                                               (3,1),(3,5),
+                                               (4,2),(4,3),
+                                               (5,1),(5,6),
+                                               (6,3),(6,4),
+                                               (7,1),(7,10),
+                                               (8,2),(8,6),
+                                               (9,1),(9,7),
+                                               (10,2),(10,3);
 
+-- =========================
 -- MEDIA
+-- =========================
 INSERT INTO media (id, party_id, user_id, file) VALUES
-                                                    (1,  1,  1,  'party1_rooftop.jpg'),
-                                                    (2,  1,  3,  'party1_dj.jpg'),
-                                                    (3,  2,  2,  'party2_ai_slide.jpg'),
-                                                    (4,  2,  8,  'party2_networking.jpg'),
-                                                    (5,  3,  5,  'party3_food.jpg'),
-                                                    (6,  4,  7,  'party4_art.jpg'),
-                                                    (7,  5,  8,  'party5_startup.jpg'),
-                                                    (8,  6,  6,  'party6_volley.jpg'),
-                                                    (9,  7,  7,  'party7_afterwork.jpg'),
-                                                    (10, 8,  10, 'party8_workshop.jpg'),
-                                                    (11, 9,  9,  'party9_yoga.jpg'),
-                                                    (12, 10, 10, 'party10_indie.jpg');
+                                                    (1,1,1,'party1.jpg'),
+                                                    (2,2,2,'party2.jpg'),
+                                                    (3,3,3,'party3.jpg'),
+                                                    (4,4,4,'party4.jpg'),
+                                                    (5,5,5,'party5.jpg');
 
+-- =========================
 -- INVITATION
+-- =========================
 INSERT INTO invitation (id, sender_id, recipient_id, party_id) VALUES
-                                                                   (101, 2, 1, 2),(102, 3, 1, 3),(103, 5, 1, 5),
-                                                                   (104, 1, 2, 1),(105, 4, 2, 4),
-                                                                   (106, 2, 3, 2),(107, 6, 3, 6),
-                                                                   (108, 1, 4, 1),
-                                                                   (109, 3, 5, 3),(110, 7, 5, 7),
-                                                                   (111, 8, 6, 8),
-                                                                   (112, 9, 7, 9),
-                                                                   (113, 1, 8, 1),(114, 10, 8, 10),
-                                                                   (115, 5, 9, 5),
-                                                                   (116, 4, 10, 4);
+                                                                   (1,2,1,1),
+                                                                   (2,3,1,2),
+                                                                   (3,5,1,3),
+                                                                   (4,1,2,1),
+                                                                   (5,4,2,4);
 
+-- =========================
 -- FRIENDSHIP
+-- =========================
 INSERT INTO follow (user1_id, user2_id, status_id) VALUES
-                                                           (1,2,2),(1,3,2),(2,1,2),(2,8,2),(3,5,1),
-                                                           (4,2,2),(5,7,2),(6,1,1),(7,9,2),(8,10,2),
-                                                           (9,6,2),(10,3,3);
+                                                       (1,2,2),(1,3,2),(2,1,2),
+                                                       (2,8,2),(3,5,1),(4,2,2),
+                                                       (5,7,2),(6,1,1),(7,9,2);
 
+-- =========================
 -- RESET SEQUENCES
+-- =========================
 SELECT setval('users_id_seq',      (SELECT MAX(id) FROM users));
 SELECT setval('category_id_seq',   (SELECT MAX(id) FROM category));
 SELECT setval('location_id_seq',   (SELECT MAX(id) FROM location));
