@@ -10,6 +10,7 @@ import java.util.List;
 import io.quarkus.security.identity.SecurityIdentity;
 import jakarta.ws.rs.core.SecurityContext;
 import org.jboss.logging.Logger;
+import org.jboss.resteasy.reactive.NoCache;
 import org.jboss.resteasy.reactive.multipart.FileUpload;
 
 import at.htl.follow.FollowRepository;
@@ -71,6 +72,7 @@ public class UserResource {
 
     @GET
     @Path("/me")
+    @NoCache
     public Response getMe() {
         return Response.ok(securityIdentity).build();
     }

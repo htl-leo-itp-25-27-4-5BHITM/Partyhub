@@ -19,6 +19,12 @@
       "enabled": true,
       "credentials": [{ "type": "password", "value": "alicepwd" }],
       "email": "alice@example.com"
+    },
+    {
+      "username": "bob",
+      "enabled": true,
+      "credentials": [{ "type": "password", "value": "bobpwd" }],
+      "email": "bob@example.com"
     }
   ]
 }
