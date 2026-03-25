@@ -36,6 +36,9 @@ nb-configuration.xml
 *.orig
 *.rej
 
+CLAUDE.md
+AGENTS.md
+.gitignore
 # Local environment
 .env
 
