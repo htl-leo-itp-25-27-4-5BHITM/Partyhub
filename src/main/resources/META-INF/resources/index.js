@@ -24,6 +24,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   // Current user's location layer (different color)
   const currentUserLayer = L.layerGroup().addTo(map);
+  const USE_FAKE_LOCATION = true;
 
   // Load parties for dropdown
   async function loadPartiesForDropdown() {
@@ -375,6 +376,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   let centeredOnce = false;
 
   async function loadCurrentUserLocationFromApi() {
+    if (USE_FAKE_LOCATION) return;
     const currentUserId = window.getCurrentUserId?.();
     if (!currentUserId) return;
     
@@ -394,7 +396,7 @@ document.addEventListener("DOMContentLoaded", async () => {
             popupAnchor: [1, -34],
             shadowSize: [41, 41]
           })
-        }).addTo(currentUserLayer).bindPopup("Du bist hier");
+        }).addTo(currentUserLayer).bindPopup("Du bist hier (HTL Leonding)");
         
         if (!centeredOnce) {
           map.setView([location.latitude, location.longitude], 15);
@@ -407,10 +409,20 @@ document.addEventListener("DOMContentLoaded", async () => {
   }
 
   function showUserLocation(lat, lng, accuracy) {
-    L.marker([lat, lng]).addTo(userLayer).bindPopup("Du bist hier (Browser)");
+    currentUserLayer.clearLayers();
+    L.marker([lat, lng], {
+      icon: L.icon({
+        iconUrl: "https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-green.png",
+        shadowUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png",
+        iconSize: [25, 41],
+        iconAnchor: [12, 41],
+        popupAnchor: [1, -34],
+        shadowSize: [41, 41]
+      })
+    }).addTo(currentUserLayer).bindPopup("Du bist hier (HTL Leonding)");
 
     if (accuracy) {
-      L.circle([lat, lng], { radius: accuracy }).addTo(userLayer);
+      L.circle([lat, lng], { radius: accuracy }).addTo(currentUserLayer);
     }
 
     if (!centeredOnce) {
@@ -480,13 +492,13 @@ async function getAllParties() {
   }
 }
 
-// --- DEV: Override browser geolocation to Vienna (48.2082, 16.3738) ---
-// This will make getCurrentPosition / watchPosition return Vienna coordinates.
+// --- DEV: Override browser geolocation to HTL Leonding (48.2684811, 14.2535381) ---
+// This will make getCurrentPosition / watchPosition return HTL Leonding coordinates.
 // Remove or comment out this call in production.
-(function setFakeGeolocationToVienna() {
-  const fakeLat = 48.2082;
-  const fakeLng = 16.3738;
-  const fakeAcc = 30;
+(function setFakeGeolocationToHtlLeonding() {
+  const fakeLat = 48.268572985384395;
+  const fakeLng = 14.251785383426006;
+  const fakeAcc = 8;
 
   try {
     const originalGeo = navigator.geolocation
@@ -562,12 +574,12 @@ async function getAllParties() {
         configurable: true,
         writable: true,
       });
-      console.info("Fake geolocation installed: Vienna (48.2082,16.3738)");
+      console.info("Fake geolocation installed: HTL Leonding (48.2684811,14.2535381)");
     } catch (e) {
       // fallback: assign if defineProperty not allowed
       try {
         navigator.geolocation = geo;
-        console.info("Fake geolocation assigned: Vienna");
+        console.info("Fake geolocation assigned: HTL Leonding");
       } catch (_) {}
     }
 
