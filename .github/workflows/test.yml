@@ -22,7 +22,7 @@ jobs:
           cache: 'maven'
 
       - name: Start PostgreSQL Database
-        run: docker compose .yml up -d
+        run: docker compose up -d
 
       - name: Wait for database to be ready
         run: |
