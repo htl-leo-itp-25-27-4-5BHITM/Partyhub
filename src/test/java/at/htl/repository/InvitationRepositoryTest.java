@@ -17,6 +17,7 @@ import org.junit.jupiter.api.Test;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -45,7 +46,7 @@ public class InvitationRepositoryTest {
     }
 
     private User createTestUser(String name, String distinctName) {
-        User user = new User();
+        User user = new User(UUID.randomUUID());
         user.setDisplayName(name);
         user.setDistinctName(distinctName);
         user.setEmail(name.toLowerCase().replace(" ", ".") + "@example.com");
@@ -88,7 +89,7 @@ public class InvitationRepositoryTest {
 
         Party party = createTestParty(sender);
 
-        InvitationDto dto = new InvitationDto(party.getId(), recipient.getId());
+        InvitationDto dto = new InvitationDto(recipient.getId(), party.getId());
         Response response = invitationRepository.invite(dto, sender.getId());
         
         assertEquals(201, response.getStatus());
@@ -104,7 +105,7 @@ public class InvitationRepositoryTest {
 
         Party party = createTestParty(recipient);
 
-        InvitationDto dto = new InvitationDto(party.getId(), recipient.getId());
+        InvitationDto dto = new InvitationDto(recipient.getId(), party.getId());
         Response response = invitationRepository.invite(dto, null);
         
         assertEquals(200, response.getStatus());
@@ -118,7 +119,7 @@ public class InvitationRepositoryTest {
 
         Party party = createTestParty(sender);
 
-        InvitationDto dto = new InvitationDto(party.getId(), recipient.getId());
+        InvitationDto dto = new InvitationDto(recipient.getId(), party.getId());
         invitationRepository.invite(dto, sender.getId());
         entityManager.flush();
 

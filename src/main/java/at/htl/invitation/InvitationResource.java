@@ -1,11 +1,14 @@
 package at.htl.invitation;
 
+import io.quarkus.security.Authenticated;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import jakarta.transaction.Transactional;
 import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
+
+import java.util.UUID;
 
 @Path("/api/invites")
 @ApplicationScoped
@@ -18,19 +21,20 @@ public class InvitationResource {
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     @Transactional
+    @Authenticated
     public Response invite(InvitationDto invitationDto,
-                          @QueryParam("user") Long userId,
-                          @HeaderParam("X-User-Id") Long headerUserId) {
-        Long actualUserId = userId != null ? userId : headerUserId;
+                          @QueryParam("user") UUID userId,
+                          @HeaderParam("X-User-Id") UUID headerUserId) {
+        UUID actualUserId = userId != null ? userId : headerUserId;
         return invitationRepository.invite(invitationDto, actualUserId);
     }
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     @Path("/rec")
-    public Response getReceivedInvites(@QueryParam("user") Long userId,
-                                       @HeaderParam("X-User-Id") Long headerUserId) {
-        Long actualUserId = userId != null ? userId : headerUserId;
+    public Response getReceivedInvites(@QueryParam("user") UUID userId,
+                                       @HeaderParam("X-User-Id") UUID headerUserId) {
+        UUID actualUserId = userId != null ? userId : headerUserId;
         if (actualUserId == null) {
             return Response.status(Response.Status.BAD_REQUEST)
                     .entity("{\"error\": \"User ID required\"}")
@@ -42,9 +46,9 @@ public class InvitationResource {
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     @Path("/inv")
-    public Response getSentInvites(@QueryParam("user") Long userId,
-                                   @HeaderParam("X-User-Id") Long headerUserId) {
-        Long actualUserId = userId != null ? userId : headerUserId;
+    public Response getSentInvites(@QueryParam("user") UUID userId,
+                                   @HeaderParam("X-User-Id") UUID headerUserId) {
+        UUID actualUserId = userId != null ? userId : headerUserId;
         if (actualUserId == null) {
             return Response.status(Response.Status.BAD_REQUEST)
                     .entity("{\"error\": \"User ID required\"}")
@@ -56,11 +60,12 @@ public class InvitationResource {
     @DELETE
     @Produces(MediaType.APPLICATION_JSON)
     @Transactional
+    @Authenticated
     @Path("/delete/{id}")
     public Response deleteInvite(@PathParam("id") Long id,
-                                @QueryParam("user") Long userId,
-                                @HeaderParam("X-User-Id") Long headerUserId) {
-        Long actualUserId = userId != null ? userId : headerUserId;
+                                @QueryParam("user") UUID userId,
+                                @HeaderParam("X-User-Id") UUID headerUserId) {
+        UUID actualUserId = userId != null ? userId : headerUserId;
         return invitationRepository.deleteInvite(id, actualUserId);
     }
 }

@@ -5,6 +5,7 @@ import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 
 import at.htl.FilterDto;
 import at.htl.category.Category;
@@ -46,7 +47,7 @@ public class PartyRepository {
         return entityManager.createQuery("SELECT p FROM Party p", Party.class).getResultList();
     }
 
-    public Response addParty(PartyCreateDto partyCreateDto, Long userId) {
+    public Response addParty(PartyCreateDto partyCreateDto, UUID userId) {
         if (userId == null) {
             return Response.status(Response.Status.BAD_REQUEST)
                     .entity("{\"error\": \"User ID required\"}")
@@ -81,7 +82,7 @@ public class PartyRepository {
         return Response.noContent().build();
     }
 
-    public Response updateParty(Long id, PartyCreateDto partyCreateDto, Long userId) {
+    public Response updateParty(Long id, PartyCreateDto partyCreateDto, UUID userId) {
         if (userId == null) {
             return Response.status(Response.Status.BAD_REQUEST)
                     .entity("{\"error\": \"User ID required\"}")
@@ -169,7 +170,7 @@ public class PartyRepository {
         return entityManager.find(Party.class, party_id);
     }
 
-    public Response attendParty(Long partyId, Long userId) {
+    public Response attendParty(Long partyId, UUID userId) {
         if (userId == null) {
             return Response.status(Response.Status.BAD_REQUEST)
                     .entity("{\"error\": \"User ID required\"}")
@@ -197,7 +198,7 @@ public class PartyRepository {
         return Response.noContent().build();
     }
 
-    public Response leaveParty(Long partyId, Long userId) {
+    public Response leaveParty(Long partyId, UUID userId) {
         if (userId == null) {
             return Response.status(Response.Status.BAD_REQUEST)
                     .entity("{\"error\": \"User ID required\"}")
@@ -226,7 +227,7 @@ public class PartyRepository {
         return Response.status(Response.Status.NOT_FOUND).build();
     }
 
-    public Response attendStatus(Long partyId, Long userId) {
+    public Response attendStatus(Long partyId, UUID userId) {
         if (userId == null) {
             return Response.status(Response.Status.BAD_REQUEST)
                     .entity("{\"error\": \"User ID required\"}")

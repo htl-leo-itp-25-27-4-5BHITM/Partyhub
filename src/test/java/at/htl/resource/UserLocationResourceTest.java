@@ -3,16 +3,20 @@ package at.htl.resource;
 import at.htl.TestBase;
 import at.htl.user.User;
 import io.quarkus.test.junit.QuarkusTest;
+import io.quarkus.test.security.TestSecurity;
 import jakarta.inject.Inject;
 import jakarta.persistence.EntityManager;
 import jakarta.transaction.UserTransaction;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import java.util.UUID;
+
 import static io.restassured.RestAssured.given;
 import static org.hamcrest.Matchers.*;
 
 @QuarkusTest
+@TestSecurity(authorizationEnabled = false)
 public class UserLocationResourceTest extends TestBase {
 
     @Inject
@@ -46,17 +50,17 @@ public class UserLocationResourceTest extends TestBase {
     @Test
     void testUpdateLocation_createNew() throws Exception {
         tx.begin();
-        User user = new User();
+        User user = new User(UUID.randomUUID());
         user.setDisplayName("Test User");
         user.setDistinctName("testuser");
         user.setEmail("test@example.com");
         em.persist(user);
         tx.commit();
         
-        Long userId = user.getId();
+        UUID userId = user.getId();
 
         String requestBody = String.format(
-            "{\"userId\": %d, \"latitude\": 48.2082, \"longitude\": 16.3738}",
+            "{\"userId\": \"%s\", \"latitude\": 48.2082, \"longitude\": 16.3738}",
             userId
         );
 
@@ -68,23 +72,23 @@ public class UserLocationResourceTest extends TestBase {
             .statusCode(200)
             .body("latitude", is(48.2082f))
             .body("longitude", is(16.3738f))
-            .body("user.id", is(userId.intValue()));
+            .body("user.id", is(userId.toString()));
     }
 
     @Test
     void testUpdateLocation_updateExisting() throws Exception {
         tx.begin();
-        User user = new User();
+        User user = new User(UUID.randomUUID());
         user.setDisplayName("Test User");
         user.setDistinctName("testuser");
         user.setEmail("test@example.com");
         em.persist(user);
         tx.commit();
         
-        Long userId = user.getId();
+        UUID userId = user.getId();
 
         String requestBody1 = String.format(
-            "{\"userId\": %d, \"latitude\": 48.2082, \"longitude\": 16.3738}",
+            "{\"userId\": \"%s\", \"latitude\": 48.2082, \"longitude\": 16.3738}",
             userId
         );
 
@@ -97,7 +101,7 @@ public class UserLocationResourceTest extends TestBase {
             .body("latitude", is(48.2082f));
 
         String requestBody2 = String.format(
-            "{\"userId\": %d, \"latitude\": 52.52, \"longitude\": 13.405}",
+            "{\"userId\": \"%s\", \"latitude\": 52.52, \"longitude\": 13.405}",
             userId
         );
 
@@ -113,7 +117,7 @@ public class UserLocationResourceTest extends TestBase {
 
     @Test
     void testUpdateLocation_userNotFound() {
-        String requestBody = "{\"userId\": 9999, \"latitude\": 48.2082, \"longitude\": 16.3738}";
+        String requestBody = "{\"userId\": \"00000000-0000-0000-0000-999999999999\", \"latitude\": 48.2082, \"longitude\": 16.3738}";
 
         given()
             .contentType("application/json")

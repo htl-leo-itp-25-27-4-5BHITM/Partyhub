@@ -35,13 +35,20 @@ public class DataSeeder {
             };
 
             for (int i = 0; i < Math.min(users.size(), testLocations.length); i++) {
-                UserLocation location = new UserLocation();
-                location.setUser(users.get(i));
-                location.setLatitude(testLocations[i][0]);
-                location.setLongitude(testLocations[i][1]);
+                User user = users.get(i);
                 
-                UserLocation existing = em.find(UserLocation.class, users.get(i).getId());
+                UserLocation existing = em.createQuery(
+                        "SELECT ul FROM UserLocation ul WHERE ul.user.id = :userId", UserLocation.class)
+                        .setParameter("userId", user.getId())
+                        .getResultStream()
+                        .findFirst()
+                        .orElse(null);
+                
                 if (existing == null) {
+                    UserLocation location = new UserLocation();
+                    location.setUser(user);
+                    location.setLatitude(testLocations[i][0]);
+                    location.setLongitude(testLocations[i][1]);
                     em.persist(location);
                 }
             }

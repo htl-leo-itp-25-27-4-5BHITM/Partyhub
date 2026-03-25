@@ -1,6 +1,7 @@
 package at.htl.user_location;
 
 import at.htl.user.User;
+import io.quarkus.security.Authenticated;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import jakarta.persistence.EntityManager;
@@ -10,6 +11,7 @@ import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 
 import java.util.List;
+import java.util.UUID;
 
 @ApplicationScoped
 @Path("/api/userLocation")
@@ -30,6 +32,7 @@ public class UserLocationResource {
     @Transactional
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
+    @Authenticated
     public Response updateLocation(UserLocationUpdateDto dto) {
         User user = em.find(User.class, dto.userId());
         if (user == null) {
@@ -66,7 +69,7 @@ public class UserLocationResource {
     @GET
     @Path("/user/{userId}")
     @Produces(MediaType.APPLICATION_JSON)
-    public Response getUserLocation(@PathParam("userId") Long userId) {
+    public Response getUserLocation(@PathParam("userId") UUID userId) {
         UserLocation location = userlocRep.findByUserId(userId);
         if (location == null) {
             return Response.status(Response.Status.NOT_FOUND)

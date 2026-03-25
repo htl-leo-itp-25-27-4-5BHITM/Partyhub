@@ -1,6 +1,7 @@
 package at.htl.user;
 
 import java.util.List;
+import java.util.UUID;
 
 import org.jboss.logging.Logger;
 
@@ -33,7 +34,7 @@ public class UserRepository {
         return em.createQuery(jpql, User.class).setParameter("substring", like).getResultList();
     }
 
-    public User getUser(long id) {
+    public User getUser(UUID id) {
         return em.find(User.class, id);
     }
 
@@ -57,7 +58,7 @@ public class UserRepository {
         return Response.status(Response.Status.CREATED).entity(user).build();
     }
 
-    public Response updateUser(Long id, UserCreateDto createUserDto) {
+    public Response updateUser(UUID id, UserCreateDto createUserDto) {
         logger.info("UserRepository.updateUser called with id: " + id);
         User user = getUser(id);
         if (user == null) {

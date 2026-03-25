@@ -1,9 +1,11 @@
 package at.htl.party;
 
 import java.util.List;
+import java.util.UUID;
 
 import at.htl.FilterDto;
 import at.htl.media.MediaRepository;
+import io.quarkus.security.Authenticated;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import jakarta.transaction.Transactional;
@@ -39,11 +41,12 @@ public class PartyResource {
     @Transactional
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
+    @Authenticated
     @Path("/add")
     public Response addParty(PartyCreateDto partyCreateDto,
-                           @QueryParam("user") Long userId,
-                           @HeaderParam("X-User-Id") Long headerUserId) {
-        Long actualUserId = userId != null ? userId : headerUserId;
+                           @QueryParam("user") UUID userId,
+                           @HeaderParam("X-User-Id") UUID headerUserId) {
+        UUID actualUserId = userId != null ? userId : headerUserId;
         return partyRepository.addParty(partyCreateDto, actualUserId);
     }
 
@@ -62,6 +65,7 @@ public class PartyResource {
     @DELETE
     @Transactional
     @Produces(MediaType.APPLICATION_JSON)
+    @Authenticated
     @Path("/{id}")
     public Response removeParty(@PathParam("id") Long id) {
         return partyRepository.removeParty(id);
@@ -70,15 +74,16 @@ public class PartyResource {
     @POST
     @Produces(MediaType.APPLICATION_JSON)
     @Transactional
+    @Authenticated
     @Path("/{id}")
     public Response updateParty(@PathParam("id") Long id, PartyCreateDto partyCreateDto,
-                               @QueryParam("user") Long userId,
-                               @HeaderParam("X-User-Id") Long headerUserId) {
+                               @QueryParam("user") UUID userId,
+                               @HeaderParam("X-User-Id") UUID headerUserId) {
         if (partyCreateDto == null) {
             return Response.status(Response.Status.BAD_REQUEST)
                     .entity("Payload missing").build();
         }
-        Long actualUserId = userId != null ? userId : headerUserId;
+        UUID actualUserId = userId != null ? userId : headerUserId;
         return partyRepository.updateParty(id, partyCreateDto, actualUserId);
     }
 
@@ -117,22 +122,24 @@ public class PartyResource {
 
     @POST
     @Produces(MediaType.APPLICATION_JSON)
+    @Authenticated
     @Path("/{id}/attend")
     public Response attendParty(@PathParam("id") Long partyId,
-                               @QueryParam("user") Long userId,
-                               @HeaderParam("X-User-Id") Long headerUserId) {
-        Long actualUserId = userId != null ? userId : headerUserId;
+                               @QueryParam("user") UUID userId,
+                               @HeaderParam("X-User-Id") UUID headerUserId) {
+        UUID actualUserId = userId != null ? userId : headerUserId;
         return partyRepository.attendParty(partyId, actualUserId);
     }
 
     @DELETE
     @Produces(MediaType.APPLICATION_JSON)
     @Transactional
+    @Authenticated
     @Path("/{id}/attend")
     public Response leaveParty(@PathParam("id") Long partyId,
-                              @QueryParam("user") Long userId,
-                              @HeaderParam("X-User-Id") Long headerUserId) {
-        Long actualUserId = userId != null ? userId : headerUserId;
+                               @QueryParam("user") UUID userId,
+                               @HeaderParam("X-User-Id") UUID headerUserId) {
+        UUID actualUserId = userId != null ? userId : headerUserId;
         return partyRepository.leaveParty(partyId, actualUserId);
     }
 
@@ -140,9 +147,9 @@ public class PartyResource {
     @Produces(MediaType.APPLICATION_JSON)
     @Path("/{id}/attend/status")
     public Response attendStatus(@PathParam("id") Long partyId,
-                                 @QueryParam("user") Long userId,
-                                 @HeaderParam("X-User-Id") Long headerUserId) {
-        Long actualUserId = userId != null ? userId : headerUserId;
+                                @QueryParam("user") UUID userId,
+                                @HeaderParam("X-User-Id") UUID headerUserId) {
+        UUID actualUserId = userId != null ? userId : headerUserId;
         return partyRepository.attendStatus(partyId, actualUserId);
     }
 
@@ -151,11 +158,12 @@ public class PartyResource {
     @Consumes(MediaType.MULTIPART_FORM_DATA)
     @Produces(MediaType.APPLICATION_JSON)
     @Transactional
+    @Authenticated
     public Response upload(MediaRepository.FileUploadInput input, 
                            @PathParam("partyId") long partyId, 
-                           @QueryParam("user") Long userId,
-                           @HeaderParam("X-User-Id") Long headerUserId) {
-        Long actualUserId = userId != null ? userId : headerUserId;
+                           @QueryParam("user") UUID userId,
+                           @HeaderParam("X-User-Id") UUID headerUserId) {
+        UUID actualUserId = userId != null ? userId : headerUserId;
         if (actualUserId == null) {
             return Response.status(Response.Status.BAD_REQUEST)
                     .entity("{\"error\": \"User ID required\"}")

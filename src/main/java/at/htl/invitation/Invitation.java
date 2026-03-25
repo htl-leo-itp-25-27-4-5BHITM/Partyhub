@@ -6,6 +6,8 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
+import java.util.UUID;
+
 @Entity
 @Table(name = "invitation")
 @TableGenerator(name = "invitation")
@@ -58,12 +60,12 @@ public class Invitation {
     }
 
     @JsonProperty("sender_id")
-    public Long getSenderId() {
+    public UUID getSenderId() {
         return sender != null ? sender.getId() : null;
     }
 
     @JsonProperty("recipient_id")
-    public Long getRecipientId() {
+    public UUID getRecipientId() {
         return recipient != null ? recipient.getId() : null;
     }
 

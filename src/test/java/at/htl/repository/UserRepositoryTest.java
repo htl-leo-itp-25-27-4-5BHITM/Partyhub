@@ -12,6 +12,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;
+import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -49,7 +50,7 @@ public class UserRepositoryTest {
 
     @Test
     void testGetUsers_afterCreate() {
-        User user = new User();
+        User user = new User(UUID.randomUUID());
         user.setDisplayName("Test User");
         user.setDistinctName("testuser");
         user.setEmail("test@example.com");
@@ -63,7 +64,8 @@ public class UserRepositoryTest {
 
     @Test
     void testGetUser_byId() {
-        User user = new User();
+        UUID userId = UUID.randomUUID();
+        User user = new User(userId);
         user.setDisplayName("Test User");
         user.setDistinctName("testuser");
         user.setEmail("test@example.com");
@@ -77,13 +79,13 @@ public class UserRepositoryTest {
 
     @Test
     void testGetUser_notFound() {
-        User found = userRepository.getUser(999L);
+        User found = userRepository.getUser(UUID.randomUUID());
         assertNull(found);
     }
 
     @Test
     void testFindByEmail() {
-        User user = new User();
+        User user = new User(UUID.randomUUID());
         user.setDisplayName("Test User");
         user.setDistinctName("testuser");
         user.setEmail("test@example.com");
@@ -103,7 +105,7 @@ public class UserRepositoryTest {
 
     @Test
     void testFindByDistinctName() {
-        User user = new User();
+        User user = new User(UUID.randomUUID());
         user.setDisplayName("Test User");
         user.setDistinctName("testuser");
         user.setEmail("test@example.com");
@@ -123,7 +125,7 @@ public class UserRepositoryTest {
 
     @Test
     void testCreateUser() {
-        User user = new User();
+        User user = new User(UUID.randomUUID());
         user.setDisplayName("New User");
         user.setDistinctName("newuser");
         user.setEmail("new@example.com");
@@ -137,7 +139,8 @@ public class UserRepositoryTest {
 
     @Test
     void testUpdateUser() {
-        User user = new User();
+        UUID userId = UUID.randomUUID();
+        User user = new User(userId);
         user.setDisplayName("Original Name");
         user.setDistinctName("original");
         user.setEmail("original@example.com");
@@ -157,19 +160,19 @@ public class UserRepositoryTest {
     @Test
     void testUpdateUser_notFound() {
         UserCreateDto dto = new UserCreateDto("Name", "handle", "email@test.com", "bio");
-        Response response = userRepository.updateUser(999L, dto);
+        Response response = userRepository.updateUser(UUID.randomUUID(), dto);
         
         assertEquals(404, response.getStatus());
     }
 
     @Test
     void testGetUsersByDistinctNameSearch() {
-        User user1 = new User();
+        User user1 = new User(UUID.randomUUID());
         user1.setDisplayName("User One");
         user1.setDistinctName("user_one");
         user1.setEmail("one@example.com");
         
-        User user2 = new User();
+        User user2 = new User(UUID.randomUUID());
         user2.setDisplayName("User Two");
         user2.setDistinctName("user_two");
         user2.setEmail("two@example.com");

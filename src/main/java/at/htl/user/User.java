@@ -6,18 +6,21 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 
 import java.util.Set;
+import java.util.UUID;
 
 @Entity
 @Table(name="users")
-@Inheritance(strategy = InheritanceType.JOINED)
 public class User {
 
     public User() {
     }
 
+    public User(UUID id) {
+        this.id = id;
+    }
+
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    private UUID id;
 
     @Column(name = "display_name")
     private String displayName;
@@ -38,11 +41,11 @@ public class User {
     @JsonIgnore
     private Set<Party> party;
 
-    public Long getId() {
+    public UUID getId() {
         return id;
     }
 
-    public void setId(Long id) {
+    public void setId(UUID id) {
         this.id = id;
     }
 

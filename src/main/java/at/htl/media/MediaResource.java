@@ -10,6 +10,8 @@ import jakarta.ws.rs.PathParam;
 import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.core.Response;
 
+import java.util.UUID;
+
 @ApplicationScoped
 @Path("/api/media")
 public class MediaResource {
@@ -29,7 +31,7 @@ public class MediaResource {
 
     @GET
     @Path("/user/{id}/all")
-    public Response getMediaByUser(@PathParam("id") long userId) {
+    public Response getMediaByUser(@PathParam("id") UUID userId) {
         logger.info(String.format("Getting media by user %d", userId));
         return Response.ok().entity(mediaRepository.getMediaByUser(userId)).build();
     }

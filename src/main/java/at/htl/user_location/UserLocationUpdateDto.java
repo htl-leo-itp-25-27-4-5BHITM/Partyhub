@@ -1,4 +1,6 @@
 package at.htl.user_location;
 
-public record UserLocationUpdateDto(Long userId, double latitude, double longitude) {
+import java.util.UUID;
+
+public record UserLocationUpdateDto(UUID userId, double latitude, double longitude) {
 }

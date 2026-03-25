@@ -1,6 +1,7 @@
 package at.htl.invitation;
 
 import java.util.List;
+import java.util.UUID;
 
 import at.htl.party.PartyRepository;
 import at.htl.user.User;
@@ -18,7 +19,7 @@ public class InvitationRepository {
     // @Inject UserRepository userRepository;
     //@Inject Logger logger;
 
-    public Response invite(InvitationDto invitationDto, Long senderId){
+    public Response invite(InvitationDto invitationDto, UUID senderId){
         if (senderId == null) {
                 return Response.ok().entity(List.of()).build();
         }
@@ -46,7 +47,7 @@ public class InvitationRepository {
         return Response.status(Response.Status.CREATED).build();
     }
 
-    public List<Invitation> getReceivedInvites(Long userId){
+    public List<Invitation> getReceivedInvites(UUID userId){
         if (userId == null) {
             return List.of();
         }
@@ -57,7 +58,7 @@ public class InvitationRepository {
         return entityManager.createQuery("select u from Invitation u where u.recipient = :user", Invitation.class).setParameter("user", user).getResultList();
     }
 
-    public List<Invitation> getSentInvites(Long userId){
+    public List<Invitation> getSentInvites(UUID userId){
         if (userId == null) {
             return List.of();
         }
@@ -68,7 +69,7 @@ public class InvitationRepository {
         return entityManager.createQuery("select u from Invitation u where u.sender = :user", Invitation.class).setParameter("user", user).getResultList();
     }
 
-    public Response deleteInvite(Long id, Long userId){
+    public Response deleteInvite(Long id, UUID userId){
     if (userId == null) {
         return Response.status(Response.Status.BAD_REQUEST)
                 .entity("{\"error\": \"User ID required\"}")
@@ -80,8 +81,8 @@ public class InvitationRepository {
         return Response.status(Response.Status.NOT_FOUND).build();
     }
 
-    Long senderId = invitation.getSender() != null ? invitation.getSender().getId() : null;
-    Long recipientId = invitation.getRecipient() != null ? invitation.getRecipient().getId() : null;
+    UUID senderId = invitation.getSender() != null ? invitation.getSender().getId() : null;
+    UUID recipientId = invitation.getRecipient() != null ? invitation.getRecipient().getId() : null;
     
     if ((senderId == null || !senderId.equals(userId)) && 
         (recipientId == null || !recipientId.equals(userId))) {

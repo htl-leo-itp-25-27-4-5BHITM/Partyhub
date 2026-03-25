@@ -7,6 +7,7 @@ import java.nio.file.Paths;
 import java.time.Instant;
 import java.util.List;
 import java.util.Set;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 import org.jboss.logging.Logger;
@@ -91,7 +92,7 @@ public class MediaRepository {
         return Response.ok(is, type).build();
     }
 
-    public List<MediaDto> getMediaByUser(Long userId) {
+    public List<MediaDto> getMediaByUser(UUID userId) {
         List<Media> mediaList = entityManager.createQuery(
                 "SELECT m FROM Media m WHERE m.user.id = :userId",
                 Media.class)
@@ -109,7 +110,7 @@ public class MediaRepository {
         return mediaList.stream().map(this::toMediaDto).collect(Collectors.toList());
     }
 
-    public Response upload(FileUploadInput input, long partyId, long userId) {
+    public Response upload(FileUploadInput input, long partyId, UUID userId) {
         logger.log(Logger.Level.DEBUG, "Upload request for party: " + partyId + ", user: " + userId);
 
         Party party = partyRepository.getPartyById(partyId);

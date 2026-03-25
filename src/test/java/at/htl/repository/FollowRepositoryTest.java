@@ -13,6 +13,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;
+import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -42,7 +43,7 @@ public class FollowRepositoryTest {
     }
 
     private User createTestUser(String name) {
-        User user = new User();
+        User user = new User(UUID.randomUUID());
         user.setDisplayName(name);
         user.setDistinctName(name.toLowerCase().replace(" ", ""));
         user.setEmail(name.toLowerCase().replace(" ", ".") + "@example.com");

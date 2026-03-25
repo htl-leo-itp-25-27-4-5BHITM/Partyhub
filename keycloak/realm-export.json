@@ -18,7 +18,25 @@
       "username": "alice",
       "enabled": true,
       "credentials": [{ "type": "password", "value": "alicepwd" }],
-      "email": "alice@example.com"
+      "email": "alice@example.com",
+      "firstName": "Alice",
+      "lastName": "Anderson"
+    },
+    {
+      "username": "bob",
+      "enabled": true,
+      "credentials": [{ "type": "password", "value": "bobpwd" }],
+      "email": "bob@example.com",
+      "firstName": "Bob",
+      "lastName": "Baker"
+    },
+    {
+      "username": "charlie",
+      "enabled": true,
+      "credentials": [{ "type": "password", "value": "charliepwd" }],
+      "email": "charlie@example.com",
+      "firstName": "Charlie",
+      "lastName": "Chen"
     }
   ]
 }

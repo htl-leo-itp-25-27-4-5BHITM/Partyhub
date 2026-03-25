@@ -1,4 +1,6 @@
 package at.htl.invitation;
 
-public record InvitationDto(Long recipient, Long partyId) {
+import java.util.UUID;
+
+public record InvitationDto(UUID recipient, Long partyId) {
 }

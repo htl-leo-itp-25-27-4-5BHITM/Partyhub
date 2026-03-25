@@ -6,6 +6,7 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.time.Instant;
 import java.util.List;
+import java.util.UUID;
 
 import org.jboss.logging.Logger;
 import org.jboss.resteasy.reactive.multipart.FileUpload;
@@ -13,6 +14,8 @@ import org.jboss.resteasy.reactive.multipart.FileUpload;
 import at.htl.follow.FollowRepository;
 import at.htl.media.MediaRepository;
 import at.htl.profile_picture.ProfilePicture;
+import io.quarkus.security.Authenticated;
+import io.quarkus.security.identity.SecurityIdentity;
 import jakarta.annotation.security.PermitAll;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
@@ -43,6 +46,8 @@ public class UserResource {
     EntityManager em;
     @Inject
     Logger logger;
+    @Inject
+    SecurityIdentity securityIdentity;
 
     private static final String UPLOAD_DIR = "src/main/resources/uploads/profiles/";
     private static final String DEFAULT_IMAGE = "/META-INF/resources/images/default_profile-picture.svg";
@@ -53,6 +58,47 @@ public class UserResource {
     @Path("")
     public Response createUser(UserCreateDto userCreateDto) {
         return userRepository.createUser(createUserDtoToUser(userCreateDto));
+    }
+
+    @GET
+    @Authenticated
+    @Path("/me")
+    public Response getCurrentUser() {
+        UUID userId = getCurrentUserId();
+        if (userId == null) {
+            return Response.status(Response.Status.UNAUTHORIZED).build();
+        }
+        
+        User user = userRepository.getUser(userId);
+        if (user == null) {
+            return Response.status(Response.Status.NOT_FOUND).build();
+        }
+        
+        return Response.ok(user).build();
+    }
+
+    @PUT
+    @Transactional
+    @Authenticated
+    @Path("/me")
+    public Response updateCurrentUser(UserCreateDto userCreateDto) {
+        UUID userId = getCurrentUserId();
+        if (userId == null) {
+            return Response.status(Response.Status.UNAUTHORIZED).build();
+        }
+        
+        return userRepository.updateUser(userId, userCreateDto);
+    }
+
+    private UUID getCurrentUserId() {
+        if (securityIdentity == null || securityIdentity.getPrincipal() == null) {
+            return null;
+        }
+        try {
+            return UUID.fromString(securityIdentity.getPrincipal().getName());
+        } catch (IllegalArgumentException e) {
+            return null;
+        }
     }
 
     private User createUserDtoToUser(UserCreateDto userCreateDto) {
@@ -80,7 +126,7 @@ public class UserResource {
 
     @GET
     @Path("/{id}")
-    public Response getUser(@PathParam("id") long id) {
+    public Response getUser(@PathParam("id") UUID id) {
         User user = userRepository.getUser(id);
         if (user == null) {
             return Response.status(Response.Status.NOT_FOUND).build();
@@ -101,7 +147,7 @@ public class UserResource {
     @GET
     @Path("/{id}/followers/count")
     @Produces(MediaType.APPLICATION_JSON)
-    public Response getFollowerCount(@PathParam("id") long id) {
+    public Response getFollowerCount(@PathParam("id") UUID id) {
         User user = userRepository.getUser(id);
         if (user == null) {
             return Response.status(Response.Status.NOT_FOUND).build();
@@ -113,7 +159,7 @@ public class UserResource {
     @GET
     @Path("/{id}/following/count")
     @Produces(MediaType.APPLICATION_JSON)
-    public Response getFollowingCount(@PathParam("id") long id) {
+    public Response getFollowingCount(@PathParam("id") UUID id) {
         User user = userRepository.getUser(id);
         if (user == null) {
             return Response.status(Response.Status.NOT_FOUND).build();
@@ -127,6 +173,7 @@ public class UserResource {
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     @Transactional
+    @Authenticated
     public Response updateUser(@PathParam("id") long id, UserCreateDto userCreateDto) {
         logger.info("updateUser called with id: " + id);
         
@@ -220,7 +267,7 @@ public class UserResource {
     @Consumes(MediaType.MULTIPART_FORM_DATA)
     @Produces(MediaType.APPLICATION_JSON)
     @Transactional
-    @PermitAll
+    @Authenticated
     public Response uploadProfilePicture(@PathParam("id") long id, @FormParam("file") FileUpload fileUpload) throws Exception {
         logger.info("uploadProfilePicture called for user: " + id);
 

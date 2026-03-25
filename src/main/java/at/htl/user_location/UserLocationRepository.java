@@ -6,6 +6,7 @@ import jakarta.inject.Inject;
 import jakarta.persistence.EntityManager;
 
 import java.util.List;
+import java.util.UUID;
 
 @ApplicationScoped
 public class UserLocationRepository {
@@ -17,7 +18,7 @@ public class UserLocationRepository {
                 .getResultList();
     }
 
-    public UserLocation findByUserId(Long userId) {
+    public UserLocation findByUserId(UUID userId) {
         return em.createQuery("SELECT ul FROM UserLocation ul WHERE ul.user.id = :userId", UserLocation.class)
                 .setParameter("userId", userId)
                 .getResultStream()

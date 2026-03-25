@@ -5,6 +5,7 @@ import at.htl.category.Category;
 import at.htl.location.Location;
 import at.htl.user.User;
 import io.quarkus.test.junit.QuarkusTest;
+import io.quarkus.test.security.TestSecurity;
 import io.restassured.http.ContentType;
 import jakarta.inject.Inject;
 import jakarta.persistence.EntityManager;
@@ -13,11 +14,13 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.time.LocalDateTime;
+import java.util.UUID;
 
 import static io.restassured.RestAssured.given;
 import static org.hamcrest.Matchers.*;
 
 @QuarkusTest
+@TestSecurity(authorizationEnabled = false)
 @Transactional
 public class PartyResourceTest extends TestBase {
 
@@ -44,7 +47,7 @@ public class PartyResourceTest extends TestBase {
         location.setLongitude(16.3738);
         entityManager.persist(location);
 
-        User user = new User();
+        User user = new User(UUID.randomUUID());
         user.setDisplayName("Test User");
         user.setDistinctName("testuser");
         user.setEmail("test@example.com");

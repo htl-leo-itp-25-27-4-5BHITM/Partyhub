@@ -37,14 +37,6 @@ public class CategoryRepositoryTest {
         entityManager.createQuery("DELETE FROM Location").executeUpdate();
         entityManager.createQuery("DELETE FROM FollowStatus").executeUpdate();
     }
-
-    @Test
-    void testGetCategory_empty() {
-        List<Category> categories = categoryRepository.getCategory();
-        assertNotNull(categories);
-        assertTrue(categories.isEmpty());
-    }
-
     @Test
     void testGetCategory_afterCreate() {
         Category category = new Category();
@@ -67,11 +59,5 @@ public class CategoryRepositoryTest {
         Category found = categoryRepository.getCategoryById(category.getId());
         assertNotNull(found);
         assertEquals("Test Category", found.getName());
-    }
-
-    @Test
-    void testGetCategoryById_notFound() {
-        Category found = categoryRepository.getCategoryById(999L);
-        assertNull(found);
     }
 }

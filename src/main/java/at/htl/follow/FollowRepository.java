@@ -1,6 +1,7 @@
 package at.htl.follow;
 
 import java.util.List;
+import java.util.UUID;
 
 import at.htl.user.User;
 import jakarta.enterprise.context.ApplicationScoped;
@@ -17,7 +18,7 @@ public class FollowRepository {
 
     //@Inject Logger logger;
 
-    public long getFollowerCount(long userId) {
+    public long getFollowerCount(UUID userId) {
         return entityManager.createQuery(
                 "SELECT COUNT(f) FROM Follow f WHERE f.user2_id = :userId AND f.status.status_id = 2",
                 Long.class)
@@ -25,7 +26,7 @@ public class FollowRepository {
                 .getSingleResult();
     }
 
-    public long getFollowingCount(long userId) {
+    public long getFollowingCount(UUID userId) {
         return entityManager.createQuery(
                 "SELECT COUNT(f) FROM Follow f WHERE f.user1_id = :userId AND f.status.status_id = 2",
                 Long.class)
@@ -33,7 +34,7 @@ public class FollowRepository {
                 .getSingleResult();
     }
 
-    public List<User> getFollowers(long userId) {
+    public List<User> getFollowers(UUID userId) {
         return entityManager.createQuery(
                 "SELECT u FROM User u JOIN Follow f ON u.id = f.user1_id " +
                 "WHERE f.user2_id = :userId AND f.status.status_id = 2",
@@ -42,7 +43,7 @@ public class FollowRepository {
                 .getResultList();
     }
 
-    public List<User> getFollowing(long userId) {
+    public List<User> getFollowing(UUID userId) {
         return entityManager.createQuery(
                 "SELECT u FROM User u JOIN Follow f ON u.id = f.user2_id " +
                 "WHERE f.user1_id = :userId AND f.status.status_id = 2",
@@ -51,7 +52,7 @@ public class FollowRepository {
                 .getResultList();
     }
 
-    public List<User> getPendingFollowerRequests(long userId) {
+    public List<User> getPendingFollowerRequests(UUID userId) {
         return entityManager.createQuery(
                 "SELECT u FROM User u JOIN Follow f ON u.id = f.user1_id " +
                         "WHERE f.user2_id = :userId AND f.status.status_id = 1", User.class)
@@ -59,7 +60,7 @@ public class FollowRepository {
                 .getResultList();
     }
 
-    public boolean isFollowing(long user1Id, long user2Id) {
+    public boolean isFollowing(UUID user1Id, UUID user2Id) {
         List<Follow> follows = entityManager.createQuery(
                 "SELECT f FROM Follow f WHERE f.user1_id = :user1Id AND f.user2_id = :user2Id AND f.status.status_id = 2",
                 Follow.class)
@@ -69,7 +70,7 @@ public class FollowRepository {
         return !follows.isEmpty();
     }
     @Transactional
-    public Response createFollowRequest(long user1Id, long user2Id) {
+    public Response createFollowRequest(UUID user1Id, UUID user2Id) {
         if (isFollowing(user1Id, user2Id)) {
             return Response.status(Response.Status.CONFLICT)
                     .entity("{\"message\": \"Already following this user\"}")
@@ -100,7 +101,7 @@ public class FollowRepository {
         return Response.status(Response.Status.CREATED).entity("{\"message\": \"Follow request sent\"}").build();    }
 
     @Transactional
-    public Response acceptFollowRequest(long user1Id, long user2Id) {
+    public Response acceptFollowRequest(UUID user1Id, UUID user2Id) {
         Follow follow = entityManager.createQuery(
                 "SELECT f FROM Follow f WHERE f.user1_id = :user1Id AND f.user2_id = :user2Id AND f.status.status_id = 1",
                 Follow.class)
@@ -124,7 +125,7 @@ public class FollowRepository {
     }
 
 @Transactional
-public Response removeFollow(long user1Id, long user2Id) {
+public Response removeFollow(UUID user1Id, UUID user2Id) {
     Follow follow = entityManager.createQuery(
             "SELECT f FROM Follow f WHERE f.user1_id = :user1Id AND f.user2_id = :user2Id",
             Follow.class)

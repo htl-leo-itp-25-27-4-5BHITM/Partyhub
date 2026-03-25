@@ -14,6 +14,8 @@ import jakarta.ws.rs.core.Response;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import java.util.UUID;
+
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -55,7 +57,7 @@ public class PartyRepositoryTest {
         location.setLongitude(16.3738);
         entityManager.persist(location);
 
-        User user = new User();
+        User user = new User(UUID.randomUUID());
         user.setDisplayName("Test User");
         user.setDistinctName("testuser");
         user.setEmail("test@example.com");
