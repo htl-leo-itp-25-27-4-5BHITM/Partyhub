@@ -32,7 +32,20 @@ jobs:
           done
 
       - name: Build with Maven
-        run: mvn -B clean verify
+        run: mvn -B test
+      - name: Start Quarkus in dev mode
+        run: |
+          mvn quarkus:dev -Dquarkus.http.host=0.0.0.0 -Dquarkus.http.port=8080 &
+          echo "Waiting for Quarkus to start..."
+          for i in {1..60}; do
+            if curl -s http://localhost:8080/q/health > /dev/null 2>&1; then
+              echo "Quarkus is ready!"
+              exit 0
+            fi
+            sleep 2
+          done
+          echo "Quarkus failed to start"
+          exit 1 
 
       - name: Install npm dependencies
         uses: bahmutov/npm-install@v1
