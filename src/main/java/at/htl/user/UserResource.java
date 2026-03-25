@@ -73,8 +73,8 @@ public class UserResource {
     @GET
     @Path("/me")
     @NoCache
-    public Response getMe() {
-        return Response.ok(securityIdentity).build();
+    public Response me() {
+        return Response.ok(securityIdentity.getPrincipal().getName()).build();
     }
     @GET
 
