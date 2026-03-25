@@ -1,6 +1,10 @@
 {
   "realm": "party-realm",
   "enabled": true,
+  "registrationAllowed": true,
+  "rememberMe": true,
+  "resetPasswordAllowed": true,
+  "loginWithEmailAllowed": true,
   "clients": [
     {
       "clientId": "party-client",
