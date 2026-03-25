@@ -1,4 +1,4 @@
-name: Build and push Backend to github container registry
+name: Build and Push
 
 on:
   workflow_run:

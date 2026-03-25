@@ -1,9 +1,9 @@
 # https://coresynapseai.com/2025/08/09/automating-kubernetes-deployments-with-github-actions/
-name: Deploy Backend
+name: Deploy
 
 on:
   workflow_run:
-    workflows: ["Build and Push Backend"]
+    workflows: ["Build and Push"]
     types:
       - completed
 
