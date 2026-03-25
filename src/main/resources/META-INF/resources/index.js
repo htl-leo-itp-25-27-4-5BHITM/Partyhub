@@ -492,9 +492,6 @@ async function getAllParties() {
   }
 }
 
-// --- DEV: Override browser geolocation to HTL Leonding (48.2684811, 14.2535381) ---
-// This will make getCurrentPosition / watchPosition return HTL Leonding coordinates.
-// Remove or comment out this call in production.
 (function setFakeGeolocationToHtlLeonding() {
   const fakeLat = 48.268572985384395;
   const fakeLng = 14.251785383426006;
@@ -509,7 +506,7 @@ async function getAllParties() {
 
     const geo = {
       getCurrentPosition(success, error, opts) {
-        // call success asynchronously to mimic real behavior
+
         setTimeout(() => {
           success({
             coords: {
@@ -527,7 +524,7 @@ async function getAllParties() {
       },
       watchPosition(success, error, opts) {
         const id = nextWatchId++;
-        // immediate callback
+
         success({
           coords: {
             latitude: fakeLat,
@@ -540,7 +537,7 @@ async function getAllParties() {
           },
           timestamp: Date.now(),
         });
-        // periodic updates (every 5s)
+
         const handle = setInterval(() => {
           success({
             coords: {
@@ -567,7 +564,6 @@ async function getAllParties() {
       },
     };
 
-    // Replace navigator.geolocation (if allowed)
     try {
       Object.defineProperty(navigator, "geolocation", {
         value: geo,
@@ -576,14 +572,12 @@ async function getAllParties() {
       });
       console.info("Fake geolocation installed: HTL Leonding (48.2684811,14.2535381)");
     } catch (e) {
-      // fallback: assign if defineProperty not allowed
       try {
         navigator.geolocation = geo;
         console.info("Fake geolocation assigned: HTL Leonding");
       } catch (_) {}
     }
 
-    // Optional: expose restore function for debugging
     window.__restoreOriginalGeolocation = function () {
       try {
         if (originalGeo) {
