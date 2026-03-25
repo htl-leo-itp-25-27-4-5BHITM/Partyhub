@@ -7,6 +7,8 @@ import java.nio.file.Paths;
 import java.time.Instant;
 import java.util.List;
 
+import io.quarkus.security.identity.SecurityIdentity;
+import jakarta.ws.rs.core.SecurityContext;
 import org.jboss.logging.Logger;
 import org.jboss.resteasy.reactive.multipart.FileUpload;
 
@@ -64,7 +66,16 @@ public class UserResource {
         return user;
     }
 
+    @Inject
+    SecurityIdentity securityIdentity;
+
     @GET
+    @Path("/me")
+    public Response getMe() {
+        return Response.ok(securityIdentity).build();
+    }
+    @GET
+
     @Path("/all")
     public Response getUsers() {
         List<User> users = userRepository.getUsers();
@@ -224,21 +235,18 @@ public class UserResource {
     public Response uploadProfilePicture(@PathParam("id") long id, @FormParam("file") FileUpload fileUpload) throws Exception {
         logger.info("uploadProfilePicture called for user: " + id);
 
-        // Delete ALL existing profile pictures for this user first
         em.createQuery("DELETE FROM ProfilePicture p WHERE p.user.id = :userId")
           .setParameter("userId", id)
           .executeUpdate();
 
         User user = em.find(User.class, id);
         
-        // Save file
         Files.createDirectories(Paths.get(UPLOAD_DIR));
         String fileExtension = getFileExtension(fileUpload.fileName());
         String newFilename = "profile_" + id + "_" + Instant.now().toEpochMilli() + fileExtension;
         java.nio.file.Path targetLocation = Paths.get(UPLOAD_DIR, newFilename);
         Files.move(fileUpload.uploadedFile(), targetLocation);
         
-        // Create new
         ProfilePicture profilePicture = new ProfilePicture(newFilename, user);
         em.persist(profilePicture);
         
