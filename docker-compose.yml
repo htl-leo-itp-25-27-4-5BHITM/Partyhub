@@ -28,7 +28,7 @@ services:
       KC_HOSTNAME_STRICT_HTTPS: 'false'
       KC_HOSTNAME: localhost
     ports:
-      - "8080:8080"
+      - "8180:8080"
     volumes:
       - ./keycloak/realm-export.json:/opt/keycloak/data/import/realm-export.json:ro
     depends_on:

@@ -9,11 +9,11 @@ PartyHub now uses **Keycloak 26.0.0** for enterprise-grade identity and access m
 ### 1. Start Services
 
 ```bash
-# Start Keycloak + PostgreSQL
+# Start Keycloak (port 8180) + PostgreSQL (port 5432)
 docker-compose up -d
 
 # Wait for Keycloak to start (~30 seconds)
-# Check: http://localhost:8080 -> Admin Console
+# Check: http://localhost:8180 -> Admin Console
 ```
 
 ### 2. Build & Run PartyHub
@@ -22,7 +22,7 @@ docker-compose up -d
 # Build the project
 mvn clean install
 
-# Run in dev mode
+# Run in dev mode (port 8080)
 mvn quarkus:dev
 
 # Access API: http://localhost:8080
@@ -33,7 +33,7 @@ mvn quarkus:dev
 
 ```bash
 # Get a token
-curl -X POST http://localhost:8080/realms/party-realm/protocol/openid-connect/token \
+curl -X POST http://localhost:8180/realms/party-realm/protocol/openid-connect/token \
   -H "Content-Type: application/x-www-form-urlencoded" \
   -d "grant_type=password" \
   -d "client_id=party-client" \
@@ -107,7 +107,7 @@ quarkus.http.auth.permission.public.policy=permit
 
 ### Docker Compose
 
-Updated to include Keycloak service:
+Updated to include Keycloak service on port 8180:
 
 ```yaml
 keycloak:
@@ -124,7 +124,7 @@ keycloak:
     KC_HOSTNAME_STRICT_HTTPS: 'false'
     KC_HOSTNAME: localhost
   ports:
-    - "8080:8080"
+    - "8180:8080"  # External: 8180, Internal: 8080
   volumes:
     - ./keycloak/realm-export.json:/opt/keycloak/data/import/realm-export.json:ro
 ```
@@ -376,7 +376,7 @@ quarkus.oidc.auth-server-url=http://keycloak:8080/realms/party-realm
 quarkus.oidc.client-id=party-client
 
 # Refresh token to get new one
-curl -X POST http://localhost:8080/realms/party-realm/protocol/openid-connect/token \
+curl -X POST http://localhost:8180/realms/party-realm/protocol/openid-connect/token \
   -d "grant_type=refresh_token" \
   -d "refresh_token=<refresh_token>" \
   -d "client_id=party-client" \
@@ -390,8 +390,9 @@ curl -X POST http://localhost:8080/realms/party-realm/protocol/openid-connect/to
 docker-compose logs keycloak
 
 # Ensure ports are free
-lsof -i :8080
-lsof -i :5432
+lsof -i :8180  # Keycloak
+lsof -i :5432  # PostgreSQL
+lsof -i :8080  # PartyHub
 
 # Restart
 docker-compose down
