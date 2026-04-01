@@ -3,6 +3,7 @@ package at.htl.user;
 import at.htl.keycloak.KeycloakContextService;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
+import jakarta.transaction.Transactional;
 import java.util.Optional;
 
 @ApplicationScoped
@@ -18,6 +19,7 @@ public class KeycloakUserService {
      * Get or create a user from the current Keycloak token.
      * Synchronizes user data from Keycloak with local PartyHub database.
      */
+    @Transactional
     public Optional<User> getOrCreateCurrentUser() {
         if (!keycloakContext.isAuthenticated()) {
             return Optional.empty();
@@ -103,6 +105,7 @@ public class KeycloakUserService {
     /**
      * Update user profile from Keycloak data
      */
+    @Transactional
     public User updateUserFromKeycloak(Long userId) {
         var userOpt = userRepository.findById(userId);
         if (userOpt.isPresent()) {

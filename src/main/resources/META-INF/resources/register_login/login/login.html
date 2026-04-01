@@ -3,9 +3,289 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Login</title>
+    <title>Login - PartyHub</title>
+    <link rel="stylesheet" href="../global.css" />
+    <link rel="stylesheet" href="../index.css" />
+    <style>
+        .login-container {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+
+        .login-card {
+            background: white;
+            border-radius: 12px;
+            padding: 40px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+            max-width: 400px;
+            width: 100%;
+        }
+
+        .login-header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .login-header h1 {
+            color: #333;
+            margin: 0 0 10px 0;
+            font-size: 28px;
+        }
+
+        .login-header p {
+            color: #666;
+            margin: 0;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            color: #333;
+            font-weight: 500;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            font-size: 14px;
+            transition: border-color 0.3s;
+            box-sizing: border-box;
+        }
+
+        .form-group input:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .btn-login {
+            width: 100%;
+            padding: 12px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+            margin-bottom: 15px;
+        }
+
+        .btn-login:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-login:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        .error-message {
+            background: #fee;
+            color: #c33;
+            padding: 12px;
+            border-radius: 6px;
+            margin-bottom: 20px;
+            display: none;
+        }
+
+        .success-message {
+            background: #efe;
+            color: #3c3;
+            padding: 12px;
+            border-radius: 6px;
+            margin-bottom: 20px;
+            display: none;
+        }
+
+        .divider {
+            text-align: center;
+            margin: 20px 0;
+            color: #999;
+            font-size: 14px;
+        }
+
+        .signup-link {
+            text-align: center;
+            color: #666;
+        }
+
+        .signup-link a {
+            color: #667eea;
+            text-decoration: none;
+            font-weight: 600;
+        }
+
+        .signup-link a:hover {
+            text-decoration: underline;
+        }
+
+        .demo-credentials {
+            background: #f0f0f0;
+            padding: 15px;
+            border-radius: 6px;
+            margin-top: 20px;
+            font-size: 13px;
+            color: #666;
+        }
+
+        .demo-credentials h3 {
+            margin: 0 0 10px 0;
+            font-size: 14px;
+            color: #333;
+        }
+
+        .demo-credentials p {
+            margin: 5px 0;
+        }
+
+        .loading {
+            display: inline-block;
+            opacity: 0.6;
+        }
+    </style>
 </head>
-<body class="bg-light">
-    
+<body>
+    <div class="login-container">
+        <div class="login-card">
+            <div class="login-header">
+                <h1>PartyHub</h1>
+                <p>Welcome back! Please login</p>
+            </div>
+
+            <div class="error-message" id="errorMessage"></div>
+            <div class="success-message" id="successMessage"></div>
+
+            <form id="loginForm">
+                <div class="form-group">
+                    <label for="username">Username</label>
+                    <input 
+                        type="text" 
+                        id="username" 
+                        name="username" 
+                        placeholder="Enter your username"
+                        required
+                        autocomplete="username"
+                    >
+                </div>
+
+                <div class="form-group">
+                    <label for="password">Password</label>
+                    <input 
+                        type="password" 
+                        id="password" 
+                        name="password" 
+                        placeholder="Enter your password"
+                        required
+                        autocomplete="current-password"
+                    >
+                </div>
+
+                <button type="submit" class="btn-login" id="loginBtn">
+                    Login
+                </button>
+            </form>
+
+            <div class="demo-credentials">
+                <h3>Demo Credentials:</h3>
+                <p><strong>Username:</strong> alice</p>
+                <p><strong>Password:</strong> alicepwd</p>
+                <hr style="margin: 10px 0; border: none; border-top: 1px solid #ddd;">
+                <p><strong>Other users:</strong> bob (bobpwd), carol (carolpwd)</p>
+            </div>
+
+            <div class="divider">or</div>
+
+            <div class="signup-link">
+                Don't have an account? <a href="#">Contact administrator</a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="../user-utils.js" defer></script>
+    <script src="../auth-service.js" defer></script>
+    <script src="../route-guard.js" defer></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Redirect if already logged in
+            if (window.authService && window.authService.isLoggedIn()) {
+                window.location.href = '/index.html';
+                return;
+            }
+
+            const form = document.getElementById('loginForm');
+            const loginBtn = document.getElementById('loginBtn');
+            const errorMsg = document.getElementById('errorMessage');
+            const successMsg = document.getElementById('successMessage');
+
+            form.addEventListener('submit', async function(e) {
+                e.preventDefault();
+
+                const username = document.getElementById('username').value.trim();
+                const password = document.getElementById('password').value;
+
+                if (!username || !password) {
+                    showError('Please enter both username and password');
+                    return;
+                }
+
+                loginBtn.disabled = true;
+                loginBtn.textContent = 'Logging in...';
+                errorMsg.style.display = 'none';
+                successMsg.style.display = 'none';
+
+                try {
+                    const userInfo = await window.authService.login(username, password);
+                    
+                    if (userInfo) {
+                        showSuccess('Login successful! Redirecting...');
+                        
+                        // Get full user from API
+                        const currentUser = await window.authService.getCurrentUser();
+                        if (currentUser) {
+                            window.setCurrentUserId(currentUser.id);
+                        }
+
+                        setTimeout(() => {
+                            window.location.href = '/index.html';
+                        }, 1000);
+                    } else {
+                        showError('Login failed: Invalid credentials');
+                    }
+                } catch (err) {
+                    console.error('Login error:', err);
+                    const message = err.message || 'Login failed. Please try again.';
+                    showError(message);
+                } finally {
+                    loginBtn.disabled = false;
+                    loginBtn.textContent = 'Login';
+                }
+            });
+
+            function showError(message) {
+                errorMsg.textContent = message;
+                errorMsg.style.display = 'block';
+            }
+
+            function showSuccess(message) {
+                successMsg.textContent = message;
+                successMsg.style.display = 'block';
+            }
+        });
+    </script>
 </body>
 </html>

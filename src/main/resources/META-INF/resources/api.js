@@ -4,13 +4,13 @@
 (function () {
   async function attendParty(partyId, userId = null) {
     if (!partyId) throw new Error('partyId is required');
-    const headers = {};
-    if (userId) headers['X-User-Id'] = userId;
+    
     try {
-      const res = await fetch(`/api/party/${partyId}/attend`, {
+      const res = await window.makeAuthenticatedCall(`/api/party/${partyId}/attend`, {
         method: 'POST',
-        headers: Object.assign({ 'Content-Type': 'application/json' }, headers)
+        headers: { 'Content-Type': 'application/json' }
       });
+      
       if (!res.ok) {
         const text = await res.text();
         throw new Error(`Attend failed: ${res.status} ${text}`);
@@ -24,13 +24,12 @@
 
   async function unattendParty(partyId, userId = null) {
     if (!partyId) throw new Error('partyId is required');
-    const headers = {};
-    if (userId) headers['X-User-Id'] = userId;
+    
     try {
-      const res = await fetch(`/api/party/${partyId}/attend`, {
-        method: 'DELETE',
-        headers
+      const res = await window.makeAuthenticatedCall(`/api/party/${partyId}/attend`, {
+        method: 'DELETE'
       });
+      
       if (!res.ok) {
         const text = await res.text();
         throw new Error(`Unattend failed: ${res.status} ${text}`);
