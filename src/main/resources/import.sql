@@ -14,17 +14,17 @@ INSERT INTO follow_status (id, name) VALUES
 -- =========================
 -- USERS
 -- =========================
-INSERT INTO users (id, display_name, distinct_name, email, biography) VALUES
-                                                                          (1,  'Anna Huber',       'anna_huber',       'anna.huber@linz.at',       'Event-Liebhaberin aus Linz.'),
-                                                                          (2,  'Michael Wagner',   'michael_wagner',   'michael.wagner@linz.at',   'Tech, Musik und neue Leute kennenlernen.'),
-                                                                          (3,  'Katrin Bauer',     'katrin_bauer',     'katrin.bauer@linz.at',     'Tanzen, Konzerte, gute Stimmung.'),
-                                                                          (4,  'Thomas Schneider', 'thomas_schneider', 'thomas.schneider@linz.at', 'Organisiert gerne Veranstaltungen.'),
-                                                                          (5,  'Sabine Weber',     'sabine_weber',     'sabine.weber@linz.at',     'Networking & Kultur.'),
-                                                                          (6,  'Lukas Gruber',     'lukas_gruber',     'lukas.gruber@linz.at',     'Sport & Outdoor – aber auch Partys!'),
-                                                                          (7,  'Mia Steiner',      'mia_steiner',      'mia.steiner@linz.at',      'Kunst, Food, Afterwork.'),
-                                                                          (8,  'David König',      'david_koenig',     'david.koenig@linz.at',     'Meetups, Startups, Tech.'),
-                                                                          (9,  'Nina Fischer',     'nina_fischer',     'nina.fischer@linz.at',     'Yoga, Wellness, entspannte Events.'),
-                                                                          (10, 'Elias Berger',     'elias_berger',     'elias.berger@linz.at',     'Fotos, Musik, kleine Gigs.');
+INSERT INTO users (id, keycloak_id, username, display_name, distinct_name, email, biography) VALUES
+                                                                           (1,  'keycloak-user-1', 'anna_huber',       'Anna Huber',       'anna_huber',       'anna.huber@linz.at',       'Event-Liebhaberin aus Linz.'),
+                                                                           (2,  'keycloak-user-2', 'michael_wagner',   'Michael Wagner',   'michael_wagner',   'michael.wagner@linz.at',   'Tech, Musik und neue Leute kennenlernen.'),
+                                                                           (3,  'keycloak-user-3', 'katrin_bauer',     'Katrin Bauer',     'katrin_bauer',     'katrin.bauer@linz.at',     'Tanzen, Konzerte, gute Stimmung.'),
+                                                                           (4,  'keycloak-user-4', 'thomas_schneider', 'Thomas Schneider', 'thomas_schneider', 'thomas.schneider@linz.at', 'Organisiert gerne Veranstaltungen.'),
+                                                                           (5,  'keycloak-user-5', 'sabine_weber',     'Sabine Weber',     'sabine_weber',     'sabine.weber@linz.at',     'Networking & Kultur.'),
+                                                                           (6,  'keycloak-user-6', 'lukas_gruber',     'Lukas Gruber',     'lukas_gruber',     'lukas.gruber@linz.at',     'Sport & Outdoor – aber auch Partys!'),
+                                                                           (7,  'keycloak-user-7', 'mia_steiner',      'Mia Steiner',      'mia_steiner',      'mia.steiner@linz.at',      'Kunst, Food, Afterwork.'),
+                                                                           (8,  'keycloak-user-8', 'david_koenig',     'David König',      'david_koenig',     'david.koenig@linz.at',     'Meetups, Startups, Tech.'),
+                                                                           (9,  'keycloak-user-9', 'nina_fischer',     'Nina Fischer',     'nina_fischer',     'nina.fischer@linz.at',     'Yoga, Wellness, entspannte Events.'),
+                                                                           (10, 'keycloak-user-10', 'elias_berger',     'Elias Berger',     'elias_berger',     'elias.berger@linz.at',     'Fotos, Musik, kleine Gigs.');
 
 -- =========================
 -- USER_LOCATION (Linz)

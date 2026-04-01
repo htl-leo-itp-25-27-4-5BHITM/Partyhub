@@ -11,8 +11,10 @@ import org.jboss.logging.Logger;
 import org.jboss.resteasy.reactive.multipart.FileUpload;
 
 import at.htl.follow.FollowRepository;
+import at.htl.keycloak.KeycloakContextService;
 import at.htl.media.MediaRepository;
 import at.htl.profile_picture.ProfilePicture;
+import io.quarkus.security.Authenticated;
 import jakarta.annotation.security.PermitAll;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
@@ -43,6 +45,10 @@ public class UserResource {
     EntityManager em;
     @Inject
     Logger logger;
+    @Inject
+    KeycloakContextService keycloakContext;
+    @Inject
+    KeycloakUserService keycloakUserService;
 
     private static final String UPLOAD_DIR = "src/main/resources/uploads/profiles/";
     private static final String DEFAULT_IMAGE = "/META-INF/resources/images/default_profile-picture.svg";
@@ -99,6 +105,27 @@ public class UserResource {
     }
 
     @GET
+    @Path("/username/{username}")
+    public Response getUserByUsername(@PathParam("username") String username) {
+        var user = userRepository.findByUsername(username);
+        if (user.isEmpty()) {
+            return Response.status(Response.Status.NOT_FOUND).build();
+        }
+        return Response.ok(user.get()).build();
+    }
+
+    @GET
+    @Authenticated
+    @Path("/me")
+    public Response getCurrentUser() {
+        var currentUser = keycloakUserService.getOrCreateCurrentUser();
+        if (currentUser.isEmpty()) {
+            return Response.status(Response.Status.UNAUTHORIZED).build();
+        }
+        return Response.ok(currentUser.get()).build();
+    }
+
+    @GET
     @Path("/{id}/followers/count")
     @Produces(MediaType.APPLICATION_JSON)
     public Response getFollowerCount(@PathParam("id") long id) {
@@ -127,6 +154,7 @@ public class UserResource {
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     @Transactional
+    @Authenticated
     public Response updateUser(@PathParam("id") long id, UserCreateDto userCreateDto) {
         logger.info("updateUser called with id: " + id);
         
@@ -220,7 +248,6 @@ public class UserResource {
     @Consumes(MediaType.MULTIPART_FORM_DATA)
     @Produces(MediaType.APPLICATION_JSON)
     @Transactional
-    @PermitAll
     public Response uploadProfilePicture(@PathParam("id") long id, @FormParam("file") FileUpload fileUpload) throws Exception {
         logger.info("uploadProfilePicture called for user: " + id);
 
