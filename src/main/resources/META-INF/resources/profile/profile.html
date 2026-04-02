@@ -81,6 +81,14 @@
         <div id="actionButton">
             <button id="editAccounçtBtn" class="edit-account-btn"><a href="../editProfile/editProfile.html">Edit Account</a></button>
         </div>
+        <!-- QR login helper (visible only to owner) - placed outside actionButton so it's not removed by JS -->
+        <div id="qrHelper" style="margin-top:12px;">
+            <button id="showQrBtn" class="edit-account-btn" style="display:none;">Show Mobile QR</button>
+            <div id="qrPreview" style="margin-top:8px; display:none;">
+                <img id="profileQrImg" alt="QR code" style="width:200px; height:200px; background:#fff; padding:8px; border-radius:6px;" />
+                <div id="profileQrInfo" style="font-size:12px; color:#666; margin-top:6px;"></div>
+            </div>
+        </div>
 
         <!-- Tab-System für Beiträge und Favoriten -->
         <div id="profileTabs">

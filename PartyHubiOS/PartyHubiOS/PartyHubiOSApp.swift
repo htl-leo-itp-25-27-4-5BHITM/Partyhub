@@ -36,6 +36,7 @@ struct PartyHubiOSApp: App {
             ContentView()
                 .environment(locationManager)
                 .modelContainer(container)
+                .environmentObject(AuthManager.shared)
                 .task {
                     await setupApp()
                 }
@@ -46,15 +47,30 @@ struct PartyHubiOSApp: App {
     }
 
     private func handleDeepLink(_ url: URL) {
-        guard url.scheme == "partyhub",
-              url.host == "party",
-              let components = URLComponents(url: url, resolvingAgainstBaseURL: false),
-              let idString = components.queryItems?.first(where: { $0.name == "id" })?.value,
-              let partyId = Int(idString) else {
+        guard url.scheme == "partyhub" else { return }
+
+        // Handle party deep links: partyhub://party?id=123
+        if url.host == "party", let components = URLComponents(url: url, resolvingAgainstBaseURL: false), let idString = components.queryItems?.first(where: { $0.name == "id" })?.value, let partyId = Int(idString) {
+            deepLinkPartyId = partyId
+            NotificationCenter.default.post(name: .showPartyDetail, object: partyId)
             return
         }
-        deepLinkPartyId = partyId
-        NotificationCenter.default.post(name: .showPartyDetail, object: partyId)
+
+        // Handle QR login deep link: partyhub://qr-login?token=...
+        if url.host == "qr-login", let components = URLComponents(url: url, resolvingAgainstBaseURL: false), let token = components.queryItems?.first(where: { $0.name == "token" })?.value {
+            Task {
+                do {
+                    let mt = try await AuthManager.shared.exchangeQrToken(token)
+                    print("Exchanged QR token, mobile_token length: \(mt.count)")
+                    let uid = try await AuthManager.shared.fetchMobileMe()
+                    print("QR login succeeded for userId: \(uid)")
+                    NotificationCenter.default.post(name: .didLoginMobile, object: uid)
+                } catch {
+                    print("QR login failed: \(error)")
+                }
+            }
+            return
+        }
     }
 
     @MainActor
