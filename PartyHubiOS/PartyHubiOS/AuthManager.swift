@@ -8,21 +8,41 @@ class AuthManager: ObservableObject {
     @Published var mobileToken: String? = nil
     @Published var userId: Int? = nil
 
-    private let tokenKey = "partyhub_mobile_token"
+    private let userIdKey = "partyhub_user_id"
 
     private init() {
-        self.mobileToken = UserDefaults.standard.string(forKey: tokenKey)
+        self.userId = UserDefaults.standard.integer(forKey: userIdKey)
+        if self.userId == 0 {
+            self.userId = nil
+        }
+    }
+
+    func loginWithUserId(_ id: Int) async throws {
+        guard let url = URL(string: "\(Config.backendURL)/api/users/\(id)") else {
+            throw URLError(.badURL)
+        }
+
+        let (data, resp) = try await URLSession.shared.data(from: url)
+        guard let http = resp as? HTTPURLResponse, http.statusCode == 200 else {
+            let str = String(data: data, encoding: .utf8) ?? ""
+            throw NSError(domain: "Auth", code: 1, userInfo: [NSLocalizedDescriptionKey: str])
+        }
+
+        userId = id
+        UserDefaults.standard.set(id, forKey: userIdKey)
+        mobileToken = "user_\(id)"
     }
 
     func saveToken(_ token: String) {
         mobileToken = token
-        UserDefaults.standard.set(token, forKey: tokenKey)
+        UserDefaults.standard.set(token, forKey: "partyhub_mobile_token")
     }
 
     func clear() {
         mobileToken = nil
         userId = nil
-        UserDefaults.standard.removeObject(forKey: tokenKey)
+        UserDefaults.standard.removeObject(forKey: userIdKey)
+        UserDefaults.standard.removeObject(forKey: "partyhub_mobile_token")
     }
 
     // Exchange QR token for mobile_token via backend

@@ -1,6 +1,5 @@
 package at.htl.qr;
 
-import at.htl.user.KeycloakUserService;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import java.security.SecureRandom;
@@ -20,8 +19,6 @@ public class QrService {
 
     @Inject
     QrLoginRepository qrRepo;
-
-    // KeycloakUserService is not required here; QrService operates on tokens and repository
 
     @Transactional
     public QrLogin generateForUser(Long userId) {

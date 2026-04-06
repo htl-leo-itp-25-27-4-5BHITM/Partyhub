@@ -56,15 +56,13 @@ struct PartyHubiOSApp: App {
             return
         }
 
-        // Handle QR login deep link: partyhub://qr-login?token=...
-        if url.host == "qr-login", let components = URLComponents(url: url, resolvingAgainstBaseURL: false), let token = components.queryItems?.first(where: { $0.name == "token" })?.value {
+        // Handle QR login deep link: partyhub://login?userId=123
+        if url.host == "login", let components = URLComponents(url: url, resolvingAgainstBaseURL: false), let userIdString = components.queryItems?.first(where: { $0.name == "userId" })?.value, let userId = Int(userIdString) {
             Task {
                 do {
-                    let mt = try await AuthManager.shared.exchangeQrToken(token)
-                    print("Exchanged QR token, mobile_token length: \(mt.count)")
-                    let uid = try await AuthManager.shared.fetchMobileMe()
-                    print("QR login succeeded for userId: \(uid)")
-                    NotificationCenter.default.post(name: .didLoginMobile, object: uid)
+                    try await AuthManager.shared.loginWithUserId(userId)
+                    print("QR login succeeded for userId: \(userId)")
+                    NotificationCenter.default.post(name: .didLoginMobile, object: userId)
                 } catch {
                     print("QR login failed: \(error)")
                 }

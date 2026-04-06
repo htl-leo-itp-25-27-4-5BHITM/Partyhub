@@ -396,13 +396,35 @@ document.addEventListener("DOMContentLoaded", function () {
         if (info) info.textContent = '';
 
         try {
+          console.log('QR button clicked, checking auth...');
+          
           if (!window.authService || !window.authService.apiCall) {
             console.warn('authService not available');
             if (info) info.textContent = 'Auth not available. Please login.';
             return;
           }
 
-          const res = await window.authService.apiCall('/api/qr/generate');
+          // Use profile.js's own getStoredUserId() to get the currently logged in user
+          const userId = getStoredUserId();
+          console.log('Current userId from profile.js:', userId);
+          
+          if (!userId) {
+            // Try to get from URL params for testing
+            const urlParams = new URLSearchParams(window.location.search);
+            const urlUserId = urlParams.get('userId');
+            if (urlUserId) {
+              console.log('Using userId from URL:', urlUserId);
+              sessionStorage.setItem(STORAGE_KEY, urlUserId);
+            } else {
+              if (info) info.textContent = 'Please log in to generate QR code.';
+              return;
+            }
+          }
+
+          const finalUserId = getStoredUserId();
+          console.log('Using userId for QR:', finalUserId);
+
+          const res = await window.authService.apiCall('/api/qr/generate?userId=' + finalUserId);
           if (!res.ok) {
             console.warn('QR generate returned', res.status);
             if (info) info.textContent = res.status === 401 ? 'Please log in.' : 'Could not generate QR.';
@@ -413,7 +435,7 @@ document.addEventListener("DOMContentLoaded", function () {
           const payload = encodeURIComponent(data.payload);
           const imageUrl = data.imageUrl || `https://chart.googleapis.com/chart?cht=qr&chs=300x300&chl=${payload}`;
           if (img) img.src = imageUrl;
-          if (info) info.textContent = `Expires in ~5 minutes. Token: ${data.token}`;
+          if (info) info.textContent = `User: ${data.username} (ID: ${data.userId})`;
           if (preview) preview.style.display = 'block';
         } catch (e) {
           console.error('showQr failed', e);
@@ -619,7 +641,7 @@ document.addEventListener("DOMContentLoaded", function () {
       const btn = document.createElement("button");
       btn.type = "button";
       btn.className = "edit-account-btn";
-      btn.textContent = "Login to follow";
+      btn.textContent = "Sign in with QR";
       btn.disabled = true;
       container.appendChild(btn);
       return;

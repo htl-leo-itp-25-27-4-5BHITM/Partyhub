@@ -1,13 +1,14 @@
 package at.htl.qr;
 
-import at.htl.user.KeycloakUserService;
 import at.htl.user.User;
+import at.htl.user.UserRepository;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.Consumes;
 import jakarta.ws.rs.GET;
 import jakarta.ws.rs.POST;
 import jakarta.ws.rs.Path;
 import jakarta.ws.rs.Produces;
+import jakarta.ws.rs.QueryParam;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 import java.awt.image.BufferedImage;
@@ -31,24 +32,29 @@ public class QrResource {
     QrService qrService;
 
     @Inject
-    KeycloakUserService keycloakUserService;
+    UserRepository userRepository;
 
     @GET
     @Path("/generate")
-    public Response generate() {
+    public Response generate(@QueryParam("userId") Long userId) {
         try {
-            var optUser = keycloakUserService.getOrCreateCurrentUser();
-            if (optUser.isEmpty()) return Response.status(401).build();
+            if (userId == null) {
+                return Response.status(400).entity(java.util.Map.of("error", "userId required")).build();
+            }
+            
+            var optUser = userRepository.findById(userId);
+            if (optUser.isEmpty()) {
+                return Response.status(404).entity(java.util.Map.of("error", "User not found")).build();
+            }
             User user = optUser.get();
 
-            QrLogin q = qrService.generateForUser(user.getId());
-
-            String payload = "partyhub://qr-login?token=" + q.getToken();
+            String payload = "partyhub://login?userId=" + user.getId();
 
             return Response.ok().entity(new java.util.HashMap<String, String>() {{
-                put("token", q.getToken());
+                put("userId", user.getId().toString());
+                put("username", user.getUsername());
                 put("payload", payload);
-                put("imageUrl", "/api/qr/image/" + q.getToken());
+                put("imageUrl", "/api/qr/image/user/" + user.getId());
             }}).build();
         } catch (Exception e) {
             return Response.status(500).entity(java.util.Map.of("error", e.getMessage())).build();
@@ -68,6 +74,26 @@ public class QrResource {
     }
 
     @GET
+    @Path("/image/user/{userId}")
+    @Produces("image/png")
+    public Response imageByUserId(@jakarta.ws.rs.PathParam("userId") Long userId) {
+        var optUser = userRepository.findById(userId);
+        if (optUser.isEmpty()) return Response.status(404).build();
+        
+        try {
+            String payload = "partyhub://login?userId=" + userId;
+            QRCodeWriter writer = new QRCodeWriter();
+            BitMatrix bm = writer.encode(payload, BarcodeFormat.QR_CODE, 300, 300);
+            java.io.ByteArrayOutputStream baos = new java.io.ByteArrayOutputStream();
+            com.google.zxing.client.j2se.MatrixToImageWriter.writeToStream(bm, "PNG", baos);
+            byte[] bytes = baos.toByteArray();
+            return Response.ok(bytes).build();
+        } catch (com.google.zxing.WriterException | java.io.IOException e) {
+            return Response.serverError().entity(java.util.Map.of("error", e.getMessage())).build();
+        }
+    }
+
+    @GET
     @Path("/image/{token}")
     @Produces("image/png")
     public Response image(@jakarta.ws.rs.PathParam("token") String token) {
@@ -76,8 +102,7 @@ public class QrResource {
         QrLogin q = opt.get();
 
         try {
-            String payload = "partyhub://qr-login?token=" + q.getToken();
-            // Use ZXing to generate a QR code PNG
+            String payload = "partyhub://login?userId=" + q.getUserId();
             QRCodeWriter writer = new QRCodeWriter();
             BitMatrix bm = writer.encode(payload, BarcodeFormat.QR_CODE, 300, 300);
             java.io.ByteArrayOutputStream baos = new java.io.ByteArrayOutputStream();
