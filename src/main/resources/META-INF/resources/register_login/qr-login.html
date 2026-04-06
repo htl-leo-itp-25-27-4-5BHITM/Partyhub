@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>QR Login - PartyHub</title>
+  <link rel="stylesheet" href="../global.css">
+  <style>
+    .container{display:flex;flex-direction:column;align-items:center;justify-content:center;height:100vh}
+    .qr{background:#fff;padding:20px;border-radius:8px;box-shadow:0 6px 20px rgba(0,0,0,0.1)}
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="qr">
+      <h2>Scan this QR with PartyHub mobile app</h2>
+      <img id="qrImg" alt="QR code" />
+      <p id="info"></p>
+    </div>
+  </div>
+
+  <script src="../auth-service.js" defer></script>
+  <script>
+    // Use authService.apiCall so the Authorization header (and refresh) is applied.
+    async function generate() {
+      try {
+        if (!window.authService || !window.authService.apiCall) {
+          document.getElementById('info').textContent = 'Auth service not available. Please ensure you are on the authenticated site.';
+          return;
+        }
+
+        const res = await window.authService.apiCall('/api/qr/generate');
+        if (!res.ok) {
+          if (res.status === 401) {
+            document.getElementById('info').textContent = 'Please log in to generate a QR.';
+          } else {
+            document.getElementById('info').textContent = 'Could not generate QR. Try again later.';
+          }
+          return;
+        }
+
+        const data = await res.json();
+        const payload = encodeURIComponent(data.payload);
+        const token = data.token;
+        // Use Google Chart API to render QR
+      // Prefer server-side generated PNG when available
+      const imageUrl = data.imageUrl || `https://chart.googleapis.com/chart?cht=qr&chs=300x300&chl=${payload}`;
+      document.getElementById('qrImg').src = imageUrl;
+        document.getElementById('info').textContent = 'Open the PartyHub mobile app and scan or tap the QR.';
+
+        // Poll status endpoint until used or expired
+        const infoEl = document.getElementById('info');
+        let polling = true;
+        async function poll() {
+          if (!polling) return;
+          try {
+          const statusRes = await window.authService.apiCall(`/api/qr/status/${encodeURIComponent(token)}`);
+            if (!statusRes.ok) {
+              // stop polling on error
+              polling = false;
+              return;
+            }
+            const status = await statusRes.json();
+            if (status.used) {
+              infoEl.textContent = 'QR scanned. Logging in on mobile...';
+              polling = false;
+              // Optionally perform a redirect or refresh
+              return;
+            }
+            if (status.expiresAt) {
+              const expires = new Date(status.expiresAt);
+              const now = new Date();
+              const secs = Math.max(0, Math.floor((expires - now) / 1000));
+              infoEl.textContent = `Expires in ${secs}s. Open mobile app and scan.`;
+              if (secs <= 0) {
+                polling = false;
+                infoEl.textContent = 'QR expired. Please refresh to generate a new one.';
+                return;
+              }
+            }
+          } catch (e) {
+            // ignore transient errors
+            polling = false;
+            console.error('Polling error', e);
+          }
+          if (polling) setTimeout(poll, 2000);
+        }
+        setTimeout(poll, 2000);
+      } catch (e) {
+        console.error('generate error', e);
+        document.getElementById('info').textContent = 'Please log in to generate a QR.';
+      }
+    }
+
+    // Defer generation until DOMContentLoaded (and deferred auth-service has run)
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', generate);
+    } else {
+      // small timeout to allow deferred scripts to initialize
+      setTimeout(generate, 50);
+    }
+  </script>
+</body>
+</html>

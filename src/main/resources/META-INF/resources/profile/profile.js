@@ -362,6 +362,70 @@ document.addEventListener("DOMContentLoaded", function () {
     }
   }
 
+  // -----------------------------
+  // QR helper for profile owner
+  // -----------------------------
+  async function initQrHelper() {
+    const showBtn = document.getElementById('showQrBtn');
+    const preview = document.getElementById('qrPreview');
+    const img = document.getElementById('profileQrImg');
+    const info = document.getElementById('profileQrInfo');
+
+    const loggedInUserId = getStoredUserId();
+    if (!loggedInUserId || viewedUserId == null || String(loggedInUserId) !== String(viewedUserId)) {
+      // Not owner - hide button
+      if (showBtn) showBtn.style.display = 'none';
+      return;
+    }
+
+    if (showBtn) showBtn.style.display = 'inline-block';
+
+    if (showBtn) {
+      // remove previous listeners to avoid duplicate handlers
+      try { showBtn.replaceWith(showBtn.cloneNode(true)); } catch (e) { /* ignore */ }
+      const btn = document.getElementById('showQrBtn');
+      if (!btn) return;
+
+      btn.addEventListener('click', async (ev) => {
+        ev.preventDefault();
+        ev.stopPropagation();
+        console.debug('Show QR button clicked');
+        btn.disabled = true;
+        const originalText = btn.textContent;
+        btn.textContent = 'Generating...';
+        if (info) info.textContent = '';
+
+        try {
+          if (!window.authService || !window.authService.apiCall) {
+            console.warn('authService not available');
+            if (info) info.textContent = 'Auth not available. Please login.';
+            return;
+          }
+
+          const res = await window.authService.apiCall('/api/qr/generate');
+          if (!res.ok) {
+            console.warn('QR generate returned', res.status);
+            if (info) info.textContent = res.status === 401 ? 'Please log in.' : 'Could not generate QR.';
+            return;
+          }
+
+          const data = await res.json();
+          const payload = encodeURIComponent(data.payload);
+          const imageUrl = data.imageUrl || `https://chart.googleapis.com/chart?cht=qr&chs=300x300&chl=${payload}`;
+          if (img) img.src = imageUrl;
+          if (info) info.textContent = `Expires in ~5 minutes. Token: ${data.token}`;
+          if (preview) preview.style.display = 'block';
+        } catch (e) {
+          console.error('showQr failed', e);
+          if (info) info.textContent = 'Error generating QR.';
+        } finally {
+          btn.disabled = false;
+          btn.textContent = originalText;
+        }
+      });
+    }
+  }
+
   function attachFollowCountMenus(followers, followings) {
     const followersCountEl = document.getElementById("followersCount");
     const followingCountEl = document.getElementById("followingCount");
@@ -515,6 +579,12 @@ document.addEventListener("DOMContentLoaded", function () {
       } catch (err) {
         console.debug("refreshCreatedPartiesCount failed", err);
       }
+    }
+    // Initialize QR helper (shows QR button for profile owner)
+    try {
+      await initQrHelper();
+    } catch (e) {
+      console.debug('initQrHelper failed', e);
     }
   }
 
