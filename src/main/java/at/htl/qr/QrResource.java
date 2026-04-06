@@ -37,24 +37,20 @@ public class QrResource {
     @Path("/generate")
     public Response generate() {
         try {
-            // get current user
             var optUser = keycloakUserService.getOrCreateCurrentUser();
             if (optUser.isEmpty()) return Response.status(401).build();
             User user = optUser.get();
 
             QrLogin q = qrService.generateForUser(user.getId());
 
-            // Simple QR payload: token string URL
             String payload = "partyhub://qr-login?token=" + q.getToken();
 
-            // Return token and payload; frontend can request server-generated PNG via /image/{token}
             return Response.ok().entity(new java.util.HashMap<String, String>() {{
                 put("token", q.getToken());
                 put("payload", payload);
                 put("imageUrl", "/api/qr/image/" + q.getToken());
             }}).build();
         } catch (Exception e) {
-            // Return error details to make debugging easier in dev
             return Response.status(500).entity(java.util.Map.of("error", e.getMessage())).build();
         }
     }
