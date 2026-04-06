@@ -56,7 +56,7 @@ spec:
             - name: KC_HOSTNAME_STRICT
               value: "false"
             - name: KC_HOSTNAME_URL
-              value: "https://it220274.cloud.htl-leonding.ac.at/auth"
+              value: "https://it220274.cloud.htl-leonding.ac.at/realms"
             - name: KC_HEALTH_ENABLED
               value: "true"
             - name: KC_CACHE
