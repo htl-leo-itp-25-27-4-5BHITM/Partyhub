@@ -20,8 +20,20 @@ spec:
       containers:
         - name: quarkus
           env:
-          - name: QUARKUS_PROFILE
-            value: prod
+            - name: QUARKUS_PROFILE
+              value: prod
+            - name: QUARKUS_DATASOURCE_JDBC_URL
+              value: jdbc:postgresql://postgres:5432/demo
+            - name: QUARKUS_DATASOURCE_USERNAME
+              value: demo
+            - name: QUARKUS_DATASOURCE_PASSWORD
+              value: demo
+            - name: QUARKUS_OIDC_AUTH_SERVER_URL
+              value: http://keycloak:8080/realms/party-realm
+            - name: QUARKUS_OIDC_CLIENT_ID
+              value: party-client
+            - name: QUARKUS_OIDC_CREDENTIALS_CLIENT_SECRET__VALUE
+              value: secret123
           image: ghcr.io/htl-leo-itp-25-27-4-5bhitm/partyhub-backend:latest
           imagePullPolicy: Always
           ports:

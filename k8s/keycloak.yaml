@@ -1,4 +1,3 @@
-# Original config at https://raw.githubusercontent.com/keycloak/keycloak-quickstarts/refs/heads/main/kubernetes/keycloak.yaml
 apiVersion: v1
 kind: Service
 metadata:
@@ -6,25 +5,10 @@ metadata:
 spec:
   type: NodePort
   ports:
-    - port: 8081
+    - port: 8080
       targetPort: 8080
   selector:
     app: keycloak
-
-#apiVersion: v1
-#kind: Service
-#metadata:
-  #name: keycloak
-  #labels:
-    #app: keycloak
-#spec:
-  #ports:
-    #- port: 8080
-      #targetPort: 8081
-      #name: keycloak
-  #selector:
-    #app: keycloak
-  #type: ClusterIP
 ---
 apiVersion: v1
 kind: Service
@@ -55,48 +39,43 @@ spec:
       containers:
         - name: keycloak
           image: quay.io/keycloak/keycloak:26.5.0
-          args: ["start"]
+          args: ["start", "--import-realm"]
+          volumeMounts:
+            - mountPath: /opt/keycloak/data/import/party-realm-realm.json
+              name: keycloak-realm-volume
+              subPath: party-realm-realm.json
           env:
             - name: KC_BOOTSTRAP_ADMIN_USERNAME
               value: "admin"
             - name: KC_BOOTSTRAP_ADMIN_PASSWORD
               value: "admin"
-            # In a production environment, add a TLS certificate to Keycloak to either end-to-end encrypt the traffic between
-            # the client or Keycloak, or to encrypt the traffic between your proxy and Keycloak.
-            # Respect the proxy headers forwarded by the reverse proxy
-            # In a production environment, verify which proxy type you are using, and restrict access to Keycloak
-            # from other sources than your proxy if you continue to use proxy headers.
             - name: KC_PROXY_HEADERS
               value: "xforwarded"
             - name: KC_HTTP_ENABLED
               value: "true"
-            # In this explorative setup, no strict hostname is set.
-            # For production environments, set a hostname for a secure setup.
             - name: KC_HOSTNAME_STRICT
               value: "false"
+            - name: KC_HOSTNAME_URL
+              value: "https://it220274.cloud.htl-leonding.ac.at/auth"
             - name: KC_HEALTH_ENABLED
               value: "true"
-            - name: 'KC_CACHE'
-              value: 'ispn'
-            # Passing the Pod's IP primary address to the JGroups clustering as this is required in IPv6 only setups
+            - name: KC_CACHE
+              value: ispn
             - name: POD_IP
               valueFrom:
                 fieldRef:
                   fieldPath: status.podIP
-            # Instruct JGroups which DNS hostname to use to discover other Keycloak nodes
-            # Needs to be unique for each Keycloak cluster
             - name: KC_CACHE_EMBEDDED_NETWORK_BIND_ADDRESS
               value: '$(POD_IP)'
-            - name: 'KC_DB_URL_DATABASE'
+            - name: KC_DB_URL_DATABASE
               value: 'demo'
-            - name: 'KC_DB_URL_HOST'
+            - name: KC_DB_URL_HOST
               value: 'postgres'
-            - name: 'KC_DB'
+            - name: KC_DB
               value: 'postgres'
-            # In a production environment, use a secret to store username and password to the database
-            - name: 'KC_DB_PASSWORD'
+            - name: KC_DB_PASSWORD
               value: 'demo'
-            - name: 'KC_DB_USERNAME'
+            - name: KC_DB_USERNAME
               value: 'demo'
           ports:
             - name: http
@@ -108,3 +87,7 @@ spec:
             requests:
               cpu: 500m
               memory: 1700Mi
+      volumes:
+        - name: keycloak-realm-volume
+          configMap:
+            name: keycloak-realm-config

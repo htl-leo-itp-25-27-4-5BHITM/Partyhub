@@ -1,7 +1,7 @@
 {
   "realm": "party-realm",
   "enabled": true,
-  "sslRequired": "none",
+  "sslRequired": "external",
   "clients": [
     {
       "clientId": "party-client",
@@ -16,14 +16,10 @@
       "serviceAccountsEnabled": true,
       "alwaysDisplayInConsole": false,
       "redirectUris": [
-        "http://localhost:8080/*",
-        "http://localhost:3000/*",
-        "http://localhost:4200/*"
+        "https://it220274.cloud.htl-leonding.ac.at/*"
       ],
       "webOrigins": [
-        "http://localhost:8080",
-        "http://localhost:3000",
-        "http://localhost:4200"
+        "https://it220274.cloud.htl-leonding.ac.at"
       ],
       "protocolMappers": [
         {

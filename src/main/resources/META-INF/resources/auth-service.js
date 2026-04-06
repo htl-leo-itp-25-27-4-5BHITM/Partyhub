@@ -1,10 +1,9 @@
-/**
- * Authentication Service for Keycloak OIDC Integration
- * Handles token acquisition, storage, and expiration
- */
 
 (function () {
-  const KEYCLOAK_URL = 'http://localhost:8180';
+  const isProd = window.location.hostname !== 'localhost';
+  const KEYCLOAK_URL = isProd 
+    ? 'https://it220274.cloud.htl-leonding.ac.at/realms' 
+    : 'http://localhost:8180';
   const REALM = 'party-realm';
   const CLIENT_ID = 'party-client';
   const CLIENT_SECRET = 'secret123';
@@ -14,30 +13,18 @@
   const USER_INFO_KEY = 'keycloak_user_info';
   const TOKEN_EXPIRY_KEY = 'keycloak_token_expiry';
 
-  /**
-   * Get the OAuth2 token endpoint
-   */
   function getTokenEndpoint() {
     return `${KEYCLOAK_URL}/realms/${REALM}/protocol/openid-connect/token`;
   }
 
-  /**
-   * Get the authorization endpoint for login flow
-   */
   function getAuthorizationEndpoint() {
     return `${KEYCLOAK_URL}/realms/${REALM}/protocol/openid-connect/auth`;
   }
 
-  /**
-   * Get the logout endpoint
-   */
   function getLogoutEndpoint() {
     return `${KEYCLOAK_URL}/realms/${REALM}/protocol/openid-connect/logout`;
   }
 
-  /**
-   * Check if access token is still valid (not expired)
-   */
   function isTokenValid() {
     try {
       const token = localStorage.getItem(TOKEN_KEY);
@@ -48,7 +35,6 @@
       const expiryTime = parseInt(expiry, 10);
       const now = Date.now();
       
-      // Consider token valid if it expires in more than 1 minute
       return now < (expiryTime - 60000);
     } catch (e) {
       console.error('isTokenValid error:', e);
@@ -56,19 +42,14 @@
     }
   }
 
-  /**
-   * Get current access token (refresh if needed)
-   */
   async function getAccessToken() {
     try {
       const token = localStorage.getItem(TOKEN_KEY);
       
-      // If we have a valid token, return it
       if (token && isTokenValid()) {
         return token;
       }
 
-      // Try to refresh token
       const refreshToken = localStorage.getItem(REFRESH_TOKEN_KEY);
       if (refreshToken) {
         return await refreshAccessToken();
@@ -81,9 +62,6 @@
     }
   }
 
-  /**
-   * Refresh access token using refresh token
-   */
   async function refreshAccessToken() {
     try {
       const refreshToken = localStorage.getItem(REFRESH_TOKEN_KEY);
@@ -119,9 +97,6 @@
     }
   }
 
-  /**
-   * Store tokens and expiry in localStorage
-   */
   function storeTokens(tokenResponse) {
     try {
       localStorage.setItem(TOKEN_KEY, tokenResponse.access_token);
@@ -248,9 +223,6 @@
     localStorage.removeItem(TOKEN_EXPIRY_KEY);
   }
 
-  /**
-   * Make authenticated API call
-   */
   async function apiCall(url, options = {}) {
     try {
       const token = await getAccessToken();
@@ -270,7 +242,6 @@
         headers
       });
 
-      // If unauthorized, token might have expired, try refresh
       if (response.status === 401) {
         const newToken = await refreshAccessToken();
         if (newToken) {
@@ -289,9 +260,6 @@
     }
   }
 
-  /**
-   * Get current user from API
-   */
   async function getCurrentUser() {
     try {
       const response = await apiCall('/api/users/me');
@@ -307,7 +275,6 @@
     }
   }
 
-  // Export to window
   window.authService = {
     login,
     logout,
