@@ -3,7 +3,6 @@
 -- Users table
 CREATE TABLE IF NOT EXISTS users (
     id BIGSERIAL PRIMARY KEY,
-    keycloak_id VARCHAR(255) UNIQUE,
     username VARCHAR(255) UNIQUE,
     display_name VARCHAR(255),
     distinct_name VARCHAR(255),
