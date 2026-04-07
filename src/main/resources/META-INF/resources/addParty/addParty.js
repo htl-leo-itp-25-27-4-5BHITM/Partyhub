@@ -198,7 +198,7 @@ document.addEventListener("DOMContentLoaded", () => {
      VISIBILITY STEP
   ========================== */
   document.querySelectorAll(".vis-card").forEach((card) => {
-    card.addEventListener("click", () => {
+    card.addEventListener("click", async () => {
       document
           .querySelectorAll(".vis-card")
           .forEach((c) => c.classList.remove("active"));
@@ -209,6 +209,14 @@ document.addEventListener("DOMContentLoaded", () => {
       const isPublic = state.visibility === "public";
       userList.style.display = isPublic ? "none" : "flex";
       everyoneHint.style.display = isPublic ? "block" : "none";
+
+      // Load followers if private, otherwise clear
+      if (!isPublic) {
+        await loadFollowersForUser();
+      } else {
+        userList.innerHTML = "";
+        state.selectedUsers = [];
+      }
     });
   });
 
@@ -346,12 +354,49 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   }
 
+  async function loadFollowersForUser() {
+    try {
+      const userId = window.getCurrentUserId?.() || localStorage.getItem("userId");
+      if (!userId) {
+        console.error("User ID not available");
+        userList.innerHTML = "<p style='color: #999;'>Nutzer-ID nicht verfügbar</p>";
+        return;
+      }
+
+      const res = await fetch(`/follow/followers/${userId}`);
+      if (!res.ok) {
+        userList.innerHTML = "<p style='color: #999;'>Keine Freunde gefunden</p>";
+        return;
+      }
+
+      const followers = await res.json();
+      userList.innerHTML = "";
+
+      if (!followers || followers.length === 0) {
+        userList.innerHTML = "<p style='color: #999; padding: 20px; text-align: center;'>Keine Follower</p>";
+        return;
+      }
+
+      followers.forEach((u) => {
+        const el = document.createElement("div");
+        el.className = "user-card";
+        el.innerHTML = `
+          <span>@${u.distinctName}</span>
+          <input type="checkbox" value="${u.distinctName}">
+        `;
+        userList.appendChild(el);
+      });
+    } catch (e) {
+      console.error("Error loading followers:", e);
+      userList.innerHTML = "<p style='color: #999;'>Fehler beim Laden der Follower</p>";
+    }
+  }
+
   /* ==========================
      INIT
   ========================== */
-  // load users and then try to load editing party (if any)
   (async function init() {
-    const users = await loadUsers();
+    // Don't load users upfront; load them on demand when visiting step 2 (visibility)
     showStep(0);
     // try to load editing party if id present in URL
     tryLoadEditingParty();
