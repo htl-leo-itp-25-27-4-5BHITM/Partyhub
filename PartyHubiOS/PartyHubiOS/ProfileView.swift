@@ -139,7 +139,6 @@ struct ProfileView: View {
             }
             
             HStack(spacing: 20) {
-                StatView(number: "0", label: "Partys")
                 StatView(number: "\(followerCount)", label: "Follower")
                 StatView(number: "\(followingCount)", label: "Following")
             }
