@@ -2,31 +2,35 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
-	<key>CFBundleURLTypes</key>
-	<array>
-		<dict>
-			<key>CFBundleURLName</key>
-			<string>com.partyhub.app</string>
-			<key>CFBundleURLSchemes</key>
-			<array>
-				<string>partyhub</string>
-			</array>
-		</dict>
-	</array>
-	<key>UIBackgroundModes</key>
-	<array>
-		<string>location</string>
-		<string>fetch</string>
-		<string>processing</string>
-	</array>
-	<key>NSLocationWhenInUseUsageDescription</key>
-	<string>PartyHub braucht deinen Standort um automatisch zu erkennen wenn du eine Party betrittst.</string>
-	<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
-	<string>PartyHub braucht deinen Standort um automatisch zu erkennen wenn du eine Party betrittst.</string>
-	<key>NSAppTransportSecurity</key>
-	<dict>
-		<key>NSAllowsArbitraryLoads</key>
-		<true/>
-	</dict>
+    <key>CFBundleURLTypes</key>
+    <array>
+        <dict>
+            <key>CFBundleURLName</key>
+            <string>com.partyhub.app</string>
+            <key>CFBundleURLSchemes</key>
+            <array>
+                <string>partyhub</string>
+            </array>
+        </dict>
+    </array>
+    <key>UIBackgroundModes</key>
+    <array>
+        <string>location</string>
+        <string>fetch</string>
+        <string>processing</string>
+    </array>
+    <key>NSLocationWhenInUseUsageDescription</key>
+    <string>PartyHub braucht deinen Standort um automatisch zu erkennen wenn du eine Party betrittst.</string>
+    <key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
+    <string>PartyHub braucht deinen Standort um automatisch zu erkennen wenn du eine Party betrittst.</string>
+    <key>NSAppTransportSecurity</key>
+    <dict>
+        <key>NSAllowsArbitraryLoads</key>
+        <true/>
+    </dict>
+    <key>CFBundleIdentifier</key>
+    <string>com.partyhub.app</string>
+    <key>NSCameraUsageDescription</key>
+    <string>PartyHub benötigt die Kamera zum Scannen von QR-Codes.</string>
 </dict>
 </plist>
