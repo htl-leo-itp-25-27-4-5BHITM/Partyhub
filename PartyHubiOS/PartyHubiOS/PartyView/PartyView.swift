@@ -9,12 +9,21 @@ struct PartyView: View {
     @Environment(LocationManager.self) var locationManager
     @Environment(\.modelContext) private var modelContext
 
-    var sortedParties: [Party] {
-        guard let userCoord = locationManager.currentLocation else {
-            return parties
-        }
+    // Cache: Party-ID → Fahrtstrecke in Metern
+    @State private var drivingDistances: [Int: Double] = [:]
+    // Letzter Standort bei dem Routen geladen wurden
+    @State private var lastFetchLocation: CLLocation? = nil
+    // Läuft gerade ein Fetch?
+    @State private var isFetching = false
+
+    // Sortierung nach Fahrtstrecke (wenn vorhanden), sonst Luftlinie
+    func sortedParties(userCoord: CLLocationCoordinate2D?) -> [Party] {
+        guard let userCoord else { return parties }
         let userLocation = CLLocation(latitude: userCoord.latitude, longitude: userCoord.longitude)
         return parties.sorted {
+            if let dA = drivingDistances[$0.backendId], let dB = drivingDistances[$1.backendId] {
+                return dA < dB
+            }
             let locA = CLLocation(latitude: $0.latitude, longitude: $0.longitude)
             let locB = CLLocation(latitude: $1.latitude, longitude: $1.longitude)
             return locA.distance(from: userLocation) < locB.distance(from: userLocation)
@@ -22,9 +31,12 @@ struct PartyView: View {
     }
 
     var body: some View {
+        let userCoord = locationManager.currentLocation
+        let sorted = sortedParties(userCoord: userCoord)
+
         NavigationStack {
             List {
-                if sortedParties.isEmpty {
+                if sorted.isEmpty {
                     HStack(spacing: 12) {
                         ProgressView()
                         Text("Keine Partys gefunden")
@@ -32,9 +44,12 @@ struct PartyView: View {
                     }
                     .frame(minHeight: 44)
                 } else {
-                    ForEach(sortedParties) { party in
+                    ForEach(sorted) { party in
                         NavigationLink(destination: PartyDetailView(party: party)) {
-                            PartyRow(party: party, userLocation: locationManager.currentLocation)
+                            PartyRow(
+                                party: party,
+                                drivingDistanceMeters: drivingDistances[party.backendId]
+                            )
                         }
                     }
                 }
@@ -49,16 +64,79 @@ struct PartyView: View {
                 }
             }
         }
+        .onAppear {
+            fetchIfNeeded(userCoord: userCoord)
+        }
+        .onChange(of: locationManager.currentLocation) { _, newCoord in
+            guard let newCoord else { return }
+            let newLocation = CLLocation(latitude: newCoord.latitude, longitude: newCoord.longitude)
+
+            // ✅ Nur neu laden wenn sich der Nutzer mehr als 200m bewegt hat
+            if let last = lastFetchLocation {
+                guard newLocation.distance(from: last) > 200 else { return }
+            }
+
+            fetchIfNeeded(userCoord: newCoord)
+        }
+    }
+
+    // ✅ Lädt Routen nur einmal pro Standort-Änderung >200m
+    private func fetchIfNeeded(userCoord: CLLocationCoordinate2D?) {
+        guard let userCoord, !isFetching else { return }
+
+        // Wenn noch kein Fetch gemacht wurde, oder Nutzer >200m bewegt hat
+        let currentLocation = CLLocation(latitude: userCoord.latitude, longitude: userCoord.longitude)
+        if let last = lastFetchLocation, currentLocation.distance(from: last) <= 200 {
+            return
+        }
+
+        isFetching = true
+        lastFetchLocation = currentLocation
+
+        let group = DispatchGroup()
+
+        for party in parties {
+            // Bereits gecachte Distanz nicht neu laden
+            if drivingDistances[party.backendId] != nil { continue }
+
+            group.enter()
+            let request = MKDirections.Request()
+            request.source = MKMapItem(placemark: MKPlacemark(coordinate: userCoord))
+            request.destination = MKMapItem(placemark: MKPlacemark(coordinate: party.coordinate))
+            request.transportType = .automobile
+
+            MKDirections(request: request).calculate { response, _ in
+                DispatchQueue.main.async {
+                    if let distance = response?.routes.first?.distance {
+                        drivingDistances[party.backendId] = distance
+                    }
+                    group.leave()
+                }
+            }
+        }
+
+        group.notify(queue: .main) {
+            isFetching = false
+        }
     }
 
     // MARK: – Party Row
     struct PartyRow: View {
         let party: Party
-        let userLocation: CLLocationCoordinate2D?
+        let drivingDistanceMeters: Double?
+
         @State private var now = Date()
-        @State private var drivingDistance: String? = nil
-        @State private var lastFetchedLocation: CLLocation? = nil  // NEU: letzter Standort beim Fetch
         let timer = Timer.publish(every: 1, on: .main, in: .common).autoconnect()
+
+        var distanceLabel: String? {
+            guard !party.isActive else { return nil }
+            guard let meters = drivingDistanceMeters else { return nil }
+            if meters < 1000 {
+                return String(format: "%.0f m", meters)
+            } else {
+                return String(format: "%.1f km", meters / 1000)
+            }
+        }
 
         var body: some View {
             VStack(alignment: .leading, spacing: 2) {
@@ -69,16 +147,19 @@ struct PartyView: View {
 
                     Spacer()
 
-                    // Distanz nur anzeigen wenn NICHT gerade auf der Party
-                    if !party.isActive, let distance = drivingDistance {
+                    if let label = distanceLabel {
                         HStack(spacing: 2) {
                             Image(systemName: "car.fill")
                                 .font(.caption2)
                                 .foregroundStyle(.secondary)
-                            Text(distance)
+                            Text(label)
                                 .font(.caption)
                                 .foregroundStyle(.secondary)
                         }
+                    } else if !party.isActive && drivingDistanceMeters == nil {
+                        // Lädt noch
+                        ProgressView()
+                            .scaleEffect(0.6)
                     }
                 }
 
@@ -96,45 +177,6 @@ struct PartyView: View {
             }
             .frame(minHeight: 44)
             .onReceive(timer) { now = $0 }
-            .onAppear {
-                fetchDrivingDistance()
-            }
-            .onChange(of: userLocation) { _, newLocation in
-                guard let newCoord = newLocation else { return }
-                let newCLLocation = CLLocation(latitude: newCoord.latitude, longitude: newCoord.longitude)
-
-                // NEU: nur neu laden wenn mehr als 50m bewegt
-                if let last = lastFetchedLocation {
-                    if newCLLocation.distance(from: last) > 50 {
-                        fetchDrivingDistance()
-                    }
-                }
-            }
-        }
-
-        private func fetchDrivingDistance() {
-            guard let userCoord = userLocation else { return }
-
-            // letzten Fetch-Standort speichern
-            lastFetchedLocation = CLLocation(latitude: userCoord.latitude, longitude: userCoord.longitude)
-
-            let request = MKDirections.Request()
-            request.source = MKMapItem(placemark: MKPlacemark(coordinate: userCoord))
-            request.destination = MKMapItem(placemark: MKPlacemark(coordinate: party.coordinate))
-            request.transportType = .automobile
-
-            let directions = MKDirections(request: request)
-            directions.calculateETA { response, error in
-                DispatchQueue.main.async {
-                    if let distance = response?.distance {
-                        if distance < 1000 {
-                            drivingDistance = String(format: "%.0f m", distance)
-                        } else {
-                            drivingDistance = String(format: "%.1f km", distance / 1000)
-                        }
-                    }
-                }
-            }
         }
 
         func formatDuration(_ start: Date, to end: Date) -> String {
