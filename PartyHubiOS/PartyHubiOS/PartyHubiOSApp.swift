@@ -36,6 +36,7 @@ struct PartyHubiOSApp: App {
             ContentView()
                 .environment(locationManager)
                 .modelContainer(container)
+                .environmentObject(AuthManager.shared)
                 .task {
                     await setupApp()
                 }
@@ -46,15 +47,28 @@ struct PartyHubiOSApp: App {
     }
 
     private func handleDeepLink(_ url: URL) {
-        guard url.scheme == "partyhub",
-              url.host == "party",
-              let components = URLComponents(url: url, resolvingAgainstBaseURL: false),
-              let idString = components.queryItems?.first(where: { $0.name == "id" })?.value,
-              let partyId = Int(idString) else {
+        guard url.scheme == "partyhub" else { return }
+
+        // Handle party deep links: partyhub://party?id=123
+        if url.host == "party", let components = URLComponents(url: url, resolvingAgainstBaseURL: false), let idString = components.queryItems?.first(where: { $0.name == "id" })?.value, let partyId = Int(idString) {
+            deepLinkPartyId = partyId
+            NotificationCenter.default.post(name: .showPartyDetail, object: partyId)
             return
         }
-        deepLinkPartyId = partyId
-        NotificationCenter.default.post(name: .showPartyDetail, object: partyId)
+
+        // Handle QR login deep link: partyhub://login?userId=123
+        if url.host == "login", let components = URLComponents(url: url, resolvingAgainstBaseURL: false), let userIdString = components.queryItems?.first(where: { $0.name == "userId" })?.value, let userId = Int(userIdString) {
+            Task {
+                do {
+                    try await AuthManager.shared.loginWithUserId(userId)
+                    print("QR login succeeded for userId: \(userId)")
+                    NotificationCenter.default.post(name: .didLoginMobile, object: userId)
+                } catch {
+                    print("QR login failed: \(error)")
+                }
+            }
+            return
+        }
     }
 
     @MainActor

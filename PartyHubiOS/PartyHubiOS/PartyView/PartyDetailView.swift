@@ -83,7 +83,7 @@ struct PartyDetailView: View {
                             .frame(height: 44)
                     }
                     .buttonStyle(.borderedProminent)
-                    .tint(Color.primaryDarkBlue)
+                    .tint(Color("primary dark blue"))
                     .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
                     
                     Button {
@@ -95,7 +95,7 @@ struct PartyDetailView: View {
                             .frame(height: 44)
                     }
                     .buttonStyle(.borderedProminent)
-                    .tint(Color.primaryPink)
+                    .tint(Color("primary pink"))
                     .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
                 }
                 .listRowInsets(EdgeInsets(top: 12, leading: 16, bottom: 12, trailing: 16))
@@ -126,7 +126,7 @@ struct PartyDetailView: View {
                                 if istImBearbeitungsModus {
                                     Image(systemName: ausgewaehlteBilderZumLoeschen.contains(url)
                                           ? "checkmark.circle.fill" : "circle")
-                                    .foregroundStyle(Color.primaryDarkBlue)
+                                    .foregroundStyle(Color("primary dark blue"))
                                     .padding(5)
                                 }
                             }
@@ -152,7 +152,7 @@ struct PartyDetailView: View {
                                 .frame(height: 44)
                         }
                         .buttonStyle(.borderedProminent)
-                        .tint(Color.primaryDarkBlue)
+                        .tint(Color("primary dark blue"))
                         .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
                         .onChange(of: selectedItems.count) { _, _ in
                             speichereBilder()
@@ -169,7 +169,7 @@ struct PartyDetailView: View {
                                 .frame(height: 44)
                         }
                         .buttonStyle(.bordered)
-                        .tint(Color.primaryDarkBlue)
+                        .tint(Color("primary dark blue"))
                         .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
                     }
                 }

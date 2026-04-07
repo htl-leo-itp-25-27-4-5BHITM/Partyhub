@@ -19,6 +19,9 @@ public class User {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @Column(name = "username", unique = true, nullable = true)
+    private String username;
+
     @Column(name = "display_name")
     private String displayName;
 
@@ -44,6 +47,14 @@ public class User {
 
     public void setId(Long id) {
         this.id = id;
+    }
+
+    public String getUsername() {
+        return username;
+    }
+
+    public void setUsername(String username) {
+        this.username = username;
     }
 
     public String getDisplayName() {
@@ -82,7 +93,6 @@ public class User {
         return profilePicture;
     }
 
-    //TODO: Delete old ProfilePicture before applying the new ProfilePicture
     public void setProfilePicture(ProfilePicture profilePicture) {
         this.profilePicture = profilePicture;
     }

@@ -6,121 +6,171 @@
     <title>Startpage</title>
     <link rel="stylesheet" href="../global.css" />
     <link rel="stylesheet" href="../index.css" />
-    <script src="../nav.js" defer></script>
-  </head>
-  <body class="bg-light">
-    <div class="app-shell">
-      <div class="container py-4">
-        <header class="page-header">
-          <h1 class="page-title font-heading">Welcome</h1>
-          <p class="page-subtitle font-body-text">Please login or register</p>
-        </header>
-        <p class="muted">Please login or register.</p>
-      </div>
+    <style>
+      .start-container {
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        min-height: 100vh;
+        padding: 20px;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      }
 
-      <nav class="bottom-nav" role="navigation" aria-label="Bottom navigation">
-        <a class="nav-btn" href="/index.html" aria-label="Home">
-          <svg
-            class="nav-icon icon--pink"
-            width="28"
-            height="28"
-            viewBox="0 0 24 24"
-            fill="none"
-            xmlns="http://www.w3.org/2000/svg"
-          >
-            <path
-              d="M3 6.5L8 4l7 2.5 6-2.5v11l-6 2.5L10 15 3 17.5v-11z"
-              stroke="currentColor"
-              stroke-width="1.2"
-              stroke-linejoin="round"
-              stroke-linecap="round"
-            />
-          </svg>
-        </a>
-        <a
-          class="nav-btn"
-          href="/listPartys/listPartys.html"
-          aria-label="List Parties"
-        >
-          <svg
-            class="nav-icon icon--pink"
-            width="28"
-            height="28"
-            viewBox="0 0 24 24"
-            fill="none"
-            xmlns="http://www.w3.org/2000/svg"
-          >
-            <rect
-              x="3"
-              y="3"
-              width="18"
-              height="18"
-              rx="3"
-              stroke="currentColor"
-              stroke-width="1.2"
-            />
-            <circle cx="8.5" cy="8.5" r="1.8" fill="currentColor" />
-            <path
-              d="M21 21l-6-6-5 5"
-              stroke="currentColor"
-              stroke-width="1.2"
-              stroke-linecap="round"
-              stroke-linejoin="round"
-            />
-          </svg>
-        </a>
-        <a
-          class="nav-btn"
-          href="/notifications/notifications.html"
-          aria-label="Notifications"
-        >
-          <svg
-            class="nav-icon icon--pink"
-            width="28"
-            height="28"
-            viewBox="0 0 24 24"
-            fill="none"
-            xmlns="http://www.w3.org/2000/svg"
-          >
-            <path
-              d="M12 22a2.5 2.5 0 0 0 2.45-2H9.55A2.5 2.5 0 0 0 12 22z"
-              fill="currentColor"
-            />
-            <path
-              d="M18 8a6 6 0 10-12 0v5l-2 2v1h16v-1l-2-2V8z"
-              stroke="currentColor"
-              stroke-width="1.2"
-              stroke-linecap="round"
-              stroke-linejoin="round"
-            />
-          </svg>
-        </a>
-        <a class="nav-btn" href="/profile/profile.html" aria-label="Profile">
-          <svg
-            class="nav-icon icon--pink"
-            width="28"
-            height="28"
-            viewBox="0 0 24 24"
-            fill="none"
-            xmlns="http://www.w3.org/2000/svg"
-          >
-            <circle
-              cx="12"
-              cy="8.5"
-              r="3"
-              stroke="currentColor"
-              stroke-width="1.2"
-            />
-            <path
-              d="M4 20a8 8 0 0 1 16 0"
-              stroke="currentColor"
-              stroke-width="1.2"
-              stroke-linecap="round"
-              stroke-linejoin="round"
-            />
-          </svg>
-        </a>
-      </nav>
+      .start-card {
+        background: white;
+        border-radius: 12px;
+        padding: 60px 40px;
+        box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+        max-width: 500px;
+        width: 100%;
+        text-align: center;
+      }
+
+      .start-card h1 {
+        font-size: 42px;
+        color: #333;
+        margin: 0 0 10px 0;
+        font-weight: 700;
+      }
+
+      .start-card p {
+        color: #666;
+        font-size: 18px;
+        margin: 0 0 40px 0;
+        line-height: 1.5;
+      }
+
+      .button-group {
+        display: flex;
+        gap: 15px;
+        flex-direction: column;
+      }
+
+      .btn {
+        padding: 14px 32px;
+        font-size: 16px;
+        font-weight: 600;
+        border: none;
+        border-radius: 6px;
+        cursor: pointer;
+        transition: all 0.3s;
+        text-decoration: none;
+        display: inline-block;
+      }
+
+      .btn-primary {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+      }
+
+      .btn-primary:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(102, 126, 234, 0.6);
+      }
+
+      .btn-secondary {
+        background: #f0f0f0;
+        color: #333;
+        border: 2px solid #ddd;
+      }
+
+      .btn-secondary:hover {
+        background: #e8e8e8;
+        border-color: #999;
+      }
+
+      .features {
+        margin-top: 50px;
+        text-align: left;
+        padding-top: 30px;
+        border-top: 1px solid #eee;
+      }
+
+      .features h3 {
+        color: #333;
+        font-size: 16px;
+        margin-bottom: 20px;
+      }
+
+      .feature-item {
+        display: flex;
+        margin-bottom: 15px;
+        align-items: flex-start;
+      }
+
+      .feature-item svg {
+        width: 24px;
+        height: 24px;
+        color: #667eea;
+        margin-right: 12px;
+        flex-shrink: 0;
+        margin-top: 2px;
+      }
+
+      .feature-item p {
+        margin: 0;
+        font-size: 14px;
+        color: #666;
+      }
+    </style>
+    <script src="../user-utils.js" defer></script>
+    <script src="../auth-service.js" defer></script>
+    <script src="../route-guard.js" defer></script>
+  </head>
+  <body>
+    <div class="start-container">
+      <div class="start-card">
+        <h1>PartyHub</h1>
+        <p>Discover and share amazing parties and events in your area</p>
+
+        <div class="button-group">
+          <button class="btn btn-secondary" id="exploreBtn">
+            Explore as Guest
+          </button>
+        </div>
+
+        <div class="features">
+          <h3>Why join PartyHub?</h3>
+          <div class="feature-item">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2z" />
+              <path d="M10 17l-4-4 1.41-1.41L10 14.17l6.59-6.59L18 9l-8 8z" />
+            </svg>
+            <p>Discover trending parties and events near you</p>
+          </div>
+          <div class="feature-item">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2z" />
+              <path d="M10 17l-4-4 1.41-1.41L10 14.17l6.59-6.59L18 9l-8 8z" />
+            </svg>
+            <p>Connect with people and make new friends</p>
+          </div>
+          <div class="feature-item">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2z" />
+              <path d="M10 17l-4-4 1.41-1.41L10 14.17l6.59-6.59L18 9l-8 8z" />
+            </svg>
+            <p>Manage your profile and party invitations</p>
+          </div>
+        </div>
+      </div>
     </div>
+
+    <script>
+      document.addEventListener('DOMContentLoaded', function() {
+        // If already logged in, redirect to home
+        if (window.authService && window.authService.isLoggedIn()) {
+          window.location.href = '/index.html';
+          return;
+        }
+
+        const exploreBtn = document.getElementById('exploreBtn');
+        exploreBtn.addEventListener('click', function() {
+          window.location.href = '/index.html';
+        });
+      });
+    </script>
   </body>
 </html>

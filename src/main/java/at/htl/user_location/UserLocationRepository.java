@@ -1,6 +1,5 @@
 package at.htl.user_location;
 
-import at.htl.user.User;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import jakarta.persistence.EntityManager;

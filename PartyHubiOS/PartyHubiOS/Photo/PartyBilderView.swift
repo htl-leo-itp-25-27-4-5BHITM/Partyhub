@@ -46,7 +46,7 @@ struct PartyBilderView: View {
                             if istImBearbeitungsModus {
                                 Image(systemName: ausgewaehlteBilderZumLoeschen.contains(url)
                                       ? "checkmark.circle.fill" : "circle")
-                                    .foregroundStyle(Color.primaryDarkBlue)
+                                    .foregroundStyle(Color("primary dark blue"))
                                     .padding(5)
                             }
                         }
@@ -82,7 +82,7 @@ struct PartyBilderView: View {
                             .frame(height: 44)
                     }
                     .buttonStyle(.borderedProminent)
-                    .tint(Color.primaryDarkBlue)
+                    .tint(Color("primary dark blue"))
                     .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
                     .padding(16)
                     .onChange(of: selectedItems.count) { _, _ in

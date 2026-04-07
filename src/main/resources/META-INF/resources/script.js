@@ -1,6 +1,7 @@
 async function fetchUsers() {
     try {
-        const response = await fetch('http://localhost:8080/api/users');
+        const BASE_URL = window.location.hostname === "localhost" ? "http://localhost:8080" : "https://it220214.cloud.htl-leonding.ac.at";
+        const response = await fetch(`${BASE_URL}/api/users`);
         const users = await response.json();
         console.log("users:"  + users)
         const userTableBody = document.getElementById('userTable').querySelector('tbody');
@@ -44,8 +45,9 @@ function addFile() {
 }
 
 async function loadMedia(){
+    const BASE_URL = window.location.hostname === "localhost" ? "http://localhost:8080" : "https://it220214.cloud.htl-leonding.ac.at";
     const input = document.getElementById("media_test");
-    const response = await fetch('http://localhost:8080/api/media/1');
+    const response = await fetch(`${BASE_URL}/api/media/1`);
     const media = await response.json();
     console.log(media)
     media.forEach(element => {
@@ -104,7 +106,6 @@ async function attendParty(partyId) {
             alert('Anmelden fehlgeschlagen: ' + res.status);
             return;
         }
-        // refresh parties
         await fetchParties();
     } catch (err) {
         console.error('Attend error', err);
@@ -130,13 +131,13 @@ async function unattendParty(partyId) {
             alert('Abmelden fehlgeschlagen: ' + res.status);
             return;
         }
-        // refresh parties
         await fetchParties();
     } catch (err) {
         console.error('Unattend error', err);
         alert('Fehler beim Abmelden');
     }
 }
+
 document.getElementById('filterForm').addEventListener('submit', async e => {
     e.preventDefault();
 

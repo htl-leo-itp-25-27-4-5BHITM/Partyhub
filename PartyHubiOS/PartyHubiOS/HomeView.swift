@@ -39,7 +39,7 @@ struct HomeView: View {
                     }
                 } header: {
                     Label("Mein Standort", systemImage: "location.fill")
-                        .foregroundColor(Color.primaryPink)
+                        .foregroundStyle(Color("primary pink"))
                 }
             }
             .navigationTitle("Home")

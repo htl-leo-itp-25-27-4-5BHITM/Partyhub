@@ -34,7 +34,7 @@ struct ContentView: View {
                 }
              
         }
-        .tint(.primaryPink)
+        .tint(Color("primary pink"))
         .onReceive(NotificationCenter.default.publisher(for: .showPartyDetail)) { notification in
             if let partyId = notification.object as? Int {
                 selectedParty = parties.first(where: { $0.backendId == partyId })

@@ -99,6 +99,31 @@ public class UserResource {
     }
 
     @GET
+    @Path("/username/{username}")
+    public Response getUserByUsername(@PathParam("username") String username) {
+        var user = userRepository.findByUsername(username);
+        if (user.isEmpty()) {
+            return Response.status(Response.Status.NOT_FOUND).build();
+        }
+        return Response.ok(user.get()).build();
+    }
+
+    @GET
+    @PermitAll
+    @Path("/me")
+    public Response getCurrentUser(@QueryParam("userId") Long userId) {
+        if (userId == null) {
+            return Response.status(Response.Status.BAD_REQUEST)
+                .entity("{\"error\": \"userId parameter required\"}").build();
+        }
+        var user = userRepository.findById(userId);
+        if (user.isEmpty()) {
+            return Response.status(Response.Status.NOT_FOUND).build();
+        }
+        return Response.ok(user.get()).build();
+    }
+
+    @GET
     @Path("/{id}/followers/count")
     @Produces(MediaType.APPLICATION_JSON)
     public Response getFollowerCount(@PathParam("id") long id) {
@@ -127,6 +152,7 @@ public class UserResource {
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     @Transactional
+    @PermitAll
     public Response updateUser(@PathParam("id") long id, UserCreateDto userCreateDto) {
         logger.info("updateUser called with id: " + id);
         
@@ -220,7 +246,6 @@ public class UserResource {
     @Consumes(MediaType.MULTIPART_FORM_DATA)
     @Produces(MediaType.APPLICATION_JSON)
     @Transactional
-    @PermitAll
     public Response uploadProfilePicture(@PathParam("id") long id, @FormParam("file") FileUpload fileUpload) throws Exception {
         logger.info("uploadProfilePicture called for user: " + id);
 

@@ -1,11 +1,7 @@
 package at.htl.profile_picture;
 
-import at.htl.party.Party;
 import at.htl.user.User;
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
-
-import java.util.Set;
 
 @Entity
 @Table(name="profile_picture")

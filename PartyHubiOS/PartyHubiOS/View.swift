@@ -12,11 +12,11 @@ extension View {
     func applyPrimaryStyle() -> some View {
         self
             .font(.headline)
-            .foregroundColor(.white)
+            .foregroundStyle(.white)
             .padding(.vertical, 12)
             .padding(.horizontal, 24)
             .frame(maxWidth: .infinity)
-            .background(Color.primaryDarkBlue)
+            .background(Color("primary dark blue"))
             .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
     }
 }

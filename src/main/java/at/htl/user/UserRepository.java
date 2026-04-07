@@ -1,6 +1,7 @@
 package at.htl.user;
 
 import java.util.List;
+import java.util.Optional;
 
 import org.jboss.logging.Logger;
 
@@ -37,6 +38,10 @@ public class UserRepository {
         return em.find(User.class, id);
     }
 
+    public Optional<User> findById(Long id) {
+        return Optional.ofNullable(em.find(User.class, id));
+    }
+
     public User findByEmail(String email) {
         List<User> res = em.createQuery("SELECT u FROM User u WHERE u.email = :email", User.class)
                 .setParameter("email", email)
@@ -50,6 +55,26 @@ public class UserRepository {
                 .setParameter("distinctName", distinctName)
                 .getSingleResultOrNull();
         return res;
+    }
+
+    public Optional<User> findByUsername(String username) {
+        List<User> res = em.createQuery("SELECT u FROM User u WHERE u.username = :username", User.class)
+                .setParameter("username", username)
+                .setMaxResults(1)
+                .getResultList();
+        return res.isEmpty() ? Optional.empty() : Optional.of(res.get(0));
+    }
+
+    public Optional<User> findByKeycloakId(String keycloakId) {
+        List<User> res = em.createQuery("SELECT u FROM User u WHERE u.keycloakId = :keycloakId", User.class)
+                .setParameter("keycloakId", keycloakId)
+                .setMaxResults(1)
+                .getResultList();
+        return res.isEmpty() ? Optional.empty() : Optional.of(res.get(0));
+    }
+
+    public void persist(User user) {
+        em.persist(user);
     }
 
     public Response createUser(User user) {
@@ -72,3 +97,4 @@ public class UserRepository {
         return Response.ok(merged).build();
     }
 }
+
