@@ -4,14 +4,16 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width,initial-scale=1" />
     <title>Notifications</title>
+
     <link rel="stylesheet" href="../global.css" />
     <link rel="stylesheet" href="../index.css" />
     <link rel="stylesheet" href="./notifications.css" />
-    <!-- load Poppins for consistent sans-serif -->
+
     <link
       href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700;800&display=swap"
       rel="stylesheet"
     />
+
     <script src="../user-utils.js" defer></script>
     <script src="../auth-service.js" defer></script>
     <script src="../route-guard.js" defer></script>
@@ -27,233 +29,188 @@
         }
     </script>
   </head>
+
   <body class="bg-light">
     <div class="app-shell">
-      <div class="container py-4">
+      <main class="container py-4">
         <header class="page-header">
           <h1 class="page-title font-heading">Notifications</h1>
           <p class="page-subtitle font-body-text">Stay updated with your events</p>
         </header>
 
-        <section
-          class="notif-panel"
-          aria-live="polite"
-          aria-label="Benachrichtigungen"
-        >
-          <!-- titel entfernt, Liste direkt -->
-          <div class="notif-list" id="notifList">
-            <!-- Items werden per JS eingefügt -->
-          </div>
+        <section class="notif-panel" aria-live="polite" aria-label="Benachrichtigungen">
+          <div class="notif-list" id="notifList"></div>
 
-        <!-- Template für eine Notification: jetzt mit klickbarem Avatar links -->
-        <template id="notifTpl">
-          <article
-            class="notif-card"
-            role="group"
-            aria-label="Benachrichtigung"
-          >
-            <div class="notif-row">
-              <div class="notif-avatar">
-                <a class="avatar-link" href="#" target="_blank" rel="noopener">
-                  <img src="./images/profile.jpeg" alt="Profilbild" />
-                </a>
-              </div>
+          <template id="notifTpl">
+            <article class="notif-card" role="group" aria-label="Benachrichtigung">
+              <div class="notif-row">
+                <div class="notif-avatar">
+                  <a class="avatar-link" href="#" target="_blank" rel="noopener">
+                    <img src="./images/profile.jpeg" alt="Profilbild" />
+                  </a>
+                </div>
 
-              <div class="notif-text">
-                <div class="notif-message">Nachricht</div>
-                <div class="notif-time">vor kurzem</div>
-              </div>
+                <div class="notif-text">
+                  <div class="notif-message">Nachricht</div>
+                  <div class="notif-time">vor kurzem</div>
+                </div>
 
-              <div class="notif-actions" aria-hidden="false">
-                <button
-                  class="btn-view-party"
-                  aria-label="Party anzeigen"
-                  title="Party anzeigen"
-                >
-                  <svg
-                    viewBox="0 0 24 24"
-                    width="16"
-                    height="16"
-                    fill="none"
-                    aria-hidden="true"
+                <div class="notif-actions" aria-hidden="false">
+                  <button
+                    class="btn-view-party"
+                    aria-label="Party anzeigen"
+                    title="Party anzeigen"
                   >
-                    <path
-                      d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0z"
-                      stroke="currentColor"
-                      stroke-width="2"
-                      stroke-linecap="round"
-                      stroke-linejoin="round"
-                    />
-                    <path
-                      d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
-                      stroke="currentColor"
-                      stroke-width="2"
-                      stroke-linecap="round"
-                      stroke-linejoin="round"
-                    />
-                  </svg>
-                </button>
-                <button
-                  class="btn-accept"
-                  aria-label="Einladung annehmen"
-                  title="Annehmen"
-                >
-                  <svg
-                    viewBox="0 0 24 24"
-                    width="16"
-                    height="16"
-                    fill="none"
-                    aria-hidden="true"
-                  >
-                    <path
-                      d="M20 6L9 17l-5-5"
-                      stroke="currentColor"
-                      stroke-width="2"
-                      stroke-linecap="round"
-                      stroke-linejoin="round"
-                    />
-                  </svg>
-                </button>
-                <button
-                  class="btn-dismiss"
-                  aria-label="Benachrichtigung löschen"
-                  title="Löschen"
-                >
-                  <svg
-                    viewBox="0 0 24 24"
-                    width="14"
-                    height="14"
-                    fill="none"
-                    aria-hidden="true"
-                  >
-                    <path
-                      d="M18 6L6 18M6 6l12 12"
-                      stroke="currentColor"
-                      stroke-width="2"
-                      stroke-linecap="round"
-                      stroke-linejoin="round"
-                    />
-                  </svg>
-                </button>
-              </div>
-            </div>
-          </article>
-        </template>
-      </section>
+                    <svg
+                      viewBox="0 0 24 24"
+                      width="16"
+                      height="16"
+                      fill="none"
+                      aria-hidden="true"
+                    >
+                      <path
+                        d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0z"
+                        stroke="currentColor"
+                        stroke-width="2"
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                      />
+                      <path
+                        d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
+                        stroke="currentColor"
+                        stroke-width="2"
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                      />
+                    </svg>
+                  </button>
 
-      <!-- Bottom navigation -->
+                  <button
+                    class="btn-accept"
+                    aria-label="Einladung annehmen"
+                    title="Annehmen"
+                  >
+                    <svg
+                      viewBox="0 0 24 24"
+                      width="16"
+                      height="16"
+                      fill="none"
+                      aria-hidden="true"
+                    >
+                      <path
+                        d="M20 6L9 17l-5-5"
+                        stroke="currentColor"
+                        stroke-width="2"
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                      />
+                    </svg>
+                  </button>
+
+                  <button
+                    class="btn-dismiss"
+                    aria-label="Benachrichtigung löschen"
+                    title="Löschen"
+                  >
+                    <svg
+                      viewBox="0 0 24 24"
+                      width="14"
+                      height="14"
+                      fill="none"
+                      aria-hidden="true"
+                    >
+                      <path
+                        d="M18 6L6 18M6 6l12 12"
+                        stroke="currentColor"
+                        stroke-width="2"
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                      />
+                    </svg>
+                  </button>
+                </div>
+              </div>
+            </article>
+          </template>
+        </section>
+      </main>
+
       <nav class="bottom-nav" role="navigation" aria-label="Bottom navigation">
-      <a class="nav-btn" href="/index.html" aria-label="Home">
-        <svg
-          class="nav-icon icon--pink"
-          width="28"
-          height="28"
-          viewBox="0 0 24 24"
-          fill="none"
-          xmlns="http://www.w3.org/2000/svg"
-        >
-          <path
-            d="M3 6.5L8 4l7 2.5 6-2.5v11l-6 2.5L10 15 3 17.5v-11z"
-            stroke="currentColor"
-            stroke-width="1.2"
-            stroke-linejoin="round"
-            stroke-linecap="round"
-          />
-        </svg>
-      </a>
+        <a class="nav-btn" href="/index.html" aria-label="Home">
+          <svg class="nav-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path
+              d="M3 6.5L8 4l7 2.5 6-2.5v11l-6 2.5L10 15 3 17.5v-11z"
+              stroke="currentColor"
+              stroke-width="1.6"
+              stroke-linejoin="round"
+              stroke-linecap="round"
+            />
+          </svg>
+          <span class="nav-label">Home</span>
+        </a>
 
-      <a
-        class="nav-btn"
-        href="/listPartys/listPartys.html"
-        aria-label="List Parties"
-      >
-        <svg
-          class="nav-icon icon--pink"
-          width="28"
-          height="28"
-          viewBox="0 0 24 24"
-          fill="none"
-          xmlns="http://www.w3.org/2000/svg"
-        >
-          <rect
-            x="3"
-            y="3"
-            width="18"
-            height="18"
-            rx="3"
-            stroke="currentColor"
-            stroke-width="1.2"
-          />
-          <circle cx="8.5" cy="8.5" r="1.8" fill="currentColor" />
-          <path
-            d="M21 21l-6-6-5 5"
-            stroke="currentColor"
-            stroke-width="1.2"
-            stroke-linecap="round"
-            stroke-linejoin="round"
-          />
-        </svg>
-      </a>
+        <a class="nav-btn" href="/listPartys/listPartys.html" aria-label="Partys">
+          <svg class="nav-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <rect
+              x="3"
+              y="3"
+              width="18"
+              height="18"
+              rx="3"
+              stroke="currentColor"
+              stroke-width="1.6"
+            />
+            <circle cx="8.5" cy="8.5" r="1.8" fill="currentColor" />
+            <path
+              d="M21 21l-6-6-5 5"
+              stroke="currentColor"
+              stroke-width="1.6"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            />
+          </svg>
+          <span class="nav-label">Partys</span>
+        </a>
 
-      <a
-        class="nav-btn"
-        href="/notifications/notifications.html"
-        aria-label="Notifications"
-      >
-        <svg
-          class="nav-icon icon--pink"
-          width="28"
-          height="28"
-          viewBox="0 0 24 24"
-          fill="none"
-          xmlns="http://www.w3.org/2000/svg"
-        >
-          <path
-            d="M12 22a2.5 2.5 0 0 0 2.45-2H9.55A2.5 2.5 0 0 0 12 22z"
-            fill="currentColor"
-          />
-          <path
-            d="M18 8a6 6 0 10-12 0v5l-2 2v1h16v-1l-2-2V8z"
-            stroke="currentColor"
-            stroke-width="1.2"
-            stroke-linecap="round"
-            stroke-linejoin="round"
-          />
-        </svg>
-      </a>
+        <a class="nav-btn active" href="/notifications/notifications.html" aria-label="Inbox" aria-current="page">
+          <svg class="nav-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path
+              d="M12 22a2.5 2.5 0 0 0 2.45-2H9.55A2.5 2.5 0 0 0 12 22z"
+              fill="currentColor"
+            />
+            <path
+              d="M18 8a6 6 0 10-12 0v5l-2 2v1h16v-1l-2-2V8z"
+              stroke="currentColor"
+              stroke-width="1.6"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            />
+          </svg>
+          <span class="nav-label">Inbox</span>
+        </a>
 
-      <a class="nav-btn" href="/profile/profile.html" aria-label="Profile">
-        <svg
-          class="nav-icon icon--pink"
-          width="28"
-          height="28"
-          viewBox="0 0 24 24"
-          fill="none"
-          xmlns="http://www.w3.org/2000/svg"
-        >
-          <circle
-            cx="12"
-            cy="8.5"
-            r="3"
-            stroke="currentColor"
-            stroke-width="1.2"
-          />
-          <path
-            d="M4 20a8 8 0 0 1 16 0"
-            stroke="currentColor"
-            stroke-width="1.2"
-            stroke-linecap="round"
-            stroke-linejoin="round"
-          />
-        </svg>
-      </a>
-    </nav>
+        <a class="nav-btn" href="/profile/profile.html" aria-label="Profil">
+          <svg class="nav-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <circle
+              cx="12"
+              cy="8.5"
+              r="3"
+              stroke="currentColor"
+              stroke-width="1.6"
+            />
+            <path
+              d="M4 20a8 8 0 0 1 16 0"
+              stroke="currentColor"
+              stroke-width="1.6"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            />
+          </svg>
+          <span class="nav-label">Profil</span>
+        </a>
+      </nav>
+
+      <div class="toast-container" id="toastContainer"></div>
     </div>
-    <!-- /.container -->
-    </div>
-    <!-- /.app-shell -->
-
-    <!-- Toast Container für Rückmeldungen -->
-    <div class="toast-container" id="toastContainer"></div>
   </body>
 </html>

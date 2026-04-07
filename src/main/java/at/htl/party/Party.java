@@ -65,6 +65,9 @@ public class Party {
     @JoinColumn(name = "location_id", nullable = false)
     Location location;
 
+    @Column(name = "visibility", nullable = false)
+    private String visibility = "PUBLIC";
+
     public Party() {}
 
     public Long getId() {
@@ -201,5 +204,13 @@ public class Party {
 
     public void setInvitations(Set<Invitation> invitations) {
         this.invitations = invitations;
+    }
+
+    public String getVisibility() {
+        return visibility;
+    }
+
+    public void setVisibility(String visibility) {
+        this.visibility = visibility;
     }
 }
