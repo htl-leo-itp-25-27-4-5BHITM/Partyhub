@@ -8,6 +8,8 @@ struct ProfileView: View {
     @State private var isLoading = false
     @State private var showSignOutAlert = false
     @State private var showCamera = false
+    @State private var followerCount: Int = 0
+    @State private var followingCount: Int = 0
     
     struct UserProfile: Codable {
         let id: Int
@@ -16,6 +18,10 @@ struct ProfileView: View {
         let distinctName: String?
         let email: String?
         let biography: String?
+    }
+    
+    struct CountResponse: Codable {
+        let count: Int
     }
 
     var body: some View {
@@ -134,8 +140,8 @@ struct ProfileView: View {
             
             HStack(spacing: 20) {
                 StatView(number: "0", label: "Partys")
-                StatView(number: "0", label: "Follower")
-                StatView(number: "0", label: "Following")
+                StatView(number: "\(followerCount)", label: "Follower")
+                StatView(number: "\(followingCount)", label: "Following")
             }
             .padding(.vertical, 25)
             
@@ -184,6 +190,8 @@ struct ProfileView: View {
         UserDefaults.standard.removeObject(forKey: "partyhub_user_id")
         authManager.userId = nil
         user = nil
+        followerCount = 0
+        followingCount = 0
     }
     
     @MainActor
@@ -199,14 +207,24 @@ struct ProfileView: View {
     
     @MainActor
     private func loadUserProfile(userId: Int) async {
-        guard let url = URL(string: "\(Config.backendURL)/api/users/\(userId)") else { return }
+        guard let profileUrl = URL(string: "\(Config.backendURL)/api/users/\(userId)"),
+              let followerUrl = URL(string: "\(Config.backendURL)/api/users/\(userId)/followers/count"),
+              let followingUrl = URL(string: "\(Config.backendURL)/api/users/\(userId)/following/count") else { return }
         
         isLoading = true
         do {
-            let (data, _) = try await URLSession.shared.data(from: url)
-            let decoder = JSONDecoder()
-            decoder.keyDecodingStrategy = .convertFromSnakeCase
-            user = try decoder.decode(UserProfile.self, from: data)
+            async let profileRequest = URLSession.shared.data(from: profileUrl)
+            async let followerRequest = URLSession.shared.data(from: followerUrl)
+            async let followingRequest = URLSession.shared.data(from: followingUrl)
+            
+            let (profileData, _) = try await profileRequest
+            let (followerData, _) = try await followerRequest
+            let (followingData, _) = try await followingRequest
+            
+            user = try JSONDecoder().decode(UserProfile.self, from: profileData)
+            followerCount = (try? JSONDecoder().decode(CountResponse.self, from: followerData))?.count ?? 0
+            followingCount = (try? JSONDecoder().decode(CountResponse.self, from: followingData))?.count ?? 0
+            
         } catch {
             print("Failed to load user profile: \(error)")
         }
