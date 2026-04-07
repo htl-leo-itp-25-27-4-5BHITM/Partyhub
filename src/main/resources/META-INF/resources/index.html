@@ -1,15 +1,13 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="de">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Homepage</title>
+    <title>PartyHub – Homepage</title>
 
-    <!-- Deine Styles -->
     <link rel="stylesheet" href="./global.css" />
     <link rel="stylesheet" href="./index.css" />
 
-    <!-- Leaflet CSS -->
     <link
       rel="stylesheet"
       href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
@@ -17,7 +15,6 @@
       crossorigin=""
     />
 
-    <!-- Leaflet JS -->
     <script
       src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
       integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
@@ -25,89 +22,97 @@
       defer
     ></script>
 
-    <!-- Deine Scripts -->
     <script src="./index.js" defer></script>
     <script src="./nav.js" defer></script>
   </head>
 
   <body class="bg-light">
     <div class="app-shell">
-      <div class="container py-4">
-        <header class="page-header">
-          <h1 class="page-title font-heading">Homepage</h1>
-          <p class="page-subtitle font-body-text">Welcome to PartyHub</p>
+      <main class="container">
+        <header class="hero">
+          <div class="hero__badge">PartyHub</div>
+          <h1 class="hero__title">Finde deine nächste Party</h1>
+          <p class="hero__subtitle">
+            Wähle ein Event aus und entdecke die Teilnehmer direkt auf der Karte.
+          </p>
         </header>
 
-        <div class="party-selector" style="margin-bottom: 16px;">
-          <label for="partySelect" style="font-weight: bold; display: block; margin-bottom: 8px;">Party: </label>
-          <select id="partySelect" style="width: 100%; padding: 8px; font-size: 16px; border-radius: 4px; border: 1px solid #ccc;">
-            <option value="">Select a party to see attendees</option>
-          </select>
-        </div>
+        <section class="card control-card">
+          <label for="partySelect" class="control-card__label">Party auswählen</label>
+          <div class="select-wrap">
+            <select id="partySelect" class="party-select">
+              <option value="">Select a party to see attendees</option>
+            </select>
+          </div>
+        </section>
 
-        <h1 class="leaflet-title">Karte</h1>
+        <section class="map-section">
+          <div class="section-heading">
+            <h2 class="section-title">Live-Karte</h2>
+            <span class="section-chip">Attendees</span>
+          </div>
 
-        <!-- Map Wrapper -->
-        <div class="map-placeholder">
-          <div id="map"></div>
-        </div>
-      </div>
+          <div class="map-card">
+            <div id="map"></div>
+          </div>
+        </section>
+      </main>
 
       <nav class="bottom-nav" role="navigation" aria-label="Bottom navigation">
-        <a class="nav-btn" href="/index.html" aria-label="Home">
-          <svg class="nav-icon icon--pink" width="28" height="28" viewBox="0 0 24 24" fill="none"
-            xmlns="http://www.w3.org/2000/svg">
+        <a class="nav-btn active" href="/index.html" aria-label="Home" aria-current="page">
+          <svg class="nav-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
             <path
               d="M3 6.5L8 4l7 2.5 6-2.5v11l-6 2.5L10 15 3 17.5v-11z"
               stroke="currentColor"
-              stroke-width="1.2"
+              stroke-width="1.6"
               stroke-linejoin="round"
               stroke-linecap="round"
             />
           </svg>
+          <span class="nav-label">Home</span>
         </a>
 
-        <a class="nav-btn" href="/listPartys/listPartys.html" aria-label="List Parties">
-          <svg class="nav-icon icon--pink" width="28" height="28" viewBox="0 0 24 24" fill="none"
-            xmlns="http://www.w3.org/2000/svg">
-            <rect x="3" y="3" width="18" height="18" rx="3" stroke="currentColor" stroke-width="1.2" />
+        <a class="nav-btn" href="/listPartys/listPartys.html" aria-label="Partys">
+          <svg class="nav-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <rect x="3" y="3" width="18" height="18" rx="3" stroke="currentColor" stroke-width="1.6" />
             <circle cx="8.5" cy="8.5" r="1.8" fill="currentColor" />
             <path
               d="M21 21l-6-6-5 5"
               stroke="currentColor"
-              stroke-width="1.2"
+              stroke-width="1.6"
               stroke-linecap="round"
               stroke-linejoin="round"
             />
           </svg>
+          <span class="nav-label">Partys</span>
         </a>
 
-        <a class="nav-btn" href="/notifications/notifications.html" aria-label="Notifications">
-          <svg class="nav-icon icon--pink" width="28" height="28" viewBox="0 0 24 24" fill="none"
-            xmlns="http://www.w3.org/2000/svg">
+        <a class="nav-btn" href="/notifications/notifications.html" aria-label="Inbox">
+          <svg class="nav-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
             <path d="M12 22a2.5 2.5 0 0 0 2.45-2H9.55A2.5 2.5 0 0 0 12 22z" fill="currentColor" />
             <path
               d="M18 8a6 6 0 10-12 0v5l-2 2v1h16v-1l-2-2V8z"
               stroke="currentColor"
-              stroke-width="1.2"
+              stroke-width="1.6"
               stroke-linecap="round"
               stroke-linejoin="round"
             />
           </svg>
+          <span class="nav-label">Inbox</span>
         </a>
 
-        <a class="nav-btn" href="/profile/profile.html" aria-label="Profile">
-          <svg class="nav-icon icon--pink" width="28" height="28" viewBox="0 0 24 24" fill="none"
-            xmlns="http://www.w3.org/2000/svg">
-            <circle cx="12" cy="8.5" r="3" stroke="currentColor" stroke-width="1.2" />
+        <a class="nav-btn" href="/profile/profile.html" aria-label="Profil">
+          <svg class="nav-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <circle cx="12" cy="8.5" r="3" stroke="currentColor" stroke-width="1.6" />
             <path
               d="M4 20a8 8 0 0 1 16 0"
               stroke="currentColor"
-              stroke-width="1.2"
+              stroke-width="1.6"
               stroke-linecap="round"
               stroke-linejoin="round"
             />
           </svg>
+          <span class="nav-label">Profil</span>
         </a>
       </nav>
     </div>

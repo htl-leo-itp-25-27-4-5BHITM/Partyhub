@@ -1,152 +1,132 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="de">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Partys</title>
+
     <link rel="stylesheet" href="../global.css" />
     <link rel="stylesheet" href="../index.css" />
     <link rel="stylesheet" href="./listPartys.css" />
-    <!-- load Poppins for a clean sans look -->
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+
+    <link
+      href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700;800&display=swap"
+      rel="stylesheet"
+    />
+
     <script src="../user-utils.js" defer></script>
     <script src="../nav.js" defer></script>
     <script src="../backend-functions.js" defer></script>
     <script src="./listPartys.js" defer></script>
   </head>
+
   <body class="bg-light">
     <div class="app-shell">
-      <!-- top-bar removed: bottom navigation used instead -->
+      <main class="container parties-page">
+        <header class="page-header parties-header">
+          <div class="parties-header__text">
+            <h1 class="page-title font-heading">All Parties</h1>
+            <p class="page-subtitle font-body-text">
+              Discover amazing events near you
+            </p>
+          </div>
 
-      <div class="container py-4">
-        <header class="page-header">
-          <h1 class="page-title font-heading">All Parties</h1>
-          <p class="page-subtitle font-body-text">Discover amazing events near you</p>
           <a href="/addParty/addParty.html" class="create-party-btn">
             <span class="btn-text">Create New Party</span>
             <span class="btn-icon">
               <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true">
-                <path d="M12 4v16m8-8H4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+                <path
+                  d="M12 4v16m8-8H4"
+                  stroke="currentColor"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  fill="none"
+                />
               </svg>
             </span>
           </a>
         </header>
 
-        <!-- Parties List Container -->
         <div id="partiesContainer" class="parties-list">
-          <!-- Parties will be loaded here dynamically -->
           <div class="loading">Loading parties...</div>
         </div>
+      </main>
 
-        <!-- Bottom navigation -->
-        <nav
-          class="bottom-nav"
-          role="navigation"
-          aria-label="Bottom navigation"
-        >
-          <a class="nav-btn" href="/index.html" aria-label="Home">
-            <svg
-              class="nav-icon icon--pink"
-              width="28"
-              height="28"
-              viewBox="0 0 24 24"
-              fill="none"
-              xmlns="http://www.w3.org/2000/svg"
-            >
-              <path
-                d="M3 6.5L8 4l7 2.5 6-2.5v11l-6 2.5L10 15 3 17.5v-11z"
-                stroke="currentColor"
-                stroke-width="1.2"
-                stroke-linejoin="round"
-                stroke-linecap="round"
-              />
-            </svg>
-          </a>
-          <a
-            class="nav-btn"
-            href="/listPartys/listPartys.html"
-            aria-label="List Parties"
-          >
-            <svg
-              class="nav-icon icon--pink"
-              width="28"
-              height="28"
-              viewBox="0 0 24 24"
-              fill="none"
-              xmlns="http://www.w3.org/2000/svg"
-            >
-              <rect
-                x="3"
-                y="3"
-                width="18"
-                height="18"
-                rx="3"
-                stroke="currentColor"
-                stroke-width="1.2"
-              />
-              <circle cx="8.5" cy="8.5" r="1.8" fill="currentColor" />
-              <path
-                d="M21 21l-6-6-5 5"
-                stroke="currentColor"
-                stroke-width="1.2"
-                stroke-linecap="round"
-                stroke-linejoin="round"
-              />
-            </svg>
-          </a>
-          <a
-            class="nav-btn"
-            href="/notifications/notifications.html"
-            aria-label="Notifications"
-          >
-            <svg
-              class="nav-icon icon--pink"
-              width="28"
-              height="28"
-              viewBox="0 0 24 24"
-              fill="none"
-              xmlns="http://www.w3.org/2000/svg"
-            >
-              <path
-                d="M12 22a2.5 2.5 0 0 0 2.45-2H9.55A2.5 2.5 0 0 0 12 22z"
-                fill="currentColor"
-              />
-              <path
-                d="M18 8a6 6 0 10-12 0v5l-2 2v1h16v-1l-2-2V8z"
-                stroke="currentColor"
-                stroke-width="1.2"
-                stroke-linecap="round"
-                stroke-linejoin="round"
-              />
-            </svg>
-          </a>
-          <a class="nav-btn" href="/profile/profile.html" aria-label="Profile">
-            <svg
-              class="nav-icon icon--pink"
-              width="28"
-              height="28"
-              viewBox="0 0 24 24"
-              fill="none"
-              xmlns="http://www.w3.org/2000/svg"
-            >
-              <circle
-                cx="12"
-                cy="8.5"
-                r="3"
-                stroke="currentColor"
-                stroke-width="1.2"
-              />
-              <path
-                d="M4 20a8 8 0 0 1 16 0"
-                stroke="currentColor"
-                stroke-width="1.2"
-                stroke-linecap="round"
-                stroke-linejoin="round"
-              />
-            </svg>
-          </a>
-        </nav>
-      </div>
+      <nav class="bottom-nav" role="navigation" aria-label="Bottom navigation">
+        <a class="nav-btn" href="/index.html" aria-label="Home">
+          <svg class="nav-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path
+              d="M3 6.5L8 4l7 2.5 6-2.5v11l-6 2.5L10 15 3 17.5v-11z"
+              stroke="currentColor"
+              stroke-width="1.6"
+              stroke-linejoin="round"
+              stroke-linecap="round"
+            />
+          </svg>
+          <span class="nav-label">Home</span>
+        </a>
+
+        <a class="nav-btn active" href="/listPartys/listPartys.html" aria-label="Partys" aria-current="page">
+          <svg class="nav-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <rect
+              x="3"
+              y="3"
+              width="18"
+              height="18"
+              rx="3"
+              stroke="currentColor"
+              stroke-width="1.6"
+            />
+            <circle cx="8.5" cy="8.5" r="1.8" fill="currentColor" />
+            <path
+              d="M21 21l-6-6-5 5"
+              stroke="currentColor"
+              stroke-width="1.6"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            />
+          </svg>
+          <span class="nav-label">Partys</span>
+        </a>
+
+        <a class="nav-btn" href="/notifications/notifications.html" aria-label="Inbox">
+          <svg class="nav-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path
+              d="M12 22a2.5 2.5 0 0 0 2.45-2H9.55A2.5 2.5 0 0 0 12 22z"
+              fill="currentColor"
+            />
+            <path
+              d="M18 8a6 6 0 10-12 0v5l-2 2v1h16v-1l-2-2V8z"
+              stroke="currentColor"
+              stroke-width="1.6"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            />
+          </svg>
+          <span class="nav-label">Inbox</span>
+        </a>
+
+        <a class="nav-btn" href="/profile/profile.html" aria-label="Profil">
+          <svg class="nav-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <circle
+              cx="12"
+              cy="8.5"
+              r="3"
+              stroke="currentColor"
+              stroke-width="1.6"
+            />
+            <path
+              d="M4 20a8 8 0 0 1 16 0"
+              stroke="currentColor"
+              stroke-width="1.6"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            />
+          </svg>
+          <span class="nav-label">Profil</span>
+        </a>
+      </nav>
     </div>
   </body>
 </html>
