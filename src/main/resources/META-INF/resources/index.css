@@ -1,154 +1,135 @@
-.page-header {
-  text-align: center;
-  margin-bottom: 24px;
-  padding: 16px 0;
+.hero {
+  padding: 4px 4px 0;
 }
 
-.page-title {
-  font-size: var(--font-size-xxl);
-  color: white;
-  margin: 0 0 8px 0;
-  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
-  letter-spacing: 1px;
-  word-wrap: break-word;
-  overflow-wrap: break-word;
-  hyphens: auto;
+.hero__badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 7px 12px;
+  margin-bottom: 10px;
+  border-radius: 999px;
+  background: rgba(255, 46, 99, 0.14);
+  border: 1px solid rgba(255, 46, 99, 0.25);
+  color: #ffd2e1;
+  font-size: var(--font-size-xs);
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  font-family: var(--font-body);
 }
 
-.page-subtitle {
-  font-size: var(--font-size-m);
-  color: rgba(255, 255, 255, 0.8);
-  margin: 0;
-  font-style: italic;
+.hero__title {
+  font-family: var(--font-display);
+  font-size: clamp(1.8rem, 4.6vw, 2.6rem);
+  line-height: 1.05;
+  color: var(--text-primary);
 }
 
-:root {
-  --nav-height: 96px;
-  --top-height: 0px;
-  --nav-bg: #160a35;
-  --nav-elev: rgba(0, 0, 0, 0.35);
-  --accent-pink: #ff2e63;
-  --accent-green: #39f57a;
-  --nav-surface: rgba(24, 10, 44, 0.95);
-  --nav-glow: 0 6px 24px rgba(57, 245, 122, 0.08);
+.hero__subtitle {
+  margin-top: 10px;
+  color: var(--text-secondary);
+  font-size: 0.96rem;
+  line-height: 1.4;
+  max-width: 560px;
+  font-family: var(--font-body);
 }
 
-/* ====== FIX: stabile Höhenkette ====== */
-html,
-body {
-  height: 100%;
-  margin: 0;
-  padding: 0;
+.control-card {
+  padding: 14px;
 }
 
-body {
-  background: var(--bg-primary);
-  padding: 0;
-  overflow: hidden; /* FIX: kein doppeltes Scrollen */
+.control-card__label {
+  display: block;
+  margin-bottom: 8px;
+  font-size: 0.92rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  font-family: var(--font-body);
 }
 
-/* ====== FIX: app-shell als Flex, kein overflow-y:auto ====== */
-.app-shell {
+.select-wrap {
+  position: relative;
+}
+
+.party-select {
   width: 100%;
-  max-width: none;
-  margin: 0;
-  background: var(--bg-secondary);
-  border-radius: 0;
-  overflow: hidden; /* FIX */
-  box-shadow: 0 14px 40px rgba(15, 12, 40, 0.12);
-  position: relative;
-  height: 100vh;
-
-  display: flex;          /* FIX */
-  flex-direction: column; /* FIX */
-  min-height: 0;          /* FIX */
+  appearance: none;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  background: rgba(11, 8, 24, 0.45);
+  color: var(--text-primary);
+  border-radius: 14px;
+  padding: 12px 14px;
+  font-size: 0.98rem;
+  outline: none;
+  font-family: var(--font-body);
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
 }
 
-.top-bar {
-  position: relative;
-  height: var(--top-height);
+.party-select:focus {
+  border-color: var(--accent-color);
+  box-shadow: 0 0 0 4px rgba(255, 46, 99, 0.16);
+}
+
+.party-select option {
+  color: #111;
+}
+
+.map-section {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.section-heading {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 12px 18px;
-  background: #1a0f3b;
-  z-index: 30;
-  flex: 0 0 auto; /* FIX */
+  gap: 12px;
+  padding: 0 2px;
 }
 
-.top-btn {
-  width: 56px;
-  height: 56px;
-  border-radius: 28px;
+.section-title {
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  font-family: var(--font-body);
+}
+
+.section-chip {
   display: inline-flex;
   align-items: center;
-  justify-content: center;
-  background: transparent;
-  border: none;
-  cursor: pointer;
+  padding: 6px 11px;
+  border-radius: 999px;
+  background: rgba(62, 193, 243, 0.14);
+  border: 1px solid rgba(62, 193, 243, 0.24);
+  color: #cfeeff;
+  font-size: 0.78rem;
+  font-weight: 600;
+  font-family: var(--font-body);
 }
 
-.top-btn.circle-pink {
-  background: var(--accent-pink);
-  box-shadow: 0 8px 26px rgba(255, 46, 99, 0.12);
-  border-radius: 28px;
-}
-.top-btn.circle-pink svg {
-  color: #fff;
-  width: 22px;
-  height: 22px;
-}
-
-.top-btn.plus-pink {
-  background: transparent;
-  width: 56px;
-  height: 56px;
-}
-.top-btn.plus-pink svg {
-  width: 36px;
-  height: 36px;
-  color: var(--accent-pink);
-  stroke: currentColor;
-}
-
-/* ====== FIX: container als Flex, kein height:100% + overflow-y:auto ====== */
-.container {
-  flex: 1;                 /* FIX */
-  min-height: 0;           /* FIX */
-  overflow: hidden;        /* FIX */
-  display: flex;           /* FIX */
-  flex-direction: column;  /* FIX */
-
-  padding: 8px 12px 12px 12px;
-  box-sizing: border-box;
-  padding-bottom: calc(var(--nav-height) + 12px);
-}
-
-/* optional falls du page-content benutzt */
-.page-content {
+.map-card {
   flex: 1;
-  min-height: 0;          /* FIX */
-  display: flex;
-  flex-direction: column;
-}
-
-/* ====== FIX: Map braucht echte Flex-Höhe + min-height:0 ====== */
-.map-placeholder {
-  flex: 1;                 /* FIX */
-  min-height: 0;           /* FIX (super wichtig!) */
-  border-radius: 6px;
+  min-height: 360px;
+  border-radius: 28px;
   overflow: hidden;
-  background: transparent;
+  border: 1px solid var(--border-soft);
+  background: rgba(255, 255, 255, 0.12);
+  backdrop-filter: blur(12px);
+  box-shadow: var(--shadow-soft);
   position: relative;
 }
 
-/* dein map div */
 #map {
   width: 100%;
   height: 100%;
 }
 
-/* ====== FIX: Leaflet Tile-Salat durch globale img-Regeln ====== */
+.leaflet-container {
+  background: #1a1035;
+}
+
 .leaflet-container img,
 .leaflet-container .leaflet-tile {
   max-width: none !important;
@@ -157,167 +138,17 @@ body {
   height: auto;
 }
 
-/* Bottom nav bleibt wie bei dir (nur: das kann Performance kosten) */
-.bottom-nav {
-  position: fixed;
-  left: 0;
-  transform: none;
-  bottom: 0;
-  width: 100%;
-  max-width: none;
-  height: var(--nav-height);
-  padding: 10px 12px;
-  background: linear-gradient(180deg, var(--nav-surface), #12072b);
-  display: flex;
-  justify-content: space-around;
-  align-items: center;
-  box-shadow: var(--nav-glow), 0 -12px 28px rgba(0, 0, 0, 0.28);
-  border-top: 1px solid rgba(255, 255, 255, 0.03);
-  backdrop-filter: blur(6px);
-  z-index: 9999;
-  border-radius: 0;
-}
-
-.nav-btn {
-  background: transparent;
-  border: none;
-  padding: 8px;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  text-decoration: none;
-  color: inherit;
-  width: 76px;
-  height: 76px;
-  border-radius: 20px;
-}
-
-.nav-icon {
-  display: block;
-  width: 54px;
-  height: 54px;
-  transition: transform 0.14s ease, opacity 0.12s ease, filter 0.12s ease;
-}
-
-.nav-icon path,
-.nav-icon rect,
-.nav-icon circle,
-.nav-icon line,
-.nav-icon polyline {
-  stroke-width: 1.8;
-  stroke-linecap: round;
-  stroke-linejoin: round;
-}
-
-.nav-icon {
-  color: var(--accent-pink);
-  opacity: 0.98;
-}
-.nav-btn .nav-icon {
-  display: inline-block;
-}
-.nav-btn:not(.active) .nav-icon {
-  filter: drop-shadow(0 2px 8px rgba(255, 46, 99, 0.06));
-}
-.nav-btn.active .nav-icon,
-.nav-icon.icon--green {
-  color: var(--accent-green) !important;
-  filter: drop-shadow(0 8px 28px rgba(57, 245, 122, 0.18));
-}
-
-.nav-btn {
-  position: relative;
-}
-.nav-btn::after {
-  content: "";
-  position: absolute;
-  top: 14px;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 36px;
-  height: 5px;
-  border-radius: 6px;
-  background: transparent;
-  transition: background 0.12s ease, transform 0.12s ease, opacity 0.12s ease;
-  opacity: 0;
-}
-.nav-btn.active::after {
-  background: linear-gradient(
-    90deg,
-    rgba(57, 245, 122, 0.98),
-    rgba(57, 245, 122, 0.9)
-  );
-  opacity: 1;
-  transform: translateX(-50%) translateY(-3px);
-}
-
-.nav-btn:active .nav-icon,
-.nav-btn:focus .nav-icon {
-  transform: scale(0.96);
-  opacity: 0.98;
-}
-
-.nav-btn.active .nav-icon {
-  transform: scale(1.18);
-}
-
-@media (max-width: 420px) {
-  :root {
-    --nav-height: 78px;
-  }
-  .nav-icon {
-    width: 38px;
-    height: 38px;
-  }
-}
-
 @media (max-width: 480px) {
-  .page-title {
-    font-size: var(--font-size-xl);
+  .hero__title {
+    font-size: 1.7rem;
   }
-}
 
-.page-content {
-  min-height: calc(100vh - var(--nav-height));
-}
-
-/* Enforce consistent bottom navigation sizing across all pages */
-.bottom-nav,
-.bottom-nav * {
-  box-sizing: border-box;
-}
-
-/* fixed dimensions to avoid size drift between pages */
-.bottom-nav {
-  height: var(--nav-height) !important;
-  padding: 10px 12px !important;
-}
-.bottom-nav .nav-btn {
-  width: 76px !important;
-  height: 76px !important;
-  padding: 8px !important;
-  border-radius: 20px !important;
-}
-.bottom-nav .nav-icon {
-  width: 54px !important;
-  height: 54px !important;
-}
-
-/* ensure any SVG inside nav uses the explicit size (override inline attributes if needed) */
-.bottom-nav svg {
-  width: 54px !important;
-  height: 54px !important;
-}
-
-@media (max-width: 420px) {
-  .bottom-nav .nav-btn {
-    width: 64px !important;
-    height: 64px !important;
+  .hero__subtitle {
+    font-size: 0.9rem;
   }
-  .bottom-nav .nav-icon,
-  .bottom-nav svg {
-    width: 38px !important;
-    height: 38px !important;
+
+  .map-card {
+    min-height: 310px;
+    border-radius: 22px;
   }
 }
