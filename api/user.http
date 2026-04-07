@@ -21,7 +21,7 @@ GET http://localhost:8080/api/users/1
 ?? status == 200
 
 ### 
-GET http://localhost:8080/api/users/handle/anna_h
+GET http://localhost:8080/api/users/handle/anna_huber
 Accept: application/json
 
 ?? status == 200

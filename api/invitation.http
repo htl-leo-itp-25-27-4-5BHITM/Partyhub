@@ -19,8 +19,8 @@ POST http://localhost:8080/api/invites?user=1
 Content-Type: application/json
 
 {
-  "recipient": 3,
-  "partyId": 1
+  "recipient": 4,
+  "partyId": 2
 }
 
 ?? status == 201

@@ -6,6 +6,7 @@ docker-compose up -d;
 
 echo ">> Building project"
 chmod +x mvnw
+# chmod +x run-http-tests.sh
 # ./mvnw clean
 ./mvnw install package
 echo ">> Starting quarkus"

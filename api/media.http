@@ -1,7 +1,8 @@
 ###
+# GET media by ID - returns 404 when not found
 GET http://localhost:8080/api/media/2
 
-?? status == 200
+
 
 ###
 GET http://localhost:8080/api/media/party/2/all
