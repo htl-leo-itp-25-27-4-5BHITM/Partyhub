@@ -22,14 +22,14 @@ struct TimeTrackingView: View {
                                         .font(.headline)
                                     Text("Seit \(entry.startTime.formatted(date: .omitted, time: .shortened)) Uhr")
                                         .font(.caption)
-                                        .foregroundColor(.secondary)
+                                        .foregroundStyle(.secondary)
                                 }
                                 Spacer()
                                 if let endTime = entry.endTime {
                                     VStack(alignment: .trailing) {
                                         Text("\(entry.startTime.formatted(.dateTime.hour().minute())) bis \(endTime.formatted(.dateTime.hour().minute()))")
                                             .font(.caption)
-                                            .foregroundColor(.secondary)
+                                            .foregroundStyle(.secondary)
                                         Text(formatDuration(from: entry.startTime, to: endTime))
                                             .fontWeight(.bold)
                                             .font(.title3)
@@ -38,11 +38,11 @@ struct TimeTrackingView: View {
                                     VStack(alignment: .trailing) {
                                         Text(formatDuration(from: entry.startTime, to: currentTime))
                                             .fontWeight(.bold)
-                                            .foregroundColor(.primaryPink)
+                                            .foregroundStyle(Color("primary pink"))
                                             .monospacedDigit()
                                         Text("aktiv")
                                             .font(.caption2)
-                                            .foregroundColor(.primaryPink)
+                                            .foregroundStyle(Color("primary pink"))
                                     }
                                 }
                             }
