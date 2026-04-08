@@ -31,8 +31,11 @@ public class PartyResource {
     @Produces(MediaType.APPLICATION_JSON)
     @Path("")
     @Transactional
-    public Response getParties() {
-        return Response.ok().entity( partyRepository.getParties()).build();
+    public Response getParties(
+            @QueryParam("user") Long userId,
+            @HeaderParam("X-User-Id") Long headerUserId) {
+        Long actualUserId = userId != null ? userId : headerUserId;
+        return Response.ok().entity(partyRepository.getPartiesByUser(actualUserId)).build();
     }
 
     @POST
@@ -51,8 +54,12 @@ public class PartyResource {
     @Transactional
     @Produces(MediaType.APPLICATION_JSON)
     @Path("/{id}")
-    public Response getParty(@PathParam("id") Long id) {
-        Party party = partyRepository.getPartyById(id);
+    public Response getParty(
+            @PathParam("id") Long id,
+            @QueryParam("user") Long userId,
+            @HeaderParam("X-User-Id") Long headerUserId) {
+        Long actualUserId = userId != null ? userId : headerUserId;
+        Party party = partyRepository.getPartyByIdIfVisible(id, actualUserId);
         if (party == null) {
             return Response.status(Response.Status.NOT_FOUND).build();
         }

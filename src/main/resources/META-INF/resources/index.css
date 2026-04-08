@@ -109,6 +109,10 @@
   font-family: var(--font-body);
 }
 
+.map-placeholder{
+  height:100%;
+}
+
 .map-card {
   flex: 1;
   min-height: 360px;

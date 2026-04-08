@@ -52,6 +52,7 @@ CREATE TABLE IF NOT EXISTS party (
     website VARCHAR(500),
     description TEXT,
     fee DECIMAL(10,2),
+    visibility VARCHAR(50) DEFAULT 'PUBLIC',
     created_at TIMESTAMP DEFAULT NOW()
 );
 
@@ -76,6 +77,17 @@ CREATE TABLE IF NOT EXISTS invitation (
     sender_id BIGINT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
     recipient_id BIGINT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
     party_id BIGINT NOT NULL REFERENCES party(id) ON DELETE CASCADE
+);
+
+-- Notification table
+CREATE TABLE IF NOT EXISTS notification (
+    id BIGSERIAL PRIMARY KEY,
+    recipient_id BIGINT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    sender_id BIGINT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    party_id BIGINT NOT NULL REFERENCES party(id) ON DELETE CASCADE,
+    message VARCHAR(500) NOT NULL,
+    status VARCHAR(50) DEFAULT 'UNREAD',
+    created_at TIMESTAMP DEFAULT NOW()
 );
 
 -- Follow table (friendship)

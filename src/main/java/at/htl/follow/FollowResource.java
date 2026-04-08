@@ -32,7 +32,7 @@ public class FollowResource {
     }
 
     @GET
-    @Path("/following/{id}/cout")
+    @Path("/following/{id}/count")
     @Produces(MediaType.APPLICATION_JSON)
     public Response getFollowingCount (@PathParam("id") long id){
         long count = followRepository.getFollowingCount(id);

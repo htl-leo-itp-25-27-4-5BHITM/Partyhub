@@ -12,6 +12,10 @@ import at.htl.category.CategoryRepository;
 import at.htl.location.Location;
 import at.htl.location.LocationRepository;
 import at.htl.user.User;
+import at.htl.invitation.Invitation;
+import at.htl.notification.Notification;
+import at.htl.notification.NotificationRepository;
+import at.htl.follow.FollowRepository;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import jakarta.persistence.EntityManager;
@@ -37,6 +41,12 @@ public class PartyRepository {
     @Inject
     CategoryRepository categoryRepository;
 
+    @Inject
+    NotificationRepository notificationRepository;
+
+    @Inject
+    FollowRepository followRepository;
+
     //@Inject
     //UserRepository userRepository;
 
@@ -44,6 +54,42 @@ public class PartyRepository {
 
     public List<Party> getParties() {
         return entityManager.createQuery("SELECT p FROM Party p", Party.class).getResultList();
+    }
+
+    public List<Party> getPartiesByUser(Long userId) {
+        if (userId == null) {
+            // If no user ID provided, only return PUBLIC parties
+            return entityManager.createQuery(
+                    "SELECT DISTINCT p FROM Party p WHERE p.visibility = 'PUBLIC' ORDER BY p.time_start DESC",
+                    Party.class)
+                    .getResultList();
+        }
+
+        User user = entityManager.find(User.class, userId);
+        if (user == null) {
+            return entityManager.createQuery(
+                    "SELECT DISTINCT p FROM Party p WHERE p.visibility = 'PUBLIC' ORDER BY p.time_start DESC",
+                    Party.class)
+                    .getResultList();
+        }
+
+        // Return:
+        // 1. All PUBLIC parties
+        // 2. PRIVATE parties where user is host
+        // 3. PRIVATE parties where user is invited (has invitation)
+        // 4. PRIVATE parties where user is attendee
+        return entityManager.createQuery(
+                "SELECT DISTINCT p FROM Party p " +
+                "LEFT JOIN p.invitations i " +
+                "LEFT JOIN p.users pu " +
+                "WHERE p.visibility = 'PUBLIC' " +
+                "OR p.host_user.id = :userId " +
+                "OR i.recipient.id = :userId " +
+                "OR pu.id = :userId " +
+                "ORDER BY p.time_start DESC",
+                Party.class)
+                .setParameter("userId", userId)
+                .getResultList();
     }
 
     public Response addParty(PartyCreateDto partyCreateDto, Long userId) {
@@ -63,7 +109,39 @@ public class PartyRepository {
         Party party = partyCreateDtoToParty(partyCreateDto);
         party.setHost_user(host);
 
+        // Set visibility
+        String visibility = partyCreateDto.visibility() != null ? partyCreateDto.visibility() : "PUBLIC";
+        party.setVisibility(visibility);
+
         entityManager.persist(party);
+
+        // Handle invitations and notifications for PRIVATE parties
+        if ("PRIVATE".equalsIgnoreCase(visibility) && partyCreateDto.selectedUsers() != null && !partyCreateDto.selectedUsers().isEmpty()) {
+            for (String selectedHandle : partyCreateDto.selectedUsers()) {
+                User recipient = entityManager.createQuery(
+                        "SELECT u FROM User u WHERE u.distinctName = :distinctName",
+                        User.class)
+                        .setParameter("distinctName", selectedHandle)
+                        .getResultList()
+                        .stream()
+                        .findFirst()
+                        .orElse(null);
+
+                if (recipient != null && !recipient.getId().equals(userId)) {
+                    // Create invitation
+                    Invitation invitation = new Invitation();
+                    invitation.setSender(host);
+                    invitation.setRecipient(recipient);
+                    invitation.setParty(party);
+                    entityManager.persist(invitation);
+
+                    // Create notification
+                    String message = host.getDisplayName() + " hat dich zu der Party \"" + party.getTitle() + "\" eingeladen";
+                    Notification notification = new Notification(recipient, host, party, message);
+                    notificationRepository.createNotification(notification);
+                }
+            }
+        }
 
         return Response.created(
                 UriBuilder.fromResource(PartyResource.class)
@@ -167,6 +245,40 @@ public class PartyRepository {
 
     public Party getPartyById(Long party_id) {
         return entityManager.find(Party.class, party_id);
+    }
+
+    public Party getPartyByIdIfVisible(Long party_id, Long userId) {
+        Party party = entityManager.find(Party.class, party_id);
+        if (party == null) {
+            return null;
+        }
+
+        // Check if party is visible to this user
+        if ("PUBLIC".equals(party.getVisibility())) {
+            return party;
+        }
+
+        // For PRIVATE parties, check if user is authorized
+        if (userId != null) {
+            // User is the host
+            if (party.getHost_user().getId().equals(userId)) {
+                return party;
+            }
+
+            // User is invited (has invitation)
+            boolean hasInvitation = party.getInvitations() != null && 
+                    party.getInvitations().stream().anyMatch(i -> i.getRecipient().getId().equals(userId));
+            if (hasInvitation) {
+                return party;
+            }
+
+            // User is attendee
+            if (party.getUsers() != null && party.getUsers().stream().anyMatch(u -> u.getId().equals(userId))) {
+                return party;
+            }
+        }
+
+        return null; // Not authorized to view this private party
     }
 
     public Response attendParty(Long partyId, Long userId) {
@@ -295,6 +407,7 @@ public class PartyRepository {
             throw new BadRequestException("Kategorie mit ID " + catId + " existiert nicht im System.");
         }
         party.setCategory(category);
+        party.setVisibility(dto.visibility() != null ? dto.visibility() : "PUBLIC");
 
         party.setCreated_at(LocalDateTime.now());
         return party;
