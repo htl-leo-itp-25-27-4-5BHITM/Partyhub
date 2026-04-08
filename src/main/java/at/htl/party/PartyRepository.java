@@ -117,11 +117,11 @@ public class PartyRepository {
 
         // Handle invitations and notifications for PRIVATE parties
         if ("PRIVATE".equalsIgnoreCase(visibility) && partyCreateDto.selectedUsers() != null && !partyCreateDto.selectedUsers().isEmpty()) {
-            for (String selectedUsername : partyCreateDto.selectedUsers()) {
+            for (String selectedHandle : partyCreateDto.selectedUsers()) {
                 User recipient = entityManager.createQuery(
-                        "SELECT u FROM User u WHERE u.username = :username",
+                        "SELECT u FROM User u WHERE u.distinctName = :distinctName",
                         User.class)
-                        .setParameter("username", selectedUsername)
+                        .setParameter("distinctName", selectedHandle)
                         .getResultList()
                         .stream()
                         .findFirst()

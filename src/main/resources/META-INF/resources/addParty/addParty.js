@@ -664,6 +664,10 @@ document.addEventListener("DOMContentLoaded", () => {
     if (partyData.id) {
       // update existing in localStorage if present
       const idx = parties.findIndex((x) => String(x.id) === String(partyData.id));
+      function formatDateForBackend(dateString) {
+  if (!dateString) return null;
+  return dateString.replace(".000Z", "");
+}
       if (idx >= 0) {
         parties[idx] = Object.assign({}, parties[idx], {
           id: partyData.id,
@@ -672,8 +676,8 @@ document.addEventListener("DOMContentLoaded", () => {
           longitude: partyData.longitude,
           location_address: partyData.location_address,
           description: partyData.description,
-          time_start: partyData.time_start,
-          time_end: partyData.time_end,
+          time_start: formatDateForBackend(partyData.time_start),
+          time_end: formatDateForBackend(partyData.time_end),
           visibility: partyData.visibility,
           entry_costs: partyData.entry_costs,
           theme: partyData.theme,
@@ -763,7 +767,7 @@ document.addEventListener("DOMContentLoaded", () => {
           body: JSON.stringify(backendPayload),
         });
       }
-
+    console.log("PAYLOAD:", backendPayload);
       if (!response.ok) {
         console.error("Backend error:", response.statusText);
         const errorText = await response.text();
