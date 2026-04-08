@@ -33,7 +33,7 @@ GET {{baseUrl}}/{{partyId}}
 ?? status == 200
 
 ### Update Party
-POST {{baseUrl}}/{{partyId}}?user=1
+PUT {{baseUrl}}/{{partyId}}?user=1
 Content-Type: application/json
 
 {
