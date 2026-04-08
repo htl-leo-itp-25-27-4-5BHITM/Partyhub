@@ -30,9 +30,9 @@ public class Party {
     private String title;
     private LocalDateTime time_start;
     private LocalDateTime time_end;
-    private int max_people;
-    private int min_age;
-    private int max_age;
+    private Integer max_people;
+    private Integer min_age;
+    private Integer max_age;
     private String website;
     private String description;
     private Double fee;
@@ -118,29 +118,14 @@ public class Party {
         this.time_end = time_end;
     }
 
-    public int getMax_people() {
-        return max_people;
-    }
+    public Integer getMax_people() { return max_people; }
+    public void setMax_people(Integer max_people) { this.max_people = max_people; }
 
-    public void setMax_people(int max_people) {
-        this.max_people = max_people;
-    }
+    public Integer getMin_age() { return min_age; }
+    public void setMin_age(Integer min_age) { this.min_age = min_age; }
 
-    public int getMin_age() {
-        return min_age;
-    }
-
-    public void setMin_age(int min_age) {
-        this.min_age = min_age;
-    }
-
-    public int getMax_age() {
-        return max_age;
-    }
-
-    public void setMax_age(int max_age) {
-        this.max_age = max_age;
-    }
+    public Integer getMax_age() { return max_age; }
+    public void setMax_age(Integer max_age) { this.max_age = max_age; }
 
     public String getDescription() {
         return description;

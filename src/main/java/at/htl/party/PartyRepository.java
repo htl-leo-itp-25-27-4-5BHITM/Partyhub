@@ -160,31 +160,66 @@ public class PartyRepository {
     }
 
     public Response updateParty(Long id, PartyCreateDto partyCreateDto, Long userId) {
-        if (userId == null) {
-            return Response.status(Response.Status.BAD_REQUEST)
-                    .entity("{\"error\": \"User ID required\"}")
-                    .build();
-        }
-
-        Party party = entityManager.find(Party.class, id);
-        if (party == null) {
-            return Response.status(Response.Status.NOT_FOUND).build();
-        }
-
-        User host = entityManager.find(User.class, userId);
-        if (host == null) {
-            return Response.status(Response.Status.NOT_FOUND)
-                    .entity("{\"error\": \"User not found\"}")
-                    .build();
-        }
-
-        Party updatedFields = partyCreateDtoToParty(partyCreateDto);
-        updatedFields.setId(id);
-        updatedFields.setHost_user(host);
-
-        entityManager.merge(updatedFields);
-        return Response.ok(updatedFields).build();
+    if (userId == null) {
+        return Response.status(Response.Status.BAD_REQUEST)
+                .entity("{\"error\": \"User ID required\"}")
+                .build();
     }
+
+    Party party = entityManager.find(Party.class, id);
+    if (party == null) {
+        return Response.status(Response.Status.NOT_FOUND).build();
+    }
+
+    User host = entityManager.find(User.class, userId);
+    if (host == null) {
+        return Response.status(Response.Status.NOT_FOUND)
+                .entity("{\"error\": \"User not found\"}")
+                .build();
+    }
+
+    // ✅ Direkt das gemanagte Objekt updaten
+    party.setTitle(partyCreateDto.title());
+    party.setDescription(partyCreateDto.description());
+    party.setFee(partyCreateDto.fee());
+    party.setTime_start(partyCreateDto.time_start());
+    party.setTime_end(partyCreateDto.time_end());
+    party.setWebsite(partyCreateDto.website());
+    party.setMax_age(partyCreateDto.max_age());
+    party.setMin_age(partyCreateDto.min_age());
+    party.setMax_people(partyCreateDto.max_people());
+    party.setVisibility(partyCreateDto.visibility() != null ? partyCreateDto.visibility() : "PUBLIC");
+    party.setHost_user(host);
+
+    // Location updaten
+    Location location = locationRepository.findByLatitudeAndLongitude(
+            partyCreateDto.latitude(), partyCreateDto.longitude());
+    if (location != null) {
+        party.setLocation(location);
+    } else {
+        Location newLocation = new Location();
+        newLocation.setLatitude(partyCreateDto.latitude());
+        newLocation.setLongitude(partyCreateDto.longitude());
+        newLocation.setAddress(partyCreateDto.location_address());
+        entityManager.persist(newLocation);
+        party.setLocation(newLocation);
+    }
+
+    // Category updaten
+    Long catId = (partyCreateDto.category_id() != null && partyCreateDto.category_id() != 0)
+            ? partyCreateDto.category_id() : 1L;
+    Category category = categoryRepository.getCategoryById(catId);
+    if (category == null) {
+        return Response.status(Response.Status.BAD_REQUEST)
+                .entity("{\"error\": \"Kategorie nicht gefunden\"}")
+                .build();
+    }
+    party.setCategory(category);
+
+    // ✅ Kein merge() nötig — party ist bereits managed, 
+    //    Änderungen werden automatisch beim Transaction-Ende gespeichert
+    return Response.ok(party).build();
+}
 
     public Response filterParty(@QueryParam("filter") String filter, FilterDto req) {
         if (filter == null) {
