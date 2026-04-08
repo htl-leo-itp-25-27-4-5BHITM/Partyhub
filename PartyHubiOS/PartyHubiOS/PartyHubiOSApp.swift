@@ -3,6 +3,10 @@ import SwiftData
 
 @main
 struct PartyHubiOSApp: App {
+    @UIApplicationDelegateAdaptor(AppDelegate.self) var appDelegate
+    @StateObject private var updateService = PartyUpdateService.shared
+    @StateObject private var notificationManager = PartyNotificationManager.shared
+    
     @State private var locationManager = LocationManager()
     @State private var deepLinkPartyId: Int?
     let container: ModelContainer
@@ -37,11 +41,28 @@ struct PartyHubiOSApp: App {
                 .environment(locationManager)
                 .modelContainer(container)
                 .environmentObject(AuthManager.shared)
+                .environmentObject(notificationManager)
                 .task {
                     await setupApp()
                 }
+                .onAppear {
+                    if AuthManager.shared.userId != nil {
+                        updateService.startPolling(modelContext: container.mainContext)
+                    }
+                }
+                .onDisappear {
+                    updateService.stopPolling()
+                }
                 .onOpenURL { url in
                     handleDeepLink(url)
+                }
+                .onChange(of: AuthManager.shared.userId) { oldValue, newValue in
+                    if newValue != nil {
+                        updateService.startPolling(modelContext: container.mainContext)
+                    } else {
+                        updateService.stopPolling()
+                        notificationManager.clearAllBadges()
+                    }
                 }
         }
     }
@@ -63,6 +84,10 @@ struct PartyHubiOSApp: App {
                     try await AuthManager.shared.loginWithUserId(userId)
                     print("QR login succeeded for userId: \(userId)")
                     NotificationCenter.default.post(name: .didLoginMobile, object: userId)
+                    
+                    await MainActor.run {
+                        updateService.startPolling(modelContext: container.mainContext)
+                    }
                 } catch {
                     print("QR login failed: \(error)")
                 }
@@ -84,6 +109,8 @@ struct PartyHubiOSApp: App {
         locationManager.requestPermission()
         locationManager.registerGeofences(for: allParties)
         locationManager.checkIfAlreadyInsideRegions()
+        
+        try? await notificationManager.requestAuthorization()
     }
 
     func fetchAndStoreParties(context: ModelContext) async {

@@ -5,6 +5,7 @@ import CoreLocation
 import MapKit
 
 struct PartyView: View {
+    @StateObject private var notificationManager = PartyNotificationManager.shared
     @Query var parties: [Party]
     @Environment(LocationManager.self) var locationManager
     @Environment(\.modelContext) private var modelContext
@@ -124,7 +125,8 @@ struct PartyView: View {
     struct PartyRow: View {
         let party: Party
         let drivingDistanceMeters: Double?
-
+        
+        @StateObject private var notificationManager = PartyNotificationManager.shared
         @State private var now = Date()
         let timer = Timer.publish(every: 1, on: .main, in: .common).autoconnect()
 
@@ -137,13 +139,32 @@ struct PartyView: View {
                 return String(format: "%.1f km", meters / 1000)
             }
         }
+        
+        var unreadCount: Int {
+            notificationManager.unreadCount(for: party.backendId)
+        }
 
         var body: some View {
             VStack(alignment: .leading, spacing: 2) {
                 HStack {
-                    Text(party.name)
-                        .font(.headline)
-                        .foregroundStyle(.primary)
+                    HStack(spacing: 6) {
+                        Text(party.name)
+                            .font(.headline)
+                            .foregroundStyle(.primary)
+                        
+                        // ===== BADGE HIER =====
+                        if unreadCount > 0 {
+                            ZStack {
+                                Circle()
+                                    .fill(Color.red)
+                                    .frame(width: 20, height: 20)
+                                
+                                Text("\(unreadCount)")
+                                    .font(.system(size: 11, weight: .bold))
+                                    .foregroundColor(.white)
+                            }
+                        }
+                    }
 
                     Spacer()
 

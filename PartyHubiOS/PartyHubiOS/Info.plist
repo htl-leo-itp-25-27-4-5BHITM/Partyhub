@@ -2,35 +2,70 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
-    <key>CFBundleURLTypes</key>
-    <array>
-        <dict>
-            <key>CFBundleURLName</key>
-            <string>com.partyhub.app</string>
-            <key>CFBundleURLSchemes</key>
-            <array>
-                <string>partyhub</string>
-            </array>
-        </dict>
-    </array>
-    <key>UIBackgroundModes</key>
-    <array>
-        <string>location</string>
-        <string>fetch</string>
-        <string>processing</string>
-    </array>
-    <key>NSLocationWhenInUseUsageDescription</key>
-    <string>PartyHub braucht deinen Standort um automatisch zu erkennen wenn du eine Party betrittst.</string>
-    <key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
-    <string>PartyHub braucht deinen Standort um automatisch zu erkennen wenn du eine Party betrittst.</string>
-    <key>NSAppTransportSecurity</key>
-    <dict>
-        <key>NSAllowsArbitraryLoads</key>
-        <true/>
-    </dict>
-    <key>CFBundleIdentifier</key>
-    <string>com.partyhub.app</string>
-    <key>NSCameraUsageDescription</key>
-    <string>PartyHub benötigt die Kamera zum Scannen von QR-Codes.</string>
+	<key>CFBundleURLTypes</key>
+	<array>
+		<dict>
+			<key>CFBundleURLName</key>
+			<string>com.partyhub.app</string>
+			<key>CFBundleURLSchemes</key>
+			<array>
+				<string>partyhub</string>
+			</array>
+		</dict>
+	</array>
+	<key>UIBackgroundModes</key>
+	<array>
+		<string>location</string>
+		<string>fetch</string>
+		<string>processing</string>
+	</array>
+	<key>NSLocationWhenInUseUsageDescription</key>
+	<string>PartyHub braucht deinen Standort um automatisch zu erkennen wenn du eine Party betrittst.</string>
+	<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
+	<string>PartyHub braucht deinen Standort um automatisch zu erkennen wenn du eine Party betrittst.</string>
+	<key>NSAppTransportSecurity</key>
+	<dict>
+		<key>NSAllowsArbitraryLoads</key>
+		<true/>
+	</dict>
+	<key>CFBundleIdentifier</key>
+	<string>com.partyhub.app</string>
+	<key>NSCameraUsageDescription</key>
+	<string>PartyHub benötigt die Kamera zum Scannen von QR-Codes.</string>
+	<key>NSUserNotificationsUsageDescription</key>
+	<string>Wir senden dir Benachrichtigungen über Updates zu deinen Partys.</string>
+	<key>NSLocationAlwaysUsageDescription</key>
+	<string>Wir benötigen deinen Standort im Hintergrund, um deine Anwesenheit bei Partys zu tracken.</string>
+	<key>NSLocationAlwaysAndWhenInUseUsageDescription - 2</key>
+	<string>Wir benötigen deinen Standort, um automatisch zu erkennen, wann du eine Party betrittst oder verlässt.</string>
+	<key>NSLocationWhenInUseUsageDescription - 2</key>
+	<string>Wir benötigen deinen Standort, um dir Partys in deiner Nähe anzuzeigen.</string>
+	<key>NSAppTransportSecurity - 2</key>
+	<dict>
+		<key>NSAllowsArbitraryLoads</key>
+		<false/>
+		<key>NSExceptionDomains</key>
+		<dict>
+			<key>it220274.cloud.htl-leonding.ac.at</key>
+			<dict>
+				<key>NSExceptionAllowsInsecureHTTPLoads</key>
+				<false/>
+				<key>NSIncludesSubdomains</key>
+				<true/>
+				<key>NSExceptionRequiresForwardSecrecy</key>
+				<true/>
+			</dict>
+		</dict>
+	</dict>
+	<key>UIBackgroundModes - 2</key>
+	<array>
+		<string>remote-notification</string>
+		<string>location</string>
+	</array>
+	<key>UIBackgroundModes - 3</key>
+	<array>
+		<string>remote-notification</string>
+		<string>location</string>
+	</array>
 </dict>
 </plist>

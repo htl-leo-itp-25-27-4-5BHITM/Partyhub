@@ -15,6 +15,10 @@ struct PartyDetailView: View {
     @State private var istImBearbeitungsModus = false
     @State private var partyText: String = ""
     
+    // MARK: - Notification System
+    @StateObject private var notificationManager = PartyNotificationManager.shared
+    @State private var hasCheckedUpdates = false
+    
     private var shareURL: URL? {
         URL(string: "https://maps.apple.com/?ll=\(party.latitude),\(party.longitude)&q=\(party.name.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? "")")
     }
@@ -27,8 +31,31 @@ struct PartyDetailView: View {
         party.timeEntries.filter { $0.endTime != nil }.sorted(by: { $0.startTime > $1.startTime })
     }
     
+    // MARK: - Notification Helpers
+    var unreadUpdateCount: Int {
+        notificationManager.unreadCount(for: party.backendId)
+    }
+    
     var body: some View {
         List {
+            
+            // MARK: - Update Badge Section
+            if unreadUpdateCount > 0 {
+                Section {
+                    HStack {
+                        Image(systemName: "bell.badge.fill")
+                            .foregroundColor(.red)
+                        Text("\(unreadUpdateCount) neue Update\(unreadUpdateCount == 1 ? "" : "s")")
+                            .font(.subheadline)
+                            .foregroundColor(.red)
+                        Spacer()
+                        Text("Du siehst sie gerade")
+                            .font(.caption)
+                            .foregroundColor(.secondary)
+                    }
+                    .padding(.vertical, 4)
+                }
+            }
             
             Section {
                 LabeledContent("Status") {
@@ -105,6 +132,25 @@ struct PartyDetailView: View {
                     .tint(Color("primary pink"))
                     .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
                 }
+                .listRowInsets(EdgeInsets(top: 12, leading: 16, bottom: 12, trailing: 16))
+                
+                // Test Notification Button
+                Button {
+                    Task {
+                        await notificationManager.sendSystemNotification(
+                            partyId: party.backendId,
+                            partyName: party.name,
+                            changeDescription: "Test: Name wurde geändert"
+                        )
+                    }
+                } label: {
+                    Text("Test Push Notification")
+                        .frame(maxWidth: .infinity)
+                        .frame(height: 44)
+                }
+                .buttonStyle(.borderedProminent)
+                .tint(.orange)
+                .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
                 .listRowInsets(EdgeInsets(top: 12, leading: 16, bottom: 12, trailing: 16))
             }
 #endif
@@ -209,8 +255,36 @@ struct PartyDetailView: View {
         .onAppear {
             ladeBilderAusOrdner()
             partyText = "\(party.name)\n \(party.location)\n https://maps.apple.com/?ll=\(party.latitude),\(party.longitude)"
+            
+            // MARK: - Notification Setup
+            if !hasCheckedUpdates {
+                markPartyAsRead()
+                hasCheckedUpdates = true
+            }
+            setupNotificationObservers()
         }
         .onReceive(timer) { now = $0 }
+    }
+    
+    // MARK: - Notification Functions
+    
+    func markPartyAsRead() {
+        notificationManager.markAsRead(partyId: party.backendId)
+        print("✅ Party \(party.backendId) als gelesen markiert")
+    }
+    
+    func setupNotificationObservers() {
+        NotificationCenter.default.addObserver(
+            forName: .partyDidUpdate,
+            object: nil,
+            queue: .main
+        ) { [weak notificationManager] notification in
+            guard let updatedPartyId = notification.object as? Int,
+                  updatedPartyId == self.party.backendId else {
+                return
+            }
+            print("🔄 Party \(updatedPartyId) wurde aktualisiert")
+        }
     }
     
     // MARK: – Foto Funktionen
