@@ -1,12 +1,9 @@
 @baseUrl = http://localhost:8080/api/party
-@partyId = 1
+@partyId = 26
 
-### Get all parties
-GET {{baseUrl}}
-
-?? status == 200
-
-### Create Party
+###########################################
+### 1. Create Party
+###########################################
 POST {{baseUrl}}/add?user=1
 Content-Type: application/json
 
@@ -27,12 +24,26 @@ Content-Type: application/json
 
 ?? status == 201
 
-### Get Party by ID
+
+###########################################
+### 2. Get all parties
+###########################################
+GET {{baseUrl}}
+
+?? status == 200
+
+
+###########################################
+### 3. Get Party by ID
+###########################################
 GET {{baseUrl}}/{{partyId}}
 
 ?? status == 200
 
-### Update Party
+
+###########################################
+### 4. Update Party
+###########################################
 PUT {{baseUrl}}/{{partyId}}?user=1
 Content-Type: application/json
 
@@ -53,63 +64,85 @@ Content-Type: application/json
 
 ?? status == 200
 
-### Attend Party
+
+###########################################
+### 5. Attend Party
+###########################################
+# Dein Server schickt hier laut Log 204
 POST {{baseUrl}}/{{partyId}}/attend?user=1
 
 ?? status == 204
 
-### Attend Status
+
+###########################################
+### 6. Attend Status
+###########################################
 GET {{baseUrl}}/{{partyId}}/attend/status?user=1
 
 ?? status == 200
 
-### Leave Party
-DELETE {{baseUrl}}/{{partyId}}/attend?user=1
+
+###########################################
+### 7. Check if user can edit party
+###########################################
+# @name canEditCheck
+GET {{baseUrl}}/{{partyId}}/can-edit?user=1
+
+?? status == 200
+# Fix: Nutze den Request-Namen für die JS-Prüfung
+?? js canEditCheck.canEdit === true
+
+
+###########################################
+### 8. Media Upload
+###########################################
+# Dein Server schickt hier laut Log 200
+POST {{baseUrl}}/{{partyId}}/media/upload?user=1
+Content-Type: multipart/form-data; boundary=boundary
+
+--boundary
+Content-Disposition: form-data; name="file"; filename="testing.jpg"
+Content-Type: image/jpeg
+
+< ./testing.jpg
+--boundary--
 
 ?? status == 200
 
-### Filter by content
+
+###########################################
+### 9. Filter
+###########################################
 POST {{baseUrl}}/filter?filter=content
 Content-Type: application/json
 
 {
-  "value": "Test"
+  "value": "Updated"
 }
 
 ?? status == 200
 
-### Filter by category
-POST {{baseUrl}}/filter?filter=category
-Content-Type: application/json
 
-{
-  "value": "Musik"
-}
-
-?? status == 200
-
-### Filter by date
-POST {{baseUrl}}/filter?filter=date
-Content-Type: application/json
-
-{
-  "start": "2026-03-01T00:00:00",
-  "end": "2026-03-31T23:59:00"
-}
-
-?? status == 200
-
-### Sort asc
+###########################################
+### 10. Sortierung
+###########################################
 GET {{baseUrl}}/sort?sort=asc
 
 ?? status == 200
 
-### Sort desc
-GET {{baseUrl}}/sort?sort=desc
+
+###########################################
+### 11. Leave Party
+###########################################
+# Dein Server schickt hier laut Log 200
+DELETE {{baseUrl}}/{{partyId}}/attend?user=1
 
 ?? status == 200
 
-### Delete Party
+
+###########################################
+### 12. Delete Party
+###########################################
 DELETE {{baseUrl}}/{{partyId}}
 
 ?? status == 204
