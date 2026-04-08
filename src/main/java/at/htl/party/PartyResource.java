@@ -146,33 +146,8 @@ public class PartyResource {
             case "date"     -> (req.start() != null && req.end() != null) ? partyRepository.findByDateRange(req.start(), req.end()) : null;
             default         -> null;
         };
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
         if (result == null) {
             return Response.status(400).entity("Fehler: Ungültiger Filter oder unvollständige Daten.").build();
-
-
-
-
         }
 
         return Response.ok(result).build();
@@ -205,13 +180,7 @@ public class PartyResource {
         Long actualUserId = userId != null ? userId : headerUserId;
         return partyRepository.leaveParty(partyId, actualUserId);
     }
-
-
-
-
-
-
-
+    
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     @Path("/{id}/attend/status")
