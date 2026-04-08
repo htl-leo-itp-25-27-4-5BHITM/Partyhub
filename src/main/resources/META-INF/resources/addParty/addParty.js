@@ -749,7 +749,10 @@ document.addEventListener("DOMContentLoaded", () => {
         // Update existing
         response = await fetch(`/api/party/${encodeURIComponent(partyData.id)}`, {
           method: "PUT",
-          headers: { "Content-Type": "application/json" },
+          headers: { 
+            "Content-Type": "application/json",
+            "X-User-Id": userId
+          },
           body: JSON.stringify(backendPayload),
         });
       } else {
