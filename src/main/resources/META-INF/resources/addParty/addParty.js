@@ -30,7 +30,6 @@ document.addEventListener("DOMContentLoaded", () => {
     visibility: "private",
     selectedUsers: [],
     entry_costs: null,
-    theme: "",
     min_age: 18,
     max_age: null,
     website: "",
@@ -457,7 +456,7 @@ document.addEventListener("DOMContentLoaded", () => {
       for (const k of Object.keys(p || {})) {
         const lower = String(k).toLowerCase();
         // ignore obvious non-address keys (times, dates, ids, numeric/metadata)
-        if (/(time|date|start|end|id|lat|lon|latitude|longitude|created|updated|fee|entry|min_age|max_age|theme|website|title|description)/.test(lower)) continue;
+        if (/(time|date|start|end|id|lat|lon|latitude|longitude|created|updated|fee|entry|min_age|max_age|website|title|description)/.test(lower)) continue;
         const v = p[k];
         if (typeof v === "string" && v.trim() && /[0-9]|,/.test(v)) {
           plainAddr = v.trim();
@@ -474,7 +473,6 @@ document.addEventListener("DOMContentLoaded", () => {
     state.longitude = p.longitude != null ? Number(p.longitude) : null;
     state.visibility = p.visibility || "private";
     state.entry_costs = p.entry_costs ?? p.fee ?? null;
-    state.theme = p.theme ?? "";
     state.min_age = p.min_age ?? 18;
     state.max_age = p.max_age ?? null;
     state.website = p.website ?? "";
@@ -484,7 +482,6 @@ document.addEventListener("DOMContentLoaded", () => {
     try { document.querySelector('input[name="title"]').value = state.title; } catch {}
     try { document.querySelector('input[name="description"]').value = state.description; } catch {}
     try { document.querySelector('input[name="entry_costs"]').value = state.entry_costs ?? ""; } catch {}
-    try { document.querySelector('input[name="theme"]').value = state.theme; } catch {}
     try { document.querySelector('input[name="min_age"]').value = state.min_age; } catch {}
     try { document.querySelector('input[name="max_age"]').value = state.max_age ?? ""; } catch {}
     try { document.querySelector('input[name="website"]').value = state.website ?? ""; } catch {}
@@ -631,7 +628,6 @@ document.addEventListener("DOMContentLoaded", () => {
           time_end: partyData.time_end,
           visibility: partyData.visibility,
           entry_costs: partyData.entry_costs,
-          theme: partyData.theme,
           min_age: partyData.min_age,
           max_age: partyData.max_age,
           website: partyData.website,
@@ -648,7 +644,6 @@ document.addEventListener("DOMContentLoaded", () => {
           time_end: partyData.time_end,
           visibility: partyData.visibility,
           entry_costs: partyData.entry_costs,
-          theme: partyData.theme,
           min_age: partyData.min_age,
           max_age: partyData.max_age,
           website: partyData.website,
@@ -666,7 +661,6 @@ document.addEventListener("DOMContentLoaded", () => {
         time_end: partyData.time_end,
         visibility: partyData.visibility,
         entry_costs: partyData.entry_costs,
-        theme: partyData.theme,
         min_age: partyData.min_age,
         max_age: partyData.max_age,
         website: partyData.website,
@@ -697,7 +691,6 @@ document.addEventListener("DOMContentLoaded", () => {
         min_age: parseInt(partyData.min_age) || 18,
         max_age: partyData.max_age ? parseInt(partyData.max_age) : null,
         website: partyData.website || null,
-        theme: partyData.theme || null,
         visibility: partyData.visibility,
         selectedUsers: partyData.selectedUsers || [],
       };
