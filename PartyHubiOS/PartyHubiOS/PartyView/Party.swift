@@ -10,17 +10,19 @@ class Party {
     var latitude: Double
     var longitude: Double
     var radiusMeters: Double
+    var partyDescription: String?
     
     @Relationship(deleteRule: .cascade)
     var timeEntries: [TimeEntry] = []
     
-    init(backendId: Int, name: String, location: String, latitude: Double, longitude: Double, radiusMeters: Double = 100) {
+    init(backendId: Int, name: String, location: String, latitude: Double, longitude: Double, radiusMeters: Double = 100, partyDescription: String? = nil) {
         self.backendId = backendId
         self.name = name
         self.location = location
         self.latitude = latitude
         self.longitude = longitude
         self.radiusMeters = radiusMeters
+        self.partyDescription = partyDescription
     }
     
     var activeEntry: TimeEntry? {

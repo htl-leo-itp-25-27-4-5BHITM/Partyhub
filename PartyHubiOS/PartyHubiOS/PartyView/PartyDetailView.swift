@@ -36,7 +36,6 @@ struct PartyDetailView: View {
                         .foregroundStyle(party.isActive ? .green : .secondary)
                 }
                 .frame(minHeight: 44)
-                
                 if party.isActive, let entry = party.activeEntry {
                     LabeledContent("Dauer") {
                         Text(formatDuration(entry.startTime, to: now))
@@ -47,6 +46,14 @@ struct PartyDetailView: View {
                     .frame(minHeight: 44)
                 }
             }
+            if let beschreibung = party.partyDescription, !beschreibung.isEmpty {
+                        Section("Beschreibung") {
+                            Text(beschreibung)
+                                .font(.body)
+                                .foregroundStyle(.primary)
+                        }
+                    }
+                    
             
             if !finished.isEmpty {
                 Section("Vergangene Besuche") {
