@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
-echo ">> docker compose down"
-docker-compose down;
+echo ">> docker compose down and removing volumes"
+docker-compose down -v;
 echo ">> Starting services"
 docker-compose up -d;
 
