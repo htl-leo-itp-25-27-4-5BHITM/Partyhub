@@ -1,5 +1,18 @@
 document.addEventListener('DOMContentLoaded', function() {
     loadAllParties();
+    // Ensure "Create New Party" opens a clean form (remove any leftover editing snapshot)
+    const createBtn = document.querySelector('.create-party-btn');
+    if (createBtn) {
+        createBtn.addEventListener('click', function () {
+            try {
+                localStorage.removeItem('editingParty');
+                localStorage.removeItem('editingFrom');
+                localStorage.removeItem('editingPartyId');
+            } catch (e) {
+                // ignore
+            }
+        });
+    }
 });
 
 async function loadAllParties() {

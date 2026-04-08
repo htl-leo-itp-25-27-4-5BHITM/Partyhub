@@ -15,19 +15,9 @@
     />
 
     <script src="../user-utils.js" defer></script>
-    <script src="../auth-service.js" defer></script>
-    <script src="../route-guard.js" defer></script>
     <script src="../nav.js" defer></script>
     <script src="../backend-functions.js" defer></script>
     <script src="./notifications.js" defer></script>
-    <script>
-        // Require authentication before page loads
-        if (document.readyState === 'loading') {
-            document.addEventListener('DOMContentLoaded', window.requireAuth);
-        } else {
-            window.requireAuth();
-        }
-    </script>
   </head>
 
   <body class="bg-light">

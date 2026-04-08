@@ -1077,7 +1077,10 @@ document.addEventListener("DOMContentLoaded", function () {
           editBtn.onclick = (e) => {
             e.stopPropagation();
             try {
+              // mark editing intent and store party snapshot for the editor
               localStorage.setItem("editingParty", JSON.stringify(p));
+              localStorage.setItem("editingFrom", "profile");
+              if (p && p.id != null) localStorage.setItem("editingPartyId", String(p.id));
             } catch {}
             window.location.href = `/addParty/addParty.html?id=${encodeURIComponent(p.id)}`;
           };
