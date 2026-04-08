@@ -137,13 +137,15 @@ struct PartyHubiOSApp: App {
                 existing.location = p.location.address ?? ""
                 existing.latitude  = p.location.latitude
                 existing.longitude = p.location.longitude
+                existing.partyDescription = p.description
             } else {
                 let party = Party(
                     backendId:  p.id,
                     name:       p.title,
                     location:   p.location.address ?? "",
                     latitude:   p.location.latitude,
-                    longitude:  p.location.longitude
+                    longitude:  p.location.longitude,
+                    partyDescription: p.description
                 )
                 context.insert(party)
             }

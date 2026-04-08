@@ -12,6 +12,7 @@ import jakarta.ws.rs.DELETE;
 import jakarta.ws.rs.GET;
 import jakarta.ws.rs.HeaderParam;
 import jakarta.ws.rs.POST;
+import jakarta.ws.rs.PUT;
 import jakarta.ws.rs.Path;
 import jakarta.ws.rs.PathParam;
 import jakarta.ws.rs.Produces;
@@ -73,21 +74,23 @@ public class PartyResource {
     public Response removeParty(@PathParam("id") Long id) {
         return partyRepository.removeParty(id);
     }
-
-    @POST
-    @Produces(MediaType.APPLICATION_JSON)
-    @Transactional
-    @Path("/{id}")
-    public Response updateParty(@PathParam("id") Long id, PartyCreateDto partyCreateDto,
+@PUT
+@Produces(MediaType.APPLICATION_JSON)
+@Consumes(MediaType.APPLICATION_JSON)
+@Transactional
+@Path("/{id}")
+public Response updatePartyPut(@PathParam("id") Long id, 
+                               PartyCreateDto partyCreateDto,
                                @QueryParam("user") Long userId,
                                @HeaderParam("X-User-Id") Long headerUserId) {
-        if (partyCreateDto == null) {
-            return Response.status(Response.Status.BAD_REQUEST)
-                    .entity("Payload missing").build();
-        }
-        Long actualUserId = userId != null ? userId : headerUserId;
-        return partyRepository.updateParty(id, partyCreateDto, actualUserId);
+    if (partyCreateDto == null) {
+        return Response.status(Response.Status.BAD_REQUEST)
+                .entity("{\"error\": \"Payload missing\"}")
+                .build();
     }
+    Long actualUserId = userId != null ? userId : headerUserId;
+    return partyRepository.updateParty(id, partyCreateDto, actualUserId);
+}
 
     @POST
     @Produces(MediaType.APPLICATION_JSON)
