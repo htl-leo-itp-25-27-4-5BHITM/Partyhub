@@ -92,7 +92,7 @@ public class PartyResourceTest extends TestBase {
             .contentType(ContentType.JSON)
             .body(requestBody)
             .queryParam("user", 1)
-            .when().post("/api/party/999")
+            .when().put("/api/party/999")
             .then()
             .statusCode(404);
     }
