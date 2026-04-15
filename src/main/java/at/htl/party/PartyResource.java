@@ -5,6 +5,7 @@ import java.util.Map;
 
 import at.htl.FilterDto;
 import at.htl.media.MediaRepository;
+import at.htl.user_location.UserLocationRepository;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 
@@ -23,14 +24,8 @@ import jakarta.ws.rs.QueryParam;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 
-
-
-
-
 @ApplicationScoped
-@Path("/api/party")
-
-
+@Path("/api/parties")
 public class PartyResource {
 
     @Inject
@@ -39,6 +34,8 @@ public class PartyResource {
     @Inject
     MediaRepository mediaRepository;
     @Inject
+    UserLocationRepository userLocationRepository;
+    @Inject
     EntityManager em;
 
     @GET
@@ -46,20 +43,52 @@ public class PartyResource {
     @Path("")
     @Transactional
     public Response getParties(
-            @QueryParam("user") Long userId,
+            @QueryParam("q") String q,
+            @QueryParam("category") String category,
+            @QueryParam("date_from") String dateFrom,
+            @QueryParam("date_to") String dateTo,
+            @QueryParam("sort") String sort,
             @HeaderParam("X-User-Id") Long headerUserId) {
-        Long actualUserId = userId != null ? userId : headerUserId;
-        return Response.ok().entity(partyRepository.getPartiesByUser(actualUserId)).build();
+        
+        boolean hasFilters = (q != null && !q.isBlank()) ||
+                           (category != null && !category.isBlank()) ||
+                           (dateFrom != null && !dateFrom.isBlank()) ||
+                           (dateTo != null && !dateTo.isBlank());
+        
+        if (hasFilters) {
+            FilterDto req = new FilterDto(q, category, dateFrom, dateTo);
+            
+            List<Party> result = null;
+            
+            if (q != null && !q.isBlank()) {
+                result = partyRepository.findByTitleOrDescription(q);
+            } else if (category != null && !category.isBlank()) {
+                result = partyRepository.findByCategory(category);
+            } else if (dateFrom != null && dateTo != null) {
+                result = partyRepository.findByDateRange(dateFrom, dateTo);
+            }
+            
+            if (result == null) {
+                return Response.status(400).entity("Invalid filter or incomplete data").build();
+            }
+            return Response.ok(result).build();
+        }
+        
+        if (sort != null && !sort.isBlank()) {
+            return partyRepository.sortParty(sort);
+        }
+        
+        return Response.ok().entity(partyRepository.getPartiesByUser(headerUserId)).build();
     }
 
     @POST
     @Transactional
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    @Path("/add")
-    public Response addParty(PartyCreateDto partyCreateDto,
-                             @QueryParam("user") Long userId,
-                             @HeaderParam("X-User-Id") Long headerUserId) {
+    @Path("")
+    public Response createParty(PartyCreateDto partyCreateDto,
+                               @QueryParam("user") Long userId,
+                               @HeaderParam("X-User-Id") Long headerUserId) {
         Long actualUserId = userId != null ? userId : headerUserId;
         return partyRepository.addParty(partyCreateDto, actualUserId);
     }
@@ -67,35 +96,16 @@ public class PartyResource {
     @GET
     @Transactional
     @Produces(MediaType.APPLICATION_JSON)
-
-
     @Path("/{id}")
     public Response getParty(
             @PathParam("id") Long id,
             @QueryParam("user") Long userId,
             @HeaderParam("X-User-Id") Long headerUserId) {
-
-
-
         Long actualUserId = userId != null ? userId : headerUserId;
         Party party = partyRepository.getPartyByIdIfVisible(id, actualUserId);
 
-
-
-
-
-
-
-
-
-
-
-
         if (party == null) {
             return Response.status(Response.Status.NOT_FOUND).build();
-
-
-
         }
         return Response.ok().entity(party).build();
     }
@@ -107,6 +117,7 @@ public class PartyResource {
     public Response removeParty(@PathParam("id") Long id) {
         return partyRepository.removeParty(id);
     }
+
     @PUT
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
@@ -127,68 +138,27 @@ public class PartyResource {
 
     @POST
     @Produces(MediaType.APPLICATION_JSON)
-    @Consumes(MediaType.APPLICATION_JSON)
-    @Path("/filter")
-    public Response filterParty(@QueryParam("filter") String filter, FilterDto req) {
-        if (filter == null || filter.isBlank()) {
-            return Response.status(400).entity("Query-Parameter 'filter' fehlt.").build();
-        }
-        if (req == null) {
-            return Response.status(400).entity("Request-Body (FilterDto) fehlt.").build();
-
-
-
-        }
-
-        List<Party> result = switch (filter.toLowerCase()) {
-            case "content"  -> (req.value() != null) ? partyRepository.findByTitleOrDescription(req.value()) : null;
-            case "category" -> (req.value() != null) ? partyRepository.findByCategory(req.value()) : null;
-            case "date"     -> (req.start() != null && req.end() != null) ? partyRepository.findByDateRange(req.start(), req.end()) : null;
-            default         -> null;
-        };
-        if (result == null) {
-            return Response.status(400).entity("Fehler: Ungültiger Filter oder unvollständige Daten.").build();
-        }
-
-        return Response.ok(result).build();
-    }
-
-    @GET
-    @Produces(MediaType.APPLICATION_JSON)
-    @Path("/sort")
-    public Response sortParty(@QueryParam("sort") String sort) {
-        return partyRepository.sortParty(sort);
-    }
-
-    @POST
-    @Produces(MediaType.APPLICATION_JSON)
-    @Path("/{id}/attend")
-    public Response attendParty(@PathParam("id") Long partyId,
-                                @QueryParam("user") Long userId,
-                                @HeaderParam("X-User-Id") Long headerUserId) {
-        Long actualUserId = userId != null ? userId : headerUserId;
-        return partyRepository.attendParty(partyId, actualUserId);
+    @Path("/{id}/join")
+    public Response joinParty(@PathParam("id") Long partyId,
+                              @HeaderParam("X-User-Id") Long headerUserId) {
+        return partyRepository.attendParty(partyId, headerUserId);
     }
 
     @DELETE
     @Produces(MediaType.APPLICATION_JSON)
     @Transactional
-    @Path("/{id}/attend")
+    @Path("/{id}/join")
     public Response leaveParty(@PathParam("id") Long partyId,
-                               @QueryParam("user") Long userId,
-                               @HeaderParam("X-User-Id") Long headerUserId) {
-        Long actualUserId = userId != null ? userId : headerUserId;
-        return partyRepository.leaveParty(partyId, actualUserId);
+                                @HeaderParam("X-User-Id") Long headerUserId) {
+        return partyRepository.leaveParty(partyId, headerUserId);
     }
     
     @GET
     @Produces(MediaType.APPLICATION_JSON)
-    @Path("/{id}/attend/status")
-    public Response attendStatus(@PathParam("id") Long partyId,
-                                 @QueryParam("user") Long userId,
-                                 @HeaderParam("X-User-Id") Long headerUserId) {
-        Long actualUserId = userId != null ? userId : headerUserId;
-        return partyRepository.attendStatus(partyId, actualUserId);
+    @Path("/{id}/join/status")
+    public Response joinStatus(@PathParam("id") Long partyId,
+                               @HeaderParam("X-User-Id") Long headerUserId) {
+        return partyRepository.attendStatus(partyId, headerUserId);
     }
 
     @POST
@@ -209,25 +179,25 @@ public class PartyResource {
         }
         return mediaRepository.upload(input, partyId, actualUserId);
     }
+
     @GET
     @Path("/{id}/can-edit")
     @Produces(MediaType.APPLICATION_JSON)
     public Response canEditParty(@PathParam("id") Long partyId,
                                  @QueryParam("user") Long userId,
                                  @HeaderParam("X-User-Id") Long headerUserId) {
-
         Long actualUserId = userId != null ? userId : headerUserId;
 
         if (actualUserId == null) {
             return Response.status(Response.Status.BAD_REQUEST)
-                    .entity(Map.of("error", "User ID erforderlich"))
+                    .entity(Map.of("error", "User ID required"))
                     .build();
         }
 
         Party party = em.find(Party.class, partyId);
         if (party == null) {
             return Response.status(Response.Status.NOT_FOUND)
-                    .entity(Map.of("error", "Party nicht gefunden"))
+                    .entity(Map.of("error", "Party not found"))
                     .build();
         }
 
@@ -244,4 +214,18 @@ public class PartyResource {
         )).build();
     }
 
+    @GET
+    @Path("/{id}/locations")
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response getPartyLocations(@PathParam("id") Long partyId) {
+        List<at.htl.user_location.UserLocation> locations = userLocationRepository.getLocationsByPartyId(partyId);
+        return Response.ok(locations).build();
+    }
+
+    @GET
+    @Path("/{id}/media")
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response getPartyMedia(@PathParam("id") Long partyId) {
+        return Response.ok().entity(mediaRepository.getMediaByParty(partyId)).build();
+    }
 }

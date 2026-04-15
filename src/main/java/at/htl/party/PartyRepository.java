@@ -6,7 +6,6 @@ import java.time.format.DateTimeParseException;
 import java.util.List;
 import java.util.Map;
 
-import at.htl.FilterDto;
 import at.htl.category.Category;
 import at.htl.category.CategoryRepository;
 import at.htl.location.Location;
@@ -219,50 +218,29 @@ public class PartyRepository {
     // ✅ Kein merge() nötig — party ist bereits managed, 
     //    Änderungen werden automatisch beim Transaction-Ende gespeichert
     return Response.ok(party).build();
-}
+    }
 
-    public Response filterParty(@QueryParam("filter") String filter, FilterDto req) {
-        if (filter == null) {
-            return Response.status(Response.Status.BAD_REQUEST)
-                    .entity("Query-Parameter 'filter' fehlt.")
-                    .build();
-        }
-         List<Party> result = switch (filter.toLowerCase()) {
-                case "content" -> findByTitleOrDescription(req.value());
-                case "category" -> findByCategory(req.value());
-                case "date" -> findByDateRange(req.start(), req.end());
-                default -> null;
-            };
-
-            if (result == null) {
-                return Response.status(Response.Status.BAD_REQUEST)
-                        .entity("Ungültiger Filter-Typ. Erlaubt sind: content, category, date.")
-                        .build();
-            }
-            return Response.ok(result).build();
-        }
-
-    List<Party> findByTitleOrDescription(String param) {
-        String like = "%" + param.trim().toLowerCase() + "%";
+    public List<Party> findByTitleOrDescription(String q) {
+        String like = "%" + q.trim().toLowerCase() + "%";
         String jpql = "SELECT p FROM Party p WHERE LOWER(p.title) LIKE :like OR LOWER(p.description) LIKE :like";
         return entityManager.createQuery(jpql, Party.class)
                 .setParameter("like", like)
                 .getResultList();
     }
 
-    List<Party> findByCategory(String param) {
-        String jpql = "SELECT p FROM Party p WHERE p.category.name = :param";
+    public List<Party> findByCategory(String category) {
+        String jpql = "SELECT p FROM Party p WHERE p.category.name = :category";
         return entityManager.createQuery(jpql, Party.class)
-                .setParameter("param", param)
+                .setParameter("category", category)
                 .getResultList();
     }
 
-    List<Party> findByDateRange(String startStr, String endStr) {
-        if (startStr == null || endStr == null) {
-            throw new BadRequestException("Start and End dates are required");
+    public List<Party> findByDateRange(String dateFrom, String dateTo) {
+        if (dateFrom == null || dateTo == null) {
+            throw new BadRequestException("date_from and date_to are required");
         }
-        LocalDateTime start = parseDateTime(startStr);
-        LocalDateTime end = parseDateTime(endStr);
+        LocalDateTime start = parseDateTime(dateFrom);
+        LocalDateTime end = parseDateTime(dateTo);
 
         String jpql = "SELECT p FROM Party p WHERE p.time_start BETWEEN :start AND :end";
         return entityManager.createQuery(jpql, Party.class)

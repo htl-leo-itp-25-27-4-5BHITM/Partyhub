@@ -19,8 +19,10 @@ import jakarta.inject.Inject;
 import jakarta.persistence.EntityManager;
 import jakarta.transaction.Transactional;
 import jakarta.ws.rs.Consumes;
+import jakarta.ws.rs.DELETE;
 import jakarta.ws.rs.FormParam;
 import jakarta.ws.rs.GET;
+import jakarta.ws.rs.HeaderParam;
 import jakarta.ws.rs.POST;
 import jakarta.ws.rs.PUT;
 import jakarta.ws.rs.Path;
@@ -55,6 +57,17 @@ public class UserResource {
         return userRepository.createUser(createUserDtoToUser(userCreateDto));
     }
 
+    @GET
+    @Path("")
+    public Response getUsers(@QueryParam("q") String query) {
+        if (query != null && !query.isBlank()) {
+            List<User> users = userRepository.getUsersByDistinctNameSearch(query);
+            return Response.ok(users).build();
+        }
+        List<User> users = userRepository.getUsers();
+        return Response.ok(users).build();
+    }
+
     private User createUserDtoToUser(UserCreateDto userCreateDto) {
         User user = new User();
         user.setDisplayName(userCreateDto.displayName());
@@ -62,20 +75,6 @@ public class UserResource {
         user.setEmail(userCreateDto.email());
         user.setBiography(userCreateDto.biography());
         return user;
-    }
-
-    @GET
-    @Path("/all")
-    public Response getUsers() {
-        List<User> users = userRepository.getUsers();
-        return Response.ok(users).build();
-    }
-
-    @GET
-    @Path("/all/search")
-    public Response getUsersByDistinctNameSubstring(@QueryParam("name") String distinctName) {
-        List<User> users = userRepository.getUsersByDistinctNameSearch(distinctName);
-        return Response.ok(users).build();
     }
 
     @GET
@@ -249,21 +248,18 @@ public class UserResource {
     public Response uploadProfilePicture(@PathParam("id") long id, @FormParam("file") FileUpload fileUpload) throws Exception {
         logger.info("uploadProfilePicture called for user: " + id);
 
-        // Delete ALL existing profile pictures for this user first
         em.createQuery("DELETE FROM ProfilePicture p WHERE p.user.id = :userId")
           .setParameter("userId", id)
           .executeUpdate();
 
         User user = em.find(User.class, id);
         
-        // Save file
         Files.createDirectories(Paths.get(UPLOAD_DIR));
         String fileExtension = getFileExtension(fileUpload.fileName());
         String newFilename = "profile_" + id + "_" + Instant.now().toEpochMilli() + fileExtension;
         java.nio.file.Path targetLocation = Paths.get(UPLOAD_DIR, newFilename);
         Files.move(fileUpload.uploadedFile(), targetLocation);
         
-        // Create new
         ProfilePicture profilePicture = new ProfilePicture(newFilename, user);
         em.persist(profilePicture);
         
@@ -271,6 +267,117 @@ public class UserResource {
         em.merge(user);
         
         return Response.ok().entity("{\"filename\": \"" + newFilename + "\"}").build();
+    }
+
+    @GET
+    @Path("/{id}/followers")
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response getFollowers(@PathParam("id") long id) {
+        List<User> followers = followRepository.getFollowers(id);
+        return Response.ok(followers).build();
+    }
+
+    @GET
+    @Path("/{id}/following")
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response getFollowing(@PathParam("id") long id) {
+        List<User> following = followRepository.getFollowing(id);
+        return Response.ok(following).build();
+    }
+
+    @GET
+    @Path("/{id}/follow-requests")
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response getFollowRequests(@PathParam("id") long id) {
+        List<User> pending = followRepository.getPendingFollowerRequests(id);
+        return Response.ok(pending).build();
+    }
+
+    @GET
+    @Path("/{userId1}/followers/{userId2}/status")
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response getFollowStatus(@PathParam("userId1") long userId1,
+                                   @PathParam("userId2") long userId2) {
+        boolean following = followRepository.isFollowing(userId1, userId2);
+        return Response.ok(following).build();
+    }
+
+    @POST
+    @Path("/{id}/follow")
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response followUser(@PathParam("id") long id,
+                               @QueryParam("targetUserId") Long targetUserId) {
+        if (targetUserId == null) {
+            return Response.status(Response.Status.BAD_REQUEST).build();
+        }
+        return followRepository.createFollowRequest(id, targetUserId);
+    }
+
+    @PUT
+    @Path("/{id}/followers/{followerId}")
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response acceptFollow(@PathParam("id") long id,
+                                @PathParam("followerId") long followerId) {
+        return followRepository.acceptFollowRequest(followerId, id);
+    }
+
+    @DELETE
+    @Path("/{id}/followers/{followerId}")
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response unfollowUser(@PathParam("id") long id,
+                                @PathParam("followerId") long followerId) {
+        return followRepository.removeFollow(id, followerId);
+    }
+
+    @GET
+    @Path("/location/{id}")
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response getUserLocation(@PathParam("id") long userId) {
+        at.htl.user_location.UserLocation location = em.find(at.htl.user_location.UserLocation.class, userId);
+        if (location == null) {
+            return Response.status(Response.Status.NOT_FOUND).build();
+        }
+        return Response.ok(location).build();
+    }
+
+    @PUT
+    @Path("/location")
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    @Transactional
+    public Response updateUserLocation(@HeaderParam("X-User-Id") Long userId,
+                                       at.htl.user_location.UserLocationUpdateDto dto) {
+        if (userId == null) {
+            return Response.status(Response.Status.BAD_REQUEST).build();
+        }
+
+        User user = em.find(User.class, userId);
+        if (user == null) {
+            return Response.status(Response.Status.NOT_FOUND).build();
+        }
+
+        at.htl.user_location.UserLocation existingLocation = em.find(at.htl.user_location.UserLocation.class, userId);
+
+        if (existingLocation != null) {
+            existingLocation.setLatitude(dto.latitude());
+            existingLocation.setLongitude(dto.longitude());
+            em.merge(existingLocation);
+            return Response.ok(existingLocation).build();
+        } else {
+            at.htl.user_location.UserLocation newLocation = new at.htl.user_location.UserLocation();
+            newLocation.setUser(user);
+            newLocation.setLatitude(dto.latitude());
+            newLocation.setLongitude(dto.longitude());
+            em.persist(newLocation);
+            return Response.ok(newLocation).build();
+        }
+    }
+
+    @GET
+    @Path("/{id}/media")
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response getUserMedia(@PathParam("id") long userId) {
+        return Response.ok().entity(mediaRepository.getMediaByUser(userId)).build();
     }
 
     private String getFileExtension(String filename) {

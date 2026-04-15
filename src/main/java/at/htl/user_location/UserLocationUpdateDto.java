@@ -1,4 +1,4 @@
 package at.htl.user_location;
 
-public record UserLocationUpdateDto(Long userId, double latitude, double longitude) {
+public record UserLocationUpdateDto(double latitude, double longitude) {
 }

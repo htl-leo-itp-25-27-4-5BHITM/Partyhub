@@ -1,0 +1,1285 @@
+openapi: 3.0.3
+info:
+  title: PartyHub API
+  description: Social event platform for organizing and discovering parties, meetups, and social gatherings
+  version: 1.0.0
+  contact:
+    name: PartyHub Team
+servers:
+  - url: http://localhost:8080
+    description: Development server
+
+paths:
+  /api/parties:
+    get:
+      summary: List, filter, or sort parties
+      parameters:
+        - name: q
+          in: query
+          schema:
+            type: string
+          description: Search query (searches title and description)
+        - name: category
+          in: query
+          schema:
+            type: string
+          description: Filter by category name
+        - name: date_from
+          in: query
+          schema:
+            type: string
+          description: Start date (dd-mm-YYYY or dd.MM.yyyy HH:mm)
+        - name: date_to
+          in: query
+          schema:
+            type: string
+          description: End date (dd-mm-YYYY or dd.MM.yyyy HH:mm)
+        - name: sort
+          in: query
+          schema:
+            type: string
+          description: Sort field (asc or desc)
+        - name: X-User-Id
+          in: header
+          schema:
+            type: integer
+            format: int64
+          description: User ID for authentication
+      responses:
+        '200':
+          description: List of parties
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Party'
+    post:
+      summary: Create a new party
+      parameters:
+        - name: user
+          in: query
+          schema:
+            type: integer
+            format: int64
+        - name: X-User-Id
+          in: header
+          schema:
+            type: integer
+            format: int64
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PartyCreateDto'
+      responses:
+        '200':
+          description: Party created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Party'
+
+  /api/parties/{id}:
+    get:
+      summary: Get party by ID
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+        - name: user
+          in: query
+          schema:
+            type: integer
+            format: int64
+        - name: X-User-Id
+          in: header
+          schema:
+            type: integer
+            format: int64
+      responses:
+        '200':
+          description: Party details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Party'
+        '404':
+          description: Party not found
+    put:
+      summary: Update party
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+        - name: user
+          in: query
+          schema:
+            type: integer
+            format: int64
+        - name: X-User-Id
+          in: header
+          schema:
+            type: integer
+            format: int64
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PartyCreateDto'
+      responses:
+        '200':
+          description: Party updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Party'
+    delete:
+      summary: Delete party
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+      responses:
+        '204':
+          description: Party deleted
+
+  /api/parties/{id}/join:
+    post:
+      summary: Join party
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+        - name: X-User-Id
+          in: header
+          schema:
+            type: integer
+            format: int64
+      responses:
+        '200':
+          description: Joined party
+    delete:
+      summary: Leave party
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+        - name: X-User-Id
+          in: header
+          schema:
+            type: integer
+            format: int64
+      responses:
+        '200':
+          description: Left party
+
+  /api/parties/{id}/join/status:
+    get:
+      summary: Check join status
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+        - name: X-User-Id
+          in: header
+          schema:
+            type: integer
+            format: int64
+      responses:
+        '200':
+          description: Join status
+
+  /api/parties/{id}/can-edit:
+    get:
+      summary: Check if user can edit party
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+        - name: user
+          in: query
+          schema:
+            type: integer
+            format: int64
+        - name: X-User-Id
+          in: header
+          schema:
+            type: integer
+            format: int64
+      responses:
+        '200':
+          description: Can edit status
+
+  /api/parties/{id}/locations:
+    get:
+      summary: Get party attendee locations
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+      responses:
+        '200':
+          description: List of attendee locations
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/UserLocation'
+
+  /api/parties/{id}/media:
+    get:
+      summary: Get party media
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+      responses:
+        '200':
+          description: List of party media
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Media'
+    post:
+      summary: Upload party media
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+        - name: user
+          in: query
+          schema:
+            type: integer
+            format: int64
+        - name: X-User-Id
+          in: header
+          schema:
+            type: integer
+            format: int64
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                file:
+                  type: string
+                  format: binary
+      responses:
+        '200':
+          description: Media uploaded
+
+  /api/users:
+    get:
+      summary: List or search users
+      parameters:
+        - name: q
+          in: query
+          schema:
+            type: string
+          description: Search query (searches distinctName)
+      responses:
+        '200':
+          description: List of users
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/User'
+    post:
+      summary: Create user
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserCreateDto'
+      responses:
+        '200':
+          description: User created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+
+  /api/users/{id}:
+    get:
+      summary: Get user by ID
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+      responses:
+        '200':
+          description: User details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+    put:
+      summary: Update user
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserCreateDto'
+      responses:
+        '200':
+          description: User updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+
+  /api/users/handle/{distinctName}:
+    get:
+      summary: Get user by handle
+      parameters:
+        - name: distinctName
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: User details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+
+  /api/users/username/{username}:
+    get:
+      summary: Get user by username
+      parameters:
+        - name: username
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: User details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+
+  /api/users/me:
+    get:
+      summary: Get current user
+      parameters:
+        - name: userId
+          in: query
+          schema:
+            type: integer
+            format: int64
+      responses:
+        '200':
+          description: Current user
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+
+  /api/users/location/{id}:
+    get:
+      summary: Get user location
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+          description: User ID
+      responses:
+        '200':
+          description: User location
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserLocation'
+        '404':
+          description: Location not found
+
+  /api/users/location:
+    put:
+      summary: Update current user location
+      parameters:
+        - name: X-User-Id
+          in: header
+          required: true
+          schema:
+            type: integer
+            format: int64
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LocationUpdateDto'
+      responses:
+        '200':
+          description: Location updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserLocation'
+        '400':
+          description: User ID required
+        '404':
+          description: User not found
+
+  /api/users/{id}/media:
+    get:
+      summary: Get user media
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+      responses:
+        '200':
+          description: List of user media
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Media'
+
+  /api/users/{id}/followers:
+    get:
+      summary: Get user followers
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+      responses:
+        '200':
+          description: List of followers
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/User'
+
+  /api/users/{id}/following:
+    get:
+      summary: Get users that user is following
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+      responses:
+        '200':
+          description: List of following
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/User'
+
+  /api/users/{id}/followers/count:
+    get:
+      summary: Get followers count
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+      responses:
+        '200':
+          description: Followers count
+
+  /api/users/{id}/following/count:
+    get:
+      summary: Get following count
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+      responses:
+        '200':
+          description: Following count
+
+  /api/users/{id}/follow-requests:
+    get:
+      summary: Get pending follow requests
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+      responses:
+        '200':
+          description: Pending requests
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/User'
+
+  /api/users/{userId1}/followers/{userId2}/status:
+    get:
+      summary: Check follow status
+      parameters:
+        - name: userId1
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+        - name: userId2
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+      responses:
+        '200':
+          description: Follow status
+          content:
+            application/json:
+              schema:
+                type: boolean
+
+  /api/users/{id}/follow:
+    post:
+      summary: Send follow request
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+        - name: targetUserId
+          in: query
+          required: true
+          schema:
+            type: integer
+            format: int64
+      responses:
+        '200':
+          description: Request sent
+
+  /api/users/{id}/followers/{followerId}:
+    put:
+      summary: Accept follow request
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+        - name: followerId
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+      responses:
+        '200':
+          description: Request accepted
+    delete:
+      summary: Remove follow
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+        - name: followerId
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+      responses:
+        '200':
+          description: Follow removed
+
+  /api/users/{id}/profile-picture:
+    get:
+      summary: Get user profile picture
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+      responses:
+        '200':
+          description: Profile picture
+          content:
+            image/*:
+              schema:
+                type: string
+                format: binary
+
+  /api/users/{id}/profile-picture-filename:
+    get:
+      summary: Get profile picture filename
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+      responses:
+        '200':
+          description: Filename
+
+  /api/users/{id}/upload-profile-picture:
+    post:
+      summary: Upload profile picture
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                file:
+                  type: string
+                  format: binary
+      responses:
+        '200':
+          description: Picture uploaded
+
+  /api/invitations:
+    post:
+      summary: Create invitation
+      parameters:
+        - name: user
+          in: query
+          schema:
+            type: integer
+            format: int64
+        - name: X-User-Id
+          in: header
+          schema:
+            type: integer
+            format: int64
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/InvitationDto'
+      responses:
+        '200':
+          description: Invitation created
+    get:
+      summary: Get invitations
+      parameters:
+        - name: direction
+          in: query
+          schema:
+            type: string
+            enum: [received, sent]
+          description: Filter by direction (received or sent)
+        - name: user
+          in: query
+          schema:
+            type: integer
+            format: int64
+        - name: X-User-Id
+          in: header
+          schema:
+            type: integer
+            format: int64
+      responses:
+        '200':
+          description: List of invitations
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Invitation'
+
+  /api/invitations/{id}:
+    delete:
+      summary: Delete invitation
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+        - name: user
+          in: query
+          schema:
+            type: integer
+            format: int64
+        - name: X-User-Id
+          in: header
+          schema:
+            type: integer
+            format: int64
+      responses:
+        '200':
+          description: Invitation deleted
+
+  /api/media/{id}:
+    get:
+      summary: Get media file by ID
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+      responses:
+        '200':
+          description: Media file
+          content:
+            image/*:
+              schema:
+                type: string
+                format: binary
+
+  /api/qr/generate:
+    get:
+      summary: Generate QR code
+      parameters:
+        - name: userId
+          in: query
+          schema:
+            type: integer
+            format: int64
+      responses:
+        '200':
+          description: QR code generated
+
+  /api/qr/status/{token}:
+    get:
+      summary: Check QR status
+      parameters:
+        - name: token
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: QR status
+
+  /api/qr/image/user/{userId}:
+    get:
+      summary: Get QR image by user ID
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+      responses:
+        '200':
+          description: QR image
+          content:
+            image/png:
+              schema:
+                type: string
+                format: binary
+
+  /api/qr/image/{token}:
+    get:
+      summary: Get QR image by token
+      parameters:
+        - name: token
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: QR image
+          content:
+            image/png:
+              schema:
+                type: string
+                format: binary
+
+  /api/qr/exchange:
+    post:
+      summary: Exchange QR token
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                token:
+                  type: string
+      responses:
+        '200':
+          description: Token exchanged
+
+  /api/qr/mobile/me:
+    post:
+      summary: Mobile QR login
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                mobile_token:
+                  type: string
+      responses:
+        '200':
+          description: Mobile login successful
+
+  /api/notifications:
+    get:
+      summary: Get all notifications
+      parameters:
+        - name: user
+          in: query
+          schema:
+            type: integer
+            format: int64
+        - name: X-User-Id
+          in: header
+          schema:
+            type: integer
+            format: int64
+      responses:
+        '200':
+          description: Notifications
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Notification'
+
+  /api/notifications/unread:
+    get:
+      summary: Get unread notifications
+      parameters:
+        - name: user
+          in: query
+          schema:
+            type: integer
+            format: int64
+        - name: X-User-Id
+          in: header
+          schema:
+            type: integer
+            format: int64
+      responses:
+        '200':
+          description: Unread notifications
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Notification'
+
+  /api/notifications/{id}/read:
+    post:
+      summary: Mark notification as read
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+        - name: user
+          in: query
+          schema:
+            type: integer
+            format: int64
+        - name: X-User-Id
+          in: header
+          schema:
+            type: integer
+            format: int64
+      responses:
+        '200':
+          description: Notification marked as read
+
+  /api/notifications/{id}:
+    delete:
+      summary: Delete notification
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+        - name: user
+          in: query
+          schema:
+            type: integer
+            format: int64
+        - name: X-User-Id
+          in: header
+          schema:
+            type: integer
+            format: int64
+      responses:
+        '200':
+          description: Notification deleted
+
+  /api/category:
+    get:
+      summary: List all categories
+      responses:
+        '200':
+          description: Categories
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Category'
+
+  /api/category/{id}:
+    get:
+      summary: Get category by ID
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+      responses:
+        '200':
+          description: Category details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Category'
+
+components:
+  schemas:
+    Party:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+        host_user:
+          $ref: '#/components/schemas/User'
+        category:
+          $ref: '#/components/schemas/Category'
+        title:
+          type: string
+        time_start:
+          type: string
+          format: date-time
+        time_end:
+          type: string
+          format: date-time
+        max_people:
+          type: integer
+        min_age:
+          type: integer
+        max_age:
+          type: integer
+        website:
+          type: string
+        description:
+          type: string
+        fee:
+          type: number
+          format: double
+        created_at:
+          type: string
+          format: date-time
+        location:
+          $ref: '#/components/schemas/Location'
+        visibility:
+          type: string
+          enum: [PUBLIC, PRIVATE]
+
+    PartyCreateDto:
+      type: object
+      properties:
+        title:
+          type: string
+        description:
+          type: string
+        fee:
+          type: number
+          format: double
+        time_start:
+          type: string
+          format: date-time
+        time_end:
+          type: string
+          format: date-time
+        max_people:
+          type: integer
+        min_age:
+          type: integer
+        max_age:
+          type: integer
+        website:
+          type: string
+        latitude:
+          type: number
+          format: double
+        longitude:
+          type: number
+          format: double
+        location_address:
+          type: string
+        category_id:
+          type: integer
+          format: int64
+        theme:
+          type: string
+        visibility:
+          type: string
+          enum: [PUBLIC, PRIVATE]
+        selectedUsers:
+          type: array
+          items:
+            type: integer
+            format: int64
+
+    User:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+        username:
+          type: string
+        displayName:
+          type: string
+        distinctName:
+          type: string
+        email:
+          type: string
+        biography:
+          type: string
+
+    UserCreateDto:
+      type: object
+      properties:
+        displayName:
+          type: string
+        distinctName:
+          type: string
+        email:
+          type: string
+        biography:
+          type: string
+
+    Location:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+        name:
+          type: string
+        address:
+          type: string
+        latitude:
+          type: number
+          format: double
+        longitude:
+          type: number
+          format: double
+
+    Category:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+        name:
+          type: string
+        color:
+          type: string
+
+    Media:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+        file:
+          type: string
+        party:
+          $ref: '#/components/schemas/Party'
+
+    Invitation:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+        sender:
+          $ref: '#/components/schemas/User'
+        recipient:
+          $ref: '#/components/schemas/User'
+        party:
+          $ref: '#/components/schemas/Party'
+
+    InvitationDto:
+      type: object
+      properties:
+        recipient:
+          type: integer
+          format: int64
+        partyId:
+          type: integer
+          format: int64
+
+    Notification:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+        recipient:
+          $ref: '#/components/schemas/User'
+        sender:
+          $ref: '#/components/schemas/User'
+        party:
+          $ref: '#/components/schemas/Party'
+        message:
+          type: string
+        status:
+          type: string
+        created_at:
+          type: string
+          format: date-time
+
+    UserLocation:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+        user:
+          $ref: '#/components/schemas/User'
+        latitude:
+          type: number
+          format: double
+        longitude:
+          type: number
+          format: double
+
+    LocationUpdateDto:
+      type: object
+      properties:
+        latitude:
+          type: number
+          format: double
+        longitude:
+          type: number
+          format: double
+
+    FilterDto:
+      type: object
+      properties:
+        q:
+          type: string
+          description: Search query
+        category:
+          type: string
+          description: Category filter
+        date_from:
+          type: string
+          description: Start date
+        date_to:
+          type: string
+          description: End date

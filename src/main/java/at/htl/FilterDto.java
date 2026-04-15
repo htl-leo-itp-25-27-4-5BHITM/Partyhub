@@ -1,4 +1,4 @@
 package at.htl;
 
-public record FilterDto(String value, String start, String end)  {
+public record FilterDto(String q, String category, String date_from, String date_to) {
 }
