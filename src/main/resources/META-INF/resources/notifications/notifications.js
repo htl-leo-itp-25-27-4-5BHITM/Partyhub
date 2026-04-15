@@ -106,8 +106,8 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     try {
       const json = await fetchJsonWithFallback([
-        `/api/users/${userId}/followers?status=pending`,
-        `/users/${userId}/followers?status=pending`
+        `/api/users/${userId}/follow-requests`,
+        `/users/${userId}/follow-requests`
       ]);
 
       if (Array.isArray(json)) return json;
@@ -120,27 +120,27 @@ document.addEventListener("DOMContentLoaded", async () => {
     }
   }
 
-  async function acceptFollowRequest(followerId, targetId) {
+  async function acceptFollowRequest(currentUserId, followerId) {
     return fetchWithFallback([
       {
-        url: `/api/users/${encodeURIComponent(followerId)}/follow/${encodeURIComponent(targetId)}`,
+        url: `/api/users/${encodeURIComponent(currentUserId)}/followers/${encodeURIComponent(followerId)}`,
         options: { method: "PUT" }
       },
       {
-        url: `/users/${encodeURIComponent(followerId)}/follow/${encodeURIComponent(targetId)}`,
+        url: `/users/${encodeURIComponent(currentUserId)}/followers/${encodeURIComponent(followerId)}`,
         options: { method: "PUT" }
       }
     ]);
   }
 
-  async function removeFollowRequest(followerId, targetId) {
+  async function removeFollowRequest(currentUserId, followerId) {
     return fetchWithFallback([
       {
-        url: `/api/users/${encodeURIComponent(followerId)}/follow/${encodeURIComponent(targetId)}`,
+        url: `/api/users/${encodeURIComponent(currentUserId)}/followers/${encodeURIComponent(followerId)}`,
         options: { method: "DELETE" }
       },
       {
-        url: `/users/${encodeURIComponent(followerId)}/follow/${encodeURIComponent(targetId)}`,
+        url: `/users/${encodeURIComponent(currentUserId)}/followers/${encodeURIComponent(followerId)}`,
         options: { method: "DELETE" }
       }
     ]);
@@ -161,8 +161,6 @@ document.addEventListener("DOMContentLoaded", async () => {
   try {
     const invitations = await getReceivedInvites();
     const pendingFollowUsers = await getPendingFollowUsers();
-
-    console.log("notifications: raw invitations ->", invitations);
     console.log("notifications: raw pending follow users ->", pendingFollowUsers);
 
     try {
@@ -395,7 +393,7 @@ document.addEventListener("DOMContentLoaded", async () => {
               }
             } else if (item.type === "follow") {
               if (item.followerId != null && currentUserId != null) {
-                await acceptFollowRequest(item.followerId, currentUserId);
+                await acceptFollowRequest(currentUserId, item.followerId);
               }
             }
 
@@ -419,29 +417,34 @@ document.addEventListener("DOMContentLoaded", async () => {
       if (dismissBtn) {
         dismissBtn.addEventListener("click", async () => {
           try {
+            let deleted = false;
             if (item.type === "invite") {
-              if (typeof deleteInvite === "function" && item.invitationId) {
-                await deleteInvite(item.invitationId);
+              const deleteFn = window.deleteInvite || window.backend?.deleteInvite;
+              if (deleteFn && item.invitationId) {
+                await deleteFn(item.invitationId);
+                deleted = true;
               }
             } else if (item.type === "follow") {
               if (item.followerId != null && currentUserId != null) {
-                await removeFollowRequest(item.followerId, currentUserId);
+                await removeFollowRequest(currentUserId, item.followerId);
+                deleted = true;
               }
             }
 
-            const idx = data.findIndex(d => d.id === item.id);
-            if (idx > -1) data.splice(idx, 1);
-
-            render();
-            showToast(
-              item.type === "follow"
-                ? "Follow-Anfrage abgelehnt"
-                : "Einladung abgelehnt",
-              "error"
-            );
+            if (deleted) {
+              const idx = data.findIndex(d => d.id === item.id);
+              if (idx > -1) data.splice(idx, 1);
+              render();
+              showToast(
+                item.type === "follow"
+                  ? "Follow-Anfrage abgelehnt"
+                  : "Einladung abgelehnt",
+                "success"
+              );
+            }
           } catch (err) {
             console.error("Reject failed", err);
-            showToast("Fehler beim Ablehnen", "error");
+            showToast("Fehler beim Ablehnen: " + err.message, "error");
           }
         });
       }

@@ -326,7 +326,7 @@ public class UserResource {
     @Produces(MediaType.APPLICATION_JSON)
     public Response unfollowUser(@PathParam("id") long id,
                                 @PathParam("followerId") long followerId) {
-        return followRepository.removeFollow(id, followerId);
+        return followRepository.removeFollow(followerId, id);
     }
 
     @GET

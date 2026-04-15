@@ -248,8 +248,7 @@ async function getSentInvites() {
 async function deleteInvite(invitationId) {
   const userId = getUserIdFromStorage();
   if (!userId) {
-    console.error("User not logged in");
-    return { ok: false, error: "User not logged in" };
+    throw new Error("User not logged in");
   }
 
   try {
@@ -262,14 +261,16 @@ async function deleteInvite(invitationId) {
 
     if (!response.ok) {
       if (response.status === 404) {
-        throw new Error("Invitation not found");
+        throw new Error("Einladung nicht gefunden");
       }
-      throw new Error(`Failed to delete invitation: ${response.status}`);
+      if (response.status === 403) {
+        throw new Error("Nicht berechtigt");
+      }
+      throw new Error(`Fehler beim Löschen: ${response.status}`);
     }
 
     return true;
   } catch (error) {
-    console.error("Error deleting invitation:", error);
     throw error;
   }
 }
@@ -449,7 +450,7 @@ async function getFollowStatus(userA, userB) {
 
     // fallback: check pending lists for userB (users who requested to follow userB)
     try {
-      const res = await fetch(`/api/users/${encodeURIComponent(userB)}/followers?status=pending`);
+      const res = await fetch(`/api/users/${encodeURIComponent(userB)}/follow-requests`);
       if (res.ok) {
         const data = await res.json().catch(() => null);
         if (Array.isArray(data) && data.some((u) => String(u?.id) === String(userA))) {
@@ -493,3 +494,8 @@ window.backend = {
   followUser,
   unfollowUser
 };
+
+window.deleteInvite = deleteInvite;
+window.invite = invite;
+window.attendParty = attendParty;
+window.leaveParty = leaveParty;

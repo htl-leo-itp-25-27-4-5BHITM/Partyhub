@@ -72,3 +72,27 @@ PUT http://localhost:8080/api/users/3/followers/2
 DELETE http://localhost:8080/api/users/1/followers/7
 
 ?? status == 404
+
+
+###########################################
+### 10. Decline follow request (reject pending request)
+### User 6 has pending request to follow user 1
+### To decline: DELETE /api/users/{recipientId}/followers/{followerId}
+###########################################
+DELETE http://localhost:8080/api/users/1/followers/6
+
+?? status == 204
+
+
+###########################################
+### 11. Accept follow request (confirm pending request)
+### First create a pending request: user 7 wants to follow user 1
+###########################################
+POST http://localhost:8080/api/users/7/follow?targetUserId=1
+
+?? status == 201
+
+# Accept: PUT /api/users/{recipientId}/followers/{followerId}
+PUT http://localhost:8080/api/users/1/followers/7
+
+?? status == 200
