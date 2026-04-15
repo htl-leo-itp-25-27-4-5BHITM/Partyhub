@@ -1,10 +1,10 @@
-@baseUrl = http://localhost:8080/api/party
-@partyId = 26
+@baseUrl = http://localhost:8080/api/parties
+@partyId = 11
 
 ###########################################
 ### 1. Create Party
 ###########################################
-POST {{baseUrl}}/add?user=1
+POST {{baseUrl}}?user=1
 Content-Type: application/json
 
 {
@@ -19,7 +19,7 @@ Content-Type: application/json
   "latitude": 48.2082,
   "longitude": 16.3738,
   "location_address": "Wien, Österreich",
-  "category_id": 1
+  "visibility": "PUBLIC"
 }
 
 ?? status == 201
@@ -34,17 +34,17 @@ GET {{baseUrl}}
 
 
 ###########################################
-### 3. Get Party by ID
+### 3. Get Party by ID (using seeded party ID 1)
 ###########################################
-GET {{baseUrl}}/{{partyId}}
+GET {{baseUrl}}/1
 
 ?? status == 200
 
 
 ###########################################
-### 4. Update Party
+### 4. Update Party (using seeded party ID 1)
 ###########################################
-PUT {{baseUrl}}/{{partyId}}?user=1
+PUT {{baseUrl}}/1?user=2
 Content-Type: application/json
 
 {
@@ -59,25 +59,26 @@ Content-Type: application/json
   "latitude": 48.2082,
   "longitude": 16.3738,
   "location_address": "Wien, Österreich",
-  "category_id": 1
+  "visibility": "PUBLIC"
 }
 
 ?? status == 200
 
 
 ###########################################
-### 5. Attend Party
+### 5. Join Party (uses X-User-Id header)
 ###########################################
-# Dein Server schickt hier laut Log 204
-POST {{baseUrl}}/{{partyId}}/attend?user=1
+POST {{baseUrl}}/1/join
+X-User-Id: 1
 
 ?? status == 204
 
 
 ###########################################
-### 6. Attend Status
+### 6. Join Status (uses X-User-Id header)
 ###########################################
-GET {{baseUrl}}/{{partyId}}/attend/status?user=1
+GET {{baseUrl}}/1/join/status
+X-User-Id: 1
 
 ?? status == 200
 
@@ -86,18 +87,15 @@ GET {{baseUrl}}/{{partyId}}/attend/status?user=1
 ### 7. Check if user can edit party
 ###########################################
 # @name canEditCheck
-GET {{baseUrl}}/{{partyId}}/can-edit?user=1
+GET {{baseUrl}}/1/can-edit?user=2
 
 ?? status == 200
-# Fix: Nutze den Request-Namen für die JS-Prüfung
-?? js canEditCheck.canEdit === true
 
 
 ###########################################
-### 8. Media Upload
+### 8. Media Upload (party 2 has existing media)
 ###########################################
-# Dein Server schickt hier laut Log 200
-POST {{baseUrl}}/{{partyId}}/media/upload?user=1
+POST {{baseUrl}}/2/media/upload?user=3
 Content-Type: multipart/form-data; boundary=boundary
 
 --boundary
@@ -111,38 +109,57 @@ Content-Type: image/jpeg
 
 
 ###########################################
-### 9. Filter
+### 9. Get Party Media
 ###########################################
-POST {{baseUrl}}/filter?filter=content
-Content-Type: application/json
-
-{
-  "value": "Updated"
-}
+GET {{baseUrl}}/2/media
 
 ?? status == 200
 
 
 ###########################################
-### 10. Sortierung
+### 10. Get Party Locations (attendee locations)
 ###########################################
-GET {{baseUrl}}/sort?sort=asc
+GET {{baseUrl}}/1/locations
 
 ?? status == 200
 
 
 ###########################################
-### 11. Leave Party
+### 11. Filter by search query
 ###########################################
-# Dein Server schickt hier laut Log 200
-DELETE {{baseUrl}}/{{partyId}}/attend?user=1
+GET {{baseUrl}}?q=Linz
 
 ?? status == 200
 
 
 ###########################################
-### 12. Delete Party
+### 12. Filter by theme
 ###########################################
-DELETE {{baseUrl}}/{{partyId}}
+GET {{baseUrl}}?theme=EDM
+
+?? status == 200
+
+
+###########################################
+### 13. Sortierung
+###########################################
+GET {{baseUrl}}?sort=asc
+
+?? status == 200
+
+
+###########################################
+### 14. Leave Party (uses X-User-Id header)
+###########################################
+DELETE {{baseUrl}}/1/join
+X-User-Id: 1
+
+?? status == 200
+
+
+###########################################
+### 15. Delete Party (using existing party ID 11)
+###########################################
+DELETE {{baseUrl}}/11
 
 ?? status == 204

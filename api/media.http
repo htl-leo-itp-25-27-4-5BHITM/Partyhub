@@ -1,15 +1,17 @@
-###
-# GET media by ID - returns 404 when not found
-GET http://localhost:8080/api/media/2
+# Media endpoints - nested under parties/users
+# Note: Direct media endpoints by ID may not exist - use party/user media instead
 
-
-
-###
-GET http://localhost:8080/api/media/party/2/all
+###########################################
+### 1. Get party media (from party endpoint)
+###########################################
+GET http://localhost:8080/api/parties/2/media
 
 ?? status == 200
 
-###
-GET http://localhost:8080/api/media/user/2/all
+
+###########################################
+### 2. Get user media (from user endpoint)
+###########################################
+GET http://localhost:8080/api/users/2/media
 
 ?? status == 200

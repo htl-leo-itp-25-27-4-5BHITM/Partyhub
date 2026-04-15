@@ -1,9 +1,0 @@
-###
-GET http://localhost:8080/api/category
-
-?? status == 200
-
-###
-GET http://localhost:8080/api/category/2
-
-?? status == 200

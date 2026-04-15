@@ -1,45 +1,107 @@
 @searchName = anna
 @searchResultId = 1
 
-###
-GET http://localhost:8080/api/users/all
+###########################################
+### 1. Get all users
+###########################################
+GET http://localhost:8080/api/users
 
 ?? status == 200
 
-### Search users by name
+
+###########################################
+### 2. Search users by name
+###########################################
 # @name searchUsersByName
-GET http://localhost:8080/api/users/all/search?name={{searchName}}
+GET http://localhost:8080/api/users?q={{searchName}}
 
 ?? status == 200
 
-###
+
+###########################################
+### 3. Get user by ID
+###########################################
 GET http://localhost:8080/api/users/{{searchResultId}}
 
 ?? status == 200
-### User direkt per ID holen
+
+
+###########################################
+### 4. Get user by ID (alternative)
+###########################################
 GET http://localhost:8080/api/users/1
+
 ?? status == 200
 
-### 
+
+###########################################
+### 5. Get user by handle
+###########################################
 GET http://localhost:8080/api/users/handle/anna_huber
-Accept: application/json
 
 ?? status == 200
 
-###
 
-### Follower Count von User 1
+###########################################
+### 6. Follower Count von User 1
+###########################################
 GET http://localhost:8080/api/users/1/followers/count
 
 ?? status == 200
 
 
-### Following Count von User 3
+###########################################
+### 7. Following Count von User 3
+###########################################
 GET http://localhost:8080/api/users/3/following/count
 
 ?? status == 200
 
-### User anlegen
+
+###########################################
+### 8. Get followers of user
+###########################################
+GET http://localhost:8080/api/users/1/followers
+
+?? status == 200
+
+
+###########################################
+### 9. Get following of user
+###########################################
+GET http://localhost:8080/api/users/2/following
+
+?? status == 200
+
+
+###########################################
+### 10. Check if user1 is following user2
+###########################################
+GET http://localhost:8080/api/users/1/followers/2/status
+
+?? status == 200
+
+
+###########################################
+### 11. Remove follow
+### Note: Returns 404 if no relationship exists
+###########################################
+DELETE http://localhost:8080/api/users/1/followers/7
+
+?? status == 404
+
+
+###########################################
+### 13. Get pending follow requests
+###########################################
+GET http://localhost:8080/api/users/1/follow-requests
+
+?? status == 200
+
+
+###########################################
+### 14. User anlegen
+###########################################
 POST http://localhost:8080/api/users
 Content-Type: application/json
 
@@ -53,7 +115,9 @@ Content-Type: application/json
 ?? status == 201
 
 
-### 
+###########################################
+### 15. Update user
+###########################################
 PUT http://localhost:8080/api/users/5
 Content-Type: application/json
 
@@ -64,5 +128,44 @@ Content-Type: application/json
   "email": "sabine.weber@wien.at",
   "biography": "Immer auf der Suche nach neuen Events"
 }
+
+?? status == 200
+
+
+###########################################
+### 16. Get user location by user ID
+###########################################
+GET http://localhost:8080/api/users/location/1
+
+?? status == 200
+
+
+###########################################
+### 17. Update user location (uses X-User-Id header)
+###########################################
+PUT http://localhost:8080/api/users/location
+X-User-Id: 1
+Content-Type: application/json
+
+{
+  "latitude": 48.2082,
+  "longitude": 16.3738
+}
+
+?? status == 200
+
+
+###########################################
+### 18. Get user profile picture
+###########################################
+GET http://localhost:8080/api/users/1/profile-picture
+
+?? status == 200
+
+
+###########################################
+### 19. Get user media
+###########################################
+GET http://localhost:8080/api/users/1/media
 
 ?? status == 200

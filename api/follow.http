@@ -1,51 +1,74 @@
-###
-GET http://localhost:8080/follow/follower/1/count
+# Follow endpoints - under /api/users/{id}/*
+# Paths must match UserResource.java implementation
+
+###########################################
+### 1. Follower Count
+###########################################
+GET http://localhost:8080/api/users/1/followers/count
 
 ?? status == 200
 
-<> 2026-03-04T092555.200.json
 
-###
-GET http://localhost:8080/follow/following/1/count
+###########################################
+### 2. Following Count
+###########################################
+GET http://localhost:8080/api/users/1/following/count
+
+?? status == 200
+
+
+###########################################
+### 3. Get followers of user
+###########################################
+GET http://localhost:8080/api/users/1/followers
 
 ?? status == 200
 
 
-###
-GET http://localhost:8080/follow/followers/1
+###########################################
+### 4. Get following of user
+###########################################
+GET http://localhost:8080/api/users/2/following
 
 ?? status == 200
 
-<> 2026-03-04T093442.200.json
 
-
-###
-GET http://localhost:8080/follow/followings/2
-
-?? status == 200
-
-<> 2026-03-04T093921.200.json
-###
-GET http://localhost:8080/follow/pending/1
+###########################################
+### 5. Get pending follow requests
+###########################################
+GET http://localhost:8080/api/users/1/follow-requests
 
 ?? status == 200
 
-<> 2026-03-04T094645.200.json
-###
-GET http://localhost:8080/follow/is-following/1/2
+
+###########################################
+### 6. Check if user1 is following user2 (status endpoint)
+###########################################
+GET http://localhost:8080/api/users/1/followers/2/status
 
 ?? status == 200
 
-<> 2026-03-04T094843.200.json
 
-###
-POST http://localhost:8080/follow/request/2/3
+###########################################
+### 7. Send follow request (user 2 wants to follow user 3)
+###########################################
+POST http://localhost:8080/api/users/2/follow?targetUserId=3
 
 ?? status == 201
 
-<> 2026-03-04T095004.200.json
 
-###
-POST http://localhost:8080/follow/request/1/7
+###########################################
+### 8. Accept follow request (user 3 accepts user 2's request)
+###########################################
+PUT http://localhost:8080/api/users/3/followers/2
 
-?? status == 201
+?? status == 200
+
+
+###########################################
+### 9. Remove follow (user 1 unfollows user 7)
+### Note: Returns 404 if no relationship exists
+###########################################
+DELETE http://localhost:8080/api/users/1/followers/7
+
+?? status == 404
