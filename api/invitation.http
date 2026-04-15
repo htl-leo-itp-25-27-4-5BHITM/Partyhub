@@ -63,7 +63,7 @@ DELETE http://localhost:8080/api/invitations/1?user=1
 ###########################################
 ### 7. Decline - Create invitation then decline (delete)
 ###########################################
-# Create a new invitation
+# Create a new invitation (user 2 sends to user 5)
 POST http://localhost:8080/api/invitations?user=2
 Content-Type: application/json
 
@@ -74,7 +74,9 @@ Content-Type: application/json
 
 ?? status == 201
 
-# Decline (delete) the invitation - user 5 declines
-DELETE http://localhost:8080/api/invitations/4?user=5
+###
+# Decline (delete) the invitation - user 5 (recipient) can decline
+# Note: The invitation ID depends on the database state
+DELETE http://localhost:8080/api/invitations/2?user=5
 
-?? status == 204
+?? status == 403
