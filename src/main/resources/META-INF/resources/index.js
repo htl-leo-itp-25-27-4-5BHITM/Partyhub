@@ -32,7 +32,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     if (!select) return;
     
     try {
-      const response = await fetch("/api/party/");
+      const response = await fetch("/api/parties");
       if (!response.ok) throw new Error("Failed to fetch parties");
       const parties = await response.json();
       
@@ -57,7 +57,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     if (!partyId) return;
     
     try {
-      const response = await fetch(`/api/userLocation/party/${partyId}`);
+      const response = await fetch(`/api/parties/${partyId}/locations`);
       if (!response.ok) throw new Error("Failed to fetch user locations");
       const locations = await response.json();
       
@@ -381,7 +381,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     if (!currentUserId) return;
     
     try {
-      const response = await fetch(`/api/userLocation/user/${currentUserId}`);
+      const response = await fetch(`/api/users/${currentUserId}/location`);
       if (!response.ok) return;
       const location = await response.json();
       
@@ -482,7 +482,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
 async function getAllParties() {
   try {
-    const response = await fetch("/api/party/");
+    const response = await fetch("/api/parties");
     if (!response.ok) throw new Error("Network response was not ok");
     const data = await response.json();
     return data;

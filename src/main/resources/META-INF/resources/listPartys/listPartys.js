@@ -19,7 +19,7 @@ async function loadAllParties() {
     const container = document.getElementById('partiesContainer');
 
     try {
-        const response = await fetch('/api/party');
+        const response = await fetch('/api/parties');
         if (!response.ok) {
             throw new Error('Failed to fetch parties');
         }

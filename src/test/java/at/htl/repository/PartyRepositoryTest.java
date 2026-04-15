@@ -1,9 +1,7 @@
 package at.htl.repository;
 
-import at.htl.category.Category;
 import at.htl.location.Location;
 import at.htl.party.Party;
-import at.htl.party.PartyCreateDto;
 import at.htl.party.PartyRepository;
 import at.htl.user.User;
 import io.quarkus.test.junit.QuarkusTest;
@@ -31,7 +29,6 @@ public class PartyRepositoryTest {
 
     @BeforeEach
     void setUp() {
-        // Clean up in proper order due to foreign key constraints
         entityManager.createQuery("DELETE FROM UserLocation").executeUpdate();
         entityManager.createQuery("DELETE FROM Follow").executeUpdate();
         entityManager.createQuery("DELETE FROM Invitation").executeUpdate();
@@ -39,16 +36,11 @@ public class PartyRepositoryTest {
         entityManager.createQuery("DELETE FROM Party").executeUpdate();
         entityManager.createQuery("DELETE FROM ProfilePicture").executeUpdate();
         entityManager.createQuery("DELETE FROM User").executeUpdate();
-        entityManager.createQuery("DELETE FROM Category").executeUpdate();
         entityManager.createQuery("DELETE FROM Location").executeUpdate();
         entityManager.createQuery("DELETE FROM FollowStatus").executeUpdate();
     }
 
     private void createTestData() {
-        Category category = new Category();
-        category.setName("Test Category");
-        entityManager.persist(category);
-
         Location location = new Location();
         location.setAddress("Test Address");
         location.setLatitude(48.2082);
@@ -77,13 +69,12 @@ public class PartyRepositoryTest {
     void testGetParties_afterAdd() {
         createTestData();
         
-        Category category = entityManager.createQuery("SELECT c FROM Category c", Category.class).getSingleResult();
         Location location = entityManager.createQuery("SELECT l FROM Location l", Location.class).getSingleResult();
         
         Party party = new Party();
         party.setTitle("Test Party");
         party.setDescription("Test Description");
-        party.setCategory(category);
+        party.setTheme("Test Theme");
         party.setLocation(location);
         party.setTime_start(LocalDateTime.now());
         party.setTime_end(LocalDateTime.now().plusHours(2));
@@ -102,13 +93,12 @@ public class PartyRepositoryTest {
     void testGetPartyById() {
         createTestData();
         
-        Category category = entityManager.createQuery("SELECT c FROM Category c", Category.class).getSingleResult();
         Location location = entityManager.createQuery("SELECT l FROM Location l", Location.class).getSingleResult();
         
         Party party = new Party();
         party.setTitle("Test Party");
         party.setDescription("Test Description");
-        party.setCategory(category);
+        party.setTheme("Test Theme");
         party.setLocation(location);
         party.setTime_start(LocalDateTime.now());
         party.setTime_end(LocalDateTime.now().plusHours(2));
@@ -135,12 +125,11 @@ public class PartyRepositoryTest {
     void testRemoveParty() {
         createTestData();
         
-        Category category = entityManager.createQuery("SELECT c FROM Category c", Category.class).getSingleResult();
         Location location = entityManager.createQuery("SELECT l FROM Location l", Location.class).getSingleResult();
         
         Party party = new Party();
         party.setTitle("Test Party");
-        party.setCategory(category);
+        party.setTheme("Test Theme");
         party.setLocation(location);
         party.setTime_start(LocalDateTime.now());
         party.setTime_end(LocalDateTime.now().plusHours(2));
@@ -167,12 +156,11 @@ public class PartyRepositoryTest {
     void testSortParty_asc() {
         createTestData();
         
-        Category category = entityManager.createQuery("SELECT c FROM Category c", Category.class).getSingleResult();
         Location location = entityManager.createQuery("SELECT l FROM Location l", Location.class).getSingleResult();
         
         Party party1 = new Party();
         party1.setTitle("Party B");
-        party1.setCategory(category);
+        party1.setTheme("Test Theme");
         party1.setLocation(location);
         party1.setTime_start(LocalDateTime.now().plusDays(2));
         party1.setTime_end(LocalDateTime.now().plusDays(2).plusHours(2));
@@ -180,7 +168,7 @@ public class PartyRepositoryTest {
         
         Party party2 = new Party();
         party2.setTitle("Party A");
-        party2.setCategory(category);
+        party2.setTheme("Test Theme");
         party2.setLocation(location);
         party2.setTime_start(LocalDateTime.now().plusDays(1));
         party2.setTime_end(LocalDateTime.now().plusDays(1).plusHours(2));

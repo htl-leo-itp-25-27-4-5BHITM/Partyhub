@@ -86,8 +86,8 @@ document.addEventListener("DOMContentLoaded", async () => {
     }
 
     const json = await fetchJsonWithFallback([
-      `/api/invites/rec?user=${userId}`,
-      `/invites/rec?user=${userId}`
+      `/api/invitations?user=${userId}&direction=received`,
+      `/invitations?user=${userId}&direction=received`
     ]);
 
     if (Array.isArray(json)) return json;
@@ -106,8 +106,8 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     try {
       const json = await fetchJsonWithFallback([
-        `/follow/pending/${userId}`,
-        `/api/follow/pending/${userId}`
+        `/api/users/${userId}/followers?status=pending`,
+        `/users/${userId}/followers?status=pending`
       ]);
 
       if (Array.isArray(json)) return json;
@@ -123,11 +123,11 @@ document.addEventListener("DOMContentLoaded", async () => {
   async function acceptFollowRequest(followerId, targetId) {
     return fetchWithFallback([
       {
-        url: `/follow/accept/${encodeURIComponent(followerId)}/${encodeURIComponent(targetId)}`,
+        url: `/api/users/${encodeURIComponent(followerId)}/follow/${encodeURIComponent(targetId)}`,
         options: { method: "PUT" }
       },
       {
-        url: `/api/follow/accept/${encodeURIComponent(followerId)}/${encodeURIComponent(targetId)}`,
+        url: `/users/${encodeURIComponent(followerId)}/follow/${encodeURIComponent(targetId)}`,
         options: { method: "PUT" }
       }
     ]);
@@ -136,11 +136,11 @@ document.addEventListener("DOMContentLoaded", async () => {
   async function removeFollowRequest(followerId, targetId) {
     return fetchWithFallback([
       {
-        url: `/follow/remove/${encodeURIComponent(followerId)}/${encodeURIComponent(targetId)}`,
+        url: `/api/users/${encodeURIComponent(followerId)}/follow/${encodeURIComponent(targetId)}`,
         options: { method: "DELETE" }
       },
       {
-        url: `/api/follow/remove/${encodeURIComponent(followerId)}/${encodeURIComponent(targetId)}`,
+        url: `/users/${encodeURIComponent(followerId)}/follow/${encodeURIComponent(targetId)}`,
         options: { method: "DELETE" }
       }
     ]);

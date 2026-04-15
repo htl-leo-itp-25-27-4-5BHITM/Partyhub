@@ -6,7 +6,7 @@
     if (!partyId) throw new Error('partyId is required');
     
     try {
-      const res = await window.makeAuthenticatedCall(`/api/party/${partyId}/attend`, {
+      const res = await window.makeAuthenticatedCall(`/api/parties/${partyId}/join`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' }
       });
@@ -26,7 +26,7 @@
     if (!partyId) throw new Error('partyId is required');
     
     try {
-      const res = await window.makeAuthenticatedCall(`/api/party/${partyId}/attend`, {
+      const res = await window.makeAuthenticatedCall(`/api/parties/${partyId}/join`, {
         method: 'DELETE'
       });
       
@@ -44,7 +44,7 @@
   async function attendStatus(partyId) {
     if (!partyId) throw new Error('partyId is required');
     try {
-      const res = await fetch(`/api/party/${partyId}/attend/status`);
+      const res = await fetch(`/api/parties/${partyId}/join/status`);
       if (!res.ok) {
         const text = await res.text();
         throw new Error(`Status fetch failed: ${res.status} ${text}`);

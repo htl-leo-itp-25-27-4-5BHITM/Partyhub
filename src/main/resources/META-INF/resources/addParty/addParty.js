@@ -239,7 +239,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const uid = localStorage.getItem("userId");
     if (!uid) return;
     try {
-      const res = await fetch(`/follow/followers/${uid}`);
+      const res = await fetch(`/api/users/${uid}/followers`);
       const followers = await res.json();
       userList.innerHTML = "";
       followers.forEach(u => {
@@ -268,7 +268,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   try {
     const method = state.id ? "PUT" : "POST";
-    const url = state.id ? `/api/party/${state.id}` : "/api/party/add";
+    const url = state.id ? `/api/parties/${state.id}` : "/api/parties";
     
     const res = await fetch(url, {
       method: method,
@@ -305,7 +305,7 @@ document.addEventListener("DOMContentLoaded", () => {
     if (id) {
       // Edit Mode
       try {
-        const res = await fetch(`/api/party/${id}`);
+        const res = await fetch(`/api/parties/${id}`);
         if (res.ok) {
           const party = await res.json();
           Object.assign(state, party);

@@ -1,7 +1,6 @@
 package at.htl.resource;
 
 import at.htl.TestBase;
-import at.htl.category.Category;
 import at.htl.location.Location;
 import at.htl.user.User;
 import io.quarkus.test.junit.QuarkusTest;
@@ -11,8 +10,6 @@ import jakarta.persistence.EntityManager;
 import jakarta.transaction.Transactional;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-
-import java.time.LocalDateTime;
 
 import static io.restassured.RestAssured.given;
 import static org.hamcrest.Matchers.*;
@@ -31,12 +28,7 @@ public class PartyResourceTest extends TestBase {
         entityManager.createQuery("DELETE FROM Media").executeUpdate();
         entityManager.createQuery("DELETE FROM Party").executeUpdate();
         entityManager.createQuery("DELETE FROM User").executeUpdate();
-        entityManager.createQuery("DELETE FROM Category").executeUpdate();
         entityManager.createQuery("DELETE FROM Location").executeUpdate();
-
-        Category category = new Category();
-        category.setName("Test Category");
-        entityManager.persist(category);
 
         Location location = new Location();
         location.setAddress("Test Address");
@@ -56,7 +48,7 @@ public class PartyResourceTest extends TestBase {
     @Test
     void testGetAllParties() {
         given()
-            .when().get("/api/party/")
+            .when().get("/api/parties")
             .then()
             .statusCode(200)
             .body("$", is(notNullValue()));
@@ -65,7 +57,7 @@ public class PartyResourceTest extends TestBase {
     @Test
     void testGetPartyById_notFound() {
         given()
-            .when().get("/api/party/999")
+            .when().get("/api/parties/999")
             .then()
             .statusCode(404);
     }
@@ -73,7 +65,7 @@ public class PartyResourceTest extends TestBase {
     @Test
     void testDeleteParty_notFound() {
         given()
-            .when().delete("/api/party/999")
+            .when().delete("/api/parties/999")
             .then()
             .statusCode(404);
     }
@@ -91,8 +83,8 @@ public class PartyResourceTest extends TestBase {
         given()
             .contentType(ContentType.JSON)
             .body(requestBody)
-            .queryParam("user", 1)
-            .when().put("/api/party/999")
+            .header("X-User-Id", "1")
+            .when().put("/api/parties/999")
             .then()
             .statusCode(404);
     }
@@ -101,7 +93,7 @@ public class PartyResourceTest extends TestBase {
     void testSortParties_asc() {
         given()
             .queryParam("sort", "asc")
-            .when().get("/api/party/sort")
+            .when().get("/api/parties")
             .then()
             .statusCode(200)
             .body("$", is(notNullValue()));
@@ -111,17 +103,17 @@ public class PartyResourceTest extends TestBase {
     void testSortParties_desc() {
         given()
             .queryParam("sort", "desc")
-            .when().get("/api/party/sort")
+            .when().get("/api/parties")
             .then()
             .statusCode(200)
             .body("$", is(notNullValue()));
     }
 
     @Test
-    void testAttendParty_notFound() {
+    void testJoinParty_notFound() {
         given()
-            .queryParam("user", 1)
-            .when().post("/api/party/999/attend")
+            .header("X-User-Id", "1")
+            .when().post("/api/parties/999/join")
             .then()
             .statusCode(404);
     }
@@ -129,25 +121,25 @@ public class PartyResourceTest extends TestBase {
     @Test
     void testLeaveParty_notFound() {
         given()
-            .queryParam("user", 1)
-            .when().delete("/api/party/999/attend")
+            .header("X-User-Id", "1")
+            .when().delete("/api/parties/999/join")
             .then()
             .statusCode(404);
     }
 
     @Test
-    void testAttendStatus_notFound() {
+    void testJoinStatus_notFound() {
         given()
-            .queryParam("user", 1)
-            .when().get("/api/party/999/attend/status")
+            .header("X-User-Id", "1")
+            .when().get("/api/parties/999/join/status")
             .then()
             .statusCode(404);
     }
 
     @Test
-    void testAttendParty_noUser() {
+    void testJoinParty_noUser() {
         given()
-            .when().post("/api/party/999/attend")
+            .when().post("/api/parties/999/join")
             .then()
             .statusCode(400);
     }
@@ -155,15 +147,15 @@ public class PartyResourceTest extends TestBase {
     @Test
     void testLeaveParty_noUser() {
         given()
-            .when().delete("/api/party/999/attend")
+            .when().delete("/api/parties/999/join")
             .then()
             .statusCode(400);
     }
 
     @Test
-    void testAttendStatus_noUser() {
+    void testJoinStatus_noUser() {
         given()
-            .when().get("/api/party/999/attend/status")
+            .when().get("/api/parties/999/join/status")
             .then()
             .statusCode(400);
     }

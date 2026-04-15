@@ -14,7 +14,7 @@ public class UserResourceTest extends TestBase {
     @Test
     void testGetAllUsers_empty() {
         given()
-            .when().get("/api/users/all")
+            .when().get("/api/users")
             .then()
             .statusCode(200)
             .body("$", is(notNullValue()));

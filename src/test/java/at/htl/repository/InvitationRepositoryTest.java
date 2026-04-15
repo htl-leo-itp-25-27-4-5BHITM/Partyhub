@@ -1,6 +1,5 @@
 package at.htl.repository;
 
-import at.htl.category.Category;
 import at.htl.invitation.Invitation;
 import at.htl.invitation.InvitationDto;
 import at.htl.invitation.InvitationRepository;
@@ -39,7 +38,6 @@ public class InvitationRepositoryTest {
         entityManager.createQuery("DELETE FROM Party").executeUpdate();
         entityManager.createQuery("DELETE FROM ProfilePicture").executeUpdate();
         entityManager.createQuery("DELETE FROM User").executeUpdate();
-        entityManager.createQuery("DELETE FROM Category").executeUpdate();
         entityManager.createQuery("DELETE FROM Location").executeUpdate();
         entityManager.createQuery("DELETE FROM FollowStatus").executeUpdate();
     }
@@ -54,10 +52,6 @@ public class InvitationRepositoryTest {
     }
 
     private Party createTestParty(User host) {
-        Category category = new Category();
-        category.setName("Test Category");
-        entityManager.persist(category);
-
         Location location = new Location();
         location.setAddress("Test Address");
         location.setLatitude(48.2082);
@@ -67,7 +61,7 @@ public class InvitationRepositoryTest {
         Party party = new Party();
         party.setTitle("Test Party");
         party.setDescription("Test Description");
-        party.setCategory(category);
+        party.setTheme("Test Theme");
         party.setLocation(location);
         party.setTime_start(LocalDateTime.now());
         party.setTime_end(LocalDateTime.now().plusHours(2));

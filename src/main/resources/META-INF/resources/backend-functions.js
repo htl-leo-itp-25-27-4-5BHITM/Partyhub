@@ -10,7 +10,7 @@ async function createParty(payload) {
   }
 
   try {
-    const response = await fetch(`/api/party/add?user=${userId}`, {
+    const response = await fetch(`/api/parties?user=${userId}`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json"
@@ -38,7 +38,7 @@ async function createParty(payload) {
 
 async function getAllParties() {
   try {
-    const response = await fetch("/api/party/");
+    const response = await fetch("/api/parties");
     if (!response.ok) throw new Error("Network response was not ok");
     return await response.json();
   } catch (error) {
@@ -49,7 +49,7 @@ async function getAllParties() {
 
 async function sortParties(sortKey) {
   try {
-    const response = await fetch(`/api/party/sort?sort=${sortKey}`);
+    const response = await fetch(`/api/parties?sort=${sortKey}`);
     if (!response.ok) throw new Error("Network response was not ok");
     return await response.json();
   } catch (error) {
@@ -61,7 +61,7 @@ async function sortParties(sortKey) {
 async function filterParties(content) {
   const filterPayload = { value: content };
   try {
-    const response = await fetch("/api/party/filter?filter=content", {
+    const response = await fetch("/api/parties?q=" + encodeURIComponent(content), {
       method: "POST",
       headers: {
         "Content-Type": "application/json"
@@ -78,7 +78,7 @@ async function filterParties(content) {
 
 async function getPartyById(partyId) {
   try {
-    const response = await fetch(`/api/party/${partyId}`);
+    const response = await fetch(`/api/parties/${partyId}`);
     if (!response.ok) throw new Error("Network response was not ok");
     return await response.json();
   } catch (error) {
@@ -104,7 +104,7 @@ async function updateParty(partyId, payload) {
 
 async function deleteParty(partyId) {
   try {
-    const response = await fetch(`/api/party/${partyId}`, { method: "DELETE" });
+    const response = await fetch(`/api/parties/${partyId}`, { method: "DELETE" });
     if (!response.ok) throw new Error("Network response was not ok");
     return { ok: true };
   } catch (error) {
@@ -120,7 +120,7 @@ async function attendParty(partyId) {
     return false;
   }
   try {
-    const response = await fetch(`/api/party/${partyId}/attend?user=${userId}`, {
+    const response = await fetch(`/api/parties/${partyId}/join?user=${userId}`, {
       method: "POST"
     });
     return response.ok;
@@ -137,7 +137,7 @@ async function leaveParty(partyId) {
     return false;
   }
   try {
-    const response = await fetch(`/api/party/${partyId}/attend?user=${userId}`, {
+    const response = await fetch(`/api/parties/${partyId}/join?user=${userId}`, {
       method: "DELETE"
     });
     return response.ok;
@@ -149,7 +149,7 @@ async function leaveParty(partyId) {
 
 async function getMediaForParty(partyId) {
   try {
-    const response = await fetch(`/api/party/${partyId}/media`);
+    const response = await fetch(`/api/parties/${partyId}/media`);
     if (!response.ok) throw new Error("Network response was not ok");
     return await response.json();
   } catch (error) {
@@ -198,7 +198,7 @@ async function invite(recipient, partyId) {
   const invitationPayload = { recipient, partyId };
 
   try {
-    const response = await fetch(`/api/invites/?user=${userId}`, {
+    const response = await fetch(`/api/invitations?user=${userId}`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(invitationPayload)
@@ -219,7 +219,7 @@ async function getReceivedInvites() {
   }
 
   try {
-    const response = await fetch(`/api/invites/rec?user=${userId}`);
+    const response = await fetch(`/api/invitations?user=${userId}&direction=received`);
     if (!response.ok) throw new Error("Network response was not ok");
     return await response.json();
   } catch (error) {
@@ -236,7 +236,7 @@ async function getSentInvites() {
   }
 
   try {
-    const response = await fetch(`/api/invites/inv?user=${userId}`);
+    const response = await fetch(`/api/invitations?user=${userId}&direction=sent`);
     if (!response.ok) throw new Error("Network response was not ok");
     return await response.json();
   } catch (error) {
@@ -253,7 +253,7 @@ async function deleteInvite(invitationId) {
   }
 
   try {
-    const response = await fetch(`/api/invites/delete/${invitationId}?user=${userId}`, {
+    const response = await fetch(`/api/invitations/${invitationId}?user=${userId}`, {
       method: "DELETE",
       headers: {
         "Content-Type": "application/json"
@@ -337,7 +337,7 @@ async function getPartiesByUser(userId) {
 // Follow helpers
 async function getFollowers(userId) {
   try {
-    const res = await fetch(`/follow/followers/${encodeURIComponent(userId)}`);
+    const res = await fetch(`/api/users/${encodeURIComponent(userId)}/followers`);
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
     const data = await res.json();
     return Array.isArray(data) ? data : [];
@@ -349,7 +349,7 @@ async function getFollowers(userId) {
 
 async function getFollowings(userId) {
   try {
-    const res = await fetch(`/follow/followings/${encodeURIComponent(userId)}`);
+    const res = await fetch(`/api/users/${encodeURIComponent(userId)}/following`);
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
     const data = await res.json();
     return Array.isArray(data) ? data : [];
@@ -361,7 +361,7 @@ async function getFollowings(userId) {
 
 async function isFollowing(userA, userB) {
   try {
-    const res = await fetch(`/follow/is-following/${encodeURIComponent(userA)}/${encodeURIComponent(userB)}`);
+    const res = await fetch(`/api/users/${encodeURIComponent(userA)}/following/${encodeURIComponent(userB)}`);
     if (!res.ok) return false;
 
     const data = await res.json();
@@ -388,7 +388,7 @@ async function followUser(targetUserId) {
       return { ok: true, status: 200, alreadyFollowing: true };
     }
 
-    const res = await fetch(`/follow/request/${encodeURIComponent(userId)}/${encodeURIComponent(targetUserId)}`, {
+    const res = await fetch(`/api/users/${encodeURIComponent(userId)}/follow/${encodeURIComponent(targetUserId)}`, {
       method: "POST"
     });
 
@@ -417,7 +417,7 @@ async function unfollowUser(targetUserId) {
       return { ok: true, status: 200, alreadyNotFollowing: true };
     }
 
-    const res = await fetch(`/follow/remove/${encodeURIComponent(userId)}/${encodeURIComponent(targetUserId)}`, {
+    const res = await fetch(`/api/users/${encodeURIComponent(userId)}/follow/${encodeURIComponent(targetUserId)}`, {
       method: "DELETE"
     });
 
@@ -449,7 +449,7 @@ async function getFollowStatus(userA, userB) {
 
     // fallback: check pending lists for userB (users who requested to follow userB)
     try {
-      const res = await fetch(`/follow/pending/${encodeURIComponent(userB)}`);
+      const res = await fetch(`/api/users/${encodeURIComponent(userB)}/followers?status=pending`);
       if (res.ok) {
         const data = await res.json().catch(() => null);
         if (Array.isArray(data) && data.some((u) => String(u?.id) === String(userA))) {

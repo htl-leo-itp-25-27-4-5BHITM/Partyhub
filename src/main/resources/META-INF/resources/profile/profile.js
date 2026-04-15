@@ -832,7 +832,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
   async function performSearch(query) {
     try {
-      const res = await fetch(`/api/users/all/search?name=${encodeURIComponent(query)}`);
+      const res = await fetch(`/api/users?q=${encodeURIComponent(query)}`);
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const data = await res.json();
       displaySearchResults(Array.isArray(data) ? data : []);
@@ -907,7 +907,7 @@ document.addEventListener("DOMContentLoaded", function () {
   }
 
   async function fetchUsersAll() {
-    const res = await fetch("/api/users/all");
+    const res = await fetch("/api/users");
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
     const d = await res.json().catch(() => null);
     return normalizeToArray(d);
@@ -959,7 +959,7 @@ document.addEventListener("DOMContentLoaded", function () {
         const users = await fetchUsersAll();
         renderUsernameList(users);
       } catch (err) {
-        console.error("Failed to fetch /api/users/all:", err);
+        console.error("Failed to fetch /api/users:", err);
         renderUsernameList([]);
       }
 
@@ -1055,7 +1055,7 @@ document.addEventListener("DOMContentLoaded", function () {
             e.stopPropagation();
             if (!confirm("Löschen?")) return;
 
-            const res = await fetch(`/api/party/${encodeURIComponent(p.id)}/`, {
+            const res = await fetch(`/api/parties/${encodeURIComponent(p.id)}`, {
               method: "DELETE"
             });
 

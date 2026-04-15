@@ -25,7 +25,7 @@ document.addEventListener("DOMContentLoaded", function () {
 async function loadGallery(partyId) {
   try {
     // Load party details for the title
-    const partyResponse = await fetch(`/api/party/${partyId}`);
+    const partyResponse = await fetch(`/api/parties/${partyId}`);
     if (!partyResponse.ok) {
       throw new Error('Failed to fetch party details');
     }
@@ -38,7 +38,7 @@ async function loadGallery(partyId) {
     }
 
     // Load media for this party
-    const mediaResponse = await fetch(`/api/party/${partyId}/media`);
+    const mediaResponse = await fetch(`/api/parties/${partyId}/media`);
     if (!mediaResponse.ok) {
       throw new Error('Failed to fetch media');
     }

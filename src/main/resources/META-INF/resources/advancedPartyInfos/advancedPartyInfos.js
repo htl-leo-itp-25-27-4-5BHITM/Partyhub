@@ -63,7 +63,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
 async function loadPartyDetails(partyId) {
   try {
-    const response = await fetch(`/api/party/${partyId}`);
+    const response = await fetch(`/api/parties/${partyId}`);
     if (!response.ok) {
       throw new Error('Failed to fetch party details');
     }
@@ -87,7 +87,7 @@ async function checkAttendanceStatus(partyId) {
     return;
   }
   try {
-    const response = await fetch(`/api/party/${partyId}/attend/status?user=${userId}`);
+    const response = await fetch(`/api/parties/${partyId}/join/status?user=${userId}`);
     if (!response.ok) {
       throw new Error('Failed to check attendance status');
     }
@@ -136,7 +136,7 @@ async function handleJoinParty(partyId) {
   const method = isCurrentlyJoined ? 'DELETE' : 'POST';
 
   try {
-    const response = await fetch(`/api/party/${partyId}/attend?user=${userId}`, {
+    const response = await fetch(`/api/parties/${partyId}/join?user=${userId}`, {
       method: method,
       headers: {
         'Content-Type': 'application/json'
@@ -175,7 +175,7 @@ async function updatePartyDisplay(party) {
   // Get media and display previews
   if (mediaCountElement) {
     try {
-      const mediaResponse = await fetch(`/api/party/${party.id}/media`);
+      const mediaResponse = await fetch(`/api/parties/${party.id}/media`);
       if (mediaResponse.ok) {
         const media = await mediaResponse.json();
         mediaCountElement.textContent = `${media.length} Fotos`;

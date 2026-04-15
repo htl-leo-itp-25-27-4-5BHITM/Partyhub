@@ -61,7 +61,7 @@ loadMedia()
 
 async function fetchParties() {
     try {
-        const response = await fetch('/api/party');
+        const response = await fetch('/api/parties');
         const parties = await response.json();
         const partyTableBody = document.getElementById('partyTable').querySelector('tbody');
         partyTableBody.innerHTML = '';
@@ -94,7 +94,7 @@ async function attendParty(partyId) {
         return;
     }
     try {
-        const res = await fetch(`/api/party/${partyId}/attend`, {
+        const res = await fetch(`/api/parties/${partyId}/join`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -120,7 +120,7 @@ async function unattendParty(partyId) {
         return;
     }
     try {
-        const res = await fetch(`/api/party/${partyId}/attend`, {
+        const res = await fetch(`/api/parties/${partyId}/join`, {
             method: 'DELETE',
             headers: {
                 'X-User-Id': userId
@@ -150,7 +150,7 @@ document.getElementById('filterForm').addEventListener('submit', async e => {
     };
 
     try {
-        const response = await fetch('/api/party/', {
+        const response = await fetch('/api/parties', {
             method: 'POST',
             headers: {'Content-Type': 'application/json'},
             body: JSON.stringify(payload)

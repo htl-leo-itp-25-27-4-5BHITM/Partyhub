@@ -36,7 +36,6 @@ public class FollowRepositoryTest {
         entityManager.createQuery("DELETE FROM Party").executeUpdate();
         entityManager.createQuery("DELETE FROM ProfilePicture").executeUpdate();
         entityManager.createQuery("DELETE FROM User").executeUpdate();
-        entityManager.createQuery("DELETE FROM Category").executeUpdate();
         entityManager.createQuery("DELETE FROM Location").executeUpdate();
         entityManager.createQuery("DELETE FROM FollowStatus").executeUpdate();
     }
