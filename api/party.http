@@ -163,3 +163,5 @@ X-User-Id: 1
 DELETE {{baseUrl}}/11
 
 ?? status == 204
+
+GET {{baseUrl}}/1

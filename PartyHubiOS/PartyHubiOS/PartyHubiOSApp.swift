@@ -70,14 +70,12 @@ struct PartyHubiOSApp: App {
     private func handleDeepLink(_ url: URL) {
         guard url.scheme == "partyhub" else { return }
 
-        // Handle party deep links: partyhub://party?id=123
         if url.host == "party", let components = URLComponents(url: url, resolvingAgainstBaseURL: false), let idString = components.queryItems?.first(where: { $0.name == "id" })?.value, let partyId = Int(idString) {
             deepLinkPartyId = partyId
             NotificationCenter.default.post(name: .showPartyDetail, object: partyId)
             return
         }
 
-        // Handle QR login deep link: partyhub://login?userId=123
         if url.host == "login", let components = URLComponents(url: url, resolvingAgainstBaseURL: false), let userIdString = components.queryItems?.first(where: { $0.name == "userId" })?.value, let userId = Int(userIdString) {
             Task {
                 do {
@@ -165,6 +163,15 @@ struct PartyHubiOSApp: App {
                 existing.latitude  = p.location.latitude
                 existing.longitude = p.location.longitude
                 existing.partyDescription = p.description
+                existing.hostUserId = p.hostUser?.id.map { Int64($0) }
+                existing.timeStart = parseDate(p.timeStart)
+                existing.timeEnd = parseDate(p.timeEnd)
+                existing.maxPeople = p.maxPeople
+                existing.minAge = p.minAge
+                existing.maxAge = p.maxAge
+                existing.website = p.website
+                existing.fee = p.fee.map { Double($0) }
+                existing.categoryId = p.category?.id
             } else {
                 let party = Party(
                     backendId:  p.id,
@@ -172,11 +179,26 @@ struct PartyHubiOSApp: App {
                     location:   p.location.address ?? "",
                     latitude:   p.location.latitude,
                     longitude:  p.location.longitude,
-                    partyDescription: p.description
+                    partyDescription: p.description,
+                    hostUserId: p.hostUser?.id.map { Int64($0) },
+                    timeStart: parseDate(p.timeStart),
+                    timeEnd: parseDate(p.timeEnd),
+                    maxPeople: p.maxPeople,
+                    minAge: p.minAge,
+                    maxAge: p.maxAge,
+                    website: p.website,
+                    fee: p.fee.map { Double($0) },
+                    categoryId: p.category?.id
                 )
                 context.insert(party)
             }
         }
         try? context.save()
+    }
+
+    private func parseDate(_ dateString: String?) -> Date? {
+        guard let dateString = dateString else { return nil }
+        let formatter = ISO8601DateFormatter()
+        return formatter.date(from: dateString)
     }
 }

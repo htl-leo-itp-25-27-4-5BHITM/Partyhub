@@ -15,6 +15,12 @@ struct PartyDetailView: View {
     @State private var istImBearbeitungsModus = false
     @State private var partyText: String = ""
     
+    // MARK: - Edit Feature (NEU)
+    @State private var showEditSheet = false
+    @State private var isUpdating = false
+    @State private var showError = false
+    @State private var errorMessage = ""
+    
     // MARK: - Notification System
     @StateObject private var notificationManager = PartyNotificationManager.shared
     @State private var hasCheckedUpdates = false
@@ -34,6 +40,15 @@ struct PartyDetailView: View {
     // MARK: - Notification Helpers
     var unreadUpdateCount: Int {
         notificationManager.unreadCount(for: party.backendId)
+    }
+    
+    // MARK: - Owner Check (NEU)
+    private var currentUserId: Int64? {
+        UserDefaults.standard.object(forKey: "currentUserId") as? Int64
+    }
+    
+    private var isOwner: Bool {
+        party.canEdit(currentUserId: currentUserId)
     }
     
     var body: some View {
@@ -57,181 +72,311 @@ struct PartyDetailView: View {
                 }
             }
             
+            // MARK: - Owner Status (NEU)
+            if isOwner {
+                Section {
+                    HStack {
+                        Image(systemName: "crown.fill")
+                            .foregroundColor(.yellow)
+                        Text("Du bist der Veranstalter")
+                            .font(.subheadline)
+                            .foregroundColor(.secondary)
+                    }
+                    .padding(.vertical, 4)
+                }
+            }
+            
             Section {
                 LabeledContent("Status") {
                     Text(party.isActive ? "Du bist gerade hier" : "Nicht anwesend")
-                        .foregroundStyle(party.isActive ? .green : .secondary)
-                }
-                .frame(minHeight: 44)
-                if party.isActive, let entry = party.activeEntry {
-                    LabeledContent("Dauer") {
-                        Text(formatDuration(entry.startTime, to: now))
-                            .font(.system(.body, design: .monospaced))
-                            .foregroundStyle(.green)
-                            .monospacedDigit()
-                    }
-                    .frame(minHeight: 44)
+                        .foregroundStyle(party.isActive ? .green : .gray)
+                        .fontWeight(.semibold)
                 }
             }
-            if let beschreibung = party.partyDescription, !beschreibung.isEmpty {
-                        Section("Beschreibung") {
-                            Text(beschreibung)
-                                .font(.body)
-                                .foregroundStyle(.primary)
+            
+            // MARK: - Party Details Section
+            Section("Details") {
+                LabeledContent("Beschreibung") {
+                    Text(party.partyDescription ?? "Keine Beschreibung")
+                        .foregroundStyle(.secondary)
+                }
+                
+                if let timeStart = party.timeStart {
+                    LabeledContent("Beginn") {
+                        Text(timeStart, style: .date)
+                        Text(timeStart, style: .time)
+                    }
+                }
+                
+                if let timeEnd = party.timeEnd {
+                    LabeledContent("Ende") {
+                        Text(timeEnd, style: .date)
+                        Text(timeEnd, style: .time)
+                    }
+                }
+                
+                if let maxPeople = party.maxPeople {
+                    LabeledContent("Max. Teilnehmer") {
+                        Text("\(maxPeople)")
+                    }
+                }
+                
+                if let minAge = party.minAge, let maxAge = party.maxAge {
+                    LabeledContent("Alter") {
+                        Text("\(minAge) - \(maxAge) Jahre")
+                    }
+                }
+                
+                if let website = party.website {
+                    LabeledContent("Website") {
+                        Link(destination: URL(string: website) ?? URL(string: "https://")!) {
+                            Text(website)
+                                .lineLimit(1)
                         }
                     }
-                    
+                }
+                
+                if let fee = party.fee, fee > 0 {
+                    LabeledContent("Eintritt") {
+                        Text("\(fee, specifier: "%.2f") €")
+                    }
+                }
+            }
+            
+            // MARK: - Location Section
+            Section("Ort") {
+                LabeledContent("Adresse") {
+                    Text(party.location)
+                }
+                
+                LabeledContent("Koordinaten") {
+                    Text("\(party.latitude, specifier: "%.6f"), \(party.longitude, specifier: "%.6f")")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                }
+            }
+            
+            // MARK: - Time Tracking
+            if party.isActive, let entry = party.activeEntry {
+                Section("Anwesenheit") {
+                    LabeledContent("Seit") {
+                        Text(entry.startTime, style: .time)
+                    }
+                    LabeledContent("Dauer") {
+                        Text(formatDuration(now.timeIntervalSince(entry.startTime)))
+                    }
+                }
+            }
             
             if !finished.isEmpty {
                 Section("Vergangene Besuche") {
                     ForEach(finished) { entry in
-                        LabeledContent {
-                            if let end = entry.endTime {
-                                Text(formatDuration(entry.startTime, to: end))
-                                    .font(.system(.body, design: .monospaced))
+                        HStack {
+                            VStack(alignment: .leading) {
+                                Text(entry.startTime, style: .date)
+                                    .font(.caption)
                                     .foregroundStyle(.secondary)
+                                Text("\(entry.startTime, style: .time) - \(entry.endTime!, style: .time)")
                             }
-                        } label: {
-                            Text(entry.startTime, style: .date)
-                                .font(.body)
+                            Spacer()
+                            Text(String(format: "%.1fh", entry.durationInHours))
+                                .foregroundStyle(.secondary)
                         }
-                        .frame(minHeight: 44)
                     }
-                    .onDelete(perform: deleteEntries)
                 }
             }
             
-            // MARK: – Debug
-#if DEBUG
-            Section("Debug") {
-                HStack(spacing: 12) {
-                    Button {
-                        guard party.activeEntry == nil else { return }
-                        let entry = TimeEntry(locationIdentifier: party.name)
-                        party.timeEntries.append(entry)
-                        modelContext.insert(entry)
-                        try? modelContext.save()
-                    } label: {
-                        Text("Betreten")
-                            .frame(maxWidth: .infinity)
-                            .frame(height: 44)
-                    }
-                    .buttonStyle(.borderedProminent)
-                    .tint(Color("primary dark blue"))
-                    .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
+            #if DEBUG
+            // MARK: - Debug Section
+            Section("🔧 Debug Tools") {
+                VStack(alignment: .leading, spacing: 12) {
+                    Text("Party betreten/verlassen:")
+                        .font(.caption)
+                        .foregroundColor(.secondary)
                     
                     Button {
-                        party.activeEntry?.endTime = .now
-                        try? modelContext.save()
+                        simulateEnterParty()
                     } label: {
-                        Text("Verlassen")
+                        Label("Party betreten (simulieren)", systemImage: "arrow.right.circle.fill")
                             .frame(maxWidth: .infinity)
-                            .frame(height: 44)
                     }
-                    .buttonStyle(.borderedProminent)
-                    .tint(Color("primary pink"))
-                    .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
+                    .buttonStyle(.bordered)
+                    .tint(.green)
+                    
+                    Button {
+                        simulateLeaveParty()
+                    } label: {
+                        Label("Party verlassen (simulieren)", systemImage: "arrow.left.circle.fill")
+                            .frame(maxWidth: .infinity)
+                    }
+                    .buttonStyle(.bordered)
+                    .tint(.orange)
+                    
+                    Divider()
+                    
+                    Text("Benachrichtigungen:")
+                        .font(.caption)
+                        .foregroundColor(.secondary)
+                    
+                    Button {
+                        simulatePartyUpdate()
+                    } label: {
+                        Label("Beschreibung ändern (Push)", systemImage: "bell.badge.fill")
+                            .frame(maxWidth: .infinity)
+                    }
+                    .buttonStyle(.bordered)
+                    .tint(.blue)
+                    
+                    Button {
+                        testLocalNotification()
+                    } label: {
+                        Label("Test Lokale Notification", systemImage: "bell.fill")
+                            .frame(maxWidth: .infinity)
+                    }
+                    .buttonStyle(.bordered)
+                    .tint(.purple)
+                    
+                    Divider()
+                    
+                    Text("User-Status:")
+                        .font(.caption)
+                        .foregroundColor(.secondary)
+                    
+                    Button {
+                        printDebugInfo()
+                    } label: {
+                        Label("Debug Info (Konsole)", systemImage: "ladybug.fill")
+                            .frame(maxWidth: .infinity)
+                    }
+                    .buttonStyle(.bordered)
+                    .tint(.gray)
+                    
+                    if !isOwner {
+                        Button {
+                            becomeOwner()
+                        } label: {
+                            Label("Als Owner einloggen", systemImage: "crown.fill")
+                                .frame(maxWidth: .infinity)
+                        }
+                        .buttonStyle(.bordered)
+                        .tint(.yellow)
+                    }
                 }
-                .listRowInsets(EdgeInsets(top: 12, leading: 16, bottom: 12, trailing: 16))
+                .padding(.vertical, 4)
+            }
+            #endif
+            
+            // MARK: - Photos Section
+            Section("Fotos") {
+                if geladeneBilder.isEmpty && !istImBearbeitungsModus {
+                    Text("Keine Fotos vorhanden")
+                        .foregroundStyle(.secondary)
+                }
                 
-                // Test Notification Button
-                Button {
-                    Task {
-                        await notificationManager.sendSystemNotification(
-                            partyId: party.backendId,
-                            partyName: party.name,
-                            changeDescription: "Test: Name wurde geändert"
-                        )
+                if !geladeneBilder.isEmpty {
+                    ScrollView(.horizontal, showsIndicators: false) {
+                        LazyHStack(spacing: 10) {
+                            ForEach(geladeneBilder, id: \.self) { url in
+                                if let uiImage = UIImage(contentsOfFile: url.path()) {
+                                    ZStack(alignment: .topTrailing) {
+                                        Image(uiImage: uiImage)
+                                            .resizable()
+                                            .scaledToFill()
+                                            .frame(width: 200, height: 200)
+                                            .clipShape(RoundedRectangle(cornerRadius: 10))
+                                            .overlay(
+                                                RoundedRectangle(cornerRadius: 10)
+                                                    .stroke(ausgewaehlteBilderZumLoeschen.contains(url) ? Color("primary pink") : Color.clear, lineWidth: 3)
+                                            )
+                                            .onTapGesture {
+                                                if istImBearbeitungsModus {
+                                                    waehleBildAus(url: url)
+                                                }
+                                            }
+                                        
+                                        if istImBearbeitungsModus {
+                                            Image(systemName: ausgewaehlteBilderZumLoeschen.contains(url) ? "checkmark.circle.fill" : "circle")
+                                                .font(.title2)
+                                                .foregroundStyle(Color("primary pink"))
+                                                .padding(8)
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                        .padding(.horizontal)
                     }
-                } label: {
-                    Text("Test Push Notification")
+                    .listRowInsets(EdgeInsets())
+                }
+                
+                PhotosPicker(selection: $selectedItems, maxSelectionCount: 10, matching: .images) {
+                    Label("Fotos hinzufügen", systemImage: "photo.on.rectangle.angled")
                         .frame(maxWidth: .infinity)
                         .frame(height: 44)
                 }
-                .buttonStyle(.borderedProminent)
-                .tint(.orange)
+                .buttonStyle(.bordered)
+                .tint(Color("primary pink"))
                 .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
-                .listRowInsets(EdgeInsets(top: 12, leading: 16, bottom: 12, trailing: 16))
-            }
-#endif
-            
-            // MARK: – Fotos (ganz unten)
-            Section("Fotos") {
-                if !geladeneBilder.isEmpty {
-                    LazyVGrid(columns: [GridItem(.adaptive(minimum: 100))], spacing: 8) {
-                        ForEach(geladeneBilder, id: \.self) { url in
-                            ZStack(alignment: .topTrailing) {
-                                if let daten = try? Data(contentsOf: url),
-                                   let bild = UIImage(data: daten) {
-                                    Image(uiImage: bild)
-                                        .resizable()
-                                        .scaledToFill()
-                                        .frame(width: 100, height: 100)
-                                        .clipped()
-                                        .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
-                                        .opacity(ausgewaehlteBilderZumLoeschen.contains(url) ? 0.5 : 1.0)
-                                        .onTapGesture {
-                                            if istImBearbeitungsModus {
-                                                waehleBildAus(url: url)
-                                            }
-                                        }
-                                }
-                                if istImBearbeitungsModus {
-                                    Image(systemName: ausgewaehlteBilderZumLoeschen.contains(url)
-                                          ? "checkmark.circle.fill" : "circle")
-                                    .foregroundStyle(Color("primary dark blue"))
-                                    .padding(5)
-                                }
+                .onChange(of: selectedItems) { _, newValue in
+                    Task {
+                        for item in newValue {
+                            if let data = try? await item.loadTransferable(type: Data.self),
+                               let uiImage = UIImage(data: data) {
+                                speicherBild(image: uiImage)
                             }
                         }
+                        selectedItems.removeAll()
                     }
-                    .listRowInsets(EdgeInsets(top: 12, leading: 16, bottom: 12, trailing: 16))
                 }
                 
-                HStack(spacing: 12) {
-                    if istImBearbeitungsModus && !ausgewaehlteBilderZumLoeschen.isEmpty {
-                        Button(action: loescheAusgewaehlteBilder) {
-                            Text("\(ausgewaehlteBilderZumLoeschen.count) löschen")
-                                .frame(maxWidth: .infinity)
-                                .frame(height: 44)
-                        }
-                        .buttonStyle(.borderedProminent)
-                        .tint(.red)
-                        .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
-                    } else {
-                        PhotosPicker(selection: $selectedItems, matching: .images) {
-                            Text("Fotos hinzufügen")
-                                .frame(maxWidth: .infinity)
-                                .frame(height: 44)
-                        }
-                        .buttonStyle(.borderedProminent)
-                        .tint(Color("primary dark blue"))
-                        .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
-                        .onChange(of: selectedItems.count) { _, _ in
-                            speichereBilder()
-                        }
-                    }
-                    
-                    if !geladeneBilder.isEmpty {
-                        Button {
+                if !geladeneBilder.isEmpty {
+                    Button {
+                        withAnimation {
                             istImBearbeitungsModus.toggle()
+                        }
+                        if !istImBearbeitungsModus {
+                            ausgewaehlteBilderZumLoeschen.removeAll()
+                        }
+                    } label: {
+                        Text(istImBearbeitungsModus ? "Fertig" : "Bearbeiten")
+                            .frame(maxWidth: .infinity)
+                            .frame(height: 44)
+                    }
+                    .buttonStyle(.bordered)
+                    .tint(Color("primary dark blue"))
+                    .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
+                    
+                    if istImBearbeitungsModus && !ausgewaehlteBilderZumLoeschen.isEmpty {
+                        Button(role: .destructive) {
+                            loescheAusgewaehlteBilder()
                             ausgewaehlteBilderZumLoeschen.removeAll()
                         } label: {
-                            Text(istImBearbeitungsModus ? "Fertig" : "Bearbeiten")
+                            Text("Ausgewählte Löschen (\(ausgewaehlteBilderZumLoeschen.count))")
                                 .frame(maxWidth: .infinity)
                                 .frame(height: 44)
                         }
                         .buttonStyle(.bordered)
-                        .tint(Color("primary dark blue"))
                         .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
                     }
                 }
-                .listRowInsets(EdgeInsets(top: 4, leading: 16, bottom: 4, trailing: 16))
             }
         }
         .navigationTitle(party.name)
         .navigationBarTitleDisplayMode(.large)
         .toolbar {
+            // MARK: - Edit Button (NEU - nur für Owner)
+            if isOwner {
+                ToolbarItem(placement: .navigationBarTrailing) {
+                    Button {
+                        showEditSheet = true
+                    } label: {
+                        Image(systemName: "pencil.circle.fill")
+                            .font(.title3)
+                    }
+                    .disabled(isUpdating)
+                }
+            }
+            
             ToolbarItem(placement: .primaryAction) {
                 Menu {
                     if let url = shareURL {
@@ -252,11 +397,45 @@ struct PartyDetailView: View {
                 }
             }
         }
+        .sheet(isPresented: $showEditSheet) {
+            PartyEditView(party: party) { updatedParty in
+                Task {
+                    await updatePartyOnBackend(updatedParty)
+                }
+            }
+        }
+        .overlay {
+            if isUpdating {
+                ZStack {
+                    Color.black.opacity(0.2)
+                        .ignoresSafeArea()
+                    
+                    ProgressView()
+                        .scaleEffect(1.5)
+                        .padding()
+                        .background(Color(.systemBackground))
+                        .cornerRadius(10)
+                        .shadow(radius: 10)
+                }
+            }
+        }
+        .alert("Fehler", isPresented: $showError) {
+            Button("OK", role: .cancel) { }
+        } message: {
+            Text(errorMessage)
+        }
         .onAppear {
+            print("🔍 === PARTY DETAIL DEBUG ===")
+            print("🔍 Party Name: \(party.name)")
+            print("🔍 Party Backend ID: \(party.backendId)")
+            print("🔍 Party Host User ID: \(String(describing: party.hostUserId))")
+            print("🔍 Current User ID (UserDefaults): \(String(describing: currentUserId))")
+            print("🔍 Is Owner: \(isOwner)")
+            print("🔍 === END DEBUG ===\n")
+            
             ladeBilderAusOrdner()
             partyText = "\(party.name)\n \(party.location)\n https://maps.apple.com/?ll=\(party.latitude),\(party.longitude)"
             
-            // MARK: - Notification Setup
             if !hasCheckedUpdates {
                 markPartyAsRead()
                 hasCheckedUpdates = true
@@ -266,11 +445,208 @@ struct PartyDetailView: View {
         .onReceive(timer) { now = $0 }
     }
     
-    // MARK: - Notification Functions
+    // MARK: - Debug Functions
+    #if DEBUG
+    func simulateEnterParty() {
+        print("🟢 Simuliere: Party betreten")
+        
+        // Erstelle neuen TimeEntry mit locationIdentifier
+        let entry = TimeEntry(
+            locationIdentifier: party.name,
+            startTime: Date(),
+        )
+        party.timeEntries.append(entry)
+        
+        try? modelContext.save()
+        print("✅ TimeEntry erstellt: \(entry.startTime)")
+    }
     
+    func simulateLeaveParty() {
+        print("🔴 Simuliere: Party verlassen")
+        
+        guard let activeEntry = party.activeEntry else {
+            print("❌ Keine aktive Session vorhanden")
+            return
+        }
+        
+        activeEntry.endTime = Date()
+        try? modelContext.save()
+        print("✅ TimeEntry beendet: \(activeEntry.durationInHours)h")
+    }
+    
+    func simulatePartyUpdate() {
+        print("📢 Simuliere: Party-Update (Beschreibung ändern)")
+        
+        Task {
+            do {
+                let baseURL = "https://it220274.cloud.htl-leonding.ac.at"
+                guard let currentUserId = currentUserId else {
+                    print("❌ Kein User eingeloggt")
+                    return
+                }
+                
+                guard let url = URL(string: "\(baseURL)/api/party/\(party.backendId)?user=\(currentUserId)") else {
+                    print("❌ Ungültige URL")
+                    return
+                }
+                
+                let newDescription = "GEÄNDERT UM \(Date().formatted(date: .omitted, time: .standard)) - Test Notification"
+                
+                let payload: [String: Any] = [
+                    "title": party.name,
+                    "description": newDescription,
+                    "location_address": party.location,
+                    "latitude": party.latitude,
+                    "longitude": party.longitude
+                ]
+                
+                var request = URLRequest(url: url)
+                request.httpMethod = "PUT"
+                request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+                request.httpBody = try JSONSerialization.data(withJSONObject: payload)
+                
+                let (_, response) = try await URLSession.shared.data(for: request)
+                
+                if let httpResponse = response as? HTTPURLResponse, (200...299).contains(httpResponse.statusCode) {
+                    await MainActor.run {
+                        party.partyDescription = newDescription
+                    }
+                    print("✅ Party erfolgreich aktualisiert - Push sollte gesendet werden!")
+                } else {
+                    print("❌ Update fehlgeschlagen")
+                }
+            } catch {
+                print("❌ Fehler: \(error)")
+            }
+        }
+    }
+    
+    func testLocalNotification() {
+        print("🔔 Sende Test-Notification")
+        
+        let content = UNMutableNotificationContent()
+        content.title = "Test Notification"
+        content.body = "Party '\(party.name)' wurde aktualisiert!"
+        content.sound = .default
+        
+        let trigger = UNTimeIntervalNotificationTrigger(timeInterval: 2, repeats: false)
+        let request = UNNotificationRequest(identifier: UUID().uuidString, content: content, trigger: trigger)
+        
+        UNUserNotificationCenter.current().add(request) { error in
+            if let error = error {
+                print("❌ Notification Fehler: \(error)")
+            } else {
+                print("✅ Notification geplant (in 2 Sekunden)")
+            }
+        }
+    }
+    
+    func printDebugInfo() {
+        print("\n🐛 === MANUAL DEBUG INFO ===")
+        print("Party ID: \(party.backendId)")
+        print("Party Name: \(party.name)")
+        print("Host User ID: \(String(describing: party.hostUserId))")
+        print("Current User ID: \(String(describing: currentUserId))")
+        print("Is Owner: \(isOwner)")
+        print("Is Active: \(party.isActive)")
+        print("Active Entry: \(String(describing: party.activeEntry))")
+        print("Total Time Entries: \(party.timeEntries.count)")
+        print("=========================\n")
+    }
+    
+    func becomeOwner() {
+        guard let hostId = party.hostUserId else {
+            print("❌ Party hat keine hostUserId")
+            return
+        }
+        
+        UserDefaults.standard.set(hostId, forKey: "currentUserId")
+        print("✅ User ID gesetzt auf: \(hostId) (Owner)")
+    }
+    #endif
+    
+    // MARK: - Update Party on Backend (NEU)
+    func updatePartyOnBackend(_ updatedParty: PartyEditData) async {
+        guard let currentUserId = currentUserId else {
+            errorMessage = "Du bist nicht angemeldet"
+            showError = true
+            return
+        }
+        
+        // Berechtigungsprüfung
+        guard isOwner else {
+            errorMessage = "Du hast keine Berechtigung, diese Party zu bearbeiten"
+            showError = true
+            return
+        }
+        
+        isUpdating = true
+        
+        do {
+            let baseURL = "https://it220274.cloud.htl-leonding.ac.at"
+            guard let url = URL(string: "\(baseURL)/api/party/\(party.backendId)?user=\(currentUserId)") else {
+                throw URLError(.badURL)
+            }
+            
+            // Payload vorbereiten
+            let payload: [String: Any] = [
+                "title": updatedParty.title,
+                "description": updatedParty.description,
+                "location_address": updatedParty.location,
+                "latitude": updatedParty.latitude,
+                "longitude": updatedParty.longitude,
+                "time_start": ISO8601DateFormatter().string(from: updatedParty.timeStart ?? Date()),
+                "time_end": ISO8601DateFormatter().string(from: updatedParty.timeEnd ?? Date()),
+                "max_people": updatedParty.maxPeople ?? 0,
+                "min_age": updatedParty.minAge ?? 0,
+                "max_age": updatedParty.maxAge ?? 99,
+                "website": updatedParty.website ?? "",
+                "fee": updatedParty.fee ?? 0.0,
+                "category_id": updatedParty.categoryId ?? 1
+            ]
+            
+            var request = URLRequest(url: url)
+            request.httpMethod = "PUT"
+            request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+            request.httpBody = try JSONSerialization.data(withJSONObject: payload)
+            
+            let (_, response) = try await URLSession.shared.data(for: request)
+            
+            guard let httpResponse = response as? HTTPURLResponse,
+                  (200...299).contains(httpResponse.statusCode) else {
+                throw URLError(.badServerResponse)
+            }
+            
+            // Lokale Daten aktualisieren
+            await MainActor.run {
+                party.name = updatedParty.title
+                party.partyDescription = updatedParty.description
+                party.location = updatedParty.location
+                party.latitude = updatedParty.latitude
+                party.longitude = updatedParty.longitude
+                party.timeStart = updatedParty.timeStart
+                party.timeEnd = updatedParty.timeEnd
+                party.maxPeople = updatedParty.maxPeople
+                party.minAge = updatedParty.minAge
+                party.maxAge = updatedParty.maxAge
+                party.website = updatedParty.website
+                party.fee = updatedParty.fee
+                party.categoryId = updatedParty.categoryId
+            }
+            
+            print("✅ Party erfolgreich aktualisiert")
+            
+        } catch {
+            errorMessage = "Fehler beim Speichern: \(error.localizedDescription)"
+            showError = true
+        }
+        
+        isUpdating = false
+    }
+    
+    // MARK: - Notification Functions
     func markPartyAsRead() {
         notificationManager.markAsRead(partyId: party.backendId)
-        print("✅ Party \(party.backendId) als gelesen markiert")
     }
     
     func setupNotificationObservers() {
@@ -278,12 +654,11 @@ struct PartyDetailView: View {
             forName: .partyDidUpdate,
             object: nil,
             queue: .main
-        ) { [weak notificationManager] notification in
+        ) { notification in
             guard let updatedPartyId = notification.object as? Int,
                   updatedPartyId == self.party.backendId else {
                 return
             }
-            print("🔄 Party \(updatedPartyId) wurde aktualisiert")
         }
     }
     
@@ -300,52 +675,169 @@ struct PartyDetailView: View {
         for url in ausgewaehlteBilderZumLoeschen {
             try? FileManager.default.removeItem(at: url)
         }
-        ausgewaehlteBilderZumLoeschen.removeAll()
-        istImBearbeitungsModus = false
         ladeBilderAusOrdner()
     }
     
-    func speichereBilder() {
-        for item in selectedItems {
-            item.loadTransferable(type: Data.self) { result in
-                if case .success(let data) = result, let imageData = data {
-                    let folder = getPartyFolder()
-                    let fileURL = folder.appendingPathComponent("Bild_\(UUID().uuidString).jpg")
-                    try? imageData.write(to: fileURL)
-                    DispatchQueue.main.async {
-                        self.ladeBilderAusOrdner()
-                    }
-                }
-            }
+    func speicherBild(image: UIImage) {
+        guard let data = image.jpegData(compressionQuality: 0.8) else { return }
+        let ordner = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0].appendingPathComponent(party.name)
+        
+        if !FileManager.default.fileExists(atPath: ordner.path()) {
+            try? FileManager.default.createDirectory(at: ordner, withIntermediateDirectories: true)
         }
-        selectedItems = []
+        
+        let dateiname = UUID().uuidString + ".jpg"
+        let dateiURL = ordner.appendingPathComponent(dateiname)
+        
+        try? data.write(to: dateiURL)
+        ladeBilderAusOrdner()
     }
     
     func ladeBilderAusOrdner() {
-        let pfad = getPartyFolder()
-        geladeneBilder = (try? FileManager.default.contentsOfDirectory(at: pfad, includingPropertiesForKeys: nil)) ?? []
+        let ordner = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0].appendingPathComponent(party.name)
+        
+        guard let dateien = try? FileManager.default.contentsOfDirectory(at: ordner, includingPropertiesForKeys: nil) else {
+            geladeneBilder = []
+            return
+        }
+        
+        geladeneBilder = dateien.filter { $0.pathExtension == "jpg" || $0.pathExtension == "png" }
     }
     
-    func getPartyFolder() -> URL {
-        let docs = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0]
-        let folder = docs.appendingPathComponent(party.name)
-        try? FileManager.default.createDirectory(at: folder, withIntermediateDirectories: true)
-        return folder
-    }
-    
-    func deleteEntries(at offsets: IndexSet) {
-        for index in offsets {
-            modelContext.delete(finished[index])
+    // MARK: - Helper Functions
+    func formatDuration(_ seconds: TimeInterval) -> String {
+        let hours = Int(seconds) / 3600
+        let minutes = (Int(seconds) % 3600) / 60
+        
+        if hours > 0 {
+            return "\(hours)h \(minutes)m"
+        } else {
+            return "\(minutes)m"
         }
     }
+}
+
+// MARK: - Party Edit Data Model (NEU)
+struct PartyEditData {
+    var title: String
+    var description: String
+    var location: String
+    var latitude: Double
+    var longitude: Double
+    var timeStart: Date?
+    var timeEnd: Date?
+    var maxPeople: Int?
+    var minAge: Int?
+    var maxAge: Int?
+    var website: String?
+    var fee: Double?
+    var categoryId: Int?
+}
+
+// MARK: - Party Edit View (NEU)
+struct PartyEditView: View {
+    @Environment(\.dismiss) private var dismiss
+    let party: Party
+    let onSave: (PartyEditData) -> Void
     
-    func formatDuration(_ start: Date, to end: Date) -> String {
-        let diff = Int(end.timeIntervalSince(start))
-        let h = diff / 3600
-        let m = (diff % 3600) / 60
-        let s = diff % 60
-        return h > 0
-        ? String(format: "%dh %02dm %02ds", h, m, s)
-        : String(format: "%dm %02ds", m, s)
+    @State private var title: String
+    @State private var description: String
+    @State private var location: String
+    @State private var timeStart: Date
+    @State private var timeEnd: Date
+    @State private var maxPeople: String
+    @State private var minAge: String
+    @State private var maxAge: String
+    @State private var website: String
+    @State private var fee: String
+    
+    init(party: Party, onSave: @escaping (PartyEditData) -> Void) {
+        self.party = party
+        self.onSave = onSave
+        
+        _title = State(initialValue: party.name)
+        _description = State(initialValue: party.partyDescription ?? "")
+        _location = State(initialValue: party.location)
+        _timeStart = State(initialValue: party.timeStart ?? Date())
+        _timeEnd = State(initialValue: party.timeEnd ?? Date())
+        _maxPeople = State(initialValue: party.maxPeople.map { "\($0)" } ?? "")
+        _minAge = State(initialValue: party.minAge.map { "\($0)" } ?? "18")
+        _maxAge = State(initialValue: party.maxAge.map { "\($0)" } ?? "99")
+        _website = State(initialValue: party.website ?? "")
+        _fee = State(initialValue: party.fee.map { String(format: "%.2f", $0) } ?? "0.00")
+    }
+    
+    var body: some View {
+        NavigationView {
+            Form {
+                Section("Allgemein") {
+                    TextField("Titel", text: $title)
+                    TextField("Beschreibung", text: $description, axis: .vertical)
+                        .lineLimit(3...6)
+                }
+                
+                Section("Ort") {
+                    TextField("Adresse", text: $location)
+                }
+                
+                Section("Zeit") {
+                    DatePicker("Beginn", selection: $timeStart)
+                    DatePicker("Ende", selection: $timeEnd)
+                }
+                
+                Section("Teilnehmer") {
+                    TextField("Max. Teilnehmer", text: $maxPeople)
+                        .keyboardType(.numberPad)
+                    HStack {
+                        TextField("Min. Alter", text: $minAge)
+                            .keyboardType(.numberPad)
+                        Text("-")
+                        TextField("Max. Alter", text: $maxAge)
+                            .keyboardType(.numberPad)
+                    }
+                }
+                
+                Section("Zusatzinfos") {
+                    TextField("Website", text: $website)
+                        .keyboardType(.URL)
+                        .textInputAutocapitalization(.never)
+                    TextField("Eintritt (€)", text: $fee)
+                        .keyboardType(.decimalPad)
+                }
+            }
+            .navigationTitle("Party bearbeiten")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .cancellationAction) {
+                    Button("Abbrechen") {
+                        dismiss()
+                    }
+                }
+                
+                ToolbarItem(placement: .confirmationAction) {
+                    Button("Speichern") {
+                        let editData = PartyEditData(
+                            title: title,
+                            description: description,
+                            location: location,
+                            latitude: party.latitude,
+                            longitude: party.longitude,
+                            timeStart: timeStart,
+                            timeEnd: timeEnd,
+                            maxPeople: Int(maxPeople),
+                            minAge: Int(minAge),
+                            maxAge: Int(maxAge),
+                            website: website.isEmpty ? nil : website,
+                            fee: Double(fee.replacingOccurrences(of: ",", with: ".")),
+                            categoryId: party.categoryId
+                        )
+                        onSave(editData)
+                        dismiss()
+                    }
+                    .fontWeight(.semibold)
+                    .disabled(title.isEmpty || location.isEmpty)
+                }
+            }
+        }
     }
 }
