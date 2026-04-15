@@ -1,7 +1,7 @@
 -- =========================
 -- RESET (optional)
 -- =========================
-TRUNCATE TABLE follow, invitation, media, party_user, party, user_location, users, location, follow_status RESTART IDENTITY CASCADE;
+TRUNCATE TABLE follow, invitation, media, party_user, party, user_location, users, location, follow_status, profile_picture RESTART IDENTITY CASCADE;
 
 -- =========================
 -- FRIENDSHIP_STATUS
@@ -24,7 +24,22 @@ INSERT INTO users (id,  username, display_name, distinct_name, email, biography)
                                                                     (7,   'mia_steiner',      'Mia Steiner',      'mia_steiner',      'mia.steiner@linz.at',      'Kunst, Food, Afterwork.'),
                                                                     (8,   'david_koenig',     'David König',      'david_koenig',     'david.koenig@linz.at',     'Meetups, Startups, Tech.'),
                                                                     (9,   'nina_fischer',     'Nina Fischer',     'nina_fischer',     'nina.fischer@linz.at',     'Yoga, Wellness, entspannte Events.'),
-                                                                    (10,  'elias_berger',     'Elias Berger',     'elias_berger',     'elias.berger@linz.at',     'Fotos, Musik, kleine Gigs.');
+                                                                     (10,  'elias_berger',     'Elias Berger',     'elias_berger',     'elias.berger@linz.at',     'Fotos, Musik, kleine Gigs.');
+
+-- =========================
+-- PROFILE_PICTURE
+-- =========================
+INSERT INTO profile_picture (id, picture_name, user_id) VALUES
+                                               (1, 'pp_anna.jpg', 1),
+                                               (2, NULL, 2),
+                                               (3, NULL, 3),
+                                               (4, NULL, 4),
+                                               (5, 'profile_5_1773232851230.jpg', 5),
+                                               (6, 'pp_lukas.jpg', 6),
+                                               (7, NULL, 7),
+                                               (8, NULL, 8),
+                                               (9, NULL, 9),
+                                               (10, 'pp_max.jpg', 10);
 
 -- =========================
 -- USER_LOCATION (Linz)
@@ -120,3 +135,4 @@ SELECT setval('location_id_seq',   (SELECT MAX(id) FROM location));
 SELECT setval('party_id_seq',      (SELECT MAX(id) FROM party));
 SELECT setval('media_id_seq',      (SELECT MAX(id) FROM media));
 SELECT setval('invitation_id_seq', (SELECT MAX(id) FROM invitation));
+SELECT setval('profile_picture_id_seq', (SELECT MAX(id) FROM profile_picture));
