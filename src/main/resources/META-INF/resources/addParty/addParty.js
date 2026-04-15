@@ -209,9 +209,9 @@ document.addEventListener("DOMContentLoaded", () => {
     card.addEventListener("click", async () => {
       document.querySelectorAll(".vis-card").forEach(c => c.classList.remove("active"));
       card.classList.add("active");
-      state.visibility = card.dataset.mode;
+      state.visibility = card.dataset.mode.toUpperCase();
 
-      const isPublic = state.visibility === "public";
+      const isPublic = state.visibility === "PUBLIC";
       userList.style.display = isPublic ? "none" : "flex";
       everyoneHint.style.display = isPublic ? "block" : "none";
 
