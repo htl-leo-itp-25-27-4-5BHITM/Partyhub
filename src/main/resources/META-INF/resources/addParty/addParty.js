@@ -252,13 +252,14 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   async function submitParty() {
-  // Hol dir die User-ID (wir wissen aus deinem Log, dass sie '1' ist)
-  const userId = localStorage.getItem("userId") || "1"; 
+  const userId = window.getCurrentUserId();
+  if (!userId) {
+    alert("Bitte melde dich an");
+    return;
+  }
 
   const payload = {
     ...state,
-    // Sicherstellen, dass die User-ID AUCH im Body steht, falls das Backend das braucht
-    userId: parseInt(userId), 
     fee: state.entry_costs ? parseFloat(state.entry_costs) : null,
     time_start: formatDateForBackend(state.time_start),
     time_end: formatDateForBackend(state.time_end),
