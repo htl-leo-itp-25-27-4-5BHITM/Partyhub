@@ -44,26 +44,26 @@ public class PartyResource {
     @Transactional
     public Response getParties(
             @QueryParam("q") String q,
-            @QueryParam("category") String category,
+            @QueryParam("theme") String theme,
             @QueryParam("date_from") String dateFrom,
             @QueryParam("date_to") String dateTo,
             @QueryParam("sort") String sort,
             @HeaderParam("X-User-Id") Long headerUserId) {
         
         boolean hasFilters = (q != null && !q.isBlank()) ||
-                           (category != null && !category.isBlank()) ||
+                           (theme != null && !theme.isBlank()) ||
                            (dateFrom != null && !dateFrom.isBlank()) ||
                            (dateTo != null && !dateTo.isBlank());
         
         if (hasFilters) {
-            FilterDto req = new FilterDto(q, category, dateFrom, dateTo);
+            FilterDto req = new FilterDto(q, theme, dateFrom, dateTo);
             
             List<Party> result = null;
             
             if (q != null && !q.isBlank()) {
                 result = partyRepository.findByTitleOrDescription(q);
-            } else if (category != null && !category.isBlank()) {
-                result = partyRepository.findByCategory(category);
+            } else if (theme != null && !theme.isBlank()) {
+                result = partyRepository.findByTheme(theme);
             } else if (dateFrom != null && dateTo != null) {
                 result = partyRepository.findByDateRange(dateFrom, dateTo);
             }

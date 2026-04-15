@@ -15,8 +15,6 @@ public class InvitationRepository {
     EntityManager entityManager;
     @Inject
     PartyRepository partyRepository;
-    // @Inject UserRepository userRepository;
-    //@Inject Logger logger;
 
     public Response invite(InvitationDto invitationDto, Long senderId){
         if (senderId == null) {

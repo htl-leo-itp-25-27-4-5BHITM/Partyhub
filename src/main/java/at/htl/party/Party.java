@@ -1,6 +1,5 @@
 package at.htl.party;
 
-import at.htl.category.Category;
 import at.htl.invitation.Invitation;
 import at.htl.location.Location;
 import at.htl.media.Media;
@@ -24,10 +23,8 @@ public class Party {
     private Long id;
     @ManyToOne
     private User host_user;
-    @ManyToOne
-    @JoinColumn(name = "category_id", nullable = false)
-    private Category category;
     private String title;
+    private String theme;
     private LocalDateTime time_start;
     private LocalDateTime time_end;
     private Integer max_people;
@@ -86,20 +83,20 @@ public class Party {
         this.host_user = host_user;
     }
 
-    public Category getCategory() {
-        return category;
-    }
-
-    public void setCategory(Category category) {
-        this.category = category;
-    }
-
     public String getTitle() {
         return title;
     }
 
     public void setTitle(String title) {
         this.title = title;
+    }
+
+    public String getTheme() {
+        return theme;
+    }
+
+    public void setTheme(String theme) {
+        this.theme = theme;
     }
 
     public LocalDateTime getTime_start() {

@@ -6,8 +6,6 @@ import java.time.format.DateTimeParseException;
 import java.util.List;
 import java.util.Map;
 
-import at.htl.category.Category;
-import at.htl.category.CategoryRepository;
 import at.htl.location.Location;
 import at.htl.location.LocationRepository;
 import at.htl.user.User;
@@ -31,23 +29,14 @@ public class PartyRepository {
     @Inject
     EntityManager entityManager;
 
-    //@Inject
-    //Logger logger;
-
     @Inject
     LocationRepository locationRepository;
-
-    @Inject
-    CategoryRepository categoryRepository;
 
     @Inject
     NotificationRepository notificationRepository;
 
     @Inject
     FollowRepository followRepository;
-
-    //@Inject
-    //UserRepository userRepository;
 
     private static final DateTimeFormatter PARTY_DTF = DateTimeFormatter.ofPattern("dd.MM.yyyy HH:mm");
 
@@ -57,7 +46,6 @@ public class PartyRepository {
 
     public List<Party> getPartiesByUser(Long userId) {
         if (userId == null) {
-            // If no user ID provided, only return PUBLIC parties
             return entityManager.createQuery(
                     "SELECT DISTINCT p FROM Party p WHERE p.visibility = 'PUBLIC' ORDER BY p.time_start DESC",
                     Party.class)
@@ -72,11 +60,6 @@ public class PartyRepository {
                     .getResultList();
         }
 
-        // Return:
-        // 1. All PUBLIC parties
-        // 2. PRIVATE parties where user is host
-        // 3. PRIVATE parties where user is invited (has invitation)
-        // 4. PRIVATE parties where user is attendee
         return entityManager.createQuery(
                 "SELECT DISTINCT p FROM Party p " +
                 "LEFT JOIN p.invitations i " +
@@ -108,13 +91,11 @@ public class PartyRepository {
         Party party = partyCreateDtoToParty(partyCreateDto);
         party.setHost_user(host);
 
-        // Set visibility
         String visibility = partyCreateDto.visibility() != null ? partyCreateDto.visibility() : "PUBLIC";
         party.setVisibility(visibility);
 
         entityManager.persist(party);
 
-        // Handle invitations and notifications for PRIVATE parties
         if ("PRIVATE".equalsIgnoreCase(visibility) && partyCreateDto.selectedUsers() != null && !partyCreateDto.selectedUsers().isEmpty()) {
             for (String selectedHandle : partyCreateDto.selectedUsers()) {
                 User recipient = entityManager.createQuery(
@@ -127,14 +108,12 @@ public class PartyRepository {
                         .orElse(null);
 
                 if (recipient != null && !recipient.getId().equals(userId)) {
-                    // Create invitation
                     Invitation invitation = new Invitation();
                     invitation.setSender(host);
                     invitation.setRecipient(recipient);
                     invitation.setParty(party);
                     entityManager.persist(invitation);
 
-                    // Create notification
                     String message = host.getDisplayName() + " hat dich zu der Party \"" + party.getTitle() + "\" eingeladen";
                     Notification notification = new Notification(recipient, host, party, message);
                     notificationRepository.createNotification(notification);
@@ -177,7 +156,6 @@ public class PartyRepository {
                 .build();
     }
 
-    // ✅ Direkt das gemanagte Objekt updaten
     party.setTitle(partyCreateDto.title());
     party.setDescription(partyCreateDto.description());
     party.setFee(partyCreateDto.fee());
@@ -190,7 +168,6 @@ public class PartyRepository {
     party.setVisibility(partyCreateDto.visibility() != null ? partyCreateDto.visibility() : "PUBLIC");
     party.setHost_user(host);
 
-    // Location updaten
     Location location = locationRepository.findByLatitudeAndLongitude(
             partyCreateDto.latitude(), partyCreateDto.longitude());
     if (location != null) {
@@ -204,19 +181,8 @@ public class PartyRepository {
         party.setLocation(newLocation);
     }
 
-    // Category updaten
-    Long catId = (partyCreateDto.category_id() != null && partyCreateDto.category_id() != 0)
-            ? partyCreateDto.category_id() : 1L;
-    Category category = categoryRepository.getCategoryById(catId);
-    if (category == null) {
-        return Response.status(Response.Status.BAD_REQUEST)
-                .entity("{\"error\": \"Kategorie nicht gefunden\"}")
-                .build();
-    }
-    party.setCategory(category);
+    party.setTheme(partyCreateDto.theme());
 
-    // ✅ Kein merge() nötig — party ist bereits managed, 
-    //    Änderungen werden automatisch beim Transaction-Ende gespeichert
     return Response.ok(party).build();
     }
 
@@ -228,10 +194,11 @@ public class PartyRepository {
                 .getResultList();
     }
 
-    public List<Party> findByCategory(String category) {
-        String jpql = "SELECT p FROM Party p WHERE p.category.name = :category";
+    public List<Party> findByTheme(String theme) {
+        String like = "%" + theme.trim().toLowerCase() + "%";
+        String jpql = "SELECT p FROM Party p WHERE LOWER(p.theme) LIKE :theme";
         return entityManager.createQuery(jpql, Party.class)
-                .setParameter("category", category)
+                .setParameter("theme", like)
                 .getResultList();
     }
 
@@ -266,32 +233,27 @@ public class PartyRepository {
             return null;
         }
 
-        // Check if party is visible to this user
         if ("PUBLIC".equals(party.getVisibility())) {
             return party;
         }
 
-        // For PRIVATE parties, check if user is authorized
         if (userId != null) {
-            // User is the host
             if (party.getHost_user().getId().equals(userId)) {
                 return party;
             }
 
-            // User is invited (has invitation)
             boolean hasInvitation = party.getInvitations() != null && 
                     party.getInvitations().stream().anyMatch(i -> i.getRecipient().getId().equals(userId));
             if (hasInvitation) {
                 return party;
             }
 
-            // User is attendee
             if (party.getUsers() != null && party.getUsers().stream().anyMatch(u -> u.getId().equals(userId))) {
                 return party;
             }
         }
 
-        return null; // Not authorized to view this private party
+        return null;
     }
 
     public Response attendParty(Long partyId, Long userId) {
@@ -413,13 +375,7 @@ public class PartyRepository {
             party.setLocation(newLocation);
         }
 
-        Long catId = (dto.category_id() != null && dto.category_id() != 0) ? dto.category_id() : 1L;
-        Category category = categoryRepository.getCategoryById(catId);
-
-        if (category == null) {
-            throw new BadRequestException("Kategorie mit ID " + catId + " existiert nicht im System.");
-        }
-        party.setCategory(category);
+        party.setTheme(dto.theme());
         party.setVisibility(dto.visibility() != null ? dto.visibility() : "PUBLIC");
 
         party.setCreated_at(LocalDateTime.now());

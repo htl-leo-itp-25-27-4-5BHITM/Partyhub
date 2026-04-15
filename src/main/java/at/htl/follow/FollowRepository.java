@@ -15,8 +15,6 @@ public class FollowRepository {
     @Inject
     EntityManager entityManager;
 
-    //@Inject Logger logger;
-
     public long getFollowerCount(long userId) {
         return entityManager.createQuery(
                 "SELECT COUNT(f) FROM Follow f WHERE f.user2_id = :userId AND f.status.status_id = 2",

@@ -19,11 +19,11 @@ paths:
           schema:
             type: string
           description: Search query (searches title and description)
-        - name: category
+        - name: theme
           in: query
           schema:
             type: string
-          description: Filter by category name
+          description: Filter by theme
         - name: date_from
           in: query
           schema:
@@ -1013,37 +1013,6 @@ paths:
         '200':
           description: Notification deleted
 
-  /api/category:
-    get:
-      summary: List all categories
-      responses:
-        '200':
-          description: Categories
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/Category'
-
-  /api/category/{id}:
-    get:
-      summary: Get category by ID
-      parameters:
-        - name: id
-          in: path
-          required: true
-          schema:
-            type: integer
-            format: int64
-      responses:
-        '200':
-          description: Category details
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Category'
-
 components:
   schemas:
     Party:
@@ -1054,10 +1023,11 @@ components:
           format: int64
         host_user:
           $ref: '#/components/schemas/User'
-        category:
-          $ref: '#/components/schemas/Category'
         title:
           type: string
+        theme:
+          type: string
+          description: Party theme (e.g., techno, house, chill)
         time_start:
           type: string
           format: date-time
@@ -1118,11 +1088,9 @@ components:
           format: double
         location_address:
           type: string
-        category_id:
-          type: integer
-          format: int64
         theme:
           type: string
+          description: Party theme (e.g., techno, house, chill)
         visibility:
           type: string
           enum: [PUBLIC, PRIVATE]
@@ -1177,17 +1145,6 @@ components:
         longitude:
           type: number
           format: double
-
-    Category:
-      type: object
-      properties:
-        id:
-          type: integer
-          format: int64
-        name:
-          type: string
-        color:
-          type: string
 
     Media:
       type: object
