@@ -40,19 +40,19 @@ INSERT INTO user_location (user_id, longitude, latitude) VALUES
 -- =========================
 -- LOCATION (Linz Umgebung)
 -- =========================
-INSERT INTO location (id, longitude, latitude) VALUES
-                                                   (1, 14.2858, 48.3069), -- Zentrum
-                                                   (2, 14.2905, 48.3055),
-                                                   (3, 14.2955, 48.3005),
-                                                   (4, 14.2820, 48.3070),
-                                                   (5, 14.2755, 48.3045),
-                                                   (6, 14.2890, 48.3090),
-                                                   (7, 14.2780, 48.3020),
-                                                   (8, 14.2920, 48.3030),
-                                                   (9, 14.3005, 48.3105),
-                                                   (10,14.2700, 48.3085),
-                                                   (11,14.2517, 48.2684), -- Leonding
-                                                   (12,14.0227, 48.1233); -- Umgebung
+INSERT INTO location (id, longitude, latitude, address) VALUES
+                                                   (1, 14.2858, 48.3069, 'Zentrum Linz'),
+                                                   (2, 14.2905, 48.3055, 'Remembar'),
+                                                   (3, 14.2955, 48.3005, 'PRYSMA'),
+                                                   (4, 14.2820, 48.3070, 'M7 Club'),
+                                                   (5, 14.2755, 48.3045, 'Promenade'),
+                                                   (6, 14.2890, 48.3090, 'Bar'),
+                                                   (7, 14.2780, 48.3020, 'Alternative Venue'),
+                                                   (8, 14.2920, 48.3030, 'Studentenwerk'),
+                                                   (9, 14.3005, 48.3105, 'Open Air Area'),
+                                                   (10,14.2700, 48.3085, 'Kapu'),
+                                                   (11,14.2517, 48.2684, 'Leonding'),
+                                                   (12,14.0227, 48.1233, 'Umgebung');
 
 -- =========================
 -- PARTY (Linz)
