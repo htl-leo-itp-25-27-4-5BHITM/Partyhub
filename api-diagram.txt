@@ -1,0 +1,116 @@
+╔══════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╗
+║                                    PartyHub REST API Structure                                                    ║
+╠══════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╣
+║                                                                                                                      ║
+║  ┌─────────────────────────────────────────────────────────────────────────────────────────────────────────────────┐  ║
+║  │  PARTYRESOURCE                                        /api/parties                                           │  ║
+║  ├─────────────────────────────────────────────────────────────────────────────────────────────────────────────────┤  ║
+║  │  GET    /api/parties                                                                                             │  ║
+║  │          ?q=party                    Search (title/description)                                                 │  ║
+║  │          ?theme=techno               Filter by theme                                                           │  ║
+║  │          ?date_from=15-04-2025        Start date (dd-mm-YYYY)                                                    │  ║
+║  │          ?date_to=20-04-2025          End date (dd-mm-YYYY)                                                     │  ║
+║  │          ?sort=asc|desc               Sort (default: by date)                                                    │  ║
+║  │          X-User-Id: 123               Auth header                                                               │  ║
+║  │  POST   /api/parties                                 Create party                                             │  ║
+║  │  GET    /api/parties/{id}                            Get party by ID                                          │  ║
+║  │  PUT    /api/parties/{id}                            Update party                                             │  ║
+║  │  DELETE /api/parties/{id}                            Delete party                                             │  ║
+║  │  POST   /api/parties/{id}/join                       Join party                                                │  ║
+║  │  DELETE /api/parties/{id}/join                      Leave party                                               │  ║
+║  │  GET    /api/parties/{id}/join/status               Check join status                                         │  ║
+║  │  GET    /api/parties/{id}/can-edit                   Check if can edit                                         │  ║
+║  │  GET    /api/parties/{id}/locations                  Get attendee locations                                   │  ║
+║  │  GET    /api/parties/{id}/media                      Get party media                                          │  ║
+║  │  POST   /api/parties/{id}/media                      Upload party media                                       │  ║
+║  └─────────────────────────────────────────────────────────────────────────────────────────────────────────────────┘  ║
+║                                                                                                                      ║
+║  ┌─────────────────────────────────────────────────────────────────────────────────────────────────────────────────┐  ║
+║  │  USERRESOURCE                                         /api/users                                              │  ║
+║  ├─────────────────────────────────────────────────────────────────────────────────────────────────────────────────┤  ║
+║  │  GET    /api/users                                  List users (or ?q= to search)                            │  ║
+║  │  POST   /api/users                                  Create user                                               │  ║
+║  │  GET    /api/users/{id}                             Get user by ID                                           │  ║
+║  │  PUT    /api/users/{id}                             Update user                                               │  ║
+║  │  GET    /api/users/handle/{distinctName}            Get user by handle                                       │  ║
+║  │  GET    /api/users/username/{username}              Get user by username                                     │  ║
+║  │  GET    /api/users/me                               Get current user                                         │  ║
+║  │  GET    /api/users/location/{id}                Get user location                                      │  ║
+║  │  PUT    /api/users/location                       Update my location (X-User-Id header)                  │  ║
+║  │  GET    /api/users/{id}/media                       Get user media                                           │  ║
+║  └─────────────────────────────────────────────────────────────────────────────────────────────────────────────────┘  ║
+║                                                                                                                      ║
+║  ┌─────────────────────────────────────────────────────────────────────────────────────────────────────────────────┐  ║
+║  │  FOLLOW ENDPOINTS                                     (nested under /api/users/{id})                            │  ║
+║  ├─────────────────────────────────────────────────────────────────────────────────────────────────────────────────┤  ║
+║  │  GET    /api/users/{id}/followers                    Get followers                                             │  ║
+║  │  GET    /api/users/{id}/following                    Get following                                             │  ║
+║  │  GET    /api/users/{id}/followers/count              Get followers count                                       │  ║
+║  │  GET    /api/users/{id}/following/count              Get following count                                       │  ║
+║  │  GET    /api/users/{id}/follow-requests             Get pending follow requests                               │  ║
+║  │  GET    /api/users/{userId1}/followers/{userId2}/status  Check follow status                              │  ║
+║  │  POST   /api/users/{id}/follow?targetUserId=...      Send follow request                                      │  ║
+║  │  PUT    /api/users/{id}/followers/{followerId}       Accept follow request                                    │  ║
+║  │  DELETE /api/users/{id}/followers/{followerId}      Remove follow                                            │  ║
+║  └─────────────────────────────────────────────────────────────────────────────────────────────────────────────────┘  ║
+║                                                                                                                      ║
+║  ┌─────────────────────────────────────────────────────────────────────────────────────────────────────────────────┐  ║
+║  │  PROFILE ENDPOINTS                                   (nested under /api/users/{id})                            │  ║
+║  ├─────────────────────────────────────────────────────────────────────────────────────────────────────────────────┤  ║
+║  │  GET    /api/users/{id}/profile-picture              Get profile picture                                       │  ║
+║  │  GET    /api/users/{id}/profile-picture-filename     Get profile picture filename                              │  ║
+║  │  POST   /api/users/{id}/upload-profile-picture      Upload profile picture                                    │  ║
+║  └─────────────────────────────────────────────────────────────────────────────────────────────────────────────────┘  ║
+║                                                                                                                      ║
+║  ┌─────────────────────────────────────────────────────────────────────────────────────────────────────────────────┐  ║
+║  │  INVITATIONRESOURCE                            /api/invitations                                               │  ║
+║  ├─────────────────────────────────────────────────────────────────────────────────────────────────────────────────┤  ║
+║  │  POST   /api/invitations                        Create invitation                                              │  ║
+║  │  GET    /api/invitations?direction=received    Get received invitations                                     │  ║
+║  │  GET    /api/invitations?direction=sent         Get sent invitations                                         │  ║
+║  │  DELETE /api/invitations/{id}                    Delete invitation                                            │  ║
+║  └─────────────────────────────────────────────────────────────────────────────────────────────────────────────────┘  ║
+║                                                                                                                      ║
+║  ┌─────────────────────────────────────────────────────────────────────────────────────────────────────────────────┐  ║
+║  │  MEDIARESOURCE                                  /api/media                                                    │  ║
+║  ├─────────────────────────────────────────────────────────────────────────────────────────────────────────────────┤  ║
+║  │  GET    /api/media/{id}                          Get media file by ID                                         │  ║
+║  └─────────────────────────────────────────────────────────────────────────────────────────────────────────────────┘  ║
+║                                                                                                                      ║
+║  ┌─────────────────────────────────────────────────────────────────────────────────────────────────────────────────┐  ║
+║  │  QRRESOURCE                                    /api/qr                                                       │  ║
+║  ├─────────────────────────────────────────────────────────────────────────────────────────────────────────────────┤  ║
+║  │  GET    /api/qr/generate                         Generate QR code                                             │  ║
+║  │  GET    /api/qr/status/{token}                  Check QR status                                               │  ║
+║  │  GET    /api/qr/image/user/{userId}             Get QR image by user ID                                       │  ║
+║  │  GET    /api/qr/image/{token}                  Get QR image by token                                        │  ║
+║  │  POST   /api/qr/exchange                        Exchange QR token                                             │  ║
+║  │  POST   /api/qr/mobile/me                       Mobile QR login                                               │  ║
+║  └─────────────────────────────────────────────────────────────────────────────────────────────────────────────────┘  ║
+║                                                                                                                      ║
+║  ┌─────────────────────────────────────────────────────────────────────────────────────────────────────────────────┐  ║
+║  │  NOTIFICATIONRESOURCE                      /api/notifications                                                │  ║
+║  ├─────────────────────────────────────────────────────────────────────────────────────────────────────────────────┤  ║
+║  │  GET    /api/notifications                          Get all notifications                                      │  ║
+║  │  GET    /api/notifications/unread                   Get unread notifications                                   │  ║
+║  │  POST   /api/notifications/{id}/read               Mark as read                                               │  ║
+║  │  DELETE /api/notifications/{id}                     Delete notification                                         │  ║
+║  └─────────────────────────────────────────────────────────────────────────────────────────────────────────────────┘  ║
+║                                                                                                                      ║
+╠══════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╣
+║  LEGEND                                                                                                               ║
+║  ─────────────────────────────────────────────────────────────────────────────────────────────────────────────────   ║
+║  GET    (blue)    = Read/Query                                                                                       ║
+║  POST   (green)   = Create                                                                                           ║
+║  PUT    (yellow)  = Update                                                                                           ║
+║  DELETE (red)     = Delete                                                                                            ║
+╠══════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╣
+║  API CONVENTIONS                                                                                                     ║
+║  ─────────────────────────────────────────────────────────────────────────────────────────────────────────────────   ║
+║  • Resources nested under parent resources (max 2 levels)                                                              ║
+║  • kebab-case for paths: /api/user-locations → /api/users/{id}/location                                               ║
+║  • Direct field parameters for filtering (no filter=type pattern)                                                     ║
+║  • Date format: dd-mm-YYYY or dd.MM.yyyy HH:mm                                                                       ║
+║  • Sort: ?sort=asc|desc                                                                                              ║
+║  • Search: ?q=query                                                                                                  ║
+╚══════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╝
