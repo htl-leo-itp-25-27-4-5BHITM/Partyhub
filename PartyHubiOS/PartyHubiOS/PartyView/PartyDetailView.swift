@@ -2,6 +2,7 @@ import SwiftUI
 import SwiftData
 import PhotosUI
 import Combine
+import CoreLocation
 
 struct PartyDetailView: View {
     @Bindable var party: Party
@@ -14,8 +15,9 @@ struct PartyDetailView: View {
     @State private var ausgewaehlteBilderZumLoeschen = Set<URL>()
     @State private var istImBearbeitungsModus = false
     @State private var partyText: String = ""
+    @State private var resolvedAddress: String = ""
     
-    // MARK: - Edit Feature (NEU)
+    // MARK: - Edit Feature
     @State private var showEditSheet = false
     @State private var isUpdating = false
     @State private var showError = false
@@ -42,7 +44,7 @@ struct PartyDetailView: View {
         notificationManager.unreadCount(for: party.backendId)
     }
     
-    // MARK: - Owner Check (NEU)
+    // MARK: - Owner Check
     private var currentUserId: Int64? {
         UserDefaults.standard.object(forKey: "currentUserId") as? Int64
     }
@@ -146,7 +148,13 @@ struct PartyDetailView: View {
             // MARK: - Location Section
             Section("Ort") {
                 LabeledContent("Adresse") {
-                    Text(party.location)
+                    Button {
+                        let url = URL(string: "maps://maps.apple.com/?daddr=\(party.latitude),\(party.longitude)")!
+                        UIApplication.shared.open(url)
+                    } label: {
+                        Text(resolvedAddress.isEmpty ? party.location : resolvedAddress)
+                            .foregroundStyle(.blue)
+                    }
                 }
                 
                 LabeledContent("Koordinaten") {
@@ -441,6 +449,14 @@ struct PartyDetailView: View {
                 hasCheckedUpdates = true
             }
             setupNotificationObservers()
+            Task {
+                let location = CLLocation(latitude: party.latitude, longitude: party.longitude)
+                let placemarks = try? await CLGeocoder().reverseGeocodeLocation(location)
+                if let p = placemarks?.first {
+                    let parts: [String?] = [p.thoroughfare, p.subThoroughfare, p.postalCode, p.locality]
+                    resolvedAddress = parts.compactMap { $0 }.joined(separator: " ")
+                }
+            }
         }
         .onReceive(timer) { now = $0 }
     }
