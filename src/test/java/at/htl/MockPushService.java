@@ -3,6 +3,7 @@ package at.htl;
 import io.quarkus.test.Mock;
 import jakarta.enterprise.context.ApplicationScoped;
 
+
 @Mock
 @ApplicationScoped
 public class MockPushService extends PushNotificationService {
