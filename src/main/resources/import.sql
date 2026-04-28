@@ -82,9 +82,7 @@ INSERT INTO party (id, host_user_id, location_id, title, time_start, time_end, m
 (7,  8, 7, 'Alternative Night',              '2026-04-08 20:00:00', '2026-04-08 01:00:00', 100, 18, 45, 'https://alt.at',         'Indie & Alternative.',           5.00, 'PUBLIC', 'Alternative', NOW()),
 (8,  9, 8, 'Student Party',                  '2026-04-09 21:30:00', '2026-04-09 03:00:00', 140, 18, 30, 'https://stwst.at',       'Studentenparty.',                6.00, 'PUBLIC', 'Student', NOW()),
 (9, 10, 9, 'Open Air Party',                 '2026-04-09 16:00:00', '2026-04-09 23:00:00', 220, 16, 40, 'https://linz.at',        'Open Air mit DJs.',              0.00, 'PUBLIC', 'Open-Air', NOW()),
-(10, 1, 10, 'Indie Night @ Kapu',              '2026-04-08 21:00:00', '2026-04-08 02:00:00', 110, 18, 40, 'https://kapu.or.at',     'Live Bands & DJs.',              9.00, 'PUBLIC', 'Indie', NOW());
-
-INSERT INTO party (id, host_user_id, location_id, title, time_start, time_end, max_people, min_age, max_age, website, description, fee, visibility, theme, created_at) VALUES
+(10, 1, 10, 'Indie Night @ Kapu',              '2026-04-08 21:00:00', '2026-04-08 02:00:00', 110, 18, 40, 'https://kapu.or.at',     'Live Bands & DJs.',              9.00, 'PUBLIC', 'Indie', NOW()),
 (11, 1, 11, 'HTL Leonding', '2026-05-01 19:00:00', '2026-05-01 23:59:00', 100, 16, 30, NULL, 'Die Party der HTL Leonding!', 0.00, 'PUBLIC', 'Student', NOW()),
 (12, 2, 1,  'Meine Party',  '2026-05-02 20:00:00', '2026-05-02 23:59:00', 50,  18, 40, NULL, 'Meine eigene Party!',         0.00, 'PUBLIC', 'Chill',   NOW());
 -- =========================
