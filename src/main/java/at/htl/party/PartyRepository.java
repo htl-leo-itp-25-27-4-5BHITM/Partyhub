@@ -386,6 +386,7 @@ public class PartyRepository {
         party.setTime_start(dto.time_start());
         party.setTime_end(dto.time_end());
         party.setWebsite(dto.website());
+        party.setMax_people(dto.max_people());
         party.setMax_age(dto.max_age());
         party.setMin_age(dto.min_age());
 
