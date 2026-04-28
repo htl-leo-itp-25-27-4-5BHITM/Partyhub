@@ -99,11 +99,16 @@ struct PartyDetailView: View {
             // MARK: - Party Details Section
             Section("Details") {
                 if let hostName = party.hostDisplayName {
+                        LabeledContent("Veranstalter") {
+                            Text(hostName)
+                                .foregroundStyle(.secondary)
+                        }
+                    }
+                    
                     LabeledContent("Beschreibung") {
                         Text(party.partyDescription ?? "Keine Beschreibung")
                             .foregroundStyle(.secondary)
                     }
-                }
                 
                 if let timeStart = party.timeStart {
                     LabeledContent("Beginn") {

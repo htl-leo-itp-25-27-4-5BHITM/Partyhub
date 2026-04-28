@@ -112,7 +112,7 @@ struct PartyHubiOSApp: App {
     }
 
     func fetchAndStoreParties(context: ModelContext) async {
-        guard let url = URL(string: "\(Config.backendURL)/api/party") else { return }
+        guard let url = URL(string: "\(Config.backendURL)/api/parties") else { return }
         guard let (data, _) = try? await URLSession.shared.data(from: url) else { return }
 
         print("Fetching parties…")
@@ -182,7 +182,7 @@ struct PartyHubiOSApp: App {
                     longitude:  p.location.longitude,
                     partyDescription: p.description,
                     hostUserId: p.hostUser?.id.map { Int64($0) },
-                    timeStart: parseDate(p.timeStart),      // ← vor hostDisplayName
+                    timeStart: parseDate(p.timeStart),
                     timeEnd: parseDate(p.timeEnd),
                     maxPeople: p.maxPeople,
                     minAge: p.minAge,
@@ -190,8 +190,7 @@ struct PartyHubiOSApp: App {
                     website: p.website,
                     fee: p.fee.map { Double($0) },
                     categoryId: p.category?.id,
-                    hostDisplayName: p.hostUser?.displayName  // ← ans Ende
-                )
+                    hostDisplayName: p.hostUser?.displayName                )
                 context.insert(party)
             }
         }

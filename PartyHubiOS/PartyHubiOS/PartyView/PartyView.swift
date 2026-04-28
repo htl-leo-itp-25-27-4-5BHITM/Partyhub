@@ -10,14 +10,11 @@ struct PartyView: View {
     @Environment(LocationManager.self) var locationManager
     @Environment(\.modelContext) private var modelContext
 
-    // Cache: Party-ID → Fahrtstrecke in Metern
     @State private var drivingDistances: [Int: Double] = [:]
-    // Letzter Standort bei dem Routen geladen wurden
     @State private var lastFetchLocation: CLLocation? = nil
     // Läuft gerade ein Fetch?
     @State private var isFetching = false
 
-    // Sortierung nach Fahrtstrecke (wenn vorhanden), sonst Luftlinie
     func sortedParties(userCoord: CLLocationCoordinate2D?) -> [Party] {
         guard let userCoord else { return parties }
         let userLocation = CLLocation(latitude: userCoord.latitude, longitude: userCoord.longitude)
