@@ -50,3 +50,5 @@ app/
 
 
 api/node_modules
+.opencode/
+openspec/

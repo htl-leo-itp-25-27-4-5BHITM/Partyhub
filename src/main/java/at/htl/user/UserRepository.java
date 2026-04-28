@@ -8,6 +8,7 @@ import org.jboss.logging.Logger;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import jakarta.persistence.EntityManager;
+import jakarta.transaction.Transactional;
 import jakarta.ws.rs.core.Response;
 
 @ApplicationScoped
@@ -71,6 +72,20 @@ public class UserRepository {
                 .setMaxResults(1)
                 .getResultList();
         return res.isEmpty() ? Optional.empty() : Optional.of(res.get(0));
+    }
+
+    @Transactional
+    public User findOrCreateFromKeycloak(String email, String username, String displayName) {
+        User existing = findByEmail(email);
+        if (existing != null) {
+            return existing;
+        }
+        User user = new User();
+        user.setEmail(email);
+        user.setUsername(username);
+        user.setDisplayName(displayName);
+        em.persist(user);
+        return user;
     }
 
     public void persist(User user) {

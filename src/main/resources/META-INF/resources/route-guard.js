@@ -4,13 +4,16 @@
  */
 
 (function () {
+  const LOGIN_PAGE = 'http://localhost:8180/realms/partyhub/protocol/openid-connect/auth'; // Keycloak login page
+  const HOME_PAGE = '/index.html';
+
   /**
    * Require authentication - redirect to login if not authenticated
    */
   window.requireAuth = function () {
     if (!window.authService.isLoggedIn()) {
       console.warn('Access denied: User not authenticated');
-      window.location.href = '/register_login/start.html';
+      window.location.href = LOGIN_PAGE;
       return false;
     }
     return true;
@@ -22,7 +25,7 @@
   window.requireLogout = function () {
     if (window.authService.isLoggedIn()) {
       console.warn('Access denied: User already authenticated');
-      window.location.href = '/index.html';
+      window.location.href = HOME_PAGE;
       return false;
     }
     return true;

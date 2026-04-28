@@ -19,7 +19,8 @@
     </div>
   </div>
 
-  <script src="../auth-service.js" defer></script>
+    <!-- auth.js provides centralized auth (Keycloak redirect) -->
+    <script src="../auth.js" defer></script>
   <script>
     // Use authService.apiCall so the Authorization header (and refresh) is applied.
     async function generate() {

@@ -12,6 +12,64 @@ document.addEventListener("DOMContentLoaded", function () {
   let viewedUserFollowStatus = "not_following";
 
   // -----------------------------
+  // Authentication handling
+  // -----------------------------
+  const authSection = document.getElementById("authSection");
+  const userInfoSection = document.getElementById("userInfoSection");
+  const profileLoginBtn = document.getElementById("profileLoginBtn");
+  const profileLogoutBtn = document.getElementById("profileLogoutBtn");
+  const userDisplayName = document.getElementById("userDisplayName");
+  const userEmail = document.getElementById("userEmail");
+
+  function updateAuthUI() {
+    const isLoggedIn = window.auth && window.auth.isLoggedIn();
+    if (isLoggedIn) {
+      const user = window.auth.getUser();
+      if (user) {
+        if (userDisplayName) userDisplayName.textContent = user.displayName || user.username || "User";
+        if (userEmail) userEmail.textContent = user.email || "";
+      }
+      if (authSection) authSection.classList.add("hidden");
+      if (userInfoSection) userInfoSection.classList.remove("hidden");
+    } else {
+      if (authSection) authSection.classList.remove("hidden");
+      if (userInfoSection) userInfoSection.classList.add("hidden");
+    }
+  }
+
+  if (profileLoginBtn) {
+    profileLoginBtn.addEventListener("click", function(e) {
+      e.preventDefault();
+      e.stopPropagation();
+      window.auth.login();
+    });
+  }
+
+  if (profileLogoutBtn) {
+    profileLogoutBtn.addEventListener("click", function() {
+      window.auth.logout();
+    });
+  }
+
+  // Check auth state on load
+  updateAuthUI();
+
+  // Load authenticated user's profile by default
+  async function loadAuthenticatedUserProfile() {
+    if (window.auth && window.auth.isLoggedIn()) {
+      try {
+        const currentUser = await window.auth.fetchUser();
+        if (currentUser) {
+          await updateUserProfile(currentUser);
+        }
+      } catch (err) {
+        console.debug("Could not load authenticated user profile:", err);
+      }
+    }
+  }
+  loadAuthenticatedUserProfile();
+
+  // -----------------------------
   // Helpers
   // -----------------------------
   function defaultAvatarDataUri() {
@@ -319,7 +377,8 @@ document.addEventListener("DOMContentLoaded", function () {
     }
 
     try {
-      const result = await window.backend.getFollowStatus(loggedInUserId, viewedUserId);
+      const res = await window.auth.apiCall(`/api/users/${loggedInUserId}/followers/${viewedUserId}/status`);
+      const result = res.ok ? await res.json() : { status: "not_following" };
       viewedUserFollowStatus = result?.status || "not_following";
       return viewedUserFollowStatus;
     } catch (err) {
@@ -342,8 +401,10 @@ document.addEventListener("DOMContentLoaded", function () {
       await syncViewedUserFollowStatus();
       await renderActionButton();
 
-      const followers = await window.backend.getFollowers(viewedUserId);
-      const followings = await window.backend.getFollowings(viewedUserId);
+      const followersRes = await window.auth.apiCall(`/api/users/${viewedUserId}/followers`);
+      const followers = followersRes.ok ? await followersRes.json() : [];
+      const followingsRes = await window.auth.apiCall(`/api/users/${viewedUserId}/following`);
+      const followings = followingsRes.ok ? await followingsRes.json() : [];
 
       const followersCountEl = document.getElementById("followersCount");
       const followingCountEl = document.getElementById("followingCount");
@@ -398,8 +459,8 @@ document.addEventListener("DOMContentLoaded", function () {
         try {
           console.log('QR button clicked, checking auth...');
           
-          if (!window.authService || !window.authService.apiCall) {
-            console.warn('authService not available');
+          if (!window.auth || !window.auth.apiCall) {
+            console.warn('auth not available');
             if (info) info.textContent = 'Auth not available. Please login.';
             return;
           }
@@ -424,7 +485,7 @@ document.addEventListener("DOMContentLoaded", function () {
           const finalUserId = getStoredUserId();
           console.log('Using userId for QR:', finalUserId);
 
-          const res = await window.authService.apiCall('/api/qr/generate?userId=' + finalUserId);
+          const res = await window.auth.apiCall('/api/qr/generate?userId=' + finalUserId);
           if (!res.ok) {
             console.warn('QR generate returned', res.status);
             if (info) info.textContent = res.status === 401 ? 'Please log in.' : 'Could not generate QR.';
@@ -576,8 +637,10 @@ document.addEventListener("DOMContentLoaded", function () {
     await loadUserParties().catch((e) => console.debug("loadUserParties failed", e));
 
     try {
-      const followers = (await window.backend.getFollowers(viewedUserId)) || [];
-      const followings = (await window.backend.getFollowings(viewedUserId)) || [];
+      const followersRes = await window.auth.apiCall(`/api/users/${viewedUserId}/followers`);
+      const followers = followersRes.ok ? await followersRes.json() : [];
+      const followingsRes = await window.auth.apiCall(`/api/users/${viewedUserId}/following`);
+      const followings = followingsRes.ok ? await followingsRes.json() : [];
 
       const followersCountEl = document.getElementById("followersCount");
       const followingCountEl = document.getElementById("followingCount");
@@ -618,7 +681,8 @@ document.addEventListener("DOMContentLoaded", function () {
     if (!postsCountEl) return;
 
     try {
-      const parties = await window.backend.getPartiesByUser(userId);
+      const res = await window.auth.apiCall(`/api/party/user/${userId}`);
+      const parties = res.ok ? await res.json() : [];
       postsCountEl.textContent = String(Array.isArray(parties) ? parties.length : 0);
     } catch (err) {
       console.error("refreshCreatedPartiesCount failed", err);
@@ -678,12 +742,12 @@ document.addEventListener("DOMContentLoaded", function () {
         await syncViewedUserFollowStatus();
 
         if (viewedUserFollowStatus === "following") {
-          const res = await window.backend.unfollowUser(profileUserId);
+          const res = await window.auth.apiCall(`/api/users/${profileUserId}/followers/${loggedInUserId}`, { method: "DELETE" });
           if (!res?.ok) {
             console.warn("unfollow failed", res);
           }
         } else if (viewedUserFollowStatus === "not_following") {
-          const res = await window.backend.followUser(profileUserId);
+          const res = await window.auth.apiCall(`/api/users/${profileUserId}/follow`, { method: "POST" });
           if (!res?.ok) {
             console.warn("follow failed", res);
           }
@@ -749,7 +813,8 @@ document.addEventListener("DOMContentLoaded", function () {
         }
 
         try {
-          let status = await window.backend.getFollowStatus(current, u.id);
+          const statusRes = await window.auth.apiCall(`/api/users/${current}/followers/${u.id}/status`);
+          let status = statusRes.ok ? await statusRes.json() : { status: "not_following" };
           let statusValue = status?.status || "not_following";
 
           btn.textContent =
@@ -767,22 +832,24 @@ document.addEventListener("DOMContentLoaded", function () {
             btn.disabled = true;
 
             try {
-              status = await window.backend.getFollowStatus(current, u.id);
+              const refreshRes = await window.auth.apiCall(`/api/users/${current}/followers/${u.id}/status`);
+              status = refreshRes.ok ? await refreshRes.json() : { status: "not_following" };
               statusValue = status?.status || "not_following";
 
               if (statusValue === "following") {
-                const resp = await window.backend.unfollowUser(u.id);
+                const resp = await window.auth.apiCall(`/api/users/${u.id}/followers/${current}`, { method: "DELETE" });
                 if (!resp?.ok) {
                   console.warn("unfollow failed", resp);
                 }
               } else if (statusValue === "not_following") {
-                const resp = await window.backend.followUser(u.id);
+                const resp = await window.auth.apiCall(`/api/users/${u.id}/follow`, { method: "POST" });
                 if (!resp?.ok) {
                   console.warn("follow failed", resp);
                 }
               }
 
-              status = await window.backend.getFollowStatus(current, u.id);
+              const newStatusRes = await window.auth.apiCall(`/api/users/${current}/followers/${u.id}/status`);
+              status = newStatusRes.ok ? await newStatusRes.json() : { status: "not_following" };
               statusValue = status?.status || "not_following";
 
               btn.textContent =
@@ -980,7 +1047,8 @@ document.addEventListener("DOMContentLoaded", function () {
     }
 
     try {
-      const parties = await window.backend.getPartiesByUser(viewedUserId);
+      const res = await window.auth.apiCall(`/api/party/user/${viewedUserId}`);
+      const parties = res.ok ? await res.json() : [];
       renderParties(Array.isArray(parties) ? parties : []);
     } catch (err) {
       console.error("Failed to load user parties:", err);

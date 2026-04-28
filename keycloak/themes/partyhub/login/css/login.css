@@ -1,0 +1,279 @@
+.pf-c-login__main {
+  background: var(--ph-secondary) !important;
+  border-radius: 16px !important;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3) !important;
+}
+
+.pf-c-login__header {
+  margin-bottom: 32px !important;
+}
+
+.pf-l-login__main-body {
+  padding: 0 !important;
+}
+
+.pf-c-form__group {
+  margin-bottom: 20px !important;
+}
+
+.pf-c-button--primary {
+  background: linear-gradient(135deg, var(--ph-accent-pink) 0%, #d91a4a 100%) !important;
+  border: none !important;
+  border-radius: 12px !important;
+  color: white !important;
+  font-weight: 600 !important;
+  padding: 14px 24px !important;
+  width: 100% !important;
+  transition: all 0.2s ease !important;
+}
+
+.pf-c-button--primary:hover {
+  background: linear-gradient(135deg, #ff3d75 0%, var(--ph-accent-pink) 100%) !important;
+  transform: translateY(-2px) !important;
+  box-shadow: 0 8px 20px rgba(255, 46, 99, 0.4) !important;
+}
+
+.pf-c-form-field__input {
+  background-color: transparent !important;
+  border: none !important;
+  border-bottom: 3px solid var(--ph-border) !important;
+  border-radius: 0 !important;
+  color: var(--ph-text) !important;
+  padding: 12px 0 !important;
+  transition: all 0.2s ease !important;
+}
+
+.pf-c-form-field__input:focus {
+  border-bottom-color: var(--ph-accent-pink) !important;
+  box-shadow: none !important;
+  outline: none !important;
+}
+
+.pf-c-form-field__input::placeholder {
+  color: var(--ph-text-muted) !important;
+}
+
+.pf-c-form-field__label {
+  color: var(--ph-text) !important;
+  font-weight: 600 !important;
+  font-family: var(--ph-font-family) !important;
+}
+
+.pf-c-login__links a {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 12px;
+  border: 2px solid var(--ph-border) !important;
+  border-radius: 8px;
+  color: var(--ph-text) !important;
+  font-weight: 500;
+  text-decoration: none;
+  transition: all 0.2s ease;
+  background: transparent !important;
+}
+
+.pf-c-login__links a:hover {
+  border-color: var(--ph-accent-pink) !important;
+  background-color: rgba(255, 46, 99, 0.1) !important;
+}
+
+#kc-error-message {
+  background-color: rgba(255, 46, 99, 0.1) !important;
+  border: 1px solid var(--ph-accent-pink) !important;
+  border-radius: 8px !important;
+  color: #ffd2e1 !important;
+  padding: 16px !important;
+  margin-bottom: 24px !important;
+}
+
+#kc-feedback {
+  background-color: rgba(255, 46, 99, 0.1) !important;
+  border: 1px solid var(--ph-accent-pink) !important;
+  border-radius: 8px !important;
+  color: #ffd2e1 !important;
+  padding: 16px !important;
+  margin-bottom: 24px !important;
+}
+
+.pf-c-login__footer {
+  text-align: center;
+  margin-top: 24px;
+  padding-top: 24px;
+  border-top: 1px solid var(--ph-border);
+}
+
+.pf-c-login__footer a {
+  color: var(--ph-accent-pink) !important;
+  font-weight: 500;
+}
+
+.pf-c-login__footer a:hover {
+  color: var(--ph-accent-green) !important;
+}
+
+.pf-c-login__html {
+  background-color: var(--ph-primary) !important;
+  background: radial-gradient(ellipse at top, var(--ph-secondary) 0%, var(--ph-primary) 100%) !important;
+  min-height: 100vh;
+}
+
+.pf-c-login__main {
+  max-width: 480px;
+}
+
+.pf-c-login__header-title {
+  font-family: var(--ph-font-family) !important;
+  color: var(--ph-text) !important;
+  font-size: 28px !important;
+  font-weight: 700 !important;
+  text-align: center !important;
+  margin-bottom: 8px !important;
+}
+
+.pf-c-login__header-subtitle {
+  color: var(--ph-text-muted) !important;
+  text-align: center !important;
+  margin-bottom: 32px !important;
+}
+
+.pf-c-checkbox__label {
+  color: var(--ph-text-muted) !important;
+  font-size: 14px;
+}
+
+.pf-c-alert {
+  padding: 16px;
+  border-radius: 8px;
+  margin-bottom: 24px;
+}
+
+.pf-c-alert--error {
+  background-color: rgba(255, 46, 99, 0.1);
+  border: 1px solid var(--ph-accent-pink);
+  color: #ffd2e1;
+}
+
+.pf-c-alert--info {
+  background-color: rgba(86, 242, 124, 0.1);
+  border: 1px solid var(--ph-accent-green);
+  color: #d4ffdb;
+}
+
+#kc-header {
+  color: var(--ph-text) !important;
+}
+
+.kc-logo-text span {
+  font-family: var(--ph-font-family) !important;
+  font-weight: 700 !important;
+}
+
+.pf-l-login__divider {
+  color: var(--ph-text-muted);
+  text-align: center;
+  margin: 24px 0;
+}
+
+.pf-l-login__divider::before,
+.pf-l-login__divider::after {
+  content: '';
+  display: inline-block;
+  width: 30%;
+  height: 1px;
+  background-color: var(--ph-border);
+  vertical-align: middle;
+}
+
+/* Additional PatternFly Component Overrides */
+.pf-c-button {
+  font-family: var(--ph-font-family) !important;
+}
+
+.pf-c-form {
+  font-family: var(--ph-font-family) !important;
+}
+
+.pf-c-text-input {
+  font-family: var(--ph-font-family) !important;
+}
+
+/* Login page specific enhancements */
+#kc-content {
+  animation: fadeIn 0.3s ease-in-out;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Focus states for accessibility */
+.pf-c-form-field__input:focus,
+.pf-c-button--primary:focus,
+.pf-c-login__links a:focus {
+  outline: 2px solid var(--ph-accent-pink);
+  outline-offset: 2px;
+}
+
+/* Error and success states */
+.pf-c-alert--error {
+  animation: slideIn 0.3s ease-out;
+}
+
+@keyframes slideIn {
+  from {
+    transform: translateX(-100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+/* Social provider buttons styling */
+#kc-social-providers {
+  margin: 20px 0;
+}
+
+#kc-social-providers li {
+  margin-bottom: 10px;
+}
+
+#kc-social-providers a {
+  width: 100%;
+  padding: 12px;
+  border: 1px solid var(--ph-border);
+  border-radius: 8px;
+  color: var(--ph-text);
+  text-align: center;
+  text-decoration: none;
+  transition: all 0.2s ease;
+}
+
+#kc-social-providers a:hover {
+  border-color: var(--ph-accent-pink);
+  background-color: rgba(255, 46, 99, 0.1);
+}
+
+/* Remember me checkbox styling */
+#kc-form-required-label {
+  color: var(--ph-text-muted) !important;
+  font-size: 13px !important;
+}
+
+/* Link styling */
+#kc-link {
+  color: var(--ph-accent-pink) !important;
+}
+
+#kc-link:hover {
+  color: var(--ph-accent-green) !important;
+}

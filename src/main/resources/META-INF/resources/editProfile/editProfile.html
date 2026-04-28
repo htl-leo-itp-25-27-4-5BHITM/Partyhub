@@ -7,18 +7,15 @@
     <link rel="stylesheet" href="../global.css">
     <link rel="stylesheet" href="../index.css">
     <link rel="stylesheet" href="./editProfile.css">
-    <script src="../user-utils.js" defer></script>
-    <script src="../auth-service.js" defer></script>
+    <script src="../auth.js" defer></script>
     <script src="../route-guard.js" defer></script>
     <script src="../nav.js" defer></script>
     <script src="./editProfile.js" defer></script>
     <script>
-        // Require authentication before page loads
-        if (document.readyState === 'loading') {
-            document.addEventListener('DOMContentLoaded', window.requireAuth);
-        } else {
-            window.requireAuth();
-        }
+// Authentication handled centrally via auth.js — Keycloak redirect flow replaces local requireAuth
+         document.addEventListener('DOMContentLoaded', function() {
+           if (!window.auth || !window.auth.isLoggedIn()) window.location.href = '/index.html';
+         });
     </script>
 </head>
 <body class="bg-light">

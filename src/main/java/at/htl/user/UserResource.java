@@ -14,10 +14,12 @@ import at.htl.follow.FollowRepository;
 import at.htl.media.MediaRepository;
 import at.htl.profile_picture.ProfilePicture;
 import jakarta.annotation.security.PermitAll;
+import jakarta.annotation.security.RolesAllowed;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import jakarta.persistence.EntityManager;
 import jakarta.transaction.Transactional;
+import org.eclipse.microprofile.jwt.JsonWebToken;
 import jakarta.ws.rs.Consumes;
 import jakarta.ws.rs.DELETE;
 import jakarta.ws.rs.FormParam;
@@ -45,6 +47,8 @@ public class UserResource {
     EntityManager em;
     @Inject
     Logger logger;
+    @Inject
+    JsonWebToken jwt;
 
     private static final String UPLOAD_DIR = "src/main/resources/uploads/profiles/";
     private static final String DEFAULT_IMAGE = "/META-INF/resources/images/default_profile-picture.svg";
@@ -108,18 +112,23 @@ public class UserResource {
     }
 
     @GET
-    @PermitAll
+    @RolesAllowed("user")
     @Path("/me")
-    public Response getCurrentUser(@QueryParam("userId") Long userId) {
-        if (userId == null) {
-            return Response.status(Response.Status.BAD_REQUEST)
-                .entity("{\"error\": \"userId parameter required\"}").build();
+    public Response getCurrentUser() {
+        String email = jwt.getClaim("email");
+        if (email == null) {
+            email = jwt.getSubject();
         }
-        var user = userRepository.findById(userId);
-        if (user.isEmpty()) {
-            return Response.status(Response.Status.NOT_FOUND).build();
+        if (email == null) {
+            return Response.status(Response.Status.UNAUTHORIZED)
+                .entity("{\"error\": \"No email claim in token\"}").build();
         }
-        return Response.ok(user.get()).build();
+        User user = userRepository.findOrCreateFromKeycloak(
+            email,
+            jwt.getClaim("preferred_username"),
+            jwt.getClaim("name")
+        );
+        return Response.ok(user).build();
     }
 
     @GET

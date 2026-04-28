@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Processing Login - PartyHub</title>
+    <style>
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+        .message {
+            text-align: center;
+            color: white;
+        }
+        .spinner {
+            border: 3px solid rgba(255,255,255,0.3);
+            border-top: 3px solid white;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        .error {
+            color: #ff6b6b;
+            margin-top: 20px;
+            padding: 10px;
+            background: rgba(0,0,0,0.2);
+            border-radius: 4px;
+        }
+    </style>
+</head>
+<body>
+    <div class="message">
+        <div class="spinner"></div>
+        <p>Processing your login...</p>
+        <div id="debugInfo" style="display:none; margin-top:20px; font-size:12px; opacity:0.8;"></div>
+    </div>
+
+    <!-- auth.js provides centralized auth (Keycloak redirect) -->
+    <script src="../../auth.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', async function() {
+            const debugEl = document.getElementById('debugInfo');
+            const params = new URLSearchParams(window.location.search);
+            const code = params.get('code');
+            const error = params.get('error');
+            const errorDescription = params.get('error_description');
+            const state = params.get('state');
+            
+            debugEl.style.display = 'block';
+            debugEl.textContent = 'Checking callback params...';
+            
+            if (error) {
+                debugEl.textContent = 'OAuth error: ' + error + ' - ' + (errorDescription || 'no description');
+                console.error('OAuth error:', error, errorDescription);
+                return;
+            }
+            
+            if (!code) {
+                debugEl.textContent = 'No authorization code in URL. Full URL: ' + window.location.href;
+                console.error('No authorization code received. URL:', window.location.href);
+                window.location.href = '/';
+                return;
+            }
+            
+            debugEl.textContent = 'Code received, exchanging for tokens...';
+            console.log('Starting token exchange with code:', code?.substring(0, 20) + '...');
+            
+            const success = await window.auth.handleCallback();
+            
+            if (success) {
+                debugEl.textContent = 'Success! Redirecting to home...';
+                window.location.href = '/index.html';
+            } else {
+                debugEl.textContent = 'Token exchange failed. Check console for details.';
+                console.error('handleCallback returned false');
+                setTimeout(() => {
+                    window.location.href = '/';
+                }, 2000);
+            }
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,270 @@
+{
+  "id": "partyhub",
+  "realm": "partyhub",
+  "enabled": true,
+  "displayName": "PartyHub",
+  "displayNameHtml": "<div class=\"kc-logo-text\"><span>PartyHub</span></div>",
+  "accessTokenLifespan": 300,
+  "accessCodeLifespan": 60,
+  "ssoSessionIdleTimeout": 1800,
+  "ssoSessionMaxLifespan": 36000,
+  "loginTheme": "partyhub",
+  "clients": [
+    {
+      "clientId": "partyhub-backend",
+      "name": "PartyHub Backend API",
+      "enabled": true,
+      "protocol": "openid-connect",
+      "publicClient": false,
+      "bearerOnly": false,
+      "standardFlowEnabled": true,
+      "implicitFlowEnabled": false,
+      "directAccessGrantsEnabled": true,
+      "serviceAccountsEnabled": true,
+      "authorizationServicesEnabled": false,
+      "redirectUris": [
+        "http://localhost:8080/*"
+      ],
+      "webOrigins": [
+        "http://localhost:8080"
+      ],
+      "attributes": {
+        "access.token.lifespan": "300",
+        "client.secret.creation.time": "1714067200",
+        "pkce.code.challenge.method": "S256"
+      },
+      "secret": "secret",
+      "defaultClientScopes": [
+        "profile",
+        "email",
+        "roles"
+      ],
+      "optionalClientScopes": [
+        "offline_access"
+      ]
+    }
+  ],
+  "roles": {
+    "realm": [
+      {
+        "name": "admin",
+        "description": "PartyHub Administrator",
+        "composite": false,
+        "clientRole": false
+      },
+      {
+        "name": "user",
+        "description": "PartyHub User",
+        "composite": false,
+        "clientRole": false
+      }
+    ],
+    "client": {
+      "partyhub-backend": [
+        {
+          "name": "admin",
+          "description": "PartyHub Administrator"
+        },
+        {
+          "name": "user",
+          "description": "PartyHub User"
+        }
+      ]
+    }
+  },
+  "users": [
+    {
+      "username": "admin",
+      "enabled": true,
+      "emailVerified": true,
+      "email": "admin@partyhub.local",
+      "firstName": "Admin",
+      "lastName": "User",
+      "credentials": [
+        {
+          "type": "password",
+          "value": "password",
+          "temporary": false
+        }
+      ],
+      "realmRoles": ["admin"]
+    },
+    {
+      "username": "anna_huber",
+      "enabled": true,
+      "emailVerified": true,
+      "email": "anna.huber@linz.at",
+      "firstName": "Anna",
+      "lastName": "Huber",
+      "credentials": [
+        {
+          "type": "password",
+          "value": "password",
+          "temporary": false
+        }
+      ],
+      "realmRoles": ["user"]
+    },
+    {
+      "username": "michael_wagner",
+      "enabled": true,
+      "emailVerified": true,
+      "email": "michael.wagner@linz.at",
+      "firstName": "Michael",
+      "lastName": "Wagner",
+      "credentials": [
+        {
+          "type": "password",
+          "value": "password",
+          "temporary": false
+        }
+      ],
+      "realmRoles": ["user"]
+    },
+    {
+      "username": "katrin_bauer",
+      "enabled": true,
+      "emailVerified": true,
+      "email": "katrin.bauer@linz.at",
+      "firstName": "Katrin",
+      "lastName": "Bauer",
+      "credentials": [
+        {
+          "type": "password",
+          "value": "password",
+          "temporary": false
+        }
+      ],
+      "realmRoles": ["user"]
+    },
+    {
+      "username": "thomas_schneider",
+      "enabled": true,
+      "emailVerified": true,
+      "email": "thomas.schneider@linz.at",
+      "firstName": "Thomas",
+      "lastName": "Schneider",
+      "credentials": [
+        {
+          "type": "password",
+          "value": "password",
+          "temporary": false
+        }
+      ],
+      "realmRoles": ["user"]
+    },
+    {
+      "username": "sabine_weber",
+      "enabled": true,
+      "emailVerified": true,
+      "email": "sabine.weber@linz.at",
+      "firstName": "Sabine",
+      "lastName": "Weber",
+      "credentials": [
+        {
+          "type": "password",
+          "value": "password",
+          "temporary": false
+        }
+      ],
+      "realmRoles": ["user"]
+    },
+    {
+      "username": "lukas_gruber",
+      "enabled": true,
+      "emailVerified": true,
+      "email": "lukas.gruber@linz.at",
+      "firstName": "Lukas",
+      "lastName": "Gruber",
+      "credentials": [
+        {
+          "type": "password",
+          "value": "password",
+          "temporary": false
+        }
+      ],
+      "realmRoles": ["user"]
+    },
+    {
+      "username": "mia_steiner",
+      "enabled": true,
+      "emailVerified": true,
+      "email": "mia.steiner@linz.at",
+      "firstName": "Mia",
+      "lastName": "Steiner",
+      "credentials": [
+        {
+          "type": "password",
+          "value": "password",
+          "temporary": false
+        }
+      ],
+      "realmRoles": ["user"]
+    },
+    {
+      "username": "david_koenig",
+      "enabled": true,
+      "emailVerified": true,
+      "email": "david.koenig@linz.at",
+      "firstName": "David",
+      "lastName": "Koenig",
+      "credentials": [
+        {
+          "type": "password",
+          "value": "password",
+          "temporary": false
+        }
+      ],
+      "realmRoles": ["user"]
+    },
+    {
+      "username": "nina_fischer",
+      "enabled": true,
+      "emailVerified": true,
+      "email": "nina.fischer@linz.at",
+      "firstName": "Nina",
+      "lastName": "Fischer",
+      "credentials": [
+        {
+          "type": "password",
+          "value": "password",
+          "temporary": false
+        }
+      ],
+      "realmRoles": ["user"]
+    },
+    {
+      "username": "elias_berger",
+      "enabled": true,
+      "emailVerified": true,
+      "email": "elias.berger@linz.at",
+      "firstName": "Elias",
+      "lastName": "Berger",
+      "credentials": [
+        {
+          "type": "password",
+          "value": "password",
+          "temporary": false
+        }
+      ],
+      "realmRoles": ["user"]
+    }
+  ],
+  "scopeMappings": [
+    {
+      "clientScope": "email",
+      "roles": ["user"]
+    }
+  ],
+  "defaultDefaultClientScopes": [
+    "role_list",
+    "profile",
+    "email",
+    "roles"
+  ],
+  "defaultOptionalClientScopes": [
+    "offline_access",
+    "address",
+    "phone"
+  ]
+}

@@ -8,10 +8,53 @@
     <link rel="stylesheet" href="../global.css" />
     <link rel="stylesheet" href="./profile.css" />
     <link rel="stylesheet" href="../index.css" />
+    <style>
+      .auth-section { text-align: center; padding: 20px; }
+      .login-btn {
+        background: linear-gradient(135deg, #8B5CF6 0%, #6366F1 100%);
+        color: white;
+        border: none;
+        border-radius: 8px;
+        padding: 14px 28px;
+        font-size: 16px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: transform 0.2s, box-shadow 0.2s;
+      }
+      .login-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(139, 92, 246, 0.4);
+      }
+      .user-info-section {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 20px;
+        background: white;
+        border-radius: 12px;
+        margin-bottom: 20px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+      }
+      .user-info { display: flex; flex-direction: column; }
+      .user-display-name { font-size: 18px; font-weight: 600; color: #333; }
+      .user-email { font-size: 14px; color: #666; }
+      .logout-btn {
+        background: #f3f4f6;
+        color: #374151;
+        border: none;
+        border-radius: 8px;
+        padding: 10px 20px;
+        font-size: 14px;
+        font-weight: 500;
+        cursor: pointer;
+      }
+      .logout-btn:hover { background: #e5e7eb; }
+      .hidden { display: none !important; }
+    </style>
 
-    <script src="../user-utils.js" defer></script>
+    <!-- auth.js provides centralized auth (Keycloak redirect); legacy backend-functions.js replaced -->
+    <script src="../auth.js" defer></script>
     <script src="../nav.js" defer></script>
-    <script src="../backend-functions.js" defer></script>
     <script src="./profile.js" defer></script>
   </head>
 
@@ -62,6 +105,17 @@
         </section>
 
         <section id="profileContainer">
+          <div id="authSection" class="auth-section hidden">
+            <button id="profileLoginBtn" class="login-btn">Login with Keycloak</button>
+          </div>
+          <div id="userInfoSection" class="user-info-section hidden">
+            <div class="user-info">
+              <span id="userDisplayName" class="user-display-name"></span>
+              <span id="userEmail" class="user-email"></span>
+            </div>
+            <button id="profileLogoutBtn" class="logout-btn">Logout</button>
+          </div>
+
           <div id="profilePicture">
             <img
               id="profileImg"
