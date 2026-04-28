@@ -1,6 +1,7 @@
 package at.htl.follow;
 
 import jakarta.persistence.*;
+import java.util.Objects;
 
 @Entity
 @TableGenerator(name="follow")
@@ -41,5 +42,22 @@ public class Follow {
 
     public void setStatus(FollowStatus status) {
         this.status = status;
+    }
+
+    @Override
+    public boolean equals(Object other) {
+        if (this == other) {
+            return true;
+        }
+        if (!(other instanceof Follow follow)) {
+            return false;
+        }
+        return Objects.equals(user1_id, follow.user1_id)
+                && Objects.equals(user2_id, follow.user2_id);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(user1_id, user2_id);
     }
 }
