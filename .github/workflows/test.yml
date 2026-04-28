@@ -14,9 +14,6 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Docker Compose Action
-        uses: hoverkraft-tech/compose-action@v2.5.0
-
       - name: Setup Java
         uses: actions/setup-java@v4
         with:

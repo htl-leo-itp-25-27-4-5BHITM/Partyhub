@@ -111,3 +111,4 @@ INSERT INTO party_user (party_id, user_id) VALUES
 SELECT setval('users_id_seq', (SELECT MAX(id) FROM users));
 SELECT setval('location_id_seq', (SELECT MAX(id) FROM location));
 SELECT setval('party_id_seq', (SELECT MAX(id) FROM party));
+SELECT setval('profile_picture_id_seq', (SELECT MAX(id) FROM profile_picture));
