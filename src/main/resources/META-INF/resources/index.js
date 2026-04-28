@@ -26,13 +26,25 @@ document.addEventListener("DOMContentLoaded", async () => {
   const currentUserLayer = L.layerGroup().addTo(map);
   const USE_FAKE_LOCATION = true;
 
+  function currentUserRequest() {
+    const userId = window.getCurrentUserId?.() ?? window.authService?.getCurrentUserId?.() ?? null;
+    return {
+      userId,
+      headers: userId ? { "X-User-Id": String(userId) } : {}
+    };
+  }
+
   // Load parties for dropdown
   async function loadPartiesForDropdown() {
     const select = document.getElementById("partySelect");
     if (!select) return;
     
     try {
-      const response = await fetch("/api/parties");
+      const { userId, headers } = currentUserRequest();
+      const url = userId
+        ? `/api/parties?user=${encodeURIComponent(userId)}`
+        : "/api/parties";
+      const response = await fetch(url, { headers });
       if (!response.ok) throw new Error("Failed to fetch parties");
       const parties = await response.json();
       
@@ -482,7 +494,13 @@ document.addEventListener("DOMContentLoaded", async () => {
 
 async function getAllParties() {
   try {
-    const response = await fetch("/api/parties");
+    const userId = window.getCurrentUserId?.() ?? window.authService?.getCurrentUserId?.() ?? null;
+    const url = userId
+      ? `/api/parties?user=${encodeURIComponent(userId)}`
+      : "/api/parties";
+    const response = await fetch(url, {
+      headers: userId ? { "X-User-Id": String(userId) } : {}
+    });
     if (!response.ok) throw new Error("Network response was not ok");
     const data = await response.json();
     return data;

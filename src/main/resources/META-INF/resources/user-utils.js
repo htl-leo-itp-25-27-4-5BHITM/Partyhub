@@ -1,18 +1,20 @@
 (function() {
   const STORAGE_KEY = "loggedInUserId";
+  const AUTH_STORAGE_KEY = "partyhub_user_id";
+
+  function readStoredId(storage, key) {
+    const value = storage.getItem(key);
+    return value ? Number(value) : null;
+  }
+
   window.getCurrentUserId = function() {
     try {
-      const s = sessionStorage.getItem(STORAGE_KEY);
-      if (s) {
-        console.log("Current logged in user:", Number(s));
-        return Number(s);
-      }
-      const l = localStorage.getItem(STORAGE_KEY);
-      if (l) {
-        console.log("Current logged in user:", Number(l));
-        return Number(l);
-      }
-      console.log("No user logged in");
+      return (
+        readStoredId(sessionStorage, STORAGE_KEY) ??
+        readStoredId(localStorage, STORAGE_KEY) ??
+        readStoredId(localStorage, AUTH_STORAGE_KEY) ??
+        null
+      );
     } catch (e) {
       console.warn("getCurrentUserId: Error reading storage", e);
     }
@@ -21,12 +23,12 @@
   window.setCurrentUserId = function(id) {
     sessionStorage.setItem(STORAGE_KEY, String(id));
     localStorage.setItem(STORAGE_KEY, String(id));
-    console.log("User logged in:", id);
+    localStorage.setItem(AUTH_STORAGE_KEY, String(id));
   };
   window.clearCurrentUserId = function() {
     sessionStorage.removeItem(STORAGE_KEY);
     localStorage.removeItem(STORAGE_KEY);
-    console.log("User logged out");
+    localStorage.removeItem(AUTH_STORAGE_KEY);
   };
 
   window.isUserLoggedIn = function() {

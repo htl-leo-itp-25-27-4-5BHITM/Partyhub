@@ -1,5 +1,9 @@
 function getUserIdFromStorage() {
-  return window.getCurrentUserId?.() ?? null;
+  return (
+    window.getCurrentUserId?.() ??
+    window.authService?.getCurrentUserId?.() ??
+    null
+  );
 }
 
 // Party-functions
@@ -38,7 +42,13 @@ async function createParty(payload) {
 
 async function getAllParties() {
   try {
-    const response = await fetch("/api/parties");
+    const userId = getUserIdFromStorage();
+    const url = userId
+      ? `/api/parties?user=${encodeURIComponent(userId)}`
+      : "/api/parties";
+    const response = await fetch(url, {
+      headers: userId ? { "X-User-Id": String(userId) } : {}
+    });
     if (!response.ok) throw new Error("Network response was not ok");
     return await response.json();
   } catch (error) {
@@ -362,7 +372,7 @@ async function getFollowings(userId) {
 
 async function isFollowing(userA, userB) {
   try {
-    const res = await fetch(`/api/users/${encodeURIComponent(userA)}/following/${encodeURIComponent(userB)}`);
+    const res = await fetch(`/api/users/${encodeURIComponent(userA)}/followers/${encodeURIComponent(userB)}/status`);
     if (!res.ok) return false;
 
     const data = await res.json();
@@ -389,7 +399,7 @@ async function followUser(targetUserId) {
       return { ok: true, status: 200, alreadyFollowing: true };
     }
 
-    const res = await fetch(`/api/users/${encodeURIComponent(userId)}/follow/${encodeURIComponent(targetUserId)}`, {
+    const res = await fetch(`/api/users/${encodeURIComponent(userId)}/follow?targetUserId=${encodeURIComponent(targetUserId)}`, {
       method: "POST"
     });
 
@@ -418,7 +428,7 @@ async function unfollowUser(targetUserId) {
       return { ok: true, status: 200, alreadyNotFollowing: true };
     }
 
-    const res = await fetch(`/api/users/${encodeURIComponent(userId)}/follow/${encodeURIComponent(targetUserId)}`, {
+    const res = await fetch(`/api/users/${encodeURIComponent(targetUserId)}/followers/${encodeURIComponent(userId)}`, {
       method: "DELETE"
     });
 

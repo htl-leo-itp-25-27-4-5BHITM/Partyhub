@@ -54,6 +54,7 @@ public class PartyResource {
             @QueryParam("date_from") String dateFrom,
             @QueryParam("date_to") String dateTo,
             @QueryParam("sort") String sort,
+            @QueryParam("user") Long userId,
             @HeaderParam("X-User-Id") Long headerUserId) {
         
         boolean hasFilters = (q != null && !q.isBlank()) ||
@@ -81,7 +82,8 @@ public class PartyResource {
             return partyRepository.sortParty(sort);
         }
         
-        return Response.ok().entity(partyRepository.getPartiesByUser(headerUserId)).build();
+        Long actualUserId = userId != null ? userId : headerUserId;
+        return Response.ok().entity(partyRepository.getPartiesByUser(actualUserId)).build();
     }
 
     @POST
@@ -168,8 +170,10 @@ public class PartyResource {
     @Produces(MediaType.APPLICATION_JSON)
     @Path("/{id}/join")
     public Response joinParty(@PathParam("id") Long partyId,
+                              @QueryParam("user") Long userId,
                               @HeaderParam("X-User-Id") Long headerUserId) {
-        return partyRepository.attendParty(partyId, headerUserId);
+        Long actualUserId = userId != null ? userId : headerUserId;
+        return partyRepository.attendParty(partyId, actualUserId);
     }
 
     @DELETE
@@ -177,16 +181,20 @@ public class PartyResource {
     @Transactional
     @Path("/{id}/join")
     public Response leaveParty(@PathParam("id") Long partyId,
+                                @QueryParam("user") Long userId,
                                 @HeaderParam("X-User-Id") Long headerUserId) {
-        return partyRepository.leaveParty(partyId, headerUserId);
+        Long actualUserId = userId != null ? userId : headerUserId;
+        return partyRepository.leaveParty(partyId, actualUserId);
     }
     
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     @Path("/{id}/join/status")
     public Response joinStatus(@PathParam("id") Long partyId,
+                               @QueryParam("user") Long userId,
                                @HeaderParam("X-User-Id") Long headerUserId) {
-        return partyRepository.attendStatus(partyId, headerUserId);
+        Long actualUserId = userId != null ? userId : headerUserId;
+        return partyRepository.attendStatus(partyId, actualUserId);
     }
 
     @POST

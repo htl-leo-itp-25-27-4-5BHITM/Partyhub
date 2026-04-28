@@ -1,8 +1,6 @@
 /* addParty.js */
 
 document.addEventListener("DOMContentLoaded", () => {
-  alert("NEUE addParty.js WIRD GELADEN");
-console.log("NEUE addParty.js WIRD GELADEN");
   const form = document.querySelector(".party-form");
   const continueBtn = document.getElementById("continueBtn");
   const stepTitle = document.getElementById("stepTitle");
@@ -312,43 +310,39 @@ console.log("NEUE addParty.js WIRD GELADEN");
 
     try {
       const currentUserId = getCurrentUserIdSafe();
-
       let users = [];
 
       if (currentUserId) {
-        try {
-          const followersResponse = await fetch(`/api/users/${currentUserId}/followers`);
+        const [followersRaw, followingRaw] = await Promise.all([
+          fetchUsers(`/api/users/${encodeURIComponent(currentUserId)}/followers`),
+          fetchUsers(`/api/users/${encodeURIComponent(currentUserId)}/following`),
+        ]);
 
-          if (followersResponse.ok) {
-            users = await followersResponse.json();
-          }
-        } catch (error) {
-          console.warn("Follower konnten nicht geladen werden, lade alle User.", error);
-        }
+        users = getMutualUsers(
+          normalizeUsers(followersRaw),
+          normalizeUsers(followingRaw),
+          currentUserId
+        );
+      } else {
+        users = normalizeUsers(await fetchUsers("/api/users"));
       }
 
-      if (!users || users.length === 0) {
-        const response = await fetch("/api/users/all");
-
-        if (!response.ok) {
-          throw new Error("User konnten nicht geladen werden.");
-        }
-
-        users = await response.json();
-      }
-
-      users = normalizeUsers(users);
+      users = uniqueUsersById(users);
 
       if (!users || users.length === 0) {
-        userList.innerHTML = "<p>Keine User gefunden.</p>";
+        userList.innerHTML = currentUserId
+          ? "<p>Keine gegenseitigen Follower gefunden.</p>"
+          : "<p>Keine User gefunden.</p>";
         return;
       }
 
       users.forEach((user) => {
-        const id = user.id ?? user.userId;
+        const id = getUserId(user);
         const username =
+          user.distinctName ||
           user.username ||
           user.handle ||
+          user.displayName ||
           user.name ||
           user.email ||
           `User ${id}`;
@@ -361,7 +355,7 @@ console.log("NEUE addParty.js WIRD GELADEN");
         item.type = "button";
         item.className = "user-card";
         item.dataset.userId = id;
-        item.textContent = username;
+        item.textContent = username.startsWith("@") ? username : `@${username}`;
 
         if (selectedUsers.includes(String(id)) || selectedUsers.includes(Number(id))) {
           item.classList.add("selected");
@@ -377,6 +371,53 @@ console.log("NEUE addParty.js WIRD GELADEN");
       console.error("Fehler beim Laden der User:", error);
       userList.innerHTML = "<p>User konnten nicht geladen werden.</p>";
     }
+  }
+
+  async function fetchUsers(url) {
+    const response = await fetch(url);
+
+    if (!response.ok) {
+      throw new Error(`User konnten nicht geladen werden: ${response.status}`);
+    }
+
+    return response.json();
+  }
+
+  function getUserId(user) {
+    return user?.id ?? user?.userId ?? user?.user_id ?? null;
+  }
+
+  function uniqueUsersById(users) {
+    const seen = new Set();
+
+    return users.filter((user) => {
+      const id = getUserId(user);
+
+      if (id == null || seen.has(String(id))) {
+        return false;
+      }
+
+      seen.add(String(id));
+      return true;
+    });
+  }
+
+  function getMutualUsers(followers, following, currentUserId) {
+    const followingIds = new Set(
+      following
+        .map(getUserId)
+        .filter((id) => id != null)
+        .map(String)
+    );
+
+    return followers.filter((user) => {
+      const id = getUserId(user);
+      return (
+        id != null &&
+        String(id) !== String(currentUserId) &&
+        followingIds.has(String(id))
+      );
+    });
   }
 
   function normalizeUsers(users) {

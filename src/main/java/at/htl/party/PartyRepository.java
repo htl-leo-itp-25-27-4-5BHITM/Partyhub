@@ -3,8 +3,10 @@ package at.htl.party;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import at.htl.location.Location;
 import at.htl.location.LocationRepository;
@@ -91,21 +93,14 @@ public class PartyRepository {
         Party party = partyCreateDtoToParty(partyCreateDto);
         party.setHost_user(host);
 
-        String visibility = partyCreateDto.visibility() != null ? partyCreateDto.visibility() : "PUBLIC";
+        String visibility = normalizeVisibility(partyCreateDto.visibility());
         party.setVisibility(visibility);
 
         entityManager.persist(party);
 
         if ("PRIVATE".equalsIgnoreCase(visibility) && partyCreateDto.selectedUsers() != null && !partyCreateDto.selectedUsers().isEmpty()) {
-            for (String selectedHandle : partyCreateDto.selectedUsers()) {
-                User recipient = entityManager.createQuery(
-                        "SELECT u FROM User u WHERE u.distinctName = :distinctName",
-                        User.class)
-                        .setParameter("distinctName", selectedHandle)
-                        .getResultList()
-                        .stream()
-                        .findFirst()
-                        .orElse(null);
+            for (String selectedUser : partyCreateDto.selectedUsers()) {
+                User recipient = findSelectedUser(selectedUser);
 
                 if (recipient != null && !recipient.getId().equals(userId)) {
                     Invitation invitation = new Invitation();
@@ -138,77 +133,78 @@ public class PartyRepository {
     }
 
     public Response updateParty(Long id, PartyCreateDto partyCreateDto, Long userId) {
-    if (userId == null) {
-        return Response.status(Response.Status.BAD_REQUEST)
-                .entity("{\"error\": \"User ID required\"}")
-                .build();
-    }
+        if (userId == null) {
+            return Response.status(Response.Status.BAD_REQUEST)
+                    .entity("{\"error\": \"User ID required\"}")
+                    .build();
+        }
 
-    Party party = entityManager.find(Party.class, id);
-    if (party == null) {
-        return Response.status(Response.Status.NOT_FOUND).build();
-    }
+        Party party = entityManager.find(Party.class, id);
+        if (party == null) {
+            return Response.status(Response.Status.NOT_FOUND).build();
+        }
 
-    User host = entityManager.find(User.class, userId);
-    if (host == null) {
-        return Response.status(Response.Status.NOT_FOUND)
-                .entity("{\"error\": \"User not found\"}")
-                .build();
-    }
+        User host = entityManager.find(User.class, userId);
+        if (host == null) {
+            return Response.status(Response.Status.NOT_FOUND)
+                    .entity("{\"error\": \"User not found\"}")
+                    .build();
+        }
 
-    party.setTitle(partyCreateDto.title());
-    party.setDescription(partyCreateDto.description());
-    party.setFee(partyCreateDto.fee());
-    party.setTime_start(partyCreateDto.time_start());
-    party.setTime_end(partyCreateDto.time_end());
-    party.setWebsite(partyCreateDto.website());
-    party.setMax_age(partyCreateDto.max_age());
-    party.setMin_age(partyCreateDto.min_age());
-    party.setMax_people(partyCreateDto.max_people());
-    party.setVisibility(partyCreateDto.visibility() != null ? partyCreateDto.visibility() : "PUBLIC");
-    party.setHost_user(host);
+        String oldDescription = party.getDescription();
 
-    Location location = locationRepository.findByLatitudeAndLongitude(
-            partyCreateDto.latitude(), partyCreateDto.longitude());
-    if (location != null) {
-        party.setLocation(location);
-    } else {
-        Location newLocation = new Location();
-        newLocation.setLatitude(partyCreateDto.latitude());
-        newLocation.setLongitude(partyCreateDto.longitude());
-        newLocation.setAddress(partyCreateDto.location_address());
-        entityManager.persist(newLocation);
-        party.setLocation(newLocation);
-    }
+        party.setTitle(partyCreateDto.title());
+        party.setDescription(partyCreateDto.description());
+        party.setFee(partyCreateDto.fee());
+        party.setTime_start(partyCreateDto.time_start());
+        party.setTime_end(partyCreateDto.time_end());
+        party.setWebsite(partyCreateDto.website());
+        party.setMax_age(partyCreateDto.max_age());
+        party.setMin_age(partyCreateDto.min_age());
+        party.setMax_people(partyCreateDto.max_people());
+        party.setVisibility(normalizeVisibility(partyCreateDto.visibility()));
+        party.setHost_user(host);
 
-    party.setTheme(partyCreateDto.theme());
-    String oldDescription = party.getDescription();
-String newDescription = partyCreateDto.description();
+        Location location = locationRepository.findByLatitudeAndLongitude(
+                partyCreateDto.latitude(), partyCreateDto.longitude());
+        if (location != null) {
+            party.setLocation(location);
+        } else {
+            Location newLocation = new Location();
+            newLocation.setLatitude(partyCreateDto.latitude());
+            newLocation.setLongitude(partyCreateDto.longitude());
+            newLocation.setAddress(partyCreateDto.location_address());
+            entityManager.persist(newLocation);
+            party.setLocation(newLocation);
+        }
 
-if (newDescription != null && !newDescription.equals(oldDescription)) {
-    String message = "\"" + party.getTitle() + "\" wurde aktualisiert: " + newDescription;
+        party.setTheme(partyCreateDto.theme());
+        String newDescription = partyCreateDto.description();
 
-    if (party.getUsers() != null) {
-        for (User attendee : party.getUsers()) {
-            if (!attendee.getId().equals(userId)) {
-                Notification notification = new Notification(attendee, host, party, message);
-                notificationRepository.createNotification(notification);
+        if (newDescription != null && !newDescription.equals(oldDescription)) {
+            String message = "\"" + party.getTitle() + "\" wurde aktualisiert: " + newDescription;
+
+            if (party.getUsers() != null) {
+                for (User attendee : party.getUsers()) {
+                    if (!attendee.getId().equals(userId)) {
+                        Notification notification = new Notification(attendee, host, party, message);
+                        notificationRepository.createNotification(notification);
+                    }
+                }
+            }
+
+            if (party.getInvitations() != null) {
+                for (Invitation invitation : party.getInvitations()) {
+                    User recipient = invitation.getRecipient();
+                    if (!recipient.getId().equals(userId)) {
+                        Notification notification = new Notification(recipient, host, party, message);
+                        notificationRepository.createNotification(notification);
+                    }
+                }
             }
         }
-    }
 
-    if (party.getInvitations() != null) {
-        for (Invitation invitation : party.getInvitations()) {
-            User recipient = invitation.getRecipient();
-            if (!recipient.getId().equals(userId)) {
-                Notification notification = new Notification(recipient, host, party, message);
-                notificationRepository.createNotification(notification);
-            }
-        }
-    }
-}
-
-    return Response.ok(party).build();
+        return Response.ok(party).build();
     }
 
     public List<Party> findByTitleOrDescription(String q) {
@@ -258,7 +254,7 @@ if (newDescription != null && !newDescription.equals(oldDescription)) {
             return null;
         }
 
-        if ("PUBLIC".equals(party.getVisibility())) {
+        if ("PUBLIC".equalsIgnoreCase(party.getVisibility())) {
             return party;
         }
 
@@ -302,8 +298,10 @@ if (newDescription != null && !newDescription.equals(oldDescription)) {
                     .build();
         }
 
-        if (!party.getUsers().contains(user)) {
-            party.getUsers().add(user);
+        Set<User> attendees = ensureUsers(party);
+
+        if (!attendees.contains(user)) {
+            attendees.add(user);
         }
 
         return Response.noContent().build();
@@ -330,8 +328,10 @@ if (newDescription != null && !newDescription.equals(oldDescription)) {
                     .build();
         }
 
-        if (party.getUsers().contains(user)) {
-            party.getUsers().remove(user);
+        Set<User> attendees = ensureUsers(party);
+
+        if (attendees.contains(user)) {
+            attendees.remove(user);
             entityManager.merge(party);
             return Response.ok(party).build();
         }
@@ -359,8 +359,9 @@ if (newDescription != null && !newDescription.equals(oldDescription)) {
                     .build();
         }
 
-        boolean attending = party.getUsers() != null && party.getUsers().contains(user);
-        int count = party.getUsers() != null ? party.getUsers().size() : 0;
+        Set<User> attendees = ensureUsers(party);
+        boolean attending = attendees.contains(user);
+        int count = attendees.size();
 
         return Response.ok(Map.of("attending", attending, "count", count)).build();
     }
@@ -401,9 +402,45 @@ if (newDescription != null && !newDescription.equals(oldDescription)) {
         }
 
         party.setTheme(dto.theme());
-        party.setVisibility(dto.visibility() != null ? dto.visibility() : "PUBLIC");
+        party.setVisibility(normalizeVisibility(dto.visibility()));
 
         party.setCreated_at(LocalDateTime.now());
         return party;
+    }
+
+    private String normalizeVisibility(String visibility) {
+        if (visibility == null || visibility.isBlank()) {
+            return "PUBLIC";
+        }
+
+        return visibility.trim().equalsIgnoreCase("private") ? "PRIVATE" : "PUBLIC";
+    }
+
+    private User findSelectedUser(String selectedUser) {
+        if (selectedUser == null || selectedUser.isBlank()) {
+            return null;
+        }
+
+        String value = selectedUser.trim();
+
+        try {
+            return entityManager.find(User.class, Long.parseLong(value));
+        } catch (NumberFormatException ignored) {
+            return entityManager.createQuery(
+                    "SELECT u FROM User u WHERE u.distinctName = :distinctName",
+                    User.class)
+                    .setParameter("distinctName", value)
+                    .getResultStream()
+                    .findFirst()
+                    .orElse(null);
+        }
+    }
+
+    private Set<User> ensureUsers(Party party) {
+        if (party.getUsers() == null) {
+            party.setUsers(new HashSet<>());
+        }
+
+        return party.getUsers();
     }
 }

@@ -32,6 +32,7 @@ public class InvitationRepositoryTest {
     @BeforeEach
     void setUp() {
         entityManager.createQuery("DELETE FROM UserLocation").executeUpdate();
+        entityManager.createQuery("DELETE FROM Notification").executeUpdate();
         entityManager.createQuery("DELETE FROM Follow").executeUpdate();
         entityManager.createQuery("DELETE FROM Invitation").executeUpdate();
         entityManager.createQuery("DELETE FROM Media").executeUpdate();

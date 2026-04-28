@@ -1,7 +1,9 @@
 package at.htl.repository;
 
+import at.htl.invitation.Invitation;
 import at.htl.location.Location;
 import at.htl.party.Party;
+import at.htl.party.PartyCreateDto;
 import at.htl.party.PartyRepository;
 import at.htl.user.User;
 import io.quarkus.test.junit.QuarkusTest;
@@ -14,6 +16,7 @@ import org.junit.jupiter.api.Test;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -30,6 +33,7 @@ public class PartyRepositoryTest {
     @BeforeEach
     void setUp() {
         entityManager.createQuery("DELETE FROM UserLocation").executeUpdate();
+        entityManager.createQuery("DELETE FROM Notification").executeUpdate();
         entityManager.createQuery("DELETE FROM Follow").executeUpdate();
         entityManager.createQuery("DELETE FROM Invitation").executeUpdate();
         entityManager.createQuery("DELETE FROM Media").executeUpdate();
@@ -54,6 +58,26 @@ public class PartyRepositoryTest {
         entityManager.persist(user);
 
         entityManager.flush();
+    }
+
+    private PartyCreateDto createPartyDto(String visibility, List<String> selectedUsers) {
+        return new PartyCreateDto(
+                "Created Party",
+                "Created Description",
+                12.0,
+                LocalDateTime.now().plusDays(1),
+                LocalDateTime.now().plusDays(1).plusHours(2),
+                50,
+                18,
+                35,
+                "https://partyhub.test",
+                48.2082,
+                16.3738,
+                "Test Address",
+                "Test Theme",
+                visibility,
+                selectedUsers
+        );
     }
 
     @Test
@@ -150,6 +174,71 @@ public class PartyRepositoryTest {
         
         Response response = partyRepository.removeParty(999L);
         assertEquals(404, response.getStatus());
+    }
+
+    @Test
+    void testAddParty_normalizesPublicVisibility() {
+        createTestData();
+        User host = entityManager.createQuery("SELECT u FROM User u", User.class).getSingleResult();
+
+        Response response = partyRepository.addParty(createPartyDto("public", List.of()), host.getId());
+
+        assertEquals(201, response.getStatus());
+
+        List<Party> publicParties = partyRepository.getPartiesByUser(null);
+        assertEquals(1, publicParties.size());
+        assertEquals("PUBLIC", publicParties.get(0).getVisibility());
+    }
+
+    @Test
+    void testAddPrivatePartyInvitesSelectedUserById() {
+        createTestData();
+        User host = entityManager.createQuery("SELECT u FROM User u", User.class).getSingleResult();
+
+        User recipient = new User();
+        recipient.setDisplayName("Recipient User");
+        recipient.setDistinctName("recipient");
+        recipient.setEmail("recipient@example.com");
+        entityManager.persist(recipient);
+        entityManager.flush();
+
+        Response response = partyRepository.addParty(
+                createPartyDto("private", List.of(String.valueOf(recipient.getId()))),
+                host.getId()
+        );
+
+        assertEquals(201, response.getStatus());
+
+        List<Invitation> invitations = entityManager
+                .createQuery("SELECT i FROM Invitation i", Invitation.class)
+                .getResultList();
+        assertEquals(1, invitations.size());
+        assertEquals(recipient.getId(), invitations.get(0).getRecipient().getId());
+    }
+
+    @Test
+    @SuppressWarnings("unchecked")
+    void testAttendPartyInitializesEmptyAttendees() {
+        createTestData();
+        User user = entityManager.createQuery("SELECT u FROM User u", User.class).getSingleResult();
+        Location location = entityManager.createQuery("SELECT l FROM Location l", Location.class).getSingleResult();
+
+        Party party = new Party();
+        party.setTitle("Joinable Party");
+        party.setTheme("Test Theme");
+        party.setLocation(location);
+        party.setTime_start(LocalDateTime.now().plusDays(1));
+        party.setTime_end(LocalDateTime.now().plusDays(1).plusHours(2));
+        entityManager.persist(party);
+        entityManager.flush();
+
+        Response response = partyRepository.attendParty(party.getId(), user.getId());
+        assertEquals(204, response.getStatus());
+
+        Response status = partyRepository.attendStatus(party.getId(), user.getId());
+        Map<String, Object> body = (Map<String, Object>) status.getEntity();
+        assertEquals(true, body.get("attending"));
+        assertEquals(1, body.get("count"));
     }
 
     @Test

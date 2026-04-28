@@ -9,6 +9,7 @@
     try {
       localStorage.setItem(TOKEN_KEY, userId);
       localStorage.setItem(USER_INFO_KEY, JSON.stringify(userInfo));
+      window.setCurrentUserId && window.setCurrentUserId(userId);
       console.log("User stored successfully, userId:", userId);
     } catch (e) {
       console.error("storeUser error:", e);
@@ -32,7 +33,7 @@
    * Check if user is logged in
    */
   function isLoggedIn() {
-    return localStorage.getItem(TOKEN_KEY) !== null;
+    return getCurrentUserId() !== null;
   }
 
   /**
@@ -71,17 +72,26 @@
    * Get current user ID
    */
   function getCurrentUserId() {
-    return localStorage.getItem(TOKEN_KEY);
+    return (
+      localStorage.getItem(TOKEN_KEY) ||
+      localStorage.getItem("loggedInUserId") ||
+      sessionStorage.getItem("loggedInUserId")
+    );
   }
 
   /**
    * Make API call (no auth headers needed - API is public)
    */
   async function apiCall(url, options = {}) {
+    const userId = getCurrentUserId();
     const headers = {
       ...options.headers,
       "Content-Type": "application/json",
     };
+
+    if (userId && !headers["X-User-Id"]) {
+      headers["X-User-Id"] = String(userId);
+    }
 
     const response = await fetch(url, {
       ...options,
@@ -143,4 +153,3 @@
 
   console.log("Auth service initialized (no Keycloak)");
 })();
-

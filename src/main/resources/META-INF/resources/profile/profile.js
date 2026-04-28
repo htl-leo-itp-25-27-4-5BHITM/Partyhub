@@ -13,6 +13,7 @@ document.addEventListener("DOMContentLoaded", function () {
   let activeFollowMenu = null;
 
   const STORAGE_KEY = "loggedInUserId";
+  const AUTH_STORAGE_KEY = "partyhub_user_id";
 
   // -----------------------------
   // Helpers
@@ -106,7 +107,12 @@ document.addEventListener("DOMContentLoaded", function () {
       const localNumber =
         localValue != null ? parseFiniteNumber(localValue) : null;
 
-      return localNumber;
+      if (localNumber != null) {
+        return localNumber;
+      }
+
+      const authValue = localStorage.getItem(AUTH_STORAGE_KEY);
+      return authValue != null ? parseFiniteNumber(authValue) : null;
     } catch {
       return null;
     }
@@ -117,11 +123,13 @@ document.addEventListener("DOMContentLoaded", function () {
       if (id == null) {
         sessionStorage.removeItem(STORAGE_KEY);
         localStorage.removeItem(STORAGE_KEY);
+        localStorage.removeItem(AUTH_STORAGE_KEY);
         return;
       }
 
       sessionStorage.setItem(STORAGE_KEY, String(id));
       localStorage.setItem(STORAGE_KEY, String(id));
+      localStorage.setItem(AUTH_STORAGE_KEY, String(id));
     } catch {
       // ignore
     }
@@ -210,9 +218,26 @@ document.addEventListener("DOMContentLoaded", function () {
 
         const isFollowing = await response.json().catch(() => false);
 
-        return {
-          status: isFollowing ? "following" : "not_following",
-        };
+        if (isFollowing) {
+          return { status: "following" };
+        }
+
+        const pendingResponse = await fetch(
+          `/api/users/${encodeURIComponent(targetUserId)}/follow-requests`
+        );
+
+        if (pendingResponse.ok) {
+          const pendingUsers = await pendingResponse.json().catch(() => []);
+
+          if (
+            Array.isArray(pendingUsers) &&
+            pendingUsers.some((user) => String(user?.id) === String(currentUserId))
+          ) {
+            return { status: "pending" };
+          }
+        }
+
+        return { status: "not_following" };
       },
 
       async followUser(targetUserId) {
