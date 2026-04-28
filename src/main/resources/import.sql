@@ -1,4 +1,113 @@
 -- =========================
 -- RESET
 -- =========================
-TRUNCATE TABLE follow, invitation, media, party_user, party, user_location, users, location, follow_status RESTART IDENTITY CASCADE;
+TRUNCATE TABLE follow, invitation, media, party_user, party, user_location, users, location, follow_status, profile_picture RESTART IDENTITY CASCADE;
+
+-- =========================
+-- FRIENDSHIP_STATUS
+-- =========================
+INSERT INTO follow_status (id, name) VALUES
+    (1, 'ausstehend'),
+    (2, 'akzeptiert'),
+    (3, 'blockiert');
+
+-- =========================
+-- USERS (Anna hat hier einen manuellen Test-Token für die Demo)
+-- =========================
+INSERT INTO users (id, username, display_name, distinct_name, email, biography, device_token) VALUES
+    (1, 'anna_huber', 'Anna Huber', 'anna_huber', 'anna.huber@linz.at', 'Event-Liebhaberin aus Linz.', 'MANUAL_TEST_TOKEN_ANNA'),
+    (2, 'michael_wagner', 'Michael Wagner', 'michael_wagner', 'michael.wagner@linz.at', 'Tech, Musik und neue Leute kennenlernen.', NULL),
+    (3, 'katrin_bauer', 'Katrin Bauer', 'katrin_bauer', 'katrin.bauer@linz.at', 'Tanzen, Konzerte, gute Stimmung.', NULL),
+    (4, 'thomas_schneider', 'Thomas Schneider', 'thomas_schneider', 'thomas.schneider@linz.at', 'Organisiert gerne Veranstaltungen.', NULL),
+    (5, 'sabine_weber', 'Sabine Weber', 'sabine_weber', 'sabine.weber@linz.at', 'Networking & Kultur.', NULL),
+    (6, 'lukas_gruber', 'Lukas Gruber', 'lukas_gruber', 'lukas.gruber@linz.at', 'Sport & Outdoor – aber auch Partys!', NULL),
+    (7, 'mia_steiner', 'Mia Steiner', 'mia_steiner', 'mia.steiner@linz.at', 'Kunst, Food, Afterwork.', NULL),
+    (8, 'david_koenig', 'David König', 'david_koenig', 'david.koenig@linz.at', 'Meetups, Startups, Tech.', NULL),
+    (9, 'nina_fischer', 'Nina Fischer', 'nina_fischer', 'nina.fischer@linz.at', 'Yoga, Wellness, entspannte Events.', NULL),
+    (10, 'elias_berger', 'Elias Berger', 'elias_berger', 'elias.berger@linz.at', 'Fotos, Musik, kleine Gigs.', NULL);
+
+-- =========================
+-- PROFILE_PICTURE
+-- =========================
+INSERT INTO profile_picture (id, picture_name, user_id) VALUES
+    (1, 'pp_anna.jpg', 1),
+    (2, NULL, 2),
+    (3, NULL, 3),
+    (4, NULL, 4),
+    (5, 'profile_5_1773232851230.jpg', 5),
+    (6, 'pp_lukas.jpg', 6),
+    (7, NULL, 7),
+    (8, NULL, 8),
+    (9, NULL, 9),
+    (10, 'pp_max.jpg', 10);
+
+-- =========================
+-- USER_LOCATION
+-- =========================
+INSERT INTO user_location (user_id, longitude, latitude) VALUES
+    (1, 14.2858, 48.3069),
+    (2, 14.2912, 48.3042),
+    (3, 14.2884, 48.3076),
+    (4, 14.2835, 48.3018),
+    (5, 14.2798, 48.3087),
+    (6, 14.2933, 48.3031),
+    (7, 14.2749, 48.3058),
+    (8, 14.2869, 48.3094),
+    (9, 14.2951, 48.3009),
+    (10, 14.2708, 48.3083);
+
+-- =========================
+-- LOCATION
+-- =========================
+INSERT INTO location (id, longitude, latitude, address) VALUES
+    (1, 14.2858, 48.3069, 'Zentrum Linz'),
+    (2, 14.2905, 48.3055, 'Remembar'),
+    (3, 14.2955, 48.3005, 'PRYSMA'),
+    (4, 14.2820, 48.3070, 'M7 Club'),
+    (5, 14.2755, 48.3045, 'Promenade'),
+    (6, 14.2890, 48.3090, 'Bar'),
+    (7, 14.2780, 48.3020, 'Alternative Venue'),
+    (8, 14.2920, 48.3030, 'Studentenwerk'),
+    (9, 14.3005, 48.3105, 'Open Air Area'),
+    (10, 14.2700, 48.3085, 'Kapu'),
+    (11, 14.2517, 48.2684, 'Leonding'),
+    (12, 14.0227, 48.1233, 'Umgebung');
+
+-- =========================
+-- PARTY
+-- =========================
+INSERT INTO party (id, host_user_id, location_id, title, time_start, time_end, max_people, min_age, max_age, website, description, fee, visibility, theme, created_at) VALUES
+(1,  2, 1, 'Linz Club Night @ Remembar',      '2026-04-08 22:00:00', '2026-04-08 04:00:00', 200, 18, 35, 'https://remembar.at',     'Charts & EDM Party.',            12.00, 'PUBLIC', 'EDM', NOW()),
+(2,  3, 2, 'Après Ski Party @ Linzer Alm',    '2026-04-08 21:00:00', '2026-04-08 03:30:00', 180, 18, 40, 'https://linzeralm.at',   'Feiern wie auf der Skihütte.',   10.00, 'PUBLIC', 'Apres-Ski', NOW()),
+(3,  4, 3, 'Techno Night @ PRYSMA',           '2026-04-09 23:00:00', '2026-04-09 06:00:00', 150, 18, 35, 'https://prysma.at',      'Underground Techno.',            15.00, 'PUBLIC', 'Techno', NOW()),
+(4,  5, 4, 'Latin Party @ M7 Club',           '2026-04-09 20:30:00', '2026-04-09 02:30:00', 120, 18, 45, 'https://m7club.at',      'Reggaeton & Salsa.',             8.00, 'PUBLIC', 'Latin', NOW()),
+(5,  6, 5, 'HipHop Night',                   '2026-04-10 22:30:00', '2026-04-10 04:30:00', 160, 18, 35, 'https://club.at',        'HipHop & Club Mix.',             10.00, 'PUBLIC', 'HipHop', NOW()),
+(6,  7, 6, 'Afterwork Drinks',               '2026-04-09 18:00:00', '2026-04-09 23:00:00', 90,  18, 50, 'https://bar.at',         'Drinks & entspannte Musik.',     0.00, 'PUBLIC', 'Chill', NOW()),
+(7,  8, 7, 'Alternative Night',              '2026-04-08 20:00:00', '2026-04-08 01:00:00', 100, 18, 45, 'https://alt.at',         'Indie & Alternative.',           5.00, 'PUBLIC', 'Alternative', NOW()),
+(8,  9, 8, 'Student Party',                  '2026-04-09 21:30:00', '2026-04-09 03:00:00', 140, 18, 30, 'https://stwst.at',       'Studentenparty.',                6.00, 'PUBLIC', 'Student', NOW()),
+(9, 10, 9, 'Open Air Party',                 '2026-04-09 16:00:00', '2026-04-09 23:00:00', 220, 16, 40, 'https://linz.at',        'Open Air mit DJs.',              0.00, 'PUBLIC', 'Open-Air', NOW()),
+(10, 1, 10, 'Indie Night @ Kapu',             '2026-04-08 21:00:00', '2026-04-08 02:00:00', 110, 18, 40, 'https://kapu.or.at',     'Live Bands & DJs.',              9.00, 'PUBLIC', 'Indie', NOW()),
+(11, 1, 11, 'HTL Leonding',                   '2026-05-01 19:00:00', '2026-05-01 23:59:00', 100, 16, 30, 'https://www.htl-leonding.at','Die Party der HTL Leonding!', 0.00, 'PUBLIC', 'Student', NOW()),
+(12, 2, 1,  'Meine Party',                    '2026-05-02 20:00:00', '2026-05-02 23:59:00', 50,  18, 40, NULL,                      'Meine eigene Party!',         0.00, 'PUBLIC', 'Chill',   NOW());
+
+-- =========================
+-- PARTY_USER
+-- =========================
+INSERT INTO party_user (party_id, user_id) VALUES
+    (1,2),(1,3),(1,5),
+    (2,1),(2,4),(2,7),
+    (3,1),(3,5),
+    (4,2),(4,3),
+    (5,1),(5,6),
+    (6,3),(6,4),
+    (7,1),(7,10),
+    (8,2),(8,6),
+    (9,1),(9,7),
+    (10,2),(10,3);
+
+-- =========================
+-- SEQUENCES RESET
+-- =========================
+SELECT setval('users_id_seq', (SELECT MAX(id) FROM users));
+SELECT setval('location_id_seq', (SELECT MAX(id) FROM location));
+SELECT setval('party_id_seq', (SELECT MAX(id) FROM party));

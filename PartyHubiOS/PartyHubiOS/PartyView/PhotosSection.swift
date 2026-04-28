@@ -1,18 +1,17 @@
-//
-//  PhotosSection.swift
-//  PartyHubiOS
-//
-//  Created by Carla on 28.04.26.
-//
-
 import SwiftUI
-
+import PhotosUI
 struct PhotosSection: View {
+    @Binding var geladeneBilder: [URL]
+    @Binding var selectedItems: [PhotosPickerItem]
+    @Binding var ausgewaehlteBilderZumLoeschen: Set<URL>
+    @Binding var istImBearbeitungsModus: Bool
+    
+    let onSaveImage: (UIImage) -> Void
+    let onDelete: () -> Void
+    
     var body: some View {
-        Text(/*@START_MENU_TOKEN@*/"Hello, World!"/*@END_MENU_TOKEN@*/)
+        Section("Fotos") {
+            Text("Hier kommen deine Bilder rein")
+        }
     }
-}
-
-#Preview {
-    PhotosSection()
 }
