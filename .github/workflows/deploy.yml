@@ -1,37 +1,43 @@
 # https://coresynapseai.com/2025/08/09/automating-kubernetes-deployments-with-github-actions/
 name: Deploy
-
 on:
   workflow_run:
     workflows: ["Build and Push"]
     types:
       - completed
-
 jobs:
   deploy:
     runs-on: ubuntu-latest
     permissions:
       contents: read
       packages: write
-
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4 
+        uses: actions/checkout@v4
 
       - name: Set up kubectl
-        uses: azure/setup-kubectl@v3 
+        uses: azure/setup-kubectl@v3
         with:
-          version: 'v1.28.0' 
+          version: 'v1.28.0'
 
       - name: Configure Kubeconfig
         run: |
           mkdir -p ~/.kube
           echo "${{ secrets.KUBE_CONFIG_DATA }}" | base64 -d > ~/.kube/config
-          chmod 600 ~/.kube/config 
+          chmod 600 ~/.kube/config
 
       - name: Deploy to Kubernetes
         run: |
-            echo "Applying Kubernetes manifests"
-            kubectl delete -f k8s/quarkus.yaml
-            kubectl apply -f k8s/quarkus.yaml
-            echo "Deployment successful."
+          echo "Applying Kubernetes manifests"
+          kubectl delete -f k8s/quarkus.yaml
+          kubectl apply -f k8s/quarkus.yaml
+          echo "Deployment successful."
+
+      - name: Reset Database
+        run: |
+          echo "Waiting for Quarkus to start..."
+          sleep 30
+          POD=$(kubectl get pods -l app=postgres -o jsonpath="{.items[0].metadata.name}")
+          kubectl cp src/main/resources/import.sql $POD:/tmp/import.sql
+          kubectl exec $POD -- psql -U demo -d demo -f /tmp/import.sql
+          echo "Database reset successful."
