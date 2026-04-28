@@ -14,6 +14,11 @@ public class User {
 
     public User() {
     }
+@Column(name = "device_token")
+private String deviceToken;
+
+public String getDeviceToken() { return deviceToken; }
+public void setDeviceToken(String deviceToken) { this.deviceToken = deviceToken; }
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

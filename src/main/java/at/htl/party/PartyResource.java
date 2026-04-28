@@ -4,6 +4,7 @@ import java.util.List;
 import java.util.Map;
 
 import at.htl.FilterDto;
+import at.htl.PushNotificationService; // 1. WICHTIGER IMPORT
 import at.htl.media.MediaRepository;
 import at.htl.user_location.UserLocationRepository;
 import jakarta.enterprise.context.ApplicationScoped;
@@ -33,10 +34,15 @@ public class PartyResource {
 
     @Inject
     MediaRepository mediaRepository;
+
     @Inject
     UserLocationRepository userLocationRepository;
+
     @Inject
     EntityManager em;
+
+    @Inject // 2. WICHTIGE DEKLARATION
+    PushNotificationService pushService;
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
@@ -56,10 +62,7 @@ public class PartyResource {
                            (dateTo != null && !dateTo.isBlank());
         
         if (hasFilters) {
-            FilterDto req = new FilterDto(q, theme, dateFrom, dateTo);
-            
             List<Party> result = null;
-            
             if (q != null && !q.isBlank()) {
                 result = partyRepository.findByTitleOrDescription(q);
             } else if (theme != null && !theme.isBlank()) {
@@ -132,8 +135,33 @@ public class PartyResource {
                     .entity("{\"error\": \"Payload missing\"}")
                     .build();
         }
+        
         Long actualUserId = userId != null ? userId : headerUserId;
-        return partyRepository.updateParty(id, partyCreateDto, actualUserId);
+        Response response = partyRepository.updateParty(id, partyCreateDto, actualUserId);
+
+        // Push triggern, wenn das Update erfolgreich war
+        if (response.getStatus() == Response.Status.OK.getStatusCode()) {
+            pushService.notifyParticipants(id, "Update: " + partyCreateDto.title());
+        }
+
+        return response;
+    }
+
+    @PUT
+    @Path("/device-token")
+    @Transactional
+    public Response updateToken(@QueryParam("token") String token, 
+                                @HeaderParam("X-User-Id") Long userId) {
+        if (userId == null || token == null) {
+            return Response.status(400).entity("User ID or Token missing").build();
+        }
+        
+        em.createNativeQuery("UPDATE users SET device_token = :token WHERE id = :id")
+          .setParameter("token", token)
+          .setParameter("id", userId)
+          .executeUpdate();
+          
+        return Response.ok().build();
     }
 
     @POST
@@ -204,11 +232,9 @@ public class PartyResource {
         boolean canEdit = party.getHost_user() != null &&
                 party.getHost_user().getId().equals(actualUserId);
 
-        String role = canEdit ? "owner" : "attendee";
-
         return Response.ok(Map.of(
                 "canEdit", canEdit,
-                "role", role,
+                "role", canEdit ? "owner" : "attendee",
                 "partyId", partyId,
                 "userId", actualUserId
         )).build();
@@ -218,8 +244,7 @@ public class PartyResource {
     @Path("/{id}/locations")
     @Produces(MediaType.APPLICATION_JSON)
     public Response getPartyLocations(@PathParam("id") Long partyId) {
-        List<at.htl.user_location.UserLocation> locations = userLocationRepository.getLocationsByPartyId(partyId);
-        return Response.ok(locations).build();
+        return Response.ok(userLocationRepository.getLocationsByPartyId(partyId)).build();
     }
 
     @GET
