@@ -133,7 +133,7 @@ struct PartyHubiOSApp: App {
             let maxAge: Int?
             let website: String?
             let description: String?
-            let fee: Int?
+            let fee: Double?
             let createdAt: String?
         }
 
@@ -153,7 +153,16 @@ struct PartyHubiOSApp: App {
             let address: String?
         }
 
-        guard let parties = try? decoder.decode([PartyResponse].self, from: data) else { return }
+        guard let parties = try? decoder.decode([PartyResponse].self, from: data) else {
+            print("Failed to decode /api/parties payload")
+            return
+        }
+
+        let incomingIds = Set(parties.map { $0.id })
+        let existingParties = (try? context.fetch(FetchDescriptor<Party>())) ?? []
+        for party in existingParties where !incomingIds.contains(party.backendId) {
+            context.delete(party)
+        }
 
         for p in parties {
             let descriptor = FetchDescriptor<Party>(predicate: #Predicate { $0.backendId == p.id })
@@ -171,7 +180,7 @@ struct PartyHubiOSApp: App {
                 existing.minAge = p.minAge
                 existing.maxAge = p.maxAge
                 existing.website = p.website
-                existing.fee = p.fee.map { Double($0) }
+                existing.fee = p.fee
                 existing.categoryId = p.category?.id
             } else {
                 let party = Party(
@@ -188,7 +197,7 @@ struct PartyHubiOSApp: App {
                     minAge: p.minAge,
                     maxAge: p.maxAge,
                     website: p.website,
-                    fee: p.fee.map { Double($0) },
+                    fee: p.fee,
                     categoryId: p.category?.id,
                     hostDisplayName: p.hostUser?.displayName                )
                 context.insert(party)

@@ -40,7 +40,34 @@ cd Partyhub
 ```bash
 ./deploy-local.sh
 ```
-### 3. Open the application
+
+### 3. Sync import.sql to Local and Server DB
+
+If you change seed data in `src/main/resources/import.sql`, apply it with:
+
+```bash
+./sync-import.sh
+```
+
+This updates:
+- local docker-compose Postgres (`postgres` service)
+- Kubernetes Postgres pod (`app=postgres`, namespace `default`)
+
+Common variants:
+
+```bash
+# only local DB
+./sync-import.sh --local-only
+
+# only Kubernetes DB
+./sync-import.sh --k8s-only --namespace default
+```
+
+Requirements:
+- local sync: `docker compose` (or `docker-compose`) and running `postgres` service
+- server sync: `kubectl` access to the cluster and namespace
+
+### 4. Open the application
 
 **Website**: http://localhost:8080
 
