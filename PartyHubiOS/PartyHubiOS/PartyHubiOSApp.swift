@@ -164,6 +164,7 @@ struct PartyHubiOSApp: App {
                 existing.longitude = p.location.longitude
                 existing.partyDescription = p.description
                 existing.hostUserId = p.hostUser?.id.map { Int64($0) }
+                existing.hostDisplayName = p.hostUser?.displayName
                 existing.timeStart = parseDate(p.timeStart)
                 existing.timeEnd = parseDate(p.timeEnd)
                 existing.maxPeople = p.maxPeople
@@ -181,14 +182,15 @@ struct PartyHubiOSApp: App {
                     longitude:  p.location.longitude,
                     partyDescription: p.description,
                     hostUserId: p.hostUser?.id.map { Int64($0) },
-                    timeStart: parseDate(p.timeStart),
+                    timeStart: parseDate(p.timeStart),      // ← vor hostDisplayName
                     timeEnd: parseDate(p.timeEnd),
                     maxPeople: p.maxPeople,
                     minAge: p.minAge,
                     maxAge: p.maxAge,
                     website: p.website,
                     fee: p.fee.map { Double($0) },
-                    categoryId: p.category?.id
+                    categoryId: p.category?.id,
+                    hostDisplayName: p.hostUser?.displayName  // ← ans Ende
                 )
                 context.insert(party)
             }

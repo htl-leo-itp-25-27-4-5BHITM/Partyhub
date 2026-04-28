@@ -11,8 +11,8 @@ class Party {
     var longitude: Double
     var radiusMeters: Double
     var partyDescription: String?
-    
     var hostUserId: Int64?
+    var hostDisplayName: String?
     var timeStart: Date?
     var timeEnd: Date?
     var maxPeople: Int?
@@ -21,6 +21,7 @@ class Party {
     var website: String?
     var fee: Double?
     var categoryId: Int?
+    
     
     @Relationship(deleteRule: .cascade)
     var timeEntries: [TimeEntry] = []
@@ -40,7 +41,8 @@ class Party {
          maxAge: Int? = nil,
          website: String? = nil,
          fee: Double? = nil,
-         categoryId: Int? = nil) {
+         categoryId: Int? = nil,
+         hostDisplayName: String? = nil) {  
         self.backendId = backendId
         self.name = name
         self.location = location
@@ -49,6 +51,7 @@ class Party {
         self.radiusMeters = radiusMeters
         self.partyDescription = partyDescription
         self.hostUserId = hostUserId
+        self.hostDisplayName = hostDisplayName
         self.timeStart = timeStart
         self.timeEnd = timeEnd
         self.maxPeople = maxPeople
