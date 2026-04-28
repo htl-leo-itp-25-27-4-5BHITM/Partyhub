@@ -38,7 +38,6 @@ nb-configuration.xml
 
 CLAUDE.md
 AGENTS.md
-.gitignore
 # Local environment
 .env
 
@@ -50,3 +49,6 @@ app/
 
 
 api/node_modules
+
+.opencode
+openspec

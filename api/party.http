@@ -2,9 +2,10 @@
 @partyId = 11
 
 ###########################################
-### 1. Create Party
+### 1. Create Party (Anna erstellt eine Party)
 ###########################################
-POST {{baseUrl}}?user=1
+POST {{baseUrl}}
+X-User-Id: 1
 Content-Type: application/json
 
 {
@@ -26,25 +27,28 @@ Content-Type: application/json
 
 
 ###########################################
-### 2. Get all parties
+### 2. Get all parties (Header für Personalisierung)
 ###########################################
 GET {{baseUrl}}
+X-User-Id: 1
 
 ?? status == 200
 
 
 ###########################################
-### 3. Get Party by ID (using seeded party ID 1)
+### 3. Get Party by ID
 ###########################################
 GET {{baseUrl}}/1
+X-User-Id: 1
 
 ?? status == 200
 
 
 ###########################################
-### 4. Update Party (using seeded party ID 1)
+### 4. Update Party (Michael Wagner (2) bearbeitet Party 1)
 ###########################################
-PUT {{baseUrl}}/1?user=2
+PUT {{baseUrl}}/1
+X-User-Id: 2
 Content-Type: application/json
 
 {
@@ -66,36 +70,19 @@ Content-Type: application/json
 
 
 ###########################################
-### 5. Join Party (uses X-User-Id header)
-###########################################
-POST {{baseUrl}}/1/join
-X-User-Id: 1
-
-?? status == 204
-
-
-###########################################
-### 6. Join Status (uses X-User-Id header)
-###########################################
-GET {{baseUrl}}/1/join/status
-X-User-Id: 1
-
-?? status == 200
-
-
-###########################################
 ### 7. Check if user can edit party
 ###########################################
-# @name canEditCheck
-GET {{baseUrl}}/1/can-edit?user=2
+GET {{baseUrl}}/1/can-edit
+X-User-Id: 2
 
 ?? status == 200
 
 
 ###########################################
-### 8. Media Upload (party 2 has existing media)
+### 8. Media Upload
 ###########################################
-POST {{baseUrl}}/2/media/upload?user=3
+POST {{baseUrl}}/2/media/upload
+X-User-Id: 3
 Content-Type: multipart/form-data; boundary=boundary
 
 --boundary
@@ -107,61 +94,10 @@ Content-Type: image/jpeg
 
 ?? status == 200
 
-
 ###########################################
-### 9. Get Party Media
-###########################################
-GET {{baseUrl}}/2/media
-
-?? status == 200
-
-
-###########################################
-### 10. Get Party Locations (attendee locations)
-###########################################
-GET {{baseUrl}}/1/locations
-
-?? status == 200
-
-
-###########################################
-### 11. Filter by search query
+### 11. Filter (Header oft nötig für Sichtbarkeit)
 ###########################################
 GET {{baseUrl}}?q=Linz
-
-?? status == 200
-
-
-###########################################
-### 12. Filter by theme
-###########################################
-GET {{baseUrl}}?theme=EDM
-
-?? status == 200
-
-
-###########################################
-### 13. Sortierung
-###########################################
-GET {{baseUrl}}?sort=asc
-
-?? status == 200
-
-
-###########################################
-### 14. Leave Party (uses X-User-Id header)
-###########################################
-DELETE {{baseUrl}}/1/join
 X-User-Id: 1
 
 ?? status == 200
-
-
-###########################################
-### 15. Delete Party (using existing party ID 11)
-###########################################
-DELETE {{baseUrl}}/11
-
-?? status == 204
-
-GET {{baseUrl}}/1
