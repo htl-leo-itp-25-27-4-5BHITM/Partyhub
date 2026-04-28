@@ -4,6 +4,9 @@ on:
     branches: [ "main" ]
     paths:
       - 'src/**'
+      - 'api/**'
+      - 'pom.xml'
+      - 'docker-compose.yml'
       - '.github/workflows/**'
 jobs:
   test:
@@ -38,7 +41,7 @@ jobs:
           mvn quarkus:dev -Dquarkus.http.host=0.0.0.0 -Dquarkus.http.port=8080 &
           echo "Waiting for Quarkus to start..."
           for i in {1..60}; do
-            if curl -s http://localhost:8080/q/health > /dev/null 2>&1; then
+            if curl -s http://localhost:8080/q/openapi > /dev/null 2>&1; then
               echo "Quarkus is ready!"
               exit 0
             fi
