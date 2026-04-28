@@ -182,6 +182,31 @@ public class PartyRepository {
     }
 
     party.setTheme(partyCreateDto.theme());
+    String oldDescription = party.getDescription();
+String newDescription = partyCreateDto.description();
+
+if (newDescription != null && !newDescription.equals(oldDescription)) {
+    String message = "\"" + party.getTitle() + "\" wurde aktualisiert: " + newDescription;
+
+    if (party.getUsers() != null) {
+        for (User attendee : party.getUsers()) {
+            if (!attendee.getId().equals(userId)) {
+                Notification notification = new Notification(attendee, host, party, message);
+                notificationRepository.createNotification(notification);
+            }
+        }
+    }
+
+    if (party.getInvitations() != null) {
+        for (Invitation invitation : party.getInvitations()) {
+            User recipient = invitation.getRecipient();
+            if (!recipient.getId().equals(userId)) {
+                Notification notification = new Notification(recipient, host, party, message);
+                notificationRepository.createNotification(notification);
+            }
+        }
+    }
+}
 
     return Response.ok(party).build();
     }

@@ -84,6 +84,9 @@ INSERT INTO party (id, host_user_id, location_id, title, time_start, time_end, m
 (9, 10, 9, 'Open Air Party',                 '2026-04-09 16:00:00', '2026-04-09 23:00:00', 220, 16, 40, 'https://linz.at',        'Open Air mit DJs.',              0.00, 'PUBLIC', 'Open-Air', NOW()),
 (10, 1, 10, 'Indie Night @ Kapu',              '2026-04-08 21:00:00', '2026-04-08 02:00:00', 110, 18, 40, 'https://kapu.or.at',     'Live Bands & DJs.',              9.00, 'PUBLIC', 'Indie', NOW());
 
+INSERT INTO party (id, host_user_id, location_id, title, time_start, time_end, max_people, min_age, max_age, website, description, fee, visibility, theme, created_at) VALUES
+(11, 1, 11, 'HTL Leonding', '2026-05-01 19:00:00', '2026-05-01 23:59:00', 100, 16, 30, NULL, 'Die Party der HTL Leonding!', 0.00, 'PUBLIC', 'Student', NOW()),
+(12, 2, 1,  'Meine Party',  '2026-05-02 20:00:00', '2026-05-02 23:59:00', 50,  18, 40, NULL, 'Meine eigene Party!',         0.00, 'PUBLIC', 'Chill',   NOW());
 -- =========================
 -- PARTY_USER
 -- =========================
@@ -132,7 +135,7 @@ INSERT INTO follow (user1_id, user2_id, status_id) VALUES
 -- =========================
 SELECT setval('users_id_seq',      (SELECT MAX(id) FROM users));
 SELECT setval('location_id_seq',   (SELECT MAX(id) FROM location));
-SELECT setval('party_id_seq',      (SELECT MAX(id) FROM party));
+SELECT setval('party_id_seq', (SELECT MAX(id) FROM party));
 SELECT setval('media_id_seq',      (SELECT MAX(id) FROM media));
 SELECT setval('invitation_id_seq', (SELECT MAX(id) FROM invitation));
 SELECT setval('profile_picture_id_seq', (SELECT MAX(id) FROM profile_picture));
