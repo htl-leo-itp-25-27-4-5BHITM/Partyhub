@@ -10,31 +10,31 @@ struct PartyHubiOSApp: App {
     @State private var locationManager = LocationManager()
     @State private var deepLinkPartyId: Int?
     let container: ModelContainer
-
+    
     init() {
         do {
             let appSupport = URL.applicationSupportDirectory.appendingPathComponent("PartyHub")
             try FileManager.default.createDirectory(at: appSupport, withIntermediateDirectories: true)
-
+            
             print("SwiftData storage path: \(appSupport)")
-
+            
             let schema = Schema([Party.self, TimeEntry.self])
             let modelConfiguration = ModelConfiguration(
                 schema: schema,
                 url: appSupport.appendingPathComponent("PartyHub.sqlite"),
                 allowsSave: true
             )
-
+            
             container = try ModelContainer(for: schema, configurations: [modelConfiguration])
-
+            
             locationManager.modelContext = container.mainContext
-
+            
         } catch {
             print("SwiftData Error: \(error)")
             fatalError("ModelContainer Fehler: \(error)")
         }
     }
-
+    
     var body: some Scene {
         WindowGroup {
             ContentView()
@@ -66,16 +66,16 @@ struct PartyHubiOSApp: App {
                 }
         }
     }
-
+    
     private func handleDeepLink(_ url: URL) {
         guard url.scheme == "partyhub" else { return }
-
+        
         if url.host == "party", let components = URLComponents(url: url, resolvingAgainstBaseURL: false), let idString = components.queryItems?.first(where: { $0.name == "id" })?.value, let partyId = Int(idString) {
             deepLinkPartyId = partyId
             NotificationCenter.default.post(name: .showPartyDetail, object: partyId)
             return
         }
-
+        
         if url.host == "login", let components = URLComponents(url: url, resolvingAgainstBaseURL: false), let userIdString = components.queryItems?.first(where: { $0.name == "userId" })?.value, let userId = Int(userIdString) {
             Task {
                 do {
@@ -93,33 +93,33 @@ struct PartyHubiOSApp: App {
             return
         }
     }
-
+    
     @MainActor
     func setupApp() async {
         let context = container.mainContext
         locationManager.modelContext = context
-
+        
         await fetchAndStoreParties(context: context)
-
+        
         let allParties = (try? context.fetch(FetchDescriptor<Party>())) ?? []
         print("Parties in DB:", allParties.count)
-
+        
         locationManager.requestPermission()
         locationManager.registerGeofences(for: allParties)
         locationManager.checkIfAlreadyInsideRegions()
         
         try? await notificationManager.requestAuthorization()
     }
-
+    
     func fetchAndStoreParties(context: ModelContext) async {
         guard let url = URL(string: "\(Config.backendURL)/api/parties") else { return }
         guard let (data, _) = try? await URLSession.shared.data(from: url) else { return }
-
+        
         print("Fetching parties…")
-
+        
         let decoder = JSONDecoder()
         decoder.keyDecodingStrategy = .convertFromSnakeCase
-
+        
         struct PartyResponse: Codable {
             let id: Int
             let title: String
@@ -136,34 +136,34 @@ struct PartyHubiOSApp: App {
             let fee: Double?
             let createdAt: String?
         }
-
+        
         struct HostUserResponse: Codable {
             let id: Int?
             let displayName: String?
         }
-
+        
         struct CategoryResponse: Codable {
             let id: Int?
             let name: String?
         }
-
+        
         struct LocationResponse: Codable {
             let latitude: Double
             let longitude: Double
             let address: String?
         }
-
+        
         guard let parties = try? decoder.decode([PartyResponse].self, from: data) else {
             print("Failed to decode /api/parties payload")
             return
         }
-
+        
         let incomingIds = Set(parties.map { $0.id })
         let existingParties = (try? context.fetch(FetchDescriptor<Party>())) ?? []
         for party in existingParties where !incomingIds.contains(party.backendId) {
             context.delete(party)
         }
-
+        
         for p in parties {
             let descriptor = FetchDescriptor<Party>(predicate: #Predicate { $0.backendId == p.id })
             if let existing = try? context.fetch(descriptor).first {
@@ -205,10 +205,62 @@ struct PartyHubiOSApp: App {
         }
         try? context.save()
     }
-
+    
     private func parseDate(_ dateString: String?) -> Date? {
         guard let dateString = dateString else { return nil }
         let formatter = ISO8601DateFormatter()
         return formatter.date(from: dateString)
+    }
+    
+    class AppDelegate: NSObject, UIApplicationDelegate {
+        
+        func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey : Any]? = nil) -> Bool {
+            // Berechtigung für Push anfragen
+            UNUserNotificationCenter.current().requestAuthorization(options: [.alert, .badge, .sound]) { granted, _ in
+                if granted {
+                    DispatchQueue.main.async {
+                        application.registerForRemoteNotifications()
+                    }
+                }
+            }
+            return true
+        }
+        
+        // Erfolg: Apple hat uns ein Token gegeben
+        func application(_ application: UIApplication, didRegisterForRemoteNotificationsWithDeviceToken deviceToken: Data) {
+            let tokenString = deviceToken.map { String(format: "%02.2hhx", $0) }.joined()
+            print("🚀 Mein echtes Apple Device Token: \(tokenString)")
+            
+            // Token an Quarkus senden
+            sendTokenToQuarkus(token: tokenString)
+        }
+        
+        // Fehler: Registrierung fehlgeschlagen (z.B. im Simulator)
+        func application(_ application: UIApplication, didFailToRegisterForRemoteNotificationsWithError error: Error) {
+            print("❌ Push Registrierung fehlgeschlagen: \(error.localizedDescription)")
+        }
+        
+        private func sendTokenToQuarkus(token: String) {
+            // Wir holen die aktuelle User-ID vom AuthManager
+            guard let userId = AuthManager.shared.userId else {
+                print("⚠️ Token-Upload abgebrochen: Kein User eingeloggt.")
+                return
+            }
+            
+            let urlString = "\(Config.backendURL)/api/parties/device-token?token=\(token)"
+            guard let url = URL(string: urlString) else { return }
+            
+            var request = URLRequest(url: url)
+            request.httpMethod = "PUT"
+            request.setValue("\(userId)", forHTTPHeaderField: "X-User-Id")
+            
+            URLSession.shared.dataTask(with: request) { _, response, error in
+                if let error = error {
+                    print("❌ Server Fehler beim Token-Upload: \(error.localizedDescription)")
+                } else {
+                    print("✅ Token erfolgreich an Quarkus gesendet (User ID: \(userId))")
+                }
+            }.resume()
+        }
     }
 }

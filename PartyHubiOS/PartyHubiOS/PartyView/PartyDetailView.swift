@@ -588,84 +588,106 @@ struct PartyDetailView: View {
     }
     #endif
     
-    // MARK: - Update Party on Backend (NEU)
-    func updatePartyOnBackend(_ updatedParty: PartyEditData) async {
-        guard let currentUserId = currentUserId else {
-            errorMessage = "Du bist nicht angemeldet"
-            showError = true
-            return
-        }
-        
-        // Berechtigungsprüfung
-        guard isOwner else {
-            errorMessage = "Du hast keine Berechtigung, diese Party zu bearbeiten"
-            showError = true
-            return
-        }
-        
-        isUpdating = true
-        
-        do {
-            let baseURL = "https://it220274.cloud.htl-leonding.ac.at"
-            guard let url = URL(string: "\(baseURL)/api/party/\(party.backendId)?user=\(currentUserId)") else {
-                throw URLError(.badURL)
+    // MARK: - Update Party on Backend (FIXED)
+        func updatePartyOnBackend(_ updatedParty: PartyEditData) async {
+            guard let currentUserId = currentUserId else {
+                errorMessage = "Du bist nicht angemeldet"
+                showError = true
+                return
             }
             
-            // Payload vorbereiten
-            let payload: [String: Any] = [
-                "title": updatedParty.title,
-                "description": updatedParty.description,
-                "location_address": updatedParty.location,
-                "latitude": updatedParty.latitude,
-                "longitude": updatedParty.longitude,
-                "time_start": ISO8601DateFormatter().string(from: updatedParty.timeStart ?? Date()),
-                "time_end": ISO8601DateFormatter().string(from: updatedParty.timeEnd ?? Date()),
-                "max_people": updatedParty.maxPeople ?? 0,
-                "min_age": updatedParty.minAge ?? 0,
-                "max_age": updatedParty.maxAge ?? 99,
-                "website": updatedParty.website ?? "",
-                "fee": updatedParty.fee ?? 0.0,
-                "category_id": updatedParty.categoryId ?? 1
-            ]
-            
-            var request = URLRequest(url: url)
-            request.httpMethod = "PUT"
-            request.setValue("application/json", forHTTPHeaderField: "Content-Type")
-            request.httpBody = try JSONSerialization.data(withJSONObject: payload)
-            
-            let (_, response) = try await URLSession.shared.data(for: request)
-            
-            guard let httpResponse = response as? HTTPURLResponse,
-                  (200...299).contains(httpResponse.statusCode) else {
-                throw URLError(.badServerResponse)
+            // Berechtigungsprüfung
+            guard isOwner else {
+                errorMessage = "Du hast keine Berechtigung (Owner-Check fehlgeschlagen)"
+                showError = true
+                return
             }
             
-            // Lokale Daten aktualisieren
-            await MainActor.run {
-                party.name = updatedParty.title
-                party.partyDescription = updatedParty.description
-                party.location = updatedParty.location
-                party.latitude = updatedParty.latitude
-                party.longitude = updatedParty.longitude
-                party.timeStart = updatedParty.timeStart
-                party.timeEnd = updatedParty.timeEnd
-                party.maxPeople = updatedParty.maxPeople
-                party.minAge = updatedParty.minAge
-                party.maxAge = updatedParty.maxAge
-                party.website = updatedParty.website
-                party.fee = updatedParty.fee
-                party.categoryId = updatedParty.categoryId
+            isUpdating = true
+            
+            do {
+                let baseURL = "https://it220274.cloud.htl-leonding.ac.at"
+                guard let url = URL(string: "\(baseURL)/api/parties/\(party.backendId)?user=\(currentUserId)") else {
+                    throw URLError(.badURL)
+                }
+                
+                // 1. Der Formatter muss exakt dem @JsonFormat entsprechen
+                let dateFormatter = DateFormatter()
+                dateFormatter.dateFormat = "yyyy-MM-dd'T'HH:mm:ss"
+
+                let payload: [String: Any] = [
+                    "title": updatedParty.title,
+                    "description": updatedParty.description,
+                    "fee": Double(updatedParty.fee ?? 0.0),
+                    "time_start": dateFormatter.string(from: updatedParty.timeStart ?? Date()),
+                    "time_end": dateFormatter.string(from: updatedParty.timeEnd ?? Date()),
+                    "max_people": Int(updatedParty.maxPeople ?? 0),
+                    "min_age": Int(updatedParty.minAge ?? 16),
+                    "max_age": Int(updatedParty.maxAge ?? 99),
+                    "website": updatedParty.website ?? "",
+                    "latitude": updatedParty.latitude,
+                    "longitude": updatedParty.longitude,
+                    "location_address": updatedParty.location, // WICHTIG: Java Feldname ist location_address
+                    "theme": "Standard", // Pflichtfeld im Dto
+                    "visibility": "public", // Pflichtfeld im Dto
+                    "selectedUsers": [] // Pflichtfeld im Dto (leere Liste reicht)
+                ]
+                var request = URLRequest(url: url)
+                request.httpMethod = "PUT"
+                request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+                request.setValue("application/json", forHTTPHeaderField: "Accept")
+                
+                request.httpBody = try JSONSerialization.data(withJSONObject: payload)
+                
+                let (data, response) = try await URLSession.shared.data(for: request)
+                
+                if let httpResponse = response as? HTTPURLResponse {
+                    print("📡 Status Code: \(httpResponse.statusCode)")
+                    
+                    if !(200...299).contains(httpResponse.statusCode) {
+                        // DEBUG: Was sagt der Server genau?
+                        if let errorString = String(data: data, encoding: .utf8) {
+                            print("❌ SERVER FEHLERMELDUNG: \(errorString)")
+                            errorMessage = "Server sagt: \(errorString)"
+                        } else {
+                            errorMessage = "Fehler: Status \(httpResponse.statusCode)"
+                        }
+                        showError = true
+                        isUpdating = false
+                        return
+                    }
+                }
+                
+                // Lokale Daten aktualisieren auf dem Main-Thread
+                await MainActor.run {
+                    party.name = updatedParty.title
+                    party.partyDescription = updatedParty.description
+                    party.location = updatedParty.location
+                    party.latitude = updatedParty.latitude
+                    party.longitude = updatedParty.longitude
+                    party.timeStart = updatedParty.timeStart
+                    party.timeEnd = updatedParty.timeEnd
+                    party.maxPeople = updatedParty.maxPeople
+                    party.minAge = updatedParty.minAge
+                    party.maxAge = updatedParty.maxAge
+                    party.website = updatedParty.website
+                    party.fee = updatedParty.fee
+                    party.categoryId = updatedParty.categoryId
+                    
+                    // SwiftData speichern
+                    try? modelContext.save()
+                }
+                
+                print("✅ Party erfolgreich aktualisiert")
+                
+            } catch {
+                print("❌ Request Fehler: \(error)")
+                errorMessage = "Verbindungsfehler: \(error.localizedDescription)"
+                showError = true
             }
             
-            print("✅ Party erfolgreich aktualisiert")
-            
-        } catch {
-            errorMessage = "Fehler beim Speichern: \(error.localizedDescription)"
-            showError = true
+            isUpdating = false
         }
-        
-        isUpdating = false
-    }
     
     // MARK: - Notification Functions
     func markPartyAsRead() {
