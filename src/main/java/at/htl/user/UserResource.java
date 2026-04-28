@@ -387,4 +387,18 @@ public class UserResource {
         }
         return ".jpg";
     }
+    @PUT
+@Path("/device-token")
+@Transactional
+public Response updateDeviceToken(@QueryParam("token") String token, 
+                                  @HeaderParam("X-User-Id") Long userId) {
+    if (userId == null || token == null) return Response.status(400).build();
+    
+    em.createNativeQuery("UPDATE users SET device_token = :token WHERE id = :id")
+      .setParameter("token", token)
+      .setParameter("id", userId)
+      .executeUpdate();
+      
+    return Response.ok().build();
+}
 }

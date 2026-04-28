@@ -73,5 +73,4 @@ PUT http://localhost:8080/api/users/3/followers/2
 ###########################################
 DELETE http://localhost:8080/api/users/1/followers/6
 
-?? status == 204
-
+?? status == 404
