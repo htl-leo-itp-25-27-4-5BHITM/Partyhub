@@ -1,353 +1,1135 @@
+/* addParty.js */
+
 document.addEventListener("DOMContentLoaded", () => {
-  /* ==========================
-     DOM ELEMENTE
-  ========================== */
-  const steps = document.querySelectorAll(".step");
-  const titleEl = document.getElementById("stepTitle");
-  const btn = document.getElementById("continueBtn");
+  alert("NEUE addParty.js WIRD GELADEN");
+console.log("NEUE addParty.js WIRD GELADEN");
+  const form = document.querySelector(".party-form");
+  const continueBtn = document.getElementById("continueBtn");
+  const stepTitle = document.getElementById("stepTitle");
   const backArrow = document.querySelector(".back-arrow");
+
   const addressInput = document.getElementById("location_address");
-  const suggestionsBox = document.getElementById("addressSuggestions");
+  const addressSuggestions = document.getElementById("addressSuggestions");
+
   const userList = document.getElementById("userList");
   const everyoneHint = document.getElementById("everyoneHint");
 
-  /* ==========================
-     STATE
-  ========================== */
-  let currentStep = 0;
-  const state = {
-    id: null,
-    title: "",
-    description: "",
-    time_start: "",
-    time_end: "",
-    location_address: "",
-    latitude: null,
-    longitude: null,
-    visibility: "private",
-    selectedUsers: [],
-    entry_costs: null,
-    theme: "",
-    min_age: 18,
-    max_age: null,
-    website: "",
-  };
+  const mapElement = document.getElementById("addPartyMap");
+  const mapMessage = document.getElementById("mapMessage");
 
-  const stepTitles = [
-    "Add new Party",
-    "Who can attend the party?",
-    "Other Infos",
-    "Map Preview",
-  ];
+  const visButtons = document.querySelectorAll(".vis-card");
+
+  const steps = document.querySelectorAll(".step");
+
+  let currentStep = 1;
+  let visibility = "private";
+  let selectedUsers = [];
 
   let addPartyMap = null;
   let addPartyMarker = null;
 
-  /* ==========================
-     FLATPICKR INITIALISIERUNG
-  ========================== */
-  const fpConfig = {
-    enableTime: true,
-    dateFormat: "d.m.Y H:i",
-    time_24hr: true,
-    allowInput: true
+  let fpStart = null;
+  let fpEnd = null;
+
+  let addressSearchTimeout = null;
+
+  const state = {
+    id: null,
+    title: "",
+    description: "",
+    time_start: null,
+    time_end: null,
+    location_address: "",
+    latitude: null,
+    longitude: null,
+    visibility: "private",
+    entry_costs: null,
+    theme: null,
+    min_age: 18,
+    max_age: null,
+    website: null,
   };
-  const fpStart = flatpickr("#time_start", fpConfig);
-  const fpEnd = flatpickr("#time_end", fpConfig);
 
-  /* ==========================
-     HILFSFUNKTIONEN
-  ========================== */
-  function formatDateForBackend(isoString) {
-    if (!isoString) return null;
-    // Entfernt Millisekunden und Z (.000Z), da viele Backends hier 400 Bad Request werfen
-    return isoString.split('.')[0];
+  const params = new URLSearchParams(window.location.search);
+
+  const editPartyId =
+    params.get("id") ||
+    params.get("partyId") ||
+    params.get("edit") ||
+    null;
+
+  const isEditMode = Boolean(editPartyId);
+
+  const stepTitles = {
+    1: isEditMode ? "Party bearbeiten" : "Add new Party",
+    2: "Who can attend the party?",
+    3: "Other Infos",
+    4: "Map Preview",
+  };
+
+  init();
+
+  async function init() {
+    setupFlatpickr();
+    setupStepButtons();
+    setupVisibilityButtons();
+    setupAddressSearch();
+
+    if (isEditMode) {
+      continueBtn.textContent = "Continue";
+      await loadPartyForEdit(editPartyId);
+    }
+
+    await loadUsers();
+
+    showStep(1);
   }
 
-  function syncInputsToState() {
-    const activeStep = steps[currentStep];
-    const inputs = activeStep.querySelectorAll("input, textarea");
-
-    inputs.forEach((input) => {
-      if (input.type === "checkbox") {
-        if (input.checked) {
-          if (!state.selectedUsers.includes(input.value)) state.selectedUsers.push(input.value);
-        } else {
-          state.selectedUsers = state.selectedUsers.filter(u => u !== input.value);
-        }
-      } else if (input.name) {
-        state[input.name] = input.value;
-      }
-    });
-
-    if (fpStart.selectedDates[0]) state.time_start = fpStart.selectedDates[0].toISOString();
-    if (fpEnd.selectedDates[0]) state.time_end = fpEnd.selectedDates[0].toISOString();
-    if (addressInput) state.location_address = addressInput.value.trim();
-  }
-
-  /* ==========================
-     VALIDIERUNG
-  ========================== */
-  function validateStep() {
-    const activeStep = steps[currentStep];
-    const inputs = activeStep.querySelectorAll("input[name]");
-    let isValid = true;
-
-    inputs.forEach((input) => {
-      let hasError = false;
-      const val = input.value.trim();
-
-      // Pflichtfelder Step 1
-      if (["title", "time_start", "location_address"].includes(input.name) && !val) {
-        hasError = true;
-      }
-
-      // Geo-Daten Check
-      if (input.name === "location_address" && (!state.latitude || !state.longitude)) {
-        hasError = true;
-      }
-
-      // Datum Logik
-      if (input.name === "time_start" && fpStart.selectedDates[0]) {
-        if (fpStart.selectedDates[0] < new Date(Date.now() - 60000)) hasError = true;
-      }
-
-      input.classList.toggle("input-error", hasError);
-      if (hasError) isValid = false;
-    });
-
-    return isValid;
-  }
-
-  /* ==========================
-     STEP NAVIGATION
-  ========================== */
-  async function showStep(index) {
-    steps.forEach((s, i) => s.classList.toggle("active", i === index));
-    titleEl.textContent = stepTitles[index];
-    
-    // Button Text
-    if (index === steps.length - 1) {
-      btn.textContent = state.id ? "Update" : "Submit";
-    } else {
-      btn.textContent = "Continue";
-    }
-
-    // Spezielle Logik für Steps
-    if (index === 1 && state.visibility === "private") {
-      await loadFollowers();
-    }
-
-    if (index === 3) {
-      document.getElementById("addPartyMap").style.display = "block";
-      document.getElementById("mapMessage").style.display = "none";
-      setTimeout(initMap, 100);
-    }
-  }
-
-  /* ==========================
-     MAP LOGIK
-  ========================== */
-  function initMap() {
-    const mapDiv = document.getElementById("addPartyMap");
-    if (!mapDiv) return;
-
-    if (!addPartyMap) {
-      addPartyMap = L.map(mapDiv).setView([48.2082, 16.3738], 13);
-      L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png").addTo(addPartyMap);
-    }
-
-    if (state.latitude && state.longitude) {
-      const pos = [state.latitude, state.longitude];
-      if (addPartyMarker) {
-        addPartyMarker.setLatLng(pos);
-      } else {
-        addPartyMarker = L.marker(pos).addTo(addPartyMap);
-      }
-      addPartyMap.setView(pos, 15);
-      addPartyMarker.bindPopup(`<b>${state.title}</b>`).openPopup();
-    }
-    
-    setTimeout(() => addPartyMap.invalidateSize(), 200);
-  }
-
-  /* ==========================
-     EVENTS
-  ========================== */
-  btn.addEventListener("click", async () => {
-    syncInputsToState();
-
-    // Adresse noch schnell geocoden falls nötig
-    if (currentStep === 0 && state.location_address && !state.latitude) {
-      await geocodeAddress(state.location_address);
-    }
-
-    if (!validateStep()) {
-      console.warn("Validierung fehlgeschlagen");
+  function setupFlatpickr() {
+    if (typeof flatpickr === "undefined") {
+      console.error("Flatpickr wurde nicht geladen.");
       return;
     }
 
-    if (currentStep < steps.length - 1) {
-      currentStep++;
-      await showStep(currentStep);
-    } else {
-      await submitParty();
-    }
-  });
+    fpStart = flatpickr("#time_start", {
+      enableTime: true,
+      dateFormat: "d.m.Y H:i",
+      time_24hr: true,
+      minDate: "today",
+      onChange: function (selectedDates) {
+        if (selectedDates.length > 0) {
+          state.time_start = selectedDates[0];
 
-  backArrow.addEventListener("click", () => {
-    if (currentStep > 0) {
-      currentStep--;
-      showStep(currentStep);
-    } else {
-      history.back();
-    }
-  });
-
-  // Visibility Cards
-  document.querySelectorAll(".vis-card").forEach(card => {
-    card.addEventListener("click", async () => {
-      document.querySelectorAll(".vis-card").forEach(c => c.classList.remove("active"));
-      card.classList.add("active");
-      state.visibility = card.dataset.mode.toUpperCase();
-
-      const isPublic = state.visibility === "PUBLIC";
-      userList.style.display = isPublic ? "none" : "flex";
-      everyoneHint.style.display = isPublic ? "block" : "none";
-
-      if (!isPublic) await loadFollowers();
+          if (fpEnd) {
+            fpEnd.set("minDate", selectedDates[0]);
+          }
+        }
+      },
     });
-  });
 
-  /* ==========================
-     API / BACKEND CALLS
-  ========================== */
-  async function geocodeAddress(addr) {
-    try {
-      const res = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(addr)}&limit=1`);
-      const data = await res.json();
-      if (data && data.length > 0) {
-        state.latitude = parseFloat(data[0].lat);
-        state.longitude = parseFloat(data[0].lon);
-        return true;
+    fpEnd = flatpickr("#time_end", {
+      enableTime: true,
+      dateFormat: "d.m.Y H:i",
+      time_24hr: true,
+      minDate: "today",
+      onChange: function (selectedDates) {
+        if (selectedDates.length > 0) {
+          state.time_end = selectedDates[0];
+        }
+      },
+    });
+  }
+
+  function setupStepButtons() {
+    continueBtn.addEventListener("click", async () => {
+      if (currentStep < 4) {
+        if (!validateStep(currentStep)) {
+          return;
+        }
+
+        currentStep++;
+        showStep(currentStep);
+        return;
       }
-    } catch (e) { console.error("Geocoding Error", e); }
-    return false;
+
+      if (!validateStep(4)) {
+        return;
+      }
+
+      await saveParty();
+    });
+
+    backArrow.addEventListener("click", () => {
+      if (currentStep > 1) {
+        currentStep--;
+        showStep(currentStep);
+      } else {
+        window.history.back();
+      }
+    });
   }
 
-  async function loadFollowers() {
-    const uid = localStorage.getItem("userId");
-    if (!uid) return;
-    try {
-      const res = await fetch(`/api/users/${uid}/followers`);
-      const followers = await res.json();
-      userList.innerHTML = "";
-      followers.forEach(u => {
-        const div = document.createElement("div");
-        div.className = "user-card";
-        div.innerHTML = `<span>@${u.distinctName}</span><input type="checkbox" value="${u.distinctName}" ${state.selectedUsers.includes(u.distinctName) ? 'checked' : ''}>`;
-        userList.appendChild(div);
+  function setupVisibilityButtons() {
+    visButtons.forEach((button) => {
+      button.addEventListener("click", () => {
+        visButtons.forEach((btn) => btn.classList.remove("active"));
+        button.classList.add("active");
+
+        visibility = button.dataset.mode;
+        state.visibility = visibility;
+
+        updateVisibilityUI();
       });
-    } catch (e) { console.error("Follower Load Error", e); }
+    });
+
+    updateVisibilityUI();
   }
 
-  async function submitParty() {
-  const userId = window.getCurrentUserId();
-  if (!userId) {
-    alert("Bitte melde dich an");
+  function updateVisibilityUI() {
+    if (!userList || !everyoneHint) {
+      return;
+    }
+
+    if (visibility === "public") {
+      userList.style.display = "none";
+      everyoneHint.style.display = "block";
+      selectedUsers = [];
+    } else {
+      userList.style.display = "block";
+      everyoneHint.style.display = "none";
+    }
+  }
+
+  function setupAddressSearch() {
+    if (!addressInput) {
+      console.error("Adressfeld mit id='location_address' wurde nicht gefunden.");
+      return;
+    }
+
+    addressInput.addEventListener("input", () => {
+      const value = addressInput.value.trim();
+
+      state.location_address = value;
+
+      if (!value) {
+        state.latitude = null;
+        state.longitude = null;
+        clearAddressSuggestions();
+        return;
+      }
+
+      clearTimeout(addressSearchTimeout);
+
+      addressSearchTimeout = setTimeout(() => {
+        searchAddress(value);
+      }, 400);
+    });
+
+    document.addEventListener("click", (event) => {
+      if (
+        addressSuggestions &&
+        !addressSuggestions.contains(event.target) &&
+        event.target !== addressInput
+      ) {
+        clearAddressSuggestions();
+      }
+    });
+  }
+
+  async function searchAddress(query) {
+    if (!query || query.length < 3) {
+      clearAddressSuggestions();
+      return;
+    }
+
+    try {
+      const url =
+        "https://nominatim.openstreetmap.org/search?" +
+        new URLSearchParams({
+          q: query,
+          format: "json",
+          addressdetails: "1",
+          limit: "5",
+          countrycodes: "at",
+        });
+
+      const response = await fetch(url, {
+        headers: {
+          "Accept-Language": "de",
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error("Adresssuche fehlgeschlagen.");
+      }
+
+      const results = await response.json();
+      renderAddressSuggestions(results);
+    } catch (error) {
+      console.error("Fehler bei der Adresssuche:", error);
+    }
+  }
+
+  function renderAddressSuggestions(results) {
+    if (!addressSuggestions) {
+      return;
+    }
+
+    clearAddressSuggestions();
+
+    if (!results || results.length === 0) {
+      return;
+    }
+
+    results.forEach((result) => {
+      const item = document.createElement("div");
+      item.className = "suggestion-item";
+      item.textContent = result.display_name;
+
+      item.addEventListener("click", () => {
+        selectAddress(result);
+      });
+
+      addressSuggestions.appendChild(item);
+    });
+  }
+
+  function selectAddress(result) {
+    const displayName = result.display_name || "";
+
+    state.location_address = displayName;
+    state.latitude = Number(result.lat);
+    state.longitude = Number(result.lon);
+
+    if (addressInput) {
+      addressInput.value = displayName;
+      addressInput.dispatchEvent(new Event("change", { bubbles: true }));
+    }
+
+    clearAddressSuggestions();
+
+    console.log("Adresse ausgewählt:", {
+      address: state.location_address,
+      latitude: state.latitude,
+      longitude: state.longitude,
+    });
+
+    updateMapMarker();
+  }
+
+  function clearAddressSuggestions() {
+    if (addressSuggestions) {
+      addressSuggestions.innerHTML = "";
+    }
+  }
+
+  async function loadUsers() {
+    if (!userList) {
+      return;
+    }
+
+    userList.innerHTML = "";
+
+    try {
+      const currentUserId = getCurrentUserIdSafe();
+
+      let users = [];
+
+      if (currentUserId) {
+        try {
+          const followersResponse = await fetch(`/api/users/${currentUserId}/followers`);
+
+          if (followersResponse.ok) {
+            users = await followersResponse.json();
+          }
+        } catch (error) {
+          console.warn("Follower konnten nicht geladen werden, lade alle User.", error);
+        }
+      }
+
+      if (!users || users.length === 0) {
+        const response = await fetch("/api/users/all");
+
+        if (!response.ok) {
+          throw new Error("User konnten nicht geladen werden.");
+        }
+
+        users = await response.json();
+      }
+
+      users = normalizeUsers(users);
+
+      if (!users || users.length === 0) {
+        userList.innerHTML = "<p>Keine User gefunden.</p>";
+        return;
+      }
+
+      users.forEach((user) => {
+        const id = user.id ?? user.userId;
+        const username =
+          user.username ||
+          user.handle ||
+          user.name ||
+          user.email ||
+          `User ${id}`;
+
+        if (!id) {
+          return;
+        }
+
+        const item = document.createElement("button");
+        item.type = "button";
+        item.className = "user-card";
+        item.dataset.userId = id;
+        item.textContent = username;
+
+        if (selectedUsers.includes(String(id)) || selectedUsers.includes(Number(id))) {
+          item.classList.add("selected");
+        }
+
+        item.addEventListener("click", () => {
+          toggleSelectedUser(id, item);
+        });
+
+        userList.appendChild(item);
+      });
+    } catch (error) {
+      console.error("Fehler beim Laden der User:", error);
+      userList.innerHTML = "<p>User konnten nicht geladen werden.</p>";
+    }
+  }
+
+  function normalizeUsers(users) {
+    if (!Array.isArray(users)) {
+      return [];
+    }
+
+    return users
+      .map((entry) => {
+        if (entry.follower) {
+          return entry.follower;
+        }
+
+        if (entry.following) {
+          return entry.following;
+        }
+
+        if (entry.user) {
+          return entry.user;
+        }
+
+        return entry;
+      })
+      .filter(Boolean);
+  }
+
+  function toggleSelectedUser(id, item) {
+    const idAsString = String(id);
+
+    if (selectedUsers.map(String).includes(idAsString)) {
+      selectedUsers = selectedUsers.filter((userId) => String(userId) !== idAsString);
+      item.classList.remove("selected");
+    } else {
+      selectedUsers.push(id);
+      item.classList.add("selected");
+    }
+
+    console.log("Ausgewählte User:", selectedUsers);
+  }
+
+  async function loadPartyForEdit(id) {
+  try {
+    let party = null;
+
+    let response = await fetch(`/api/parties/${id}`);
+
+    if (response.ok) {
+      party = await response.json();
+    } else {
+      console.warn(`/api/parties/${id} ging nicht, versuche /api/parties/ ...`);
+
+      const listResponse = await fetch("/api/parties/");
+
+      if (!listResponse.ok) {
+        throw new Error(
+          `Party konnte nicht geladen werden. Einzelstatus: ${response.status}, Listenstatus: ${listResponse.status}`
+        );
+      }
+
+      const parties = await listResponse.json();
+
+      party = parties.find((p) => String(p.id) === String(id));
+
+      if (!party) {
+        throw new Error(`Party mit ID ${id} wurde in der Liste nicht gefunden.`);
+      }
+    }
+
+    console.log("Geladene Party:", party);
+    console.log("Alle Feldnamen:", Object.keys(party));
+    console.log("Adresse location_address:", party.location_address);
+    console.log("Adresse locationAddress:", party.locationAddress);
+    console.log("Adresse address:", party.address);
+    console.log("Adresse location:", party.location);
+
+    fillFormWithParty(party);
+  } catch (error) {
+    console.error("Fehler beim Laden der Party:", error);
+    alert("Party konnte nicht geladen werden.");
+  }
+}
+
+  function fillFormWithParty(party) {
+  state.id = party.id ?? editPartyId;
+
+  const title = party.title || "";
+  const description = party.description || "";
+
+  let locationAddress =
+    party.location_address ||
+    party.locationAddress ||
+    party.location_adress ||
+    party.locationAdress ||
+    party.address ||
+    party.adress ||
+    party.location?.address ||
+    party.location?.adress ||
+    party.location?.location_address ||
+    party.location?.location_adress ||
+    party.location?.display_name ||
+    party.location?.displayName ||
+    "";
+
+  const latitude =
+    party.latitude ??
+    party.lat ??
+    party.location_latitude ??
+    party.locationLatitude ??
+    null;
+
+  const longitude =
+    party.longitude ??
+    party.lon ??
+    party.lng ??
+    party.location_longitude ??
+    party.locationLongitude ??
+    null;
+
+  state.title = title;
+  state.description = description;
+  state.location_address = locationAddress;
+  state.latitude = latitude !== null ? Number(latitude) : null;
+  state.longitude = longitude !== null ? Number(longitude) : null;
+
+  if (!locationAddress && state.latitude && state.longitude) {
+    reverseGeocodeAddress(state.latitude, state.longitude);
+  }
+
+  state.visibility = party.visibility || "private";
+  visibility = state.visibility;
+
+  state.entry_costs =
+    party.entry_costs ??
+    party.entryCosts ??
+    party.fee ??
+    null;
+
+  state.theme = party.theme || null;
+  state.min_age = party.min_age ?? party.minAge ?? 18;
+  state.max_age = party.max_age ?? party.maxAge ?? null;
+  state.website = party.website || null;
+
+  setInputValue("title", title);
+  setInputValue("description", description);
+
+  const realAddressInput = document.getElementById("location_address");
+
+  if (realAddressInput) {
+    realAddressInput.value = locationAddress;
+    realAddressInput.setAttribute("value", locationAddress);
+  }
+
+  setInputValue("entry_costs", state.entry_costs);
+  setInputValue("theme", state.theme);
+  setInputValue("min_age", state.min_age);
+  setInputValue("max_age", state.max_age);
+  setInputValue("website", state.website);
+
+  setDateValues(party);
+  setVisibilityFromParty();
+
+  console.log("Adresse ins Feld geschrieben:", locationAddress);
+  console.log("State nach Laden:", state);
+}
+
+  function setInputValue(name, value) {
+    if (!form || !form.elements[name]) {
+      console.warn(`Input mit name='${name}' wurde nicht gefunden.`);
+      return;
+    }
+
+    form.elements[name].value = value ?? "";
+  }
+
+
+  async function reverseGeocodeAddress(latitude, longitude) {
+  try {
+    const url =
+      "https://nominatim.openstreetmap.org/reverse?" +
+      new URLSearchParams({
+        lat: latitude,
+        lon: longitude,
+        format: "json",
+        addressdetails: "1",
+      });
+
+    const response = await fetch(url, {
+      headers: {
+        "Accept-Language": "de",
+      },
+    });
+
+    if (!response.ok) {
+      throw new Error("Reverse Geocoding fehlgeschlagen.");
+    }
+
+    const result = await response.json();
+
+    const foundAddress = result.display_name || "";
+
+    console.log("Adresse aus Koordinaten gefunden:", foundAddress);
+
+    if (foundAddress) {
+      state.location_address = foundAddress;
+
+      const realAddressInput = document.getElementById("location_address");
+
+      if (realAddressInput) {
+        realAddressInput.value = foundAddress;
+        realAddressInput.setAttribute("value", foundAddress);
+      }
+    }
+  } catch (error) {
+    console.error("Adresse konnte nicht aus Koordinaten geladen werden:", error);
+  }
+}
+
+ function setDateValues(party) {
+  const startValue =
+    party.time_start ||
+    party.timeStart ||
+    party.start_time ||
+    party.startTime ||
+    party.start ||
+    null;
+
+  const endValue =
+    party.time_end ||
+    party.timeEnd ||
+    party.end_time ||
+    party.endTime ||
+    party.end ||
+    null;
+
+  console.log("Startzeit aus Backend:", startValue);
+  console.log("Endzeit aus Backend:", endValue);
+
+  if (startValue) {
+    const startDate = parseBackendDate(startValue);
+
+    console.log("StartDate parsed:", startDate);
+
+    if (startDate && !isNaN(startDate.getTime())) {
+      state.time_start = startDate;
+
+      if (fpStart) {
+        fpStart.setDate(startDate, true);
+      }
+
+      const startInput = document.getElementById("time_start");
+      if (startInput) {
+        startInput.value = formatDateForInput(startDate);
+      }
+    }
+  }
+
+  if (endValue) {
+    const endDate = parseBackendDate(endValue);
+
+    console.log("EndDate parsed:", endDate);
+
+    if (endDate && !isNaN(endDate.getTime())) {
+      state.time_end = endDate;
+
+      if (fpEnd) {
+        fpEnd.setDate(endDate, true);
+      }
+
+      const endInput = document.getElementById("time_end");
+      if (endInput) {
+        endInput.value = formatDateForInput(endDate);
+      }
+    }
+  }
+}
+
+function parseBackendDate(value) {
+  if (!value) {
+    return null;
+  }
+
+  if (value instanceof Date) {
+    return value;
+  }
+
+  if (typeof value === "string") {
+    // Falls Backend z. B. "2026-04-08T21:00:00" sendet
+    const normalDate = new Date(value);
+
+    if (!isNaN(normalDate.getTime())) {
+      return normalDate;
+    }
+
+    // Falls Backend z. B. "08.04.2026 21:00" sendet
+    const match = value.match(
+      /^(\d{2})\.(\d{2})\.(\d{4})\s+(\d{2}):(\d{2})$/
+    );
+
+    if (match) {
+      const [, day, month, year, hour, minute] = match;
+
+      return new Date(
+        Number(year),
+        Number(month) - 1,
+        Number(day),
+        Number(hour),
+        Number(minute)
+      );
+    }
+  }
+
+  return null;
+}
+
+  function setVisibilityFromParty() {
+    visButtons.forEach((button) => {
+      button.classList.remove("active");
+
+      if (button.dataset.mode === visibility) {
+        button.classList.add("active");
+      }
+    });
+
+    updateVisibilityUI();
+  }
+
+  function showStep(stepNumber) {
+    steps.forEach((step) => {
+      const number = Number(step.dataset.step);
+      step.classList.toggle("active", number === stepNumber);
+    });
+
+    if (stepTitle) {
+      stepTitle.textContent = stepTitles[stepNumber] || "";
+    }
+
+    if (stepNumber === 4) {
+      continueBtn.textContent = isEditMode ? "Änderungen speichern" : "Party erstellen";
+      showMapPreview();
+    } else {
+      continueBtn.textContent = "Continue";
+    }
+  }
+
+  function validateStep(stepNumber) {
+    readFormIntoState();
+
+    if (stepNumber === 1) {
+      if (!state.title.trim()) {
+        alert("Bitte gib einen Namen für die Party ein.");
+        return false;
+      }
+
+      if (!state.description.trim()) {
+        alert("Bitte gib eine Beschreibung ein.");
+        return false;
+      }
+
+      if (!state.time_start) {
+        alert("Bitte gib eine Startzeit ein.");
+        return false;
+      }
+
+      if (!state.time_end) {
+        alert("Bitte gib eine Endzeit ein.");
+        return false;
+      }
+
+      if (state.time_end <= state.time_start) {
+        alert("Die Endzeit muss nach der Startzeit liegen.");
+        return false;
+      }
+
+      if (!state.location_address.trim()) {
+        alert("Bitte gib eine Adresse ein.");
+        return false;
+      }
+
+      return true;
+    }
+
+    if (stepNumber === 2) {
+      if (visibility === "private" && selectedUsers.length === 0) {
+        const confirmPrivateWithoutUsers = confirm(
+          "Du hast keine Personen ausgewählt. Willst du trotzdem fortfahren?"
+        );
+
+        if (!confirmPrivateWithoutUsers) {
+          return false;
+        }
+      }
+
+      return true;
+    }
+
+    if (stepNumber === 3) {
+      const minAge = state.min_age;
+      const maxAge = state.max_age;
+
+      if (minAge !== null && minAge < 0) {
+        alert("Das Mindestalter darf nicht negativ sein.");
+        return false;
+      }
+
+      if (maxAge !== null && maxAge < 0) {
+        alert("Das maximale Alter darf nicht negativ sein.");
+        return false;
+      }
+
+      if (minAge !== null && maxAge !== null && maxAge < minAge) {
+        alert("Das maximale Alter darf nicht kleiner als das Mindestalter sein.");
+        return false;
+      }
+
+      return true;
+    }
+
+    if (stepNumber === 4) {
+      return true;
+    }
+
+    return true;
+  }
+
+  function readFormIntoState() {
+    state.title = getInputValue("title");
+    state.description = getInputValue("description");
+
+    if (addressInput) {
+      state.location_address = addressInput.value.trim();
+    }
+
+    state.visibility = visibility;
+
+    state.entry_costs = getNumberValue("entry_costs");
+    state.theme = emptyToNull(getInputValue("theme"));
+    state.min_age = getNumberValue("min_age");
+    state.max_age = getNumberValue("max_age");
+    state.website = emptyToNull(getInputValue("website"));
+
+    if (fpStart && fpStart.selectedDates.length > 0) {
+      state.time_start = fpStart.selectedDates[0];
+    }
+
+    if (fpEnd && fpEnd.selectedDates.length > 0) {
+      state.time_end = fpEnd.selectedDates[0];
+    }
+  }
+
+  function getInputValue(name) {
+    if (!form || !form.elements[name]) {
+      return "";
+    }
+
+    return form.elements[name].value.trim();
+  }
+
+  function getNumberValue(name) {
+    const value = getInputValue(name);
+
+    if (value === "") {
+      return null;
+    }
+
+    const number = Number(value);
+
+    if (Number.isNaN(number)) {
+      return null;
+    }
+
+    return number;
+  }
+
+  function emptyToNull(value) {
+    if (value === undefined || value === null || value === "") {
+      return null;
+    }
+
+    return value;
+  }
+
+  async function showMapPreview() {
+    readFormIntoState();
+
+    if (!state.latitude || !state.longitude) {
+      await geocodeTypedAddress();
+    }
+
+    if (!state.latitude || !state.longitude) {
+      if (mapElement) {
+        mapElement.style.display = "none";
+      }
+
+      if (mapMessage) {
+        mapMessage.style.display = "block";
+        mapMessage.textContent =
+          "Adresse konnte nicht auf der Karte angezeigt werden.";
+      }
+
+      return;
+    }
+
+    if (mapElement) {
+      mapElement.style.display = "block";
+    }
+
+    if (mapMessage) {
+      mapMessage.style.display = "none";
+    }
+
+    setTimeout(() => {
+      initMapIfNeeded();
+      updateMapMarker();
+    }, 100);
+  }
+
+  async function geocodeTypedAddress() {
+    if (!state.location_address || state.location_address.length < 3) {
+      return;
+    }
+
+    try {
+      const url =
+        "https://nominatim.openstreetmap.org/search?" +
+        new URLSearchParams({
+          q: state.location_address,
+          format: "json",
+          addressdetails: "1",
+          limit: "1",
+          countrycodes: "at",
+        });
+
+      const response = await fetch(url, {
+        headers: {
+          "Accept-Language": "de",
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error("Geocoding fehlgeschlagen.");
+      }
+
+      const results = await response.json();
+
+      if (results && results.length > 0) {
+        state.location_address = results[0].display_name || state.location_address;
+        state.latitude = Number(results[0].lat);
+        state.longitude = Number(results[0].lon);
+
+        if (addressInput) {
+          addressInput.value = state.location_address;
+        }
+      }
+    } catch (error) {
+      console.error("Fehler beim Geocoding:", error);
+    }
+  }
+
+  function initMapIfNeeded() {
+    if (addPartyMap || !mapElement) {
+      return;
+    }
+
+    if (typeof L === "undefined") {
+      console.error("Leaflet wurde nicht geladen.");
+      return;
+    }
+
+    addPartyMap = L.map("addPartyMap").setView(
+      [state.latitude, state.longitude],
+      15
+    );
+
+    L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+      maxZoom: 19,
+      attribution: "&copy; OpenStreetMap contributors",
+    }).addTo(addPartyMap);
+  }
+
+  function updateMapMarker() {
+    if (!state.latitude || !state.longitude) {
+      return;
+    }
+
+    if (!addPartyMap) {
+      return;
+    }
+
+    const latLng = [state.latitude, state.longitude];
+
+    addPartyMap.setView(latLng, 15);
+
+    if (addPartyMarker) {
+      addPartyMarker.setLatLng(latLng);
+    } else {
+      addPartyMarker = L.marker(latLng).addTo(addPartyMap);
+    }
+
+    addPartyMarker.bindPopup(state.location_address || "Party Location").openPopup();
+
+    setTimeout(() => {
+      addPartyMap.invalidateSize();
+    }, 150);
+  }
+
+  async function saveParty() {
+  readFormIntoState();
+
+  if (!state.latitude || !state.longitude) {
+    await geocodeTypedAddress();
+  }
+
+  const currentUserId = getCurrentUserIdSafe();
+
+  if (!currentUserId) {
+    alert("Kein User angemeldet. Bitte neu einloggen.");
     return;
   }
 
   const payload = {
-    ...state,
-    fee: state.entry_costs ? parseFloat(state.entry_costs) : null,
-    time_start: formatDateForBackend(state.time_start),
-    time_end: formatDateForBackend(state.time_end),
-    min_age: parseInt(state.min_age) || 18,
-    max_age: state.max_age ? parseInt(state.max_age) : null
+    title: state.title,
+    description: state.description,
+    time_start: toBackendDate(state.time_start),
+    time_end: toBackendDate(state.time_end),
+
+    location_address: state.location_address,
+    latitude: state.latitude,
+    longitude: state.longitude,
+
+    visibility: state.visibility,
+    selectedUsers: visibility === "private" ? selectedUsers : [],
+
+    entry_costs: state.entry_costs,
+    fee: state.entry_costs,
+
+    theme: state.theme,
+    min_age: state.min_age,
+    max_age: state.max_age,
+    website: state.website,
+
+    host_user_id: Number(currentUserId),
+    hostUserId: Number(currentUserId),
   };
 
+  console.log("PAYLOAD:", payload);
+
   try {
-    const method = state.id ? "PUT" : "POST";
-    const url = state.id ? `/api/parties/${state.id}` : "/api/parties";
-    
-    const res = await fetch(url, {
+    const url = isEditMode
+  ? `/api/parties/${encodeURIComponent(editPartyId)}?user=${encodeURIComponent(currentUserId)}`
+  : `/api/parties?user=${encodeURIComponent(currentUserId)}`;
+
+    const method = isEditMode ? "PUT" : "POST";
+
+    console.log("SAVE URL:", url);
+    console.log("SAVE METHOD:", method);
+
+    const response = await fetch(url, {
       method: method,
-      headers: { 
+      headers: {
         "Content-Type": "application/json",
-        // Hier schicken wir die ID im Header (X-User-Id ist Standard für viele Dev-Backends)
-        "X-User-Id": userId.toString(),
-        // Falls dein Backend einen Authorization Header erwartet:
-        "Authorization": `User ${userId}` 
+        "X-User-Id": String(currentUserId),
       },
-      body: JSON.stringify(payload)
+      body: JSON.stringify(payload),
     });
 
-    if (res.ok) {
-      alert(state.id ? "Party aktualisiert!" : "Party erstellt!");
-      window.location.href = "/index.html";
-    } else {
-      const errResponse = await res.text();
-      console.error("Backend Fehler Details:", errResponse);
-      alert("Fehler: " + errResponse);
+    const responseText = await response.text();
+
+    console.log("SAVE STATUS:", response.status);
+    console.log("SAVE RESPONSE TEXT:", responseText);
+
+    if (!response.ok) {
+      console.error("Backend Fehler:", responseText);
+      throw new Error(`Speichern fehlgeschlagen. Status: ${response.status}`);
     }
-  } catch (e) {
-    console.error("Netzwerkfehler:", e);
+
+    let savedParty = null;
+
+    if (responseText && responseText.trim() !== "") {
+      try {
+        savedParty = JSON.parse(responseText);
+      } catch (error) {
+        console.warn("Response war kein JSON:", responseText);
+      }
+    }
+
+    console.log("Gespeicherte Party:", savedParty);
+
+    alert(isEditMode ? "Party wurde gespeichert." : "Party wurde erstellt.");
+
+    window.location.href = "../listPartys/listPartys.html";
+  } catch (error) {
+    console.error("Fehler beim Speichern:", error);
+    alert("Party konnte nicht gespeichert werden. Schau bitte in die Konsole.");
   }
 }
 
-  /* ==========================
-     INIT & EDIT MODE
-  ========================== */
-  async function init() {
-    const urlParams = new URLSearchParams(window.location.search);
-    const id = urlParams.get('id');
-
-    if (id) {
-      // Edit Mode
-      try {
-        const res = await fetch(`/api/parties/${id}`);
-        if (res.ok) {
-          const party = await res.json();
-          Object.assign(state, party);
-          // UI befüllen
-          document.querySelector('[name="title"]').value = state.title;
-          document.querySelector('[name="description"]').value = state.description;
-          if (state.time_start) fpStart.setDate(new Date(state.time_start));
-          if (state.time_end) fpEnd.setDate(new Date(state.time_end));
-          addressInput.value = state.location_address;
-          document.querySelector('[name="entry_costs"]').value = state.entry_costs || "";
-          document.querySelector('[name="min_age"]').value = state.min_age;
-        }
-      } catch (e) { console.error("Load Error", e); }
+  function toBackendDate(date) {
+    if (!date) {
+      return null;
     }
-    showStep(0);
+
+    if (typeof date === "string") {
+      return date;
+    }
+
+    /**
+     * Sendet lokale Zeit ohne UTC-Verschiebung.
+     * Beispiel: 09.04.2026 21:00 wird zu 2026-04-09T21:00:00
+     */
+    const year = date.getFullYear();
+    const month = pad(date.getMonth() + 1);
+    const day = pad(date.getDate());
+    const hours = pad(date.getHours());
+    const minutes = pad(date.getMinutes());
+    const seconds = pad(date.getSeconds());
+
+    return `${year}-${month}-${day}T${hours}:${minutes}:${seconds}`;
   }
 
-  init();
+  function pad(value) {
+    return String(value).padStart(2, "0");
+  }
 
-  // Address Suggestions
-  addressInput.addEventListener("input", () => {
-    clearTimeout(debounceTimer);
-    const q = addressInput.value.trim();
-    if (q.length < 3) return;
-    debounceTimer = setTimeout(async () => {
-      const res = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(q)}&limit=5`);
-      const data = await res.json();
-      suggestionsBox.innerHTML = "";
-      data.forEach(place => {
-        const d = document.createElement("div");
-        d.className = "suggestion";
-        d.textContent = place.display_name;
-        d.onclick = () => {
-          addressInput.value = place.display_name;
-          state.latitude = parseFloat(place.lat);
-          state.longitude = parseFloat(place.lon);
-          suggestionsBox.innerHTML = "";
-        };
-        suggestionsBox.appendChild(d);
-      });
-    }, 400);
-  });
-  let debounceTimer;
+  function formatDateForInput(date) {
+    return `${pad(date.getDate())}.${pad(date.getMonth() + 1)}.${date.getFullYear()} ${pad(date.getHours())}:${pad(date.getMinutes())}`;
+  }
+
+  async function safeJson(response) {
+    try {
+      return await response.json();
+    } catch {
+      return null;
+    }
+  }
+
+  function getCurrentUserIdSafe() {
+    try {
+      if (typeof window.getCurrentUserId === "function") {
+        const id = window.getCurrentUserId();
+
+        if (id) {
+          return id;
+        }
+      }
+
+      return (
+        localStorage.getItem("loggedInUserId") ||
+        sessionStorage.getItem("loggedInUserId") ||
+        null
+      );
+    } catch (error) {
+      console.warn("Current User ID konnte nicht gelesen werden:", error);
+      return null;
+    }
+  }
 });
