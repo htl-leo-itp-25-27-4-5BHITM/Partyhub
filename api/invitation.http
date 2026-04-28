@@ -79,4 +79,4 @@ Content-Type: application/json
 # Note: The invitation ID depends on the database state
 DELETE http://localhost:8080/api/invitations/2?user=5
 
-?? status == 403
+?? status == 204

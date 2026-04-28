@@ -14,13 +14,16 @@ Content-Type: application/json
   "fee": 10.0,
   "time_start": "2026-03-10T20:00:00",
   "time_end": "2026-03-10T23:00:00",
+  "max_people": 50,
   "website": "https://party.example.com",
   "min_age": 18,
   "max_age": 99,
   "latitude": 48.2082,
   "longitude": 16.3738,
   "location_address": "Wien, Österreich",
-  "visibility": "PUBLIC"
+  "theme": "Test",
+  "visibility": "PUBLIC",
+  "selectedUsers": []
 }
 
 ?? status == 201
@@ -57,13 +60,16 @@ Content-Type: application/json
   "fee": 15.0,
   "time_start": "2026-03-11T20:00:00",
   "time_end": "2026-03-11T23:00:00",
+  "max_people": 60,
   "website": "https://party-updated.example.com",
   "min_age": 18,
   "max_age": 99,
   "latitude": 48.2082,
   "longitude": 16.3738,
   "location_address": "Wien, Österreich",
-  "visibility": "PUBLIC"
+  "theme": "Updated",
+  "visibility": "PUBLIC",
+  "selectedUsers": []
 }
 
 ?? status == 200
