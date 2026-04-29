@@ -1,17 +1,58 @@
-# Media endpoints - nested under parties/users
-# Note: Direct media endpoints by ID may not exist - use party/user media instead
+@host = http://localhost:8080
 
 ###########################################
-### 1. Get party media (from party endpoint)
+### Seed: media for party 1
 ###########################################
-GET http://localhost:8080/api/parties/2/media
+GET {{host}}/api/parties/1/media
 
 ?? status == 200
 
 
 ###########################################
-### 2. Get user media (from user endpoint)
+### Seed: media for party without images still returns list
 ###########################################
-GET http://localhost:8080/api/users/2/media
+GET {{host}}/api/parties/4/media
 
 ?? status == 200
+
+
+###########################################
+### Seed: media uploaded by Anna
+###########################################
+GET {{host}}/api/users/1/media
+
+?? status == 200
+
+
+###########################################
+### Upload image for party 2
+###########################################
+POST {{host}}/api/parties/2/media/upload?user=3
+X-User-Id: 3
+Content-Type: multipart/form-data; boundary=WebAppBoundary
+
+--WebAppBoundary
+Content-Disposition: form-data; name="file"; filename="testing.jpg"
+Content-Type: image/jpeg
+
+< ./testing.jpg
+--WebAppBoundary--
+
+?? status == 200
+
+
+###########################################
+### Upload to unknown party returns 404
+###########################################
+POST {{host}}/api/parties/99999/media/upload?user=3
+X-User-Id: 3
+Content-Type: multipart/form-data; boundary=WebAppBoundary
+
+--WebAppBoundary
+Content-Disposition: form-data; name="file"; filename="testing.jpg"
+Content-Type: image/jpeg
+
+< ./testing.jpg
+--WebAppBoundary--
+
+?? status == 404

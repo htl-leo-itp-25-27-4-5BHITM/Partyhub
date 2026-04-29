@@ -44,7 +44,12 @@ document.addEventListener("DOMContentLoaded", async () => {
       const url = userId
         ? `/api/parties?user=${encodeURIComponent(userId)}`
         : "/api/parties";
-      const response = await fetch(url, { headers });
+      const response = await fetch(url, {
+        cache: "no-store",
+        headers: userId
+          ? { ...headers, "Cache-Control": "no-cache" }
+          : { "Cache-Control": "no-cache" }
+      });
       if (!response.ok) throw new Error("Failed to fetch parties");
       const parties = await response.json();
       

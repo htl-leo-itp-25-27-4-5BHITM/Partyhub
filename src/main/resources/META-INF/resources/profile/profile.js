@@ -284,7 +284,9 @@ document.addEventListener("DOMContentLoaded", function () {
 
       async getPartiesByUser(userId) {
         const response = await fetch(`/api/parties?user=${encodeURIComponent(userId)}`, {
+          cache: "no-store",
           headers: {
+            "Cache-Control": "no-cache",
             "X-User-Id": String(userId),
           },
         });

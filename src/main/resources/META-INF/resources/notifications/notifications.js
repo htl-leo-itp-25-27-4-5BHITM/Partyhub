@@ -56,6 +56,32 @@ document.addEventListener("DOMContentLoaded", async () => {
     throw lastError ?? new Error("All fetch attempts failed");
   }
 
+  async function fetchPartyForNotification(partyId) {
+    if (partyId == null) return null;
+
+    const userId = currentUserId ?? window.getCurrentUserId?.() ?? null;
+    const hasUser = userId !== null && userId !== undefined && String(userId) !== "";
+    const url = hasUser
+      ? `/api/parties/${encodeURIComponent(partyId)}?user=${encodeURIComponent(userId)}`
+      : `/api/parties/${encodeURIComponent(partyId)}`;
+
+    try {
+      const res = await fetch(url, {
+        headers: hasUser ? { "X-User-Id": String(userId) } : {}
+      });
+
+      if (!res.ok) {
+        console.warn("Party fetch failed for notification:", url, res.status);
+        return null;
+      }
+
+      return await res.json().catch(() => null);
+    } catch (err) {
+      console.warn("Party fetch error for notification:", url, err);
+      return null;
+    }
+  }
+
   async function fetchWithFallback(requests) {
     let lastError = null;
 
@@ -241,19 +267,11 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     const partyMap = {};
 
-    if (typeof getPartyById === "function") {
-      await Promise.all(
-        [...partyIds].map(async (id) => {
-          try {
-            partyMap[id] = (await getPartyById(id)) ?? null;
-          } catch {
-            partyMap[id] = null;
-          }
-        })
-      );
-    } else {
-      console.warn("getPartyById() fehlt – partyTitle kommt nur aus invitation.party");
-    }
+    await Promise.all(
+      [...partyIds].map(async (id) => {
+        partyMap[id] = await fetchPartyForNotification(id);
+      })
+    );
 
     data = [];
 

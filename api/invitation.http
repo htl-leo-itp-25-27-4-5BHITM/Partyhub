@@ -1,82 +1,86 @@
-# Invitation endpoints - now under /api/invitations
+@host = http://localhost:8080
+@baseUrl = {{host}}/api/invitations
 
 ###########################################
-### 1. Create invitation
+### Seed: Michael received invitation 1 for private party 4
 ###########################################
-POST http://localhost:8080/api/invitations?user=1
-Content-Type: application/json
-
-{
-  "recipient": 3,
-  "partyId": 1
-}
-
-?? status == 201
-
-
-###########################################
-### 2. Get sent invitations (user 1 sent)
-###########################################
-GET http://localhost:8080/api/invitations?user=1&direction=sent
+GET {{baseUrl}}?user=2&direction=received
 
 ?? status == 200
 
 
 ###########################################
-### 3. Get received invitations (user 3 received)
+### Seed: Thomas sent invitations for private party 4
 ###########################################
-GET http://localhost:8080/api/invitations?user=3&direction=received
+GET {{baseUrl}}?user=4&direction=sent
 
 ?? status == 200
 
 
 ###########################################
-### 4. Create another invitation
+### Seed: Anna received invitation 3 for private party 9
 ###########################################
-POST http://localhost:8080/api/invitations?user=1
-Content-Type: application/json
-
-{
-  "recipient": 4,
-  "partyId": 2
-}
-
-?? status == 201
-
-
-###########################################
-### 5. Get all invitations for user 1
-###########################################
-GET http://localhost:8080/api/invitations?user=1
+GET {{baseUrl}}?user=1&direction=received
 
 ?? status == 200
 
 
 ###########################################
-### 6. Delete invitation (decline)
+### User is required
 ###########################################
-DELETE http://localhost:8080/api/invitations/1?user=1
+GET {{baseUrl}}
 
-?? status == 204
+?? status == 400
 
 
 ###########################################
-### 7. Decline - Create invitation then decline (delete)
+### Duplicate seed invitation is rejected
 ###########################################
-# Create a new invitation (user 2 sends to user 5)
-POST http://localhost:8080/api/invitations?user=2
+POST {{baseUrl}}?user=4
 Content-Type: application/json
 
 {
-  "recipient": 5,
-  "partyId": 3
+  "recipient": 2,
+  "partyId": 4
 }
 
-?? status == 201
+?? status == 409
 
-###
-# Decline (delete) the invitation - user 5 (recipient) can decline
-# Note: The invitation ID depends on the database state
-DELETE http://localhost:8080/api/invitations/3?user=5
 
-?? status == 204
+###########################################
+### Create invitation for seed party 11
+###########################################
+POST {{baseUrl}}?user=1
+X-User-Id: 1
+Content-Type: application/json
+
+{
+  "recipient": 6,
+  "partyId": 11
+}
+
+?? status == 201 || status == 409
+
+
+###########################################
+### Created invitation can be read by recipient
+###########################################
+GET {{baseUrl}}?user=6&direction=received
+
+?? status == 200
+
+
+###########################################
+### Only sender or recipient may delete an invitation
+###########################################
+DELETE {{baseUrl}}/1?user=5
+
+?? status == 403 || status == 404
+
+
+###########################################
+### Delete seed invitation 2 as recipient David
+###########################################
+DELETE {{baseUrl}}/2?user=8
+
+?? status == 204 || status == 404

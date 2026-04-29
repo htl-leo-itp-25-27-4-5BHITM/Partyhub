@@ -124,11 +124,13 @@ async function loadPartyDetails(partyId) {
       : `/api/parties/${encodeURIComponent(partyId)}`;
 
     const response = await fetch(url, {
+      cache: "no-store",
       headers: userId
         ? {
             "X-User-Id": String(userId),
+            "Cache-Control": "no-cache",
           }
-        : {},
+        : { "Cache-Control": "no-cache" },
     });
 
     if (!response.ok) {

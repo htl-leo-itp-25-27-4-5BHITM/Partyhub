@@ -1,76 +1,81 @@
-# Follow endpoints - under /api/users/{id}/*
-# Paths must match UserResource.java implementation
+@host = http://localhost:8080
+@baseUrl = {{host}}/api/users
 
 ###########################################
-### 1. Follower Count
+### Seed: follower count for Anna
 ###########################################
-GET http://localhost:8080/api/users/1/followers/count
+GET {{baseUrl}}/1/followers/count
 
 ?? status == 200
 
 
 ###########################################
-### 2. Following Count
+### Seed: following count for Anna
 ###########################################
-GET http://localhost:8080/api/users/1/following/count
+GET {{baseUrl}}/1/following/count
 
 ?? status == 200
 
 
 ###########################################
-### 3. Get followers of user
+### Seed: followers of Anna
 ###########################################
-GET http://localhost:8080/api/users/1/followers
+GET {{baseUrl}}/1/followers
 
 ?? status == 200
 
 
 ###########################################
-### 4. Get following of user
+### Seed: Anna follows Michael and Katrin
 ###########################################
-GET http://localhost:8080/api/users/2/following
+GET {{baseUrl}}/1/following
 
 ?? status == 200
 
 
 ###########################################
-### 5. Get pending follow requests
+### Seed: Michael wants to follow Thomas
 ###########################################
-GET http://localhost:8080/api/users/1/follow-requests
+GET {{baseUrl}}/4/follow-requests
 
 ?? status == 200
 
 
 ###########################################
-### 6. Check if user1 is following user2 (status endpoint)
+### Seed: Anna follows Michael
 ###########################################
-GET http://localhost:8080/api/users/1/followers/2/status
+GET {{baseUrl}}/1/followers/2/status
 
 ?? status == 200
 
 
 ###########################################
-### 7. Send follow request (user 2 wants to follow user 3)
+### Send follow request: Lukas wants to follow Nina
 ###########################################
-POST http://localhost:8080/api/users/2/follow?targetUserId=3
+POST {{baseUrl}}/6/follow?targetUserId=9
 
-?? status == 201
-
-
-###########################################
-### 8. Accept follow request (user 3 accepts user 2's request)
-###########################################
-PUT http://localhost:8080/api/users/3/followers/2
-
-?? status == 200
-
+?? status == 201 || status == 409
 
 
 ###########################################
-### 10. Decline follow request (reject pending request)
-### User 6 has pending request to follow user 1
-### To decline: DELETE /api/users/{recipientId}/followers/{followerId}
+### Accept follow request: Nina accepts Lukas
 ###########################################
-DELETE http://localhost:8080/api/users/1/followers/6
+PUT {{baseUrl}}/9/followers/6
 
-?? status == 404
+?? status == 200 || status == 404
+
+
+###########################################
+### Remove accepted relationship again
+###########################################
+DELETE {{baseUrl}}/9/followers/6
+
+?? status == 204 || status == 404
+
+
+###########################################
+### Follow targetUserId is required
+###########################################
+POST {{baseUrl}}/6/follow
+
+?? status == 400

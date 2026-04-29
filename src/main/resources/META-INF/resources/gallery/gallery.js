@@ -25,7 +25,16 @@ document.addEventListener("DOMContentLoaded", function () {
 async function loadGallery(partyId) {
   try {
     // Load party details for the title
-    const partyResponse = await fetch(`/api/parties/${partyId}`);
+    const userId = window.getCurrentUserId?.() ?? window.authService?.getCurrentUserId?.() ?? null;
+    const partyUrl = userId
+      ? `/api/parties/${encodeURIComponent(partyId)}?user=${encodeURIComponent(userId)}`
+      : `/api/parties/${encodeURIComponent(partyId)}`;
+    const partyResponse = await fetch(partyUrl, {
+      cache: 'no-store',
+      headers: userId
+        ? { 'X-User-Id': String(userId), 'Cache-Control': 'no-cache' }
+        : { 'Cache-Control': 'no-cache' }
+    });
     if (!partyResponse.ok) {
       throw new Error('Failed to fetch party details');
     }

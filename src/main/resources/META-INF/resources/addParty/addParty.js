@@ -459,46 +459,58 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   async function loadPartyForEdit(id) {
-  try {
-    let party = null;
+    try {
+      let party = null;
+      const currentUserId = getCurrentUserIdSafe();
+      const hasUser =
+        currentUserId !== null &&
+        currentUserId !== undefined &&
+        String(currentUserId) !== "";
+      const headers = hasUser
+        ? { "X-User-Id": String(currentUserId), "Cache-Control": "no-cache" }
+        : { "Cache-Control": "no-cache" };
+      const partyUrl = hasUser
+        ? `/api/parties/${encodeURIComponent(id)}?user=${encodeURIComponent(currentUserId)}`
+        : `/api/parties/${encodeURIComponent(id)}`;
 
-    let response = await fetch(`/api/parties/${id}`);
+      let response = await fetch(partyUrl, { cache: "no-store", headers });
 
-    if (response.ok) {
-      party = await response.json();
-    } else {
-      console.warn(`/api/parties/${id} ging nicht, versuche /api/parties/ ...`);
+      if (response.ok) {
+        party = await response.json();
+      } else {
+        console.warn(`${partyUrl} ging nicht, versuche Party-Liste aus dem Backend ...`);
+        const listUrl = hasUser
+          ? `/api/parties?user=${encodeURIComponent(currentUserId)}`
+          : "/api/parties";
+        const listResponse = await fetch(listUrl, { cache: "no-store", headers });
 
-      const listResponse = await fetch("/api/parties/");
+        if (!listResponse.ok) {
+          throw new Error(
+            `Party konnte nicht aus dem Backend geladen werden. Einzelstatus: ${response.status}, Listenstatus: ${listResponse.status}`
+          );
+        }
 
-      if (!listResponse.ok) {
-        throw new Error(
-          `Party konnte nicht geladen werden. Einzelstatus: ${response.status}, Listenstatus: ${listResponse.status}`
-        );
+        const parties = await listResponse.json();
+        party = parties.find((p) => String(p.id) === String(id));
+
+        if (!party) {
+          throw new Error(`Party mit ID ${id} wurde in der sichtbaren Backend-Party-Liste nicht gefunden.`);
+        }
       }
 
-      const parties = await listResponse.json();
+      console.log("Geladene Party:", party);
+      console.log("Alle Feldnamen:", Object.keys(party));
+      console.log("Adresse location_address:", party.location_address);
+      console.log("Adresse locationAddress:", party.locationAddress);
+      console.log("Adresse address:", party.address);
+      console.log("Adresse location:", party.location);
 
-      party = parties.find((p) => String(p.id) === String(id));
-
-      if (!party) {
-        throw new Error(`Party mit ID ${id} wurde in der Liste nicht gefunden.`);
-      }
+      fillFormWithParty(party);
+    } catch (error) {
+      console.error("Fehler beim Laden der Party:", error);
+      alert("Party konnte nicht geladen werden.");
     }
-
-    console.log("Geladene Party:", party);
-    console.log("Alle Feldnamen:", Object.keys(party));
-    console.log("Adresse location_address:", party.location_address);
-    console.log("Adresse locationAddress:", party.locationAddress);
-    console.log("Adresse address:", party.address);
-    console.log("Adresse location:", party.location);
-
-    fillFormWithParty(party);
-  } catch (error) {
-    console.error("Fehler beim Laden der Party:", error);
-    alert("Party konnte nicht geladen werden.");
   }
-}
 
   function fillFormWithParty(party) {
   state.id = party.id ?? editPartyId;
