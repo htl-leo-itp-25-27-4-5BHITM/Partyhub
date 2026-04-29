@@ -36,7 +36,7 @@ cd Partyhub
 ```
 
 ### 2. Setup local development
-
+```bash
 # sichere Variante (Standard)
 ./deploy.sh
 
@@ -45,7 +45,7 @@ cd Partyhub
 
 # explizit update
 ./deploy.sh update
-
+```
 ### 3. Sync import.sql to Local and Server DB
 
 If you change seed data in `src/main/resources/import.sql`, apply it with:
