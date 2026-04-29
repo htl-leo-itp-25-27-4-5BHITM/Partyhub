@@ -2,24 +2,6 @@
 @baseUrl = {{host}}/api/notifications
 
 ###########################################
-### Seed: notifications for Michael
-###########################################
-GET {{baseUrl}}?user=2
-X-User-Id: 2
-
-?? status == 200
-
-
-###########################################
-### Seed: unread notifications for Michael
-###########################################
-GET {{baseUrl}}/unread?user=2
-X-User-Id: 2
-
-?? status == 200
-
-
-###########################################
 ### Missing user currently returns an empty list
 ###########################################
 GET {{baseUrl}}

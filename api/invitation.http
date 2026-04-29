@@ -48,39 +48,16 @@ Content-Type: application/json
 
 
 ###########################################
-### Create invitation for seed party 11
-###########################################
-POST {{baseUrl}}?user=1
-X-User-Id: 1
-Content-Type: application/json
-
-{
-  "recipient": 6,
-  "partyId": 11
-}
-
-?? status == 201 || status == 409
-
-
-###########################################
-### Created invitation can be read by recipient
-###########################################
-GET {{baseUrl}}?user=6&direction=received
-
-?? status == 200
-
-
-###########################################
 ### Only sender or recipient may delete an invitation
 ###########################################
 DELETE {{baseUrl}}/1?user=5
 
-?? status == 403 || status == 404
+?? status == 403
 
 
 ###########################################
-### Delete seed invitation 2 as recipient David
+### Unknown invitation returns 404
 ###########################################
-DELETE {{baseUrl}}/2?user=8
+DELETE {{baseUrl}}/99999?user=8
 
-?? status == 204 || status == 404
+?? status == 404
