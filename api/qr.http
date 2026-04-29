@@ -1,0 +1,109 @@
+@host = http://localhost:8080
+@baseUrl = {{host}}/api/qr
+@annaQrToken = qr-login-anna-20260501
+
+###########################################
+### Generate QR payload for Anna
+###########################################
+GET {{baseUrl}}/generate?userId=1
+
+?? status == 200
+
+
+###########################################
+### Generate QR needs userId
+###########################################
+GET {{baseUrl}}/generate
+
+?? status == 400
+
+
+###########################################
+### Generate QR for unknown user
+###########################################
+GET {{baseUrl}}/generate?userId=99999
+
+?? status == 404
+
+
+###########################################
+### Seed QR token status
+###########################################
+GET {{baseUrl}}/status/{{annaQrToken}}
+
+?? status == 200
+
+
+###########################################
+### Unknown QR token status
+###########################################
+GET {{baseUrl}}/status/does-not-exist
+
+?? status == 404
+
+
+###########################################
+### QR image by user
+###########################################
+GET {{baseUrl}}/image/user/1
+
+?? status == 200
+
+
+###########################################
+### QR image by unknown user
+###########################################
+GET {{baseUrl}}/image/user/99999
+
+?? status == 404
+
+
+###########################################
+### QR image by seed token
+###########################################
+GET {{baseUrl}}/image/{{annaQrToken}}
+
+?? status == 200
+
+
+###########################################
+### QR image by unknown token
+###########################################
+GET {{baseUrl}}/image/does-not-exist
+
+?? status == 404
+
+
+###########################################
+### Exchange needs token
+###########################################
+POST {{baseUrl}}/exchange
+Content-Type: application/json
+
+{}
+
+?? status == 400
+
+
+###########################################
+### Exchange rejects unknown token
+###########################################
+POST {{baseUrl}}/exchange
+Content-Type: application/json
+
+{
+  "token": "does-not-exist"
+}
+
+?? status == 404
+
+
+###########################################
+### Mobile me needs mobile_token
+###########################################
+POST {{baseUrl}}/mobile/me
+Content-Type: application/json
+
+{}
+
+?? status == 400

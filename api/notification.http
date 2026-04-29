@@ -1,0 +1,63 @@
+@host = http://localhost:8080
+@baseUrl = {{host}}/api/notifications
+
+###########################################
+### Seed: notifications for Michael
+###########################################
+GET {{baseUrl}}?user=2
+X-User-Id: 2
+
+?? status == 200
+
+
+###########################################
+### Seed: unread notifications for Michael
+###########################################
+GET {{baseUrl}}/unread?user=2
+X-User-Id: 2
+
+?? status == 200
+
+
+###########################################
+### Missing user currently returns an empty list
+###########################################
+GET {{baseUrl}}
+
+?? status == 200
+
+
+###########################################
+### Mark Michael's invitation notification as read
+###########################################
+POST {{baseUrl}}/1/read?user=2
+X-User-Id: 2
+
+?? status == 200
+
+
+###########################################
+### Other users cannot mark Michael's notification
+###########################################
+POST {{baseUrl}}/1/read?user=1
+X-User-Id: 1
+
+?? status == 403
+
+
+###########################################
+### Other users cannot delete Michael's notification
+###########################################
+DELETE {{baseUrl}}/1?user=1
+X-User-Id: 1
+
+?? status == 403
+
+
+###########################################
+### Delete unknown notification
+###########################################
+DELETE {{baseUrl}}/99999?user=2
+X-User-Id: 2
+
+?? status == 404
