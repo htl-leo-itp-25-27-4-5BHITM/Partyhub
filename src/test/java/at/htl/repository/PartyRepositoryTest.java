@@ -2,6 +2,7 @@ package at.htl.repository;
 
 import at.htl.invitation.Invitation;
 import at.htl.location.Location;
+import at.htl.notification.Notification;
 import at.htl.party.Party;
 import at.htl.party.PartyCreateDto;
 import at.htl.party.PartyRepository;
@@ -214,6 +215,93 @@ public class PartyRepositoryTest {
                 .getResultList();
         assertEquals(1, invitations.size());
         assertEquals(recipient.getId(), invitations.get(0).getRecipient().getId());
+    }
+
+    @Test
+    void testUpdatePublicPartyToPrivateInvitesSelectedUser() {
+        createTestData();
+        User host = entityManager.createQuery("SELECT u FROM User u", User.class).getSingleResult();
+
+        User recipient = new User();
+        recipient.setDisplayName("Update Recipient");
+        recipient.setDistinctName("update-recipient");
+        recipient.setEmail("update-recipient@example.com");
+        entityManager.persist(recipient);
+        entityManager.flush();
+
+        Response createResponse = partyRepository.addParty(createPartyDto("public", List.of()), host.getId());
+        assertEquals(201, createResponse.getStatus());
+
+        Party party = entityManager
+                .createQuery("SELECT p FROM Party p WHERE p.title = :title", Party.class)
+                .setParameter("title", "Created Party")
+                .getSingleResult();
+
+        Response updateResponse = partyRepository.updateParty(
+                party.getId(),
+                createPartyDto("private", List.of(String.valueOf(recipient.getId()))),
+                host.getId()
+        );
+
+        assertEquals(200, updateResponse.getStatus());
+
+        List<Invitation> invitations = entityManager
+                .createQuery("SELECT i FROM Invitation i WHERE i.party.id = :partyId", Invitation.class)
+                .setParameter("partyId", party.getId())
+                .getResultList();
+        assertEquals(1, invitations.size());
+        assertEquals(recipient.getId(), invitations.get(0).getRecipient().getId());
+
+        List<Notification> notifications = entityManager
+                .createQuery("SELECT n FROM Notification n WHERE n.party.id = :partyId", Notification.class)
+                .setParameter("partyId", party.getId())
+                .getResultList();
+        assertEquals(1, notifications.size());
+        assertEquals(recipient.getId(), notifications.get(0).getRecipient().getId());
+    }
+
+    @Test
+    void testUpdatePrivatePartyDoesNotDuplicateExistingInvitation() {
+        createTestData();
+        User host = entityManager.createQuery("SELECT u FROM User u", User.class).getSingleResult();
+
+        User recipient = new User();
+        recipient.setDisplayName("Existing Recipient");
+        recipient.setDistinctName("existing-recipient");
+        recipient.setEmail("existing-recipient@example.com");
+        entityManager.persist(recipient);
+        entityManager.flush();
+
+        Response createResponse = partyRepository.addParty(
+                createPartyDto("private", List.of(String.valueOf(recipient.getId()))),
+                host.getId()
+        );
+        assertEquals(201, createResponse.getStatus());
+
+        Party party = entityManager
+                .createQuery("SELECT p FROM Party p WHERE p.title = :title", Party.class)
+                .setParameter("title", "Created Party")
+                .getSingleResult();
+
+        Response updateResponse = partyRepository.updateParty(
+                party.getId(),
+                createPartyDto("private", List.of(String.valueOf(recipient.getId()))),
+                host.getId()
+        );
+
+        assertEquals(200, updateResponse.getStatus());
+
+        Long invitationCount = entityManager
+                .createQuery("SELECT COUNT(i) FROM Invitation i WHERE i.party.id = :partyId", Long.class)
+                .setParameter("partyId", party.getId())
+                .getSingleResult();
+        assertEquals(1L, invitationCount);
+
+        Long notificationCount = entityManager
+                .createQuery("SELECT COUNT(n) FROM Notification n WHERE n.party.id = :partyId", Long.class)
+                .setParameter("partyId", party.getId())
+                .getSingleResult();
+        assertEquals(1L, notificationCount);
     }
 
     @Test

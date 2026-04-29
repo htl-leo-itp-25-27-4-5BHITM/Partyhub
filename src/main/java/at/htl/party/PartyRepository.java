@@ -98,23 +98,7 @@ public class PartyRepository {
 
         entityManager.persist(party);
 
-        if ("PRIVATE".equalsIgnoreCase(visibility) && partyCreateDto.selectedUsers() != null && !partyCreateDto.selectedUsers().isEmpty()) {
-            for (String selectedUser : partyCreateDto.selectedUsers()) {
-                User recipient = findSelectedUser(selectedUser);
-
-                if (recipient != null && !recipient.getId().equals(userId)) {
-                    Invitation invitation = new Invitation();
-                    invitation.setSender(host);
-                    invitation.setRecipient(recipient);
-                    invitation.setParty(party);
-                    entityManager.persist(invitation);
-
-                    String message = host.getDisplayName() + " hat dich zu der Party \"" + party.getTitle() + "\" eingeladen";
-                    Notification notification = new Notification(recipient, host, party, message);
-                    notificationRepository.createNotification(notification);
-                }
-            }
-        }
+        inviteSelectedUsersForPrivateParty(partyCreateDto, party, host, userId);
 
         return Response.created(
                 UriBuilder.fromResource(PartyResource.class)
@@ -162,7 +146,8 @@ public class PartyRepository {
         party.setMax_age(partyCreateDto.max_age());
         party.setMin_age(partyCreateDto.min_age());
         party.setMax_people(partyCreateDto.max_people());
-        party.setVisibility(normalizeVisibility(partyCreateDto.visibility()));
+        String visibility = normalizeVisibility(partyCreateDto.visibility());
+        party.setVisibility(visibility);
         party.setHost_user(host);
 
         Location location = locationRepository.findByLatitudeAndLongitude(
@@ -179,6 +164,8 @@ public class PartyRepository {
         }
 
         party.setTheme(partyCreateDto.theme());
+        inviteSelectedUsersForPrivateParty(partyCreateDto, party, host, userId);
+
         String newDescription = partyCreateDto.description();
 
         if (newDescription != null && !newDescription.equals(oldDescription)) {
@@ -205,6 +192,65 @@ public class PartyRepository {
         }
 
         return Response.ok(party).build();
+    }
+
+    private void inviteSelectedUsersForPrivateParty(
+            PartyCreateDto partyCreateDto,
+            Party party,
+            User host,
+            Long hostUserId) {
+        if (!"PRIVATE".equalsIgnoreCase(party.getVisibility()) ||
+                partyCreateDto.selectedUsers() == null ||
+                partyCreateDto.selectedUsers().isEmpty()) {
+            return;
+        }
+
+        for (String selectedUser : partyCreateDto.selectedUsers()) {
+            User recipient = findSelectedUser(selectedUser);
+
+            if (recipient == null || recipient.getId().equals(hostUserId)) {
+                continue;
+            }
+
+            if (hasInvitationForRecipient(party, recipient)) {
+                continue;
+            }
+
+            Invitation invitation = new Invitation();
+            invitation.setSender(host);
+            invitation.setRecipient(recipient);
+            invitation.setParty(party);
+            entityManager.persist(invitation);
+
+            if (party.getInvitations() != null) {
+                party.getInvitations().add(invitation);
+            }
+
+            String hostName = host.getDisplayName() != null ? host.getDisplayName() : host.getUsername();
+            String message = hostName + " hat dich zu der Party \"" + party.getTitle() + "\" eingeladen";
+            Notification notification = new Notification(recipient, host, party, message);
+            notificationRepository.createNotification(notification);
+        }
+    }
+
+    private boolean hasInvitationForRecipient(Party party, User recipient) {
+        if (party.getInvitations() != null &&
+                party.getInvitations().stream()
+                        .anyMatch(i -> i.getRecipient() != null && i.getRecipient().getId().equals(recipient.getId()))) {
+            return true;
+        }
+
+        if (party.getId() == null) {
+            return false;
+        }
+
+        Long count = entityManager.createQuery(
+                        "SELECT COUNT(i) FROM Invitation i WHERE i.party.id = :partyId AND i.recipient.id = :recipientId",
+                        Long.class)
+                .setParameter("partyId", party.getId())
+                .setParameter("recipientId", recipient.getId())
+                .getSingleResult();
+        return count > 0;
     }
 
     public List<Party> findByTitleOrDescription(String q) {
