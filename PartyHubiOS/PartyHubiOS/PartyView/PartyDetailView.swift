@@ -106,7 +106,7 @@ struct PartyDetailView: View {
                 resolvedAddress: $resolvedAddress
             )
 
-            Section("Teilnehmer live") {
+            Section("Teilnehmer Map") {
                 NavigationLink {
                     PartyAttendeeMapView(
                         party: party,
@@ -115,10 +115,6 @@ struct PartyDetailView: View {
                 } label: {
                     Label("Teilnehmer auf Karte anzeigen", systemImage: "person.2.fill")
                 }
-
-                Text("Diese Karte zeigt nur die ausgewählte Party und die Teilnehmer dieser Party.")
-                    .font(.footnote)
-                    .foregroundStyle(.secondary)
             }
             
             // MARK: - Time Tracking
