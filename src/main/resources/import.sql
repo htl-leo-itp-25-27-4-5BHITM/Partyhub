@@ -122,7 +122,7 @@ INSERT INTO party (
     (9, 9, 10, 'Private Dinner Party in Steyregg', 'Dinner', '2026-05-09 18:30:00', '2026-05-09 23:30:00', 20, 20, 45, NULL, 'Einladung only, gutes Essen und danach Wohnzimmer-Dancefloor.', 0.00, '2026-04-28 10:10:00', 'PRIVATE'),
     (10, 10, 13, 'JKU Semester Kickoff', 'Campus', '2026-05-10 19:00:00', '2026-05-11 01:00:00', 200, 18, 32, 'https://partyhub.local/jku-kickoff', 'Semesterstart mit DJ, Fotoecke und vielen neuen Gesichtern.', 4.00, '2026-04-28 11:00:00', 'PUBLIC'),
     (11, 1, 16, 'Graduation Gala', 'School Party', '2026-06-14 18:00:00', '2026-06-14 23:30:00', 120, 16, 28, 'https://www.htl-leonding.at', 'Vom Klassenzimmer auf den roten Teppich. Wir feiern unseren Abschluss mit Stil, Glanz und Gloria. Dress to impress!', 7.50, '2026-04-28 19:59:00', 'PUBLIC'),
-    (12, 1, 17, 'Carlas 18.Geburtstag', 'Birthday Party','2026-06-14 18:00:00', '2026-06-14 23:30:00', 18, 17,20,'https://partyhub.local/carlaparty','Carlas Birthday Party', 0.00,'2026-04-25 16:00:00', 'PRIVATE');
+    (12, 1, 17, 'Carlas 18.Geburtstag', 'Birthday Party','2026-06-14 18:00:00', '2026-06-14 23:30:00', 18, 17,20,'https://partyhub.local/carlaparty','Carlas Birthday Party', 0.00,'2026-04-25 16:00:00', 'PUBLIC');
 
 -- =========================
 -- PARTY ATTENDEES
