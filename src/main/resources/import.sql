@@ -120,7 +120,7 @@ INSERT INTO party (
     (8, 8, 15, 'Hafenviertel Indie Night', 'Indie', '2026-05-08 21:00:00', '2026-05-09 02:30:00', 90, 18, 39, 'https://partyhub.local/hafen-indie', 'Kleine Bühne, Live-Acts und danach DJ-Set bis spät.', 9.00, '2026-04-28 09:45:00', 'PUBLIC'),
     (9, 9, 10, 'Private Dinner Party in Steyregg', 'Dinner', '2026-05-09 18:30:00', '2026-05-09 23:30:00', 20, 20, 45, NULL, 'Einladung only, gutes Essen und danach Wohnzimmer-Dancefloor.', 0.00, '2026-04-28 10:10:00', 'PRIVATE'),
     (10, 10, 13, 'JKU Semester Kickoff', 'Campus', '2026-05-10 19:00:00', '2026-05-11 01:00:00', 200, 18, 32, 'https://partyhub.local/jku-kickoff', 'Semesterstart mit DJ, Fotoecke und vielen neuen Gesichtern.', 4.00, '2026-04-28 11:00:00', 'PUBLIC'),
-    (11, 1, 16, 'HTL Leonding Campus Night', 'School Party', '2026-06-14 18:00:00', '2026-06-14 23:30:00', 120, 16, 28, 'https://partyhub.local/htl-leonding-campus-night', 'Anna Huber hostet einen Abend mit DJ-Set, Chillout-Area und Snacks direkt bei der HTL Leonding.', 7.50, '2026-04-28 19:59:00', 'PUBLIC');
+    (11, 1, 16, 'Graduation Gala', 'School Party', '2026-06-14 18:00:00', '2026-06-14 23:30:00', 120, 16, 28, 'https://www.htl-leonding.at', 'Vom Klassenzimmer auf den roten Teppich. Wir feiern unseren Abschluss mit Stil, Glanz und Gloria. Dress to impress!', 7.50, '2026-04-28 19:59:00', 'PUBLIC');
 
 -- =========================
 -- PARTY ATTENDEES
