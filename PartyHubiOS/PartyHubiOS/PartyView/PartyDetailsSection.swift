@@ -6,7 +6,21 @@ struct PartyDetailsSection: View {
     var body: some View {
         Section("Details") {
 
-            if let hostName = party.hostDisplayName {
+            if let hostName = party.hostDisplayName, let hostUserId = party.hostUserId {
+                HStack(spacing: 12) {
+                    UserProfileImageView(userId: Int(hostUserId), size: 50, showBorder: false)
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text("Veranstalter")
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                        Text(hostName)
+                            .font(.subheadline)
+                            .foregroundStyle(.primary)
+                    }
+                    Spacer()
+                }
+                .frame(minHeight: 60)
+            } else if let hostName = party.hostDisplayName {
                 LabeledContent("Veranstalter") {
                     Text(hostName)
                         .foregroundStyle(.secondary)

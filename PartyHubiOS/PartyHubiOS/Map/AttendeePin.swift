@@ -3,10 +3,9 @@ import SwiftUI
 struct AttendeePin: View {
     let isAtParty: Bool
     let isSelf: Bool
+    let userId: Int?
 
     private var color: Color { isAtParty ? .green : .gray }
-    private var icon: String { isSelf ? "person.circle.fill" : "person.fill" }
-    private var iconSize: CGFloat { isSelf ? 36 : 26 }
 
     var body: some View {
         ZStack {
@@ -17,10 +16,15 @@ struct AttendeePin: View {
                 .fill(color)
                 .frame(width: 46, height: 46)
                 .shadow(color: color.opacity(0.5), radius: 8)
-            Image(systemName: icon)
-                .resizable()
-                .foregroundStyle(.white)
-                .frame(width: iconSize, height: iconSize)
+            
+            if let userId = userId {
+                UserProfileImageView(userId: userId, size: 40, showBorder: false)
+            } else {
+                Image(systemName: isSelf ? "person.circle.fill" : "person.fill")
+                    .resizable()
+                    .foregroundStyle(.white)
+                    .frame(width: isSelf ? 36 : 26, height: isSelf ? 36 : 26)
+            }
         }
     }
 }

@@ -1,57 +1,98 @@
-#@host = http://localhost:8080
-#@baseUrl = {{host}}/api/users
-#
+@host = http://10.214.0.225:8080
+@baseUrl = {{host}}/api/users
+@anna = 1
+@michael = 2
+@sabine = 5
+@mia = 7
+
 ############################################
-#### Seed/default profile picture for Anna
+#### GET: Profile picture for Anna (Seed/Default)
 ############################################
-#GET {{baseUrl}}/1/profile-picture
-#
-#?? status == 200
-#
-#
+GET {{baseUrl}}/{{anna}}/profile-picture
+
+?? status == 200
+?? headers["Content-Type"] != null
+
+
 ############################################
-#### Seed/default profile picture for Mia
+#### GET: Profile picture for Sabine (after upload)
 ############################################
-#GET {{baseUrl}}/7/profile-picture
-#
-#?? status == 200
-#
-#
+GET {{baseUrl}}/{{sabine}}/profile-picture
+
+?? status == 200
+?? headers["Content-Type"] != null
+
+
 ############################################
-#### Profile picture filename for Anna
+#### GET: Profile picture for Mia (no picture uploaded)
 ############################################
-#GET {{baseUrl}}/1/profile-picture-filename
-#
-#?? status == 200
-#
-#
+GET {{baseUrl}}/{{mia}}/profile-picture
+
+?? status == 200 || status == 404
+
+
 ############################################
-#### Profile picture filename for Mia is null
+#### GET: Profile picture filename for Anna
 ############################################
-#GET {{baseUrl}}/7/profile-picture-filename
-#
-#?? status == 200
-#
-#
+GET {{baseUrl}}/{{anna}}/profile-picture-filename
+
+?? status == 200
+
+
 ############################################
-#### Unknown user profile picture
+#### GET: Profile picture filename for Mia (null/no upload)
 ############################################
-#GET {{baseUrl}}/99999/profile-picture
-#
-#?? status == 404
-#
-#
+GET {{baseUrl}}/{{mia}}/profile-picture-filename
+
+?? status == 200 || status == 204
+
+
 ############################################
-#### Upload profile picture for Sabine
+#### GET: Unknown user profile picture (not found)
 ############################################
-#POST {{baseUrl}}/5/upload-profile-picture
-#Content-Type: multipart/form-data; boundary=WebAppBoundary
-#
-#--WebAppBoundary
-#Content-Disposition: form-data; name="file"; filename="testing.jpg"
-#Content-Type: image/jpeg
-#
-#< ./testing.jpg
-#--WebAppBoundary--
-#
-#?? status == 200
+GET {{baseUrl}}/99999/profile-picture
+
+?? status == 404
+
+
+############################################
+#### POST: Upload profile picture for Sabine
+############################################
+POST {{baseUrl}}/{{sabine}}/upload-profile-picture
+Content-Type: multipart/form-data; boundary=WebAppBoundary
+X-User-Id: {{sabine}}
+
+--WebAppBoundary
+Content-Disposition: form-data; name="file"; filename="profile.jpg"
+Content-Type: image/jpeg
+
+< ./profile.jpg
+--WebAppBoundary--
+
+?? status == 200 || status == 201
+
+
+############################################
+#### DELETE: Remove profile picture for Sabine
+############################################
+DELETE {{baseUrl}}/{{sabine}}/profile-picture
+X-User-Id: {{sabine}}
+
+?? status == 204 || status == 200
+
+
+############################################
+#### PUT: Update profile picture for Anna
+############################################
+PUT {{baseUrl}}/{{anna}}/profile-picture
+Content-Type: multipart/form-data; boundary=WebAppBoundary
+X-User-Id: {{anna}}
+
+--WebAppBoundary
+Content-Disposition: form-data; name="file"; filename="anna_new.jpg"
+Content-Type: image/jpeg
+
+< ./profile.jpg
+--WebAppBoundary--
+
+?? status == 200
