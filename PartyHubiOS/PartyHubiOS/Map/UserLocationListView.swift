@@ -192,13 +192,22 @@ struct UserLocationListView: View {
     var body: some View {
         NavigationStack {
             List(viewModel.locations) { location in
-                HStack {
-                    Image(systemName: "location.fill").foregroundStyle(.blue)
-                    VStack(alignment: .leading) {
+                HStack(spacing: 12) {
+                    if let userId = location.user?.id {
+                        UserProfileImageView(userId: Int(userId), size: 50, showBorder: false)
+                    } else {
+                        Image(systemName: "person.crop.circle")
+                            .font(.system(size: 50))
+                            .foregroundStyle(.gray)
+                    }
+                    
+                    VStack(alignment: .leading, spacing: 4) {
                         Text(location.user?.displayName ?? location.user?.distinctName ?? "User")
                             .font(.headline)
                         Text("Lat: \(location.latitude, specifier: "%.6f")")
+                            .font(.caption)
                         Text("Lon: \(location.longitude, specifier: "%.6f")")
+                            .font(.caption)
                             .foregroundStyle(.secondary)
                     }
                 }
@@ -244,8 +253,9 @@ struct PartyAttendeeMapView: View {
     var body: some View {
         Map(position: $position) {
             if let coord = locationManager.currentLocation {
+                let currentUserId = UserDefaults.standard.integer(forKey: "partyhub_user_id")
                 Annotation("Du", coordinate: coord) {
-                    AttendeePin(isAtParty: locationManager.isAtParty, isSelf: true)
+                    AttendeePin(isAtParty: locationManager.isAtParty, isSelf: true, userId: currentUserId > 0 ? currentUserId : nil)
                 }
             }
 
@@ -260,7 +270,7 @@ struct PartyAttendeeMapView: View {
                 )
 
                 Annotation(user.user?.displayName ?? user.user?.distinctName ?? "User", coordinate: coord) {
-                    AttendeePin(isAtParty: user.isInsideParty(party), isSelf: false)
+                    AttendeePin(isAtParty: user.isInsideParty(party), isSelf: false, userId: Int(user.user?.id ?? 0))
                 }
             }
         }

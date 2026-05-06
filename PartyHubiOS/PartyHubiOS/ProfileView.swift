@@ -106,14 +106,19 @@ struct ProfileView: View {
     private func profileContent(user: UserProfile) -> some View {
         VStack {
             ZStack(alignment: .bottom) {
-                Image(systemName: "person.circle.fill")
-                    .resizable()
-                    .scaledToFill()
-                    .frame(width: 120, height: 120)
-                    .clipShape(Circle())
-                    .overlay(Circle().stroke(Color.white, lineWidth: 4))
-                    .shadow(radius: 10)
-                    .offset(y: 50)
+                if let userId = authManager.userId {
+                    UserProfileImageView(userId: userId, size: 120, showBorder: false)
+                        .overlay(Circle().stroke(Color.white, lineWidth: 4))
+                        .shadow(radius: 10)
+                } else {
+                    Image(systemName: "person.circle.fill")
+                        .resizable()
+                        .scaledToFill()
+                        .frame(width: 120, height: 120)
+                        .clipShape(Circle())
+                        .overlay(Circle().stroke(Color.white, lineWidth: 4))
+                        .shadow(radius: 10)
+                }
             }
             .padding(.bottom, 60)
             

@@ -14,6 +14,14 @@ struct MapView: View {
     @State private var position: MapCameraPosition = .userLocation(fallback: .automatic)
     @Query var parties: [Party]
     private let highlightedPartyId: Int?
+    
+    private var currentUserId: Int? {
+        if let userId = AuthManager.shared.userId {
+            return userId
+        }
+        let storedId = UserDefaults.standard.integer(forKey: "partyhub_user_id")
+        return storedId > 0 ? storedId : nil
+    }
 
     init(locationManager: LocationManager, highlightedPartyId: Int? = nil) {
         self.locationManager = locationManager
@@ -33,7 +41,7 @@ struct MapView: View {
 
                 if let coord = locationManager.currentLocation {
                     Annotation("Du", coordinate: coord) {
-                        AttendeePin(isAtParty: locationManager.isAtParty, isSelf: true)
+                        AttendeePin(isAtParty: locationManager.isAtParty, isSelf: true, userId: currentUserId)
                     }
                 }
 

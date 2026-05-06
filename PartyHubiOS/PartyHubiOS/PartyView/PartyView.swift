@@ -142,40 +142,46 @@ struct PartyView: View {
         }
 
         var body: some View {
-            VStack(alignment: .leading, spacing: 2) {
-                HStack {
-                    HStack(spacing: 6) {
-                        Text(party.name)
-                            .font(.headline)
-                            .foregroundStyle(.primary)
-                        
-                        // ===== BADGE HIER =====
-                        if unreadCount > 0 {
-                            ZStack {
-                                Circle()
-                                    .fill(Color.red)
-                                    .frame(width: 20, height: 20)
-                                
-                                Text("\(unreadCount)")
-                                    .font(.system(size: 11, weight: .bold))
-                                    .foregroundColor(.white)
+            VStack(alignment: .leading, spacing: 8) {
+                HStack(spacing: 12) {
+                    VStack(alignment: .leading, spacing: 2) {
+                        HStack(spacing: 6) {
+                            Text(party.name)
+                                .font(.headline)
+                                .foregroundStyle(.primary)
+                            
+                            if unreadCount > 0 {
+                                ZStack {
+                                    Circle()
+                                        .fill(Color.red)
+                                        .frame(width: 20, height: 20)
+                                    
+                                    Text("\(unreadCount)")
+                                        .font(.system(size: 11, weight: .bold))
+                                        .foregroundColor(.white)
+                                }
                             }
                         }
+                        
+                        Text(party.hostDisplayName ?? "Unbekannter Host")
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
                     }
-
+                    
                     Spacer()
 
                     if let label = distanceLabel {
-                        HStack(spacing: 2) {
-                            Image(systemName: "car.fill")
-                                .font(.caption2)
-                                .foregroundStyle(.secondary)
-                            Text(label)
-                                .font(.caption)
-                                .foregroundStyle(.secondary)
+                        VStack(alignment: .trailing, spacing: 2) {
+                            HStack(spacing: 2) {
+                                Image(systemName: "car.fill")
+                                    .font(.caption2)
+                                    .foregroundStyle(.secondary)
+                                Text(label)
+                                    .font(.caption)
+                                    .foregroundStyle(.secondary)
+                            }
                         }
                     } else if !party.isActive && drivingDistanceMeters == nil {
-                        // Lädt noch
                         ProgressView()
                             .scaleEffect(0.6)
                     }
@@ -193,7 +199,7 @@ struct PartyView: View {
                         .monospacedDigit()
                 }
             }
-            .frame(minHeight: 44)
+            .frame(minHeight: 60)
             .onReceive(timer) { now = $0 }
         }
 

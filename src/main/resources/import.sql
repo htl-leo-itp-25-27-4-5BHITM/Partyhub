@@ -43,16 +43,16 @@ INSERT INTO users (id, username, display_name, distinct_name, email, biography, 
 -- PROFILE PICTURE
 -- =========================
 INSERT INTO profile_picture (id, picture_name, user_id) VALUES
-    (1, 'pp_anna.jpg', 1),
-    (2, NULL, 2),
-    (3, NULL, 3),
-    (4, NULL, 4),
-    (5, 'profile_5_1773232851230.jpg', 5),
-    (6, 'pp_lukas.jpg', 6),
-    (7, NULL, 7),
-    (8, NULL, 8),
-    (9, NULL, 9),
-    (10, 'pp_max.jpg', 10);
+    (1, 'pp_1.jpg', 1),
+    (2, 'pp_2.jpg', 2),
+    (3, 'pp_3.jpg', 3),
+    (4, 'pp_4.jpg', 4),
+    (5, 'pp_5.png', 5),
+    (6, 'pp_6.jpg', 6),
+    (7, 'pp_7.png', 7),
+    (8, 'pp_8.jpg', 8),
+    (9, 'pp_9.jpg', 9),
+    (10, 'pp_10.jpg', 10);
 
 -- =========================
 -- USER LOCATION
@@ -88,7 +88,8 @@ INSERT INTO location (id, longitude, latitude, address) VALUES
     (13, 14.3058, 48.3205, 'JKU Campus Linz'),
     (14, 14.2478, 48.3007, 'Leonding Rooftop'),
     (15, 14.2974, 48.2874, 'Hafenviertel Linz'),
-    (16, 14.2524, 48.2802, 'HTL Leonding');
+    (16, 14.251920, 48.268335, 'HTL Leonding'),
+    (17, 14.022591, 48.123066, 'Hubingerstraße 3');
 
 -- =========================
 -- PARTIES
@@ -120,7 +121,8 @@ INSERT INTO party (
     (8, 8, 15, 'Hafenviertel Indie Night', 'Indie', '2026-05-08 21:00:00', '2026-05-09 02:30:00', 90, 18, 39, 'https://partyhub.local/hafen-indie', 'Kleine Bühne, Live-Acts und danach DJ-Set bis spät.', 9.00, '2026-04-28 09:45:00', 'PUBLIC'),
     (9, 9, 10, 'Private Dinner Party in Steyregg', 'Dinner', '2026-05-09 18:30:00', '2026-05-09 23:30:00', 20, 20, 45, NULL, 'Einladung only, gutes Essen und danach Wohnzimmer-Dancefloor.', 0.00, '2026-04-28 10:10:00', 'PRIVATE'),
     (10, 10, 13, 'JKU Semester Kickoff', 'Campus', '2026-05-10 19:00:00', '2026-05-11 01:00:00', 200, 18, 32, 'https://partyhub.local/jku-kickoff', 'Semesterstart mit DJ, Fotoecke und vielen neuen Gesichtern.', 4.00, '2026-04-28 11:00:00', 'PUBLIC'),
-    (11, 1, 16, 'HTL Leonding Campus Night', 'School Party', '2026-06-14 18:00:00', '2026-06-14 23:30:00', 120, 16, 28, 'https://partyhub.local/htl-leonding-campus-night', 'Anna Huber hostet einen Abend mit DJ-Set, Chillout-Area und Snacks direkt bei der HTL Leonding.', 7.50, '2026-04-28 19:59:00', 'PUBLIC');
+    (11, 1, 16, 'Graduation Gala', 'School Party', '2026-06-14 18:00:00', '2026-06-14 23:30:00', 120, 16, 28, 'https://www.htl-leonding.at', 'Vom Klassenzimmer auf den roten Teppich. Wir feiern unseren Abschluss mit Stil, Glanz und Gloria. Dress to impress!', 7.50, '2026-04-28 19:59:00', 'PUBLIC'),
+    (12, 1, 17, 'Carlas 18.Geburtstag', 'Birthday Party','2026-06-14 18:00:00', '2026-06-14 23:30:00', 18, 17,20,'https://partyhub.local/carlaparty','Carlas Birthday Party', 0.00,'2026-04-25 16:00:00', 'PUBLIC');
 
 -- =========================
 -- PARTY ATTENDEES
@@ -136,7 +138,8 @@ INSERT INTO party_user (party_id, user_id) VALUES
     (8, 3), (8, 6), (8, 10),
     (9, 5), (9, 7),
     (10, 1), (10, 2), (10, 4), (10, 6),
-    (11, 2), (11, 3), (11, 4), (11, 5), (11, 6), (11, 7), (11, 8), (11, 9), (11, 10);
+    (11, 2), (11, 3), (11, 4), (11, 5), (11, 6), (11, 7), (11, 8), (11, 9), (11, 10),
+    (12, 1), (12, 2);
 
 -- =========================
 -- MEDIA
