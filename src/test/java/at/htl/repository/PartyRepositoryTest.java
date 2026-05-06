@@ -170,6 +170,142 @@ public class PartyRepositoryTest {
     }
 
     @Test
+    void testRemovePartyDeletesRelatedNotifications() {
+        createTestData();
+
+        Location location = entityManager.createQuery("SELECT l FROM Location l", Location.class).getSingleResult();
+        User user = entityManager.createQuery("SELECT u FROM User u", User.class).getSingleResult();
+
+        Party party = new Party();
+        party.setTitle("Party With Notification");
+        party.setTheme("Test Theme");
+        party.setLocation(location);
+        party.setTime_start(LocalDateTime.now());
+        party.setTime_end(LocalDateTime.now().plusHours(2));
+        party.setMax_people(50);
+        entityManager.persist(party);
+
+        Notification notification = new Notification(user, user, party, "Party notification");
+        entityManager.persist(notification);
+        entityManager.flush();
+        Long partyId = party.getId();
+        entityManager.clear();
+
+        Response response = partyRepository.removeParty(partyId);
+        entityManager.flush();
+
+        assertEquals(204, response.getStatus());
+        assertNull(entityManager.find(Party.class, partyId));
+
+        Long notificationCount = entityManager
+                .createQuery("SELECT COUNT(n) FROM Notification n WHERE n.party.id = :partyId", Long.class)
+                .setParameter("partyId", partyId)
+                .getSingleResult();
+        assertEquals(0L, notificationCount);
+    }
+
+    @Test
+    void testRemovePublicPartyNotifiesAttendees() {
+        createTestData();
+
+        Location location = entityManager.createQuery("SELECT l FROM Location l", Location.class).getSingleResult();
+        User host = entityManager.createQuery("SELECT u FROM User u", User.class).getSingleResult();
+
+        User attendee = new User();
+        attendee.setDisplayName("Public Attendee");
+        attendee.setDistinctName("public-attendee");
+        attendee.setEmail("public-attendee@example.com");
+        entityManager.persist(attendee);
+
+        Party party = new Party();
+        party.setTitle("Cancelled Public Party");
+        party.setTheme("Test Theme");
+        party.setLocation(location);
+        party.setHost_user(host);
+        party.setVisibility("PUBLIC");
+        party.setTime_start(LocalDateTime.now());
+        party.setTime_end(LocalDateTime.now().plusHours(2));
+        party.getUsers().add(attendee);
+        entityManager.persist(party);
+        entityManager.flush();
+
+        Long partyId = party.getId();
+        Long attendeeId = attendee.getId();
+        entityManager.clear();
+
+        Response response = partyRepository.removeParty(partyId);
+        entityManager.flush();
+
+        assertEquals(204, response.getStatus());
+        assertNull(entityManager.find(Party.class, partyId));
+
+        List<Notification> notifications = entityManager
+                .createQuery("SELECT n FROM Notification n WHERE n.party IS NULL AND n.recipient.id = :recipientId", Notification.class)
+                .setParameter("recipientId", attendeeId)
+                .getResultList();
+        assertEquals(1, notifications.size());
+        assertTrue(notifications.get(0).getMessage().contains("wurde abgesagt"));
+    }
+
+    @Test
+    void testRemovePrivatePartyNotifiesInvitedAndAcceptedUsers() {
+        createTestData();
+
+        Location location = entityManager.createQuery("SELECT l FROM Location l", Location.class).getSingleResult();
+        User host = entityManager.createQuery("SELECT u FROM User u", User.class).getSingleResult();
+
+        User invitedUser = new User();
+        invitedUser.setDisplayName("Invited User");
+        invitedUser.setDistinctName("invited-user");
+        invitedUser.setEmail("invited-user@example.com");
+        entityManager.persist(invitedUser);
+
+        User acceptedUser = new User();
+        acceptedUser.setDisplayName("Accepted User");
+        acceptedUser.setDistinctName("accepted-user");
+        acceptedUser.setEmail("accepted-user@example.com");
+        entityManager.persist(acceptedUser);
+
+        Party party = new Party();
+        party.setTitle("Cancelled Private Party");
+        party.setTheme("Test Theme");
+        party.setLocation(location);
+        party.setHost_user(host);
+        party.setVisibility("PRIVATE");
+        party.setTime_start(LocalDateTime.now());
+        party.setTime_end(LocalDateTime.now().plusHours(2));
+        party.getUsers().add(acceptedUser);
+        entityManager.persist(party);
+
+        Invitation invitation = new Invitation();
+        invitation.setSender(host);
+        invitation.setRecipient(invitedUser);
+        invitation.setParty(party);
+        entityManager.persist(invitation);
+        entityManager.flush();
+
+        Long partyId = party.getId();
+        Long invitedUserId = invitedUser.getId();
+        Long acceptedUserId = acceptedUser.getId();
+        entityManager.clear();
+
+        Response response = partyRepository.removeParty(partyId);
+        entityManager.flush();
+
+        assertEquals(204, response.getStatus());
+        assertNull(entityManager.find(Party.class, partyId));
+
+        Long notificationCount = entityManager
+                .createQuery(
+                        "SELECT COUNT(n) FROM Notification n " +
+                                "WHERE n.party IS NULL AND n.recipient.id IN :recipientIds",
+                        Long.class)
+                .setParameter("recipientIds", List.of(invitedUserId, acceptedUserId))
+                .getSingleResult();
+        assertEquals(2L, notificationCount);
+    }
+
+    @Test
     void testRemoveParty_notFound() {
         createTestData();
         

@@ -112,6 +112,8 @@ public class PartyRepository {
         if (party == null) {
             return Response.status(Response.Status.NOT_FOUND).build();
         }
+        notifyCancellationRecipients(party);
+        notificationRepository.deleteByPartyId(id);
         entityManager.remove(party);
         return Response.noContent().build();
     }
@@ -251,6 +253,51 @@ public class PartyRepository {
                 .setParameter("recipientId", recipient.getId())
                 .getSingleResult();
         return count > 0;
+    }
+
+    private void notifyCancellationRecipients(Party party) {
+        User host = party.getHost_user();
+        if (host == null) {
+            return;
+        }
+
+        Set<Long> notifiedUserIds = new HashSet<>();
+
+        if ("PRIVATE".equalsIgnoreCase(party.getVisibility())) {
+            if (party.getInvitations() != null) {
+                for (Invitation invitation : party.getInvitations()) {
+                    notifyCancellationRecipient(party, host, invitation.getRecipient(), notifiedUserIds);
+                }
+            }
+        }
+
+        if (party.getUsers() != null) {
+            for (User attendee : party.getUsers()) {
+                notifyCancellationRecipient(party, host, attendee, notifiedUserIds);
+            }
+        }
+    }
+
+    private void notifyCancellationRecipient(
+            Party party,
+            User host,
+            User recipient,
+            Set<Long> notifiedUserIds) {
+        if (recipient == null || recipient.getId() == null) {
+            return;
+        }
+
+        if (host.getId() != null && host.getId().equals(recipient.getId())) {
+            return;
+        }
+
+        if (!notifiedUserIds.add(recipient.getId())) {
+            return;
+        }
+
+        String message = "Die Party \"" + party.getTitle() + "\" wurde abgesagt.";
+        Notification notification = new Notification(recipient, host, null, message);
+        notificationRepository.createNotification(notification);
     }
 
     public List<Party> findByTitleOrDescription(String q) {

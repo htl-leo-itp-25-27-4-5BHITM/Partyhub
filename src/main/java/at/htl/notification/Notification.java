@@ -24,7 +24,7 @@ public class Notification {
     private User sender;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "party_id", nullable = false)
+    @JoinColumn(name = "party_id")
     private Party party;
 
     @Column(name = "status", nullable = false)
