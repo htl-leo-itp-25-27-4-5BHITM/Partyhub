@@ -28,8 +28,6 @@ public class FollowRepositoryTest {
 
     @BeforeEach
     void setUp() {
-        // Clean up in proper order due to foreign key constraints
-        entityManager.createQuery("DELETE FROM UserLocation").executeUpdate();
         entityManager.createQuery("DELETE FROM Notification").executeUpdate();
         entityManager.createQuery("DELETE FROM Follow").executeUpdate();
         entityManager.createQuery("DELETE FROM Invitation").executeUpdate();
@@ -39,6 +37,17 @@ public class FollowRepositoryTest {
         entityManager.createQuery("DELETE FROM User").executeUpdate();
         entityManager.createQuery("DELETE FROM Location").executeUpdate();
         entityManager.createQuery("DELETE FROM FollowStatus").executeUpdate();
+        entityManager.flush();
+
+        FollowStatus pending = new FollowStatus();
+        pending.setStatus_id(1L);
+        pending.setName("PENDING");
+        FollowStatus accepted = new FollowStatus();
+        accepted.setStatus_id(2L);
+        accepted.setName("ACCEPTED");
+        entityManager.persist(pending);
+        entityManager.persist(accepted);
+        entityManager.flush();
     }
 
     private User createTestUser(String name) {
@@ -56,10 +65,7 @@ public class FollowRepositoryTest {
         User user2 = createTestUser("User Two");
         entityManager.flush();
 
-        FollowStatus accepted = new FollowStatus();
-        accepted.setStatus_id(2L);
-        accepted.setName("accepted");
-        entityManager.persist(accepted);
+        FollowStatus accepted = entityManager.find(FollowStatus.class, 2L);
 
         Follow follow = new Follow();
         follow.setUser1_id(user1.getId());
@@ -78,10 +84,7 @@ public class FollowRepositoryTest {
         User user2 = createTestUser("User Two");
         entityManager.flush();
 
-        FollowStatus accepted = new FollowStatus();
-        accepted.setStatus_id(2L);
-        accepted.setName("accepted");
-        entityManager.persist(accepted);
+        FollowStatus accepted = entityManager.find(FollowStatus.class, 2L);
 
         Follow follow = new Follow();
         follow.setUser1_id(user1.getId());
@@ -100,10 +103,7 @@ public class FollowRepositoryTest {
         User user2 = createTestUser("User Two");
         entityManager.flush();
 
-        FollowStatus accepted = new FollowStatus();
-        accepted.setStatus_id(2L);
-        accepted.setName("accepted");
-        entityManager.persist(accepted);
+        FollowStatus accepted = entityManager.find(FollowStatus.class, 2L);
 
         Follow follow = new Follow();
         follow.setUser1_id(user1.getId());
@@ -132,12 +132,6 @@ public class FollowRepositoryTest {
         User user2 = createTestUser("User Two");
         entityManager.flush();
 
-        FollowStatus pending = new FollowStatus();
-        pending.setStatus_id(1L);
-        pending.setName("pending");
-        entityManager.persist(pending);
-        entityManager.flush();
-
         Response response = followRepository.createFollowRequest(user1.getId(), user2.getId());
         assertEquals(201, response.getStatus());
     }
@@ -148,10 +142,7 @@ public class FollowRepositoryTest {
         User user2 = createTestUser("User Two");
         entityManager.flush();
 
-        FollowStatus pending = new FollowStatus();
-        pending.setStatus_id(1L);
-        pending.setName("pending");
-        entityManager.persist(pending);
+        FollowStatus pending = entityManager.find(FollowStatus.class, 1L);
 
         Follow follow = new Follow();
         follow.setUser1_id(user1.getId());
@@ -170,10 +161,7 @@ public class FollowRepositoryTest {
         User user2 = createTestUser("User Two");
         entityManager.flush();
 
-        FollowStatus accepted = new FollowStatus();
-        accepted.setStatus_id(2L);
-        accepted.setName("accepted");
-        entityManager.persist(accepted);
+        FollowStatus accepted = entityManager.find(FollowStatus.class, 2L);
 
         Follow follow = new Follow();
         follow.setUser1_id(user1.getId());
@@ -195,10 +183,7 @@ public class FollowRepositoryTest {
         User user2 = createTestUser("User Two");
         entityManager.flush();
 
-        FollowStatus accepted = new FollowStatus();
-        accepted.setStatus_id(2L);
-        accepted.setName("accepted");
-        entityManager.persist(accepted);
+        FollowStatus accepted = entityManager.find(FollowStatus.class, 2L);
 
         Follow follow = new Follow();
         follow.setUser1_id(user1.getId());
@@ -217,10 +202,7 @@ public class FollowRepositoryTest {
         User user2 = createTestUser("User Two");
         entityManager.flush();
 
-        FollowStatus accepted = new FollowStatus();
-        accepted.setStatus_id(2L);
-        accepted.setName("accepted");
-        entityManager.persist(accepted);
+        FollowStatus accepted = entityManager.find(FollowStatus.class, 2L);
 
         Follow follow = new Follow();
         follow.setUser1_id(user1.getId());
@@ -231,5 +213,49 @@ public class FollowRepositoryTest {
 
         List<User> following = followRepository.getFollowing(user1.getId());
         assertEquals(1, following.size());
+    }
+
+    @Test
+    void testGetPendingFollowerRequests() {
+        User user1 = createTestUser("User One");
+        User user2 = createTestUser("User Two");
+        entityManager.flush();
+
+        FollowStatus pending = entityManager.find(FollowStatus.class, 1L);
+
+        Follow follow = new Follow();
+        follow.setUser1_id(user1.getId());
+        follow.setUser2_id(user2.getId());
+        follow.setStatus(pending);
+        entityManager.persist(follow);
+        entityManager.flush();
+
+        List<User> pendingRequests = followRepository.getPendingFollowerRequests(user2.getId());
+        assertEquals(1, pendingRequests.size());
+    }
+
+    @Test
+    void testAcceptFollowRequest() {
+        User user1 = createTestUser("User One");
+        User user2 = createTestUser("User Two");
+        entityManager.flush();
+
+        followRepository.createFollowRequest(user1.getId(), user2.getId());
+        entityManager.flush();
+
+        Response response = followRepository.acceptFollowRequest(user1.getId(), user2.getId());
+        assertEquals(200, response.getStatus());
+
+        assertTrue(followRepository.isFollowing(user1.getId(), user2.getId()));
+    }
+
+    @Test
+    void testAcceptFollowRequest_notFound() {
+        User user1 = createTestUser("User One");
+        User user2 = createTestUser("User Two");
+        entityManager.flush();
+
+        Response response = followRepository.acceptFollowRequest(user1.getId(), user2.getId());
+        assertEquals(404, response.getStatus());
     }
 }

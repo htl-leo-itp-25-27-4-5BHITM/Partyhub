@@ -160,4 +160,146 @@ public class PartyResourceTest extends TestBase {
             .then()
             .statusCode(400);
     }
+
+    @Test
+    void testCreateParty_noUser() {
+        String requestBody = """
+            {
+                "title": "New Party",
+                "description": "Test",
+                "fee": 10.0,
+                "time_start": "2024-12-01T20:00:00",
+                "time_end": "2024-12-01T23:00:00",
+                "max_people": 50,
+                "min_age": 18,
+                "max_age": 35,
+                "latitude": 48.2,
+                "longitude": 16.3,
+                "address": "Test Address",
+                "theme": "Test Theme",
+                "visibility": "PUBLIC",
+                "selectedUsers": []
+            }
+            """;
+
+        given()
+            .contentType(ContentType.JSON)
+            .body(requestBody)
+            .when().post("/api/parties")
+            .then()
+            .statusCode(400);
+    }
+
+    @Test
+    void testDeleteParty_noUser() {
+        given()
+            .when().delete("/api/parties/999")
+            .then()
+            .statusCode(404);
+    }
+
+    @Test
+    void testUpdateParty_noUser() {
+        String requestBody = """
+            {
+                "title": "Updated Party"
+            }
+            """;
+
+        given()
+            .contentType(ContentType.JSON)
+            .body(requestBody)
+            .when().put("/api/parties/999")
+            .then()
+            .statusCode(400);
+    }
+
+    @Test
+    void testCanEditParty_notFound() {
+        given()
+            .header("X-User-Id", "1")
+            .when().get("/api/parties/999/can-edit")
+            .then()
+            .statusCode(404);
+    }
+
+    @Test
+    void testCanEditParty_noUser() {
+        given()
+            .when().get("/api/parties/999/can-edit")
+            .then()
+            .statusCode(400);
+    }
+
+    @Test
+    void testGetPartyLocations_notFound() {
+        given()
+            .when().get("/api/parties/999/locations")
+            .then()
+            .statusCode(404);
+    }
+
+    @Test
+    void testGetPartyMedia_notFound() {
+        given()
+            .header("X-User-Id", "1")
+            .when().get("/api/parties/999/media")
+            .then()
+            .statusCode(404);
+    }
+
+    @Test
+    void testInvitedMembers_notFound() {
+        given()
+            .header("X-User-Id", "1")
+            .when().get("/api/parties/999/invited-members")
+            .then()
+            .statusCode(404);
+    }
+
+    @Test
+    void testInvitedMembers_noUser() {
+        given()
+            .when().get("/api/parties/999/invited-members")
+            .then()
+            .statusCode(404);
+    }
+
+    @Test
+    void testUpdateDeviceToken_noUser() {
+        given()
+            .queryParam("token", "test-token")
+            .when().put("/api/parties/device-token")
+            .then()
+            .statusCode(400);
+    }
+
+    @Test
+    void testUpdateDeviceToken_noToken() {
+        given()
+            .header("X-User-Id", "1")
+            .when().put("/api/parties/device-token")
+            .then()
+            .statusCode(400);
+    }
+
+    @Test
+    void testFilterByTitle() {
+        given()
+            .queryParam("q", "nonexistent")
+            .when().get("/api/parties")
+            .then()
+            .statusCode(200)
+            .body("$", is(notNullValue()));
+    }
+
+    @Test
+    void testFilterByTheme() {
+        given()
+            .queryParam("theme", "nonexistent")
+            .when().get("/api/parties")
+            .then()
+            .statusCode(200)
+            .body("$", is(notNullValue()));
+    }
 }
