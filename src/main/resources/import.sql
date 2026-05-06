@@ -28,10 +28,10 @@ INSERT INTO follow_status (id, name) VALUES
 -- USERS
 -- =========================
 INSERT INTO users (id, username, display_name, distinct_name, email, phone_number, biography, device_token) VALUES
-    (1, 'anna_huber', 'Anna Huber', 'anna_huber', 'anna.huber@partyhub.at', '+436641234001', 'Mag Afterwork, Konzerte und Rooftop-Abende in Linz.', 'MANUAL_TEST_TOKEN_ANNA'),
-    (2, 'michael_wagner', 'Michael Wagner', 'michael_wagner', 'michael.wagner@partyhub.at', '+436641234002', 'Techno, Startups und spontane Wochenendplaene.', NULL),
+    (1, 'viki_dji', 'Victoria Vejmelek', 'viki_vejmelek', 'v.vejmelek@students.htl-leonding.ac.at', '+436641234001', 'Mag Afterwork, Konzerte und Rooftop-Abende in Linz.', 'MANUAL_TEST_TOKEN_ANNA'),
+    (4, 'michael_wagner', 'Michael Wagner', 'michael_wagner', 'michael.wagner@partyhub.at', '+436641234002', 'Techno, Startups und spontane Wochenendplaene.', NULL),
     (3, 'katrin_bauer', 'Katrin Bauer', 'katrin_bauer', 'katrin.bauer@partyhub.at', '+436641234003', 'Liebt Tanzflaechen, Sommerfeste und gute Cocktails.', NULL),
-    (4, 'thomas_schneider', 'Thomas Schneider', 'thomas_schneider', 'c.dimmler@students.htl-leonding.ac.at', '+436602045422', 'Organisiert gerne Events in Linz und Urfahr.', NULL),
+    (2, 'carla_dimmler', 'Carla Dimmler', 'carla_dimmler', 'c.dimmler@students.htl-leonding.ac.at', '+436602045422', 'Organisiert gerne Events in Linz und Urfahr.', NULL),
     (5, 'sabine_weber', 'Sabine Weber', 'sabine_weber', 'sabine.weber@partyhub.at', '+436641234005', 'Zwischen Kultur, Networking und langen Naechten unterwegs.', NULL),
     (6, 'lukas_gruber', 'Lukas Gruber', 'lukas_gruber', 'lukas.gruber@partyhub.at', '+436641234006', 'Outdoor untertags, Club nachts.', NULL),
     (7, 'mia_steiner', 'Mia Steiner', 'mia_steiner', 'mia.steiner@partyhub.at', '+436641234007', 'Food, Kunst und entspannte Bars an der Donau.', NULL),
@@ -122,7 +122,7 @@ INSERT INTO party (
     (9, 9, 10, 'Private Dinner Party in Steyregg', 'Dinner', '2026-05-09 18:30:00', '2026-05-09 23:30:00', 20, 20, 45, NULL, 'Einladung only, gutes Essen und danach Wohnzimmer-Dancefloor.', 0.00, '2026-04-28 10:10:00', 'PRIVATE'),
     (10, 10, 13, 'JKU Semester Kickoff', 'Campus', '2026-05-10 19:00:00', '2026-05-11 01:00:00', 200, 18, 32, 'https://partyhub.local/jku-kickoff', 'Semesterstart mit DJ, Fotoecke und vielen neuen Gesichtern.', 4.00, '2026-04-28 11:00:00', 'PUBLIC'),
     (11, 1, 16, 'Graduation Gala', 'School Party', '2026-06-14 18:00:00', '2026-06-14 23:30:00', 120, 16, 28, 'https://www.htl-leonding.at', 'Vom Klassenzimmer auf den roten Teppich. Wir feiern unseren Abschluss mit Stil, Glanz und Gloria. Dress to impress!', 7.50, '2026-04-28 19:59:00', 'PUBLIC'),
-    (12, 1, 17, 'Carlas 18.Geburtstag', 'Birthday Party','2026-06-14 18:00:00', '2026-06-14 23:30:00', 18, 17,20,'https://partyhub.local/carlaparty','Carlas Birthday Party', 0.00,'2026-04-25 16:00:00', 'PUBLIC');
+    (12, 2, 17, 'Carlas 18.Geburtstag', 'Birthday Party','2026-06-14 18:00:00', '2026-06-14 23:30:00', 18, 17,20,'https://partyhub.local/carlaparty','Carlas Birthday Party', 0.00,'2026-04-25 16:00:00', 'PUBLIC');
 
 -- =========================
 -- PARTY ATTENDEES
@@ -139,7 +139,7 @@ INSERT INTO party_user (party_id, user_id) VALUES
     (9, 5), (9, 7),
     (10, 1), (10, 2), (10, 4), (10, 6),
     (11, 2), (11, 3), (11, 4), (11, 5), (11, 6), (11, 7), (11, 8), (11, 9), (11, 10),
-    (12, 1), (12, 2);
+    (12, 1), (12, 3);
 
 -- =========================
 -- MEDIA
@@ -176,6 +176,7 @@ INSERT INTO notification (id, recipient_id, sender_id, party_id, status, created
 -- =========================
 INSERT INTO follow (user1_id, user2_id, status_id) VALUES
     (1, 2, 2),
+    (2, 1, 2),
     (1, 3, 2),
     (2, 4, 1),
     (3, 5, 2),
