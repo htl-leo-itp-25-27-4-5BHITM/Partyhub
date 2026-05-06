@@ -1,12 +1,12 @@
 -- Clean test data for PartyHub - run directly in PostgreSQL
 
 -- Users (matching Keycloak users alice, bob, carol)
-INSERT INTO users (id,  username, display_name, distinct_name, email, biography) VALUES
-(1,  'alice', 'Alice Smith', 'alice', 'alice@example.com', 'Party enthusiast and event organizer'),
-(2,  'bob', 'Bob Johnson', 'bob', 'bob@example.com', 'Music lover and social butterfly'),
-(3,  'carol', 'Carol Williams', 'carol', 'carol@example.com', 'Adventure seeker and networking expert'),
-(4,  'dave', 'Dave Miller', 'dave', 'dave@example.com', 'Tech geek and party planner'),
-(5,  'eve', 'Eve Davis', 'eve', 'eve@example.com', 'Art lover and creative soul');
+INSERT INTO users (id,  username, display_name, distinct_name, email, phone_number, biography) VALUES
+(1,  'alice', 'Alice Smith', 'alice', 'alice@example.com', '+436641111001', 'Party enthusiast and event organizer'),
+(2,  'bob', 'Bob Johnson', 'bob', 'bob@example.com', '+436641111002', 'Music lover and social butterfly'),
+(3,  'carol', 'Carol Williams', 'carol', 'carol@example.com', '+436641111003', 'Adventure seeker and networking expert'),
+(4,  'dave', 'Dave Miller', 'dave', 'dave@example.com', '+436641111004', 'Tech geek and party planner'),
+(5,  'eve', 'Eve Davis', 'eve', 'eve@example.com', '+436641111005', 'Art lover and creative soul');
 
 -- Follow status
 INSERT INTO follow_status (id, name) VALUES

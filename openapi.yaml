@@ -1114,6 +1114,8 @@ components:
           type: string
         email:
           type: string
+        phoneNumber:
+          type: string
         biography:
           type: string
 
@@ -1125,6 +1127,8 @@ components:
         distinctName:
           type: string
         email:
+          type: string
+        phoneNumber:
           type: string
         biography:
           type: string

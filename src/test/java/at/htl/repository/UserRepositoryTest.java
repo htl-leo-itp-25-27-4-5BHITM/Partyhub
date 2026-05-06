@@ -144,7 +144,7 @@ public class UserRepositoryTest {
         entityManager.persist(user);
         entityManager.flush();
 
-        UserCreateDto dto = new UserCreateDto("Updated Name", "updated", "updated@example.com", "New bio");
+        UserCreateDto dto = new UserCreateDto("Updated Name", "updated", "updated@example.com", "+436641234567", "New bio");
         Response response = userRepository.updateUser(user.getId(), dto);
         
         assertEquals(200, response.getStatus());
@@ -152,11 +152,12 @@ public class UserRepositoryTest {
         User updated = userRepository.getUser(user.getId());
         assertEquals("Updated Name", updated.getDisplayName());
         assertEquals("updated", updated.getDistinctName());
+        assertEquals("+436641234567", updated.getPhoneNumber());
     }
 
     @Test
     void testUpdateUser_notFound() {
-        UserCreateDto dto = new UserCreateDto("Name", "handle", "email@test.com", "bio");
+        UserCreateDto dto = new UserCreateDto("Name", "handle", "email@test.com", "+436649999999", "bio");
         Response response = userRepository.updateUser(999L, dto);
         
         assertEquals(404, response.getStatus());

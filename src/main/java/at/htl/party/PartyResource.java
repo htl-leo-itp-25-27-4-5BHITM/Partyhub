@@ -4,7 +4,6 @@ import java.util.List;
 import java.util.Map;
 
 import at.htl.FilterDto;
-import at.htl.PushNotificationService; // 1. WICHTIGER IMPORT
 import at.htl.media.MediaRepository;
 import at.htl.user_location.UserLocationRepository;
 import jakarta.enterprise.context.ApplicationScoped;
@@ -40,9 +39,6 @@ public class PartyResource {
 
     @Inject
     EntityManager em;
-
-    @Inject // 2. WICHTIGE DEKLARATION
-    PushNotificationService pushService;
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
@@ -139,14 +135,7 @@ public class PartyResource {
         }
         
         Long actualUserId = userId != null ? userId : headerUserId;
-        Response response = partyRepository.updateParty(id, partyCreateDto, actualUserId);
-
-        // Push triggern, wenn das Update erfolgreich war
-        if (response.getStatus() == Response.Status.OK.getStatusCode()) {
-            pushService.notifyParticipants(id, "Update: " + partyCreateDto.title());
-        }
-
-        return response;
+        return partyRepository.updateParty(id, partyCreateDto, actualUserId);
     }
 
     @PUT

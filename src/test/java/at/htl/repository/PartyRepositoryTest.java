@@ -170,6 +170,40 @@ public class PartyRepositoryTest {
     }
 
     @Test
+    void testRemoveParty_withNotificationReference() {
+        createTestData();
+
+        Location location = entityManager.createQuery("SELECT l FROM Location l", Location.class).getSingleResult();
+        User user = entityManager.createQuery("SELECT u FROM User u", User.class).getSingleResult();
+
+        Party party = new Party();
+        party.setTitle("Party With Notification");
+        party.setTheme("Test Theme");
+        party.setLocation(location);
+        party.setTime_start(LocalDateTime.now());
+        party.setTime_end(LocalDateTime.now().plusHours(2));
+        party.setMax_people(50);
+        entityManager.persist(party);
+        entityManager.flush();
+
+        Notification notification = new Notification(user, user, party, "Test notification");
+        entityManager.persist(notification);
+        entityManager.flush();
+
+        Response response = partyRepository.removeParty(party.getId());
+        assertEquals(204, response.getStatus());
+
+        Long remainingNotifications = entityManager
+                .createQuery("SELECT COUNT(n) FROM Notification n WHERE n.party.id = :partyId", Long.class)
+                .setParameter("partyId", party.getId())
+                .getSingleResult();
+        assertEquals(0L, remainingNotifications);
+
+        Party found = partyRepository.getPartyById(party.getId());
+        assertNull(found);
+    }
+
+    @Test
     void testRemoveParty_notFound() {
         createTestData();
         
@@ -301,7 +335,7 @@ public class PartyRepositoryTest {
                 .createQuery("SELECT COUNT(n) FROM Notification n WHERE n.party.id = :partyId", Long.class)
                 .setParameter("partyId", party.getId())
                 .getSingleResult();
-        assertEquals(1L, notificationCount);
+        assertEquals(2L, notificationCount);
     }
 
     @Test

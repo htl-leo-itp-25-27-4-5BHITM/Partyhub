@@ -2,6 +2,9 @@ package at.htl.invitation;
 
 import java.util.List;
 
+import at.htl.notification.Notification;
+import at.htl.notification.NotificationRepository;
+import at.htl.party.Party;
 import at.htl.party.PartyRepository;
 import at.htl.user.User;
 import jakarta.enterprise.context.ApplicationScoped;
@@ -15,6 +18,8 @@ public class InvitationRepository {
     EntityManager entityManager;
     @Inject
     PartyRepository partyRepository;
+    @Inject
+    NotificationRepository notificationRepository;
 
     public Response invite(InvitationDto invitationDto, Long senderId){
         if (senderId == null) {
@@ -37,10 +42,32 @@ public class InvitationRepository {
             return Response.status(Response.Status.CONFLICT).build();
         }
         Invitation invitation = new Invitation();
-        invitation.setParty(partyRepository.getPartyById(invitationDto.partyId()));
-        invitation.setRecipient(entityManager.find(User.class, invitationDto.recipient()));
+        Party party = partyRepository.getPartyById(invitationDto.partyId());
+        User recipient = entityManager.find(User.class, invitationDto.recipient());
+        if (party == null && recipient != null) {
+            Party swappedParty = partyRepository.getPartyById(invitationDto.recipient());
+            User swappedRecipient = entityManager.find(User.class, invitationDto.partyId());
+            if (swappedParty != null && swappedRecipient != null) {
+                party = swappedParty;
+                recipient = swappedRecipient;
+            }
+        }
+
+        if (party == null || recipient == null) {
+            return Response.status(Response.Status.NOT_FOUND)
+                    .entity("{\"error\": \"Party or recipient user not found\"}")
+                    .build();
+        }
+
+        invitation.setParty(party);
+        invitation.setRecipient(recipient);
         invitation.setSender(sender);
         entityManager.persist(invitation);
+
+        String hostName = sender.getDisplayName() != null ? sender.getDisplayName() : sender.getUsername();
+        String message = hostName + " hat dich zu der Party \"" + party.getTitle() + "\" eingeladen";
+        notificationRepository.createNotification(new Notification(recipient, sender, party, message));
+
         return Response.status(Response.Status.CREATED).build();
     }
 

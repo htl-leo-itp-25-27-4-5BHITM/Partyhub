@@ -27,17 +27,17 @@ INSERT INTO follow_status (id, name) VALUES
 -- =========================
 -- USERS
 -- =========================
-INSERT INTO users (id, username, display_name, distinct_name, email, biography, device_token) VALUES
-    (1, 'anna_huber', 'Anna Huber', 'anna_huber', 'anna.huber@partyhub.at', 'Mag Afterwork, Konzerte und Rooftop-Abende in Linz.', 'MANUAL_TEST_TOKEN_ANNA'),
-    (2, 'michael_wagner', 'Michael Wagner', 'michael_wagner', 'michael.wagner@partyhub.at', 'Techno, Startups und spontane Wochenendplaene.', NULL),
-    (3, 'katrin_bauer', 'Katrin Bauer', 'katrin_bauer', 'katrin.bauer@partyhub.at', 'Liebt Tanzflaechen, Sommerfeste und gute Cocktails.', NULL),
-    (4, 'thomas_schneider', 'Thomas Schneider', 'thomas_schneider', 'thomas.schneider@partyhub.at', 'Organisiert gerne Events in Linz und Urfahr.', NULL),
-    (5, 'sabine_weber', 'Sabine Weber', 'sabine_weber', 'sabine.weber@partyhub.at', 'Zwischen Kultur, Networking und langen Naechten unterwegs.', NULL),
-    (6, 'lukas_gruber', 'Lukas Gruber', 'lukas_gruber', 'lukas.gruber@partyhub.at', 'Outdoor untertags, Club nachts.', NULL),
-    (7, 'mia_steiner', 'Mia Steiner', 'mia_steiner', 'mia.steiner@partyhub.at', 'Food, Kunst und entspannte Bars an der Donau.', NULL),
-    (8, 'david_koenig', 'David Koenig', 'david_koenig', 'david.koenig@partyhub.at', 'Meetups, DJs und alles rund um Tabakfabrik.', NULL),
-    (9, 'nina_fischer', 'Nina Fischer', 'nina_fischer', 'nina.fischer@partyhub.at', 'Mag kleinere private Runden und stilvolle Lounges.', NULL),
-    (10, 'elias_berger', 'Elias Berger', 'elias_berger', 'elias.berger@partyhub.at', 'Fotografiert Events und haengt oft im Hafenviertel ab.', NULL);
+INSERT INTO users (id, username, display_name, distinct_name, email, phone_number, biography, device_token) VALUES
+    (1, 'anna_huber', 'Anna Huber', 'anna_huber', 'anna.huber@partyhub.at', '+436641234001', 'Mag Afterwork, Konzerte und Rooftop-Abende in Linz.', 'MANUAL_TEST_TOKEN_ANNA'),
+    (2, 'michael_wagner', 'Michael Wagner', 'michael_wagner', 'michael.wagner@partyhub.at', '+436641234002', 'Techno, Startups und spontane Wochenendplaene.', NULL),
+    (3, 'katrin_bauer', 'Katrin Bauer', 'katrin_bauer', 'katrin.bauer@partyhub.at', '+436641234003', 'Liebt Tanzflaechen, Sommerfeste und gute Cocktails.', NULL),
+    (4, 'thomas_schneider', 'Thomas Schneider', 'thomas_schneider', 'c.dimmler@students.htl-leonding.ac.at', '+436602045422', 'Organisiert gerne Events in Linz und Urfahr.', NULL),
+    (5, 'sabine_weber', 'Sabine Weber', 'sabine_weber', 'sabine.weber@partyhub.at', '+436641234005', 'Zwischen Kultur, Networking und langen Naechten unterwegs.', NULL),
+    (6, 'lukas_gruber', 'Lukas Gruber', 'lukas_gruber', 'lukas.gruber@partyhub.at', '+436641234006', 'Outdoor untertags, Club nachts.', NULL),
+    (7, 'mia_steiner', 'Mia Steiner', 'mia_steiner', 'mia.steiner@partyhub.at', '+436641234007', 'Food, Kunst und entspannte Bars an der Donau.', NULL),
+    (8, 'david_koenig', 'David Koenig', 'david_koenig', 'david.koenig@partyhub.at', '+436641234008', 'Meetups, DJs und alles rund um Tabakfabrik.', NULL),
+    (9, 'nina_fischer', 'Nina Fischer', 'nina_fischer', 'nina.fischer@partyhub.at', '+436641234009', 'Mag kleinere private Runden und stilvolle Lounges.', NULL),
+    (10, 'elias_berger', 'Elias Berger', 'elias_berger', 'elias.berger@partyhub.at', '+436641234010', 'Fotografiert Events und haengt oft im Hafenviertel ab.', NULL);
 
 -- =========================
 -- PROFILE PICTURE

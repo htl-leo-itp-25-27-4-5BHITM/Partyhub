@@ -92,9 +92,9 @@ public class UserRepository {
         user.setDisplayName(createUserDto.displayName());
         user.setDistinctName(createUserDto.distinctName());
         user.setEmail(createUserDto.email());
+        user.setPhoneNumber(createUserDto.phoneNumber());
         user.setBiography(createUserDto.biography());
         User merged = em.merge(user);
         return Response.ok(merged).build();
     }
 }
-

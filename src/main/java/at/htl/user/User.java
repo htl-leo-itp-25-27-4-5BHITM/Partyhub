@@ -35,6 +35,9 @@ public void setDeviceToken(String deviceToken) { this.deviceToken = deviceToken;
 
     private String email;
 
+    @Column(name = "phone_number")
+    private String phoneNumber;
+
     @Column(nullable = true)
     private String biography;
 
@@ -84,6 +87,14 @@ public void setDeviceToken(String deviceToken) { this.deviceToken = deviceToken;
 
     public void setEmail(String email) {
         this.email = email;
+    }
+
+    public String getPhoneNumber() {
+        return phoneNumber;
+    }
+
+    public void setPhoneNumber(String phoneNumber) {
+        this.phoneNumber = phoneNumber;
     }
 
     public String getBiography() {
