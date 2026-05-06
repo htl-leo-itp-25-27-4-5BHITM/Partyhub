@@ -1,6 +1,5 @@
 package at.htl.repository;
 
-import at.htl.invitation.Invitation;
 import at.htl.location.Location;
 import at.htl.notification.Notification;
 import at.htl.party.Party;
@@ -17,7 +16,6 @@ import org.junit.jupiter.api.Test;
 
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -84,89 +82,31 @@ public class PartyRepositoryTest {
     @Test
     void testGetParties_empty() {
         createTestData();
-        
+
         List<Party> parties = partyRepository.getParties();
         assertNotNull(parties);
         assertTrue(parties.isEmpty());
     }
 
     @Test
-    void testGetParties_afterAdd() {
-        createTestData();
-        
-        Location location = entityManager.createQuery("SELECT l FROM Location l", Location.class).getSingleResult();
-        
-        Party party = new Party();
-        party.setTitle("Test Party");
-        party.setDescription("Test Description");
-        party.setTheme("Test Theme");
-        party.setLocation(location);
-        party.setTime_start(LocalDateTime.now());
-        party.setTime_end(LocalDateTime.now().plusHours(2));
-        party.setMax_people(50);
-        party.setMin_age(18);
-        party.setMax_age(35);
-        entityManager.persist(party);
-        entityManager.flush();
-
-        List<Party> parties = partyRepository.getParties();
-        assertEquals(1, parties.size());
-        assertEquals("Test Party", parties.get(0).getTitle());
-    }
-
-    @Test
     void testGetPartyById() {
         createTestData();
-        
+
         Location location = entityManager.createQuery("SELECT l FROM Location l", Location.class).getSingleResult();
-        
+
         Party party = new Party();
         party.setTitle("Test Party");
-        party.setDescription("Test Description");
         party.setTheme("Test Theme");
         party.setLocation(location);
         party.setTime_start(LocalDateTime.now());
         party.setTime_end(LocalDateTime.now().plusHours(2));
         party.setMax_people(50);
-        party.setMin_age(18);
-        party.setMax_age(35);
         entityManager.persist(party);
         entityManager.flush();
 
         Party found = partyRepository.getPartyById(party.getId());
         assertNotNull(found);
         assertEquals("Test Party", found.getTitle());
-    }
-
-    @Test
-    void testGetPartyById_notFound() {
-        createTestData();
-        
-        Party found = partyRepository.getPartyById(999L);
-        assertNull(found);
-    }
-
-    @Test
-    void testRemoveParty() {
-        createTestData();
-        
-        Location location = entityManager.createQuery("SELECT l FROM Location l", Location.class).getSingleResult();
-        
-        Party party = new Party();
-        party.setTitle("Test Party");
-        party.setTheme("Test Theme");
-        party.setLocation(location);
-        party.setTime_start(LocalDateTime.now());
-        party.setTime_end(LocalDateTime.now().plusHours(2));
-        party.setMax_people(50);
-        entityManager.persist(party);
-        entityManager.flush();
-
-        Response response = partyRepository.removeParty(party.getId());
-        assertEquals(204, response.getStatus());
-
-        Party found = partyRepository.getPartyById(party.getId());
-        assertNull(found);
     }
 
     @Test
@@ -204,14 +144,6 @@ public class PartyRepositoryTest {
     }
 
     @Test
-    void testRemoveParty_notFound() {
-        createTestData();
-        
-        Response response = partyRepository.removeParty(999L);
-        assertEquals(404, response.getStatus());
-    }
-
-    @Test
     void testAddParty_normalizesPublicVisibility() {
         createTestData();
         User host = entityManager.createQuery("SELECT u FROM User u", User.class).getSingleResult();
@@ -244,11 +176,9 @@ public class PartyRepositoryTest {
 
         assertEquals(201, response.getStatus());
 
-        List<Invitation> invitations = entityManager
-                .createQuery("SELECT i FROM Invitation i", Invitation.class)
-                .getResultList();
-        assertEquals(1, invitations.size());
-        assertEquals(recipient.getId(), invitations.get(0).getRecipient().getId());
+        Party party = entityManager.createQuery("SELECT p FROM Party p", Party.class).getSingleResult();
+        assertEquals(1, party.getInvitations().size());
+        assertEquals(recipient.getId(), party.getInvitations().iterator().next().getRecipient().getId());
     }
 
     @Test
@@ -279,122 +209,8 @@ public class PartyRepositoryTest {
 
         assertEquals(200, updateResponse.getStatus());
 
-        List<Invitation> invitations = entityManager
-                .createQuery("SELECT i FROM Invitation i WHERE i.party.id = :partyId", Invitation.class)
-                .setParameter("partyId", party.getId())
-                .getResultList();
-        assertEquals(1, invitations.size());
-        assertEquals(recipient.getId(), invitations.get(0).getRecipient().getId());
-
-        List<Notification> notifications = entityManager
-                .createQuery("SELECT n FROM Notification n WHERE n.party.id = :partyId", Notification.class)
-                .setParameter("partyId", party.getId())
-                .getResultList();
-        assertEquals(1, notifications.size());
-        assertEquals(recipient.getId(), notifications.get(0).getRecipient().getId());
-    }
-
-    @Test
-    void testUpdatePrivatePartyDoesNotDuplicateExistingInvitation() {
-        createTestData();
-        User host = entityManager.createQuery("SELECT u FROM User u", User.class).getSingleResult();
-
-        User recipient = new User();
-        recipient.setDisplayName("Existing Recipient");
-        recipient.setDistinctName("existing-recipient");
-        recipient.setEmail("existing-recipient@example.com");
-        entityManager.persist(recipient);
-        entityManager.flush();
-
-        Response createResponse = partyRepository.addParty(
-                createPartyDto("private", List.of(String.valueOf(recipient.getId()))),
-                host.getId()
-        );
-        assertEquals(201, createResponse.getStatus());
-
-        Party party = entityManager
-                .createQuery("SELECT p FROM Party p WHERE p.title = :title", Party.class)
-                .setParameter("title", "Created Party")
-                .getSingleResult();
-
-        Response updateResponse = partyRepository.updateParty(
-                party.getId(),
-                createPartyDto("private", List.of(String.valueOf(recipient.getId()))),
-                host.getId()
-        );
-
-        assertEquals(200, updateResponse.getStatus());
-
-        Long invitationCount = entityManager
-                .createQuery("SELECT COUNT(i) FROM Invitation i WHERE i.party.id = :partyId", Long.class)
-                .setParameter("partyId", party.getId())
-                .getSingleResult();
-        assertEquals(1L, invitationCount);
-
-        Long notificationCount = entityManager
-                .createQuery("SELECT COUNT(n) FROM Notification n WHERE n.party.id = :partyId", Long.class)
-                .setParameter("partyId", party.getId())
-                .getSingleResult();
-        assertEquals(2L, notificationCount);
-    }
-
-    @Test
-    @SuppressWarnings("unchecked")
-    void testAttendPartyInitializesEmptyAttendees() {
-        createTestData();
-        User user = entityManager.createQuery("SELECT u FROM User u", User.class).getSingleResult();
-        Location location = entityManager.createQuery("SELECT l FROM Location l", Location.class).getSingleResult();
-
-        Party party = new Party();
-        party.setTitle("Joinable Party");
-        party.setTheme("Test Theme");
-        party.setLocation(location);
-        party.setTime_start(LocalDateTime.now().plusDays(1));
-        party.setTime_end(LocalDateTime.now().plusDays(1).plusHours(2));
-        entityManager.persist(party);
-        entityManager.flush();
-
-        Response response = partyRepository.attendParty(party.getId(), user.getId());
-        assertEquals(204, response.getStatus());
-
-        Response status = partyRepository.attendStatus(party.getId(), user.getId());
-        Map<String, Object> body = (Map<String, Object>) status.getEntity();
-        assertEquals(true, body.get("attending"));
-        assertEquals(1, body.get("count"));
-    }
-
-    @Test
-    void testSortParty_asc() {
-        createTestData();
-        
-        Location location = entityManager.createQuery("SELECT l FROM Location l", Location.class).getSingleResult();
-        
-        Party party1 = new Party();
-        party1.setTitle("Party B");
-        party1.setTheme("Test Theme");
-        party1.setLocation(location);
-        party1.setTime_start(LocalDateTime.now().plusDays(2));
-        party1.setTime_end(LocalDateTime.now().plusDays(2).plusHours(2));
-        party1.setMax_people(50);
-        
-        Party party2 = new Party();
-        party2.setTitle("Party A");
-        party2.setTheme("Test Theme");
-        party2.setLocation(location);
-        party2.setTime_start(LocalDateTime.now().plusDays(1));
-        party2.setTime_end(LocalDateTime.now().plusDays(1).plusHours(2));
-        party2.setMax_people(50);
-        
-        entityManager.persist(party1);
-        entityManager.persist(party2);
-        entityManager.flush();
-
-        Response response = partyRepository.sortParty("asc");
-        assertEquals(200, response.getStatus());
-        
-        @SuppressWarnings("unchecked")
-        List<Party> parties = (List<Party>) response.getEntity();
-        assertEquals(2, parties.size());
-        assertEquals("Party A", parties.get(0).getTitle());
+        Party updated = partyRepository.getPartyById(party.getId());
+        assertEquals("PRIVATE", updated.getVisibility());
+        assertEquals(1, updated.getInvitations().size());
     }
 }

@@ -8,7 +8,7 @@ import at.htl.media.MediaRepository;
 import at.htl.user_location.UserLocationRepository;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
-
+import jakarta.validation.Valid;
 import jakarta.persistence.EntityManager;
 import jakarta.transaction.Transactional;
 import jakarta.ws.rs.Consumes;
@@ -87,7 +87,7 @@ public class PartyResource {
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     @Path("")
-    public Response createParty(PartyCreateDto partyCreateDto,
+    public Response createParty(@Valid PartyCreateDto partyCreateDto,
                                @QueryParam("user") Long userId,
                                @HeaderParam("X-User-Id") Long headerUserId) {
         Long actualUserId = userId != null ? userId : headerUserId;
@@ -125,7 +125,7 @@ public class PartyResource {
     @Transactional
     @Path("/{id}")
     public Response updatePartyPut(@PathParam("id") Long id,
-                                   PartyCreateDto partyCreateDto,
+                                   @Valid PartyCreateDto partyCreateDto,
                                    @QueryParam("user") Long userId,
                                    @HeaderParam("X-User-Id") Long headerUserId) {
         if (partyCreateDto == null) {
@@ -184,6 +184,16 @@ public class PartyResource {
                                @HeaderParam("X-User-Id") Long headerUserId) {
         Long actualUserId = userId != null ? userId : headerUserId;
         return partyRepository.attendStatus(partyId, actualUserId);
+    }
+
+    @GET
+    @Produces(MediaType.APPLICATION_JSON)
+    @Path("/{id}/invited-members")
+    public Response invitedMembers(@PathParam("id") Long partyId,
+                                   @QueryParam("user") Long userId,
+                                   @HeaderParam("X-User-Id") Long headerUserId) {
+        Long actualUserId = userId != null ? userId : headerUserId;
+        return partyRepository.getInvitedMembers(partyId, actualUserId);
     }
 
     @POST

@@ -1,4 +1,14 @@
 package at.htl.invitation;
 
-public record InvitationDto(Long recipient, Long partyId) {
+import jakarta.validation.constraints.*;
+import at.htl.validation.SafeText;
+
+public record InvitationDto(
+        @NotNull(message = "Recipient ID is required")
+        Long recipient,
+
+        @NotNull(message = "Party ID is required")
+        @SafeText
+        Long partyId
+) {
 }

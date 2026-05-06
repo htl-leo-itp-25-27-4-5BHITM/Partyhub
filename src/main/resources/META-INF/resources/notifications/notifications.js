@@ -23,6 +23,35 @@ document.addEventListener("DOMContentLoaded", async () => {
     return direct ?? null;
   }
 
+  function readPartyId(item) {
+    return (
+      (item?.party && typeof item.party === "object" ? item.party.id : null) ??
+      item?.partyId ??
+      item?.party_id ??
+      (typeof item?.party === "number" || typeof item?.party === "string" ? item.party : null) ??
+      null
+    );
+  }
+
+  function notificationKey(senderId, recipientId, partyId) {
+    if (senderId == null || recipientId == null || partyId == null) return null;
+    return `${senderId}-${recipientId}-${partyId}`;
+  }
+
+  function formatNotificationTime(value) {
+    if (!value) return "vor kurzem";
+
+    const date = new Date(value);
+    if (Number.isNaN(date.getTime())) return "vor kurzem";
+
+    return date.toLocaleString("de-AT", {
+      day: "2-digit",
+      month: "2-digit",
+      hour: "2-digit",
+      minute: "2-digit"
+    });
+  }
+
   function getUsername(user, id) {
     return (
       user?.username ||
@@ -146,6 +175,29 @@ document.addEventListener("DOMContentLoaded", async () => {
     }
   }
 
+  async function getBackendNotifications() {
+    const userId = window.getCurrentUserId();
+    if (!userId) {
+      console.warn("No user logged in for getBackendNotifications");
+      return [];
+    }
+
+    try {
+      const json = await fetchJsonWithFallback([
+        `/api/notifications?user=${userId}`
+      ]);
+
+      if (Array.isArray(json)) return json;
+      if (Array.isArray(json?.items)) return json.items;
+      if (Array.isArray(json?.data)) return json.data;
+      if (Array.isArray(json?.notifications)) return json.notifications;
+      return [];
+    } catch (err) {
+      console.warn("Fetching notifications failed completely:", err);
+      return [];
+    }
+  }
+
   async function acceptFollowRequest(currentUserId, followerId) {
     return fetchWithFallback([
       {
@@ -172,6 +224,21 @@ document.addEventListener("DOMContentLoaded", async () => {
     ]);
   }
 
+  async function deleteBackendNotification(notificationId) {
+    const userId = window.getCurrentUserId();
+    if (!userId || !notificationId) return null;
+
+    return fetchWithFallback([
+      {
+        url: `/api/notifications/${encodeURIComponent(notificationId)}?user=${encodeURIComponent(userId)}`,
+        options: {
+          method: "DELETE",
+          headers: { "X-User-Id": String(userId) }
+        }
+      }
+    ]);
+  }
+
   function showToast(message, type = "success") {
     const toastContainer = document.getElementById("toastContainer");
     if (!toastContainer) return;
@@ -187,7 +254,9 @@ document.addEventListener("DOMContentLoaded", async () => {
   try {
     const invitations = await getReceivedInvites();
     const pendingFollowUsers = await getPendingFollowUsers();
+    const backendNotifications = await getBackendNotifications();
     console.log("notifications: raw pending follow users ->", pendingFollowUsers);
+    console.log("notifications: raw backend notifications ->", backendNotifications);
 
     try {
       console.table(
@@ -229,6 +298,14 @@ document.addEventListener("DOMContentLoaded", async () => {
       if (rid != null) ids.add(String(rid));
     });
 
+    backendNotifications.forEach(notification => {
+      const sid = readId(notification, "sender");
+      const rid = readId(notification, "recipient");
+
+      if (sid != null) ids.add(String(sid));
+      if (rid != null) ids.add(String(rid));
+    });
+
     pendingFollowUsers.forEach(user => {
       const uid = user?.id ?? user?.userId ?? user?.user_id ?? null;
       if (uid != null) ids.add(String(uid));
@@ -255,13 +332,13 @@ document.addEventListener("DOMContentLoaded", async () => {
     const partyIds = new Set();
 
     filteredInvites.forEach(inv => {
-      const pid =
-        (inv.party && typeof inv.party === "object" ? inv.party.id : null) ??
-        inv.partyId ??
-        inv.party_id ??
-        (typeof inv.party === "number" || typeof inv.party === "string" ? inv.party : null) ??
-        null;
+      const pid = readPartyId(inv);
 
+      if (pid != null) partyIds.add(String(pid));
+    });
+
+    backendNotifications.forEach(notification => {
+      const pid = readPartyId(notification);
       if (pid != null) partyIds.add(String(pid));
     });
 
@@ -275,17 +352,20 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     data = [];
 
+    const invitationNotificationKeys = new Set();
+
+    filteredInvites.forEach(inv => {
+      invitationNotificationKeys.add(
+        notificationKey(readId(inv, "sender"), readId(inv, "recipient"), readPartyId(inv))
+      );
+    });
+
     filteredInvites.forEach(inv => {
       const sid = readId(inv, "sender");
       const rid = readId(inv, "recipient");
       const sender = sid != null ? userMap[String(sid)] : null;
 
-      const partyId =
-        (inv.party && typeof inv.party === "object" ? inv.party.id : null) ??
-        inv.partyId ??
-        inv.party_id ??
-        (typeof inv.party === "number" || typeof inv.party === "string" ? inv.party : null) ??
-        null;
+      const partyId = readPartyId(inv);
 
       let partyTitle =
         inv.party?.title ??
@@ -319,6 +399,42 @@ document.addEventListener("DOMContentLoaded", async () => {
           ? `/profile/profile.html?handle=${sender.distinctName}`
           : "#",
         _raw: inv
+      });
+    });
+
+    backendNotifications.forEach(notification => {
+      const notificationId = notification.id ?? notification.notificationId ?? null;
+      const sid = readId(notification, "sender");
+      const rid = readId(notification, "recipient");
+      const partyId = readPartyId(notification);
+      const message = notification.message ?? notification.text ?? "Neue Benachrichtigung";
+      const duplicateInviteKey = notificationKey(sid, rid, partyId);
+      const isInviteDuplicate =
+        partyId != null &&
+        duplicateInviteKey != null &&
+        invitationNotificationKeys.has(duplicateInviteKey) &&
+        message.toLowerCase().includes("eingeladen");
+
+      if (isInviteDuplicate) {
+        return;
+      }
+
+      const sender = sid != null ? userMap[String(sid)] : null;
+
+      data.push({
+        id: `notification-${notificationId ?? `${sid ?? "x"}-${rid ?? "x"}-${partyId ?? "x"}`}`,
+        type: "notification",
+        notificationId: notificationId != null ? Number(notificationId) : null,
+        partyId: partyId != null ? Number(partyId) : null,
+        text: message,
+        createdAt: notification.created_at ?? notification.createdAt ?? null,
+        actorAvatar: sender?.id
+          ? `/api/users/${sender.id}/profile-picture`
+          : "/images/default_profile-picture.svg",
+        actorProfile: sender?.distinctName
+          ? `/profile/profile.html?handle=${sender.distinctName}`
+          : "#",
+        _raw: notification
       });
     });
 
@@ -378,14 +494,14 @@ document.addEventListener("DOMContentLoaded", async () => {
       if (messageEl) messageEl.textContent = item.text;
 
       const timeEl = clone.querySelector(".notif-time");
-      if (timeEl) timeEl.textContent = "vor kurzem";
+      if (timeEl) timeEl.textContent = formatNotificationTime(item.createdAt);
 
       const viewBtn = clone.querySelector(".btn-view-party");
       const acceptBtn = clone.querySelector(".btn-accept");
       const dismissBtn = clone.querySelector(".btn-dismiss");
 
       if (viewBtn) {
-        if (item.type === "invite") {
+        if ((item.type === "invite" || item.type === "notification") && item.partyId) {
           viewBtn.style.display = "";
           viewBtn.addEventListener("click", () => {
             if (item.partyId) {
@@ -400,36 +516,44 @@ document.addEventListener("DOMContentLoaded", async () => {
       }
 
       if (acceptBtn) {
-        acceptBtn.addEventListener("click", async () => {
-          try {
-            if (item.type === "invite") {
-              if (typeof attendParty === "function" && item.partyId) {
-                await attendParty(item.partyId);
+        if (item.type === "notification") {
+          acceptBtn.style.display = "none";
+          acceptBtn.disabled = true;
+        } else {
+          acceptBtn.addEventListener("click", async () => {
+            try {
+              if (item.type === "invite") {
+                if (typeof attendParty === "function" && item.partyId) {
+                  const joined = await attendParty(item.partyId);
+                  if (joined === false || joined?.ok === false) {
+                    throw new Error("Party konnte nicht angenommen werden");
+                  }
+                }
+                if (typeof deleteInvite === "function" && item.invitationId) {
+                  await deleteInvite(item.invitationId);
+                }
+              } else if (item.type === "follow") {
+                if (item.followerId != null && currentUserId != null) {
+                  await acceptFollowRequest(currentUserId, item.followerId);
+                }
               }
-              if (typeof deleteInvite === "function" && item.invitationId) {
-                await deleteInvite(item.invitationId);
-              }
-            } else if (item.type === "follow") {
-              if (item.followerId != null && currentUserId != null) {
-                await acceptFollowRequest(currentUserId, item.followerId);
-              }
+
+              const idx = data.findIndex(d => d.id === item.id);
+              if (idx > -1) data.splice(idx, 1);
+
+              render();
+              showToast(
+                item.type === "follow"
+                  ? "Follow-Anfrage akzeptiert ✓"
+                  : "Einladung angenommen ✓",
+                "success"
+              );
+            } catch (err) {
+              console.error("Accept failed", err);
+              showToast("Fehler beim Annehmen", "error");
             }
-
-            const idx = data.findIndex(d => d.id === item.id);
-            if (idx > -1) data.splice(idx, 1);
-
-            render();
-            showToast(
-              item.type === "follow"
-                ? "Follow-Anfrage akzeptiert ✓"
-                : "Einladung angenommen ✓",
-              "success"
-            );
-          } catch (err) {
-            console.error("Accept failed", err);
-            showToast("Fehler beim Annehmen", "error");
-          }
-        });
+          });
+        }
       }
 
       if (dismissBtn) {
@@ -447,6 +571,11 @@ document.addEventListener("DOMContentLoaded", async () => {
                 await removeFollowRequest(currentUserId, item.followerId);
                 deleted = true;
               }
+            } else if (item.type === "notification") {
+              if (item.notificationId != null) {
+                await deleteBackendNotification(item.notificationId);
+                deleted = true;
+              }
             }
 
             if (deleted) {
@@ -456,6 +585,8 @@ document.addEventListener("DOMContentLoaded", async () => {
               showToast(
                 item.type === "follow"
                   ? "Follow-Anfrage abgelehnt"
+                  : item.type === "notification"
+                    ? "Benachrichtigung gelöscht"
                   : "Einladung abgelehnt",
                 "success"
               );

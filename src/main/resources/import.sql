@@ -155,11 +155,11 @@ INSERT INTO media (id, party_id, user_id, file) VALUES
 -- =========================
 -- INVITATIONS
 -- =========================
-INSERT INTO invitation (id, sender_id, recipient_id, party_id) VALUES
-    (1, 4, 2, 4),
-    (2, 4, 8, 4),
-    (3, 9, 1, 9),
-    (4, 9, 3, 9);
+INSERT INTO invitation (id, sender_id, recipient_id, party_id, status) VALUES
+    (1, 4, 2, 4, 'PENDING'),
+    (2, 4, 8, 4, 'PENDING'),
+    (3, 9, 1, 9, 'PENDING'),
+    (4, 9, 3, 9, 'PENDING');
 
 -- =========================
 -- NOTIFICATIONS

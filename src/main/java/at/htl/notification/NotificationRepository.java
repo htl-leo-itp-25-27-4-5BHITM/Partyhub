@@ -81,4 +81,15 @@ public class NotificationRepository {
         entityManager.persist(notification);
         outOfAppNotificationService.sendNotification(notification);
     }
+
+    public int deleteByPartyId(Long partyId) {
+        if (partyId == null) {
+            return 0;
+        }
+
+        return entityManager.createQuery(
+                        "DELETE FROM Notification n WHERE n.party.id = :partyId")
+                .setParameter("partyId", partyId)
+                .executeUpdate();
+    }
 }

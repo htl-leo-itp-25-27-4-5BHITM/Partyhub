@@ -21,9 +21,9 @@ public class InvitationRepository {
     @Inject
     NotificationRepository notificationRepository;
 
-    public Response invite(InvitationDto invitationDto, Long senderId){
+    public Response invite(InvitationDto invitationDto, Long senderId) {
         if (senderId == null) {
-                return Response.ok().entity(List.of()).build();
+            return Response.ok().entity(List.of()).build();
         }
 
         User sender = entityManager.find(User.class, senderId);
@@ -33,15 +33,6 @@ public class InvitationRepository {
                     .build();
         }
 
-        boolean exists = !entityManager.createQuery(
-                        "select i from Invitation i where i.recipient.id = :recipientId and i.party.id = :partyId", Invitation.class)
-                .setParameter("recipientId", invitationDto.recipient())
-                .setParameter("partyId", invitationDto.partyId())
-                .getResultList().isEmpty();
-        if (exists){
-            return Response.status(Response.Status.CONFLICT).build();
-        }
-        Invitation invitation = new Invitation();
         Party party = partyRepository.getPartyById(invitationDto.partyId());
         User recipient = entityManager.find(User.class, invitationDto.recipient());
         if (party == null && recipient != null) {
@@ -59,10 +50,28 @@ public class InvitationRepository {
                     .build();
         }
 
+        Invitation existingInvitation = findInvitation(party.getId(), recipient.getId());
+        if (existingInvitation != null) {
+            if (!"DECLINED".equalsIgnoreCase(existingInvitation.getStatus())) {
+                return Response.status(Response.Status.CONFLICT).build();
+            }
+
+            existingInvitation.setStatus("PENDING");
+            entityManager.merge(existingInvitation);
+            sendInvitationNotification(recipient, sender, party);
+            return Response.status(Response.Status.CREATED).build();
+        }
+
+        Invitation invitation = new Invitation();
         invitation.setParty(party);
         invitation.setRecipient(recipient);
         invitation.setSender(sender);
+        invitation.setStatus("PENDING");
         entityManager.persist(invitation);
+
+        if (party.getInvitations() != null) {
+            party.getInvitations().add(invitation);
+        }
 
         String hostName = sender.getDisplayName() != null ? sender.getDisplayName() : sender.getUsername();
         String message = hostName + " hat dich zu der Party \"" + party.getTitle() + "\" eingeladen";
@@ -71,7 +80,7 @@ public class InvitationRepository {
         return Response.status(Response.Status.CREATED).build();
     }
 
-    public List<Invitation> getReceivedInvites(Long userId){
+    public List<Invitation> getReceivedInvites(Long userId) {
         if (userId == null) {
             return List.of();
         }
@@ -79,10 +88,14 @@ public class InvitationRepository {
         if (user == null) {
             return List.of();
         }
-        return entityManager.createQuery("select u from Invitation u where u.recipient = :user", Invitation.class).setParameter("user", user).getResultList();
+        return entityManager.createQuery(
+                        "select u from Invitation u where u.recipient = :user",
+                        Invitation.class)
+                .setParameter("user", user)
+                .getResultList();
     }
 
-    public List<Invitation> getSentInvites(Long userId){
+    public List<Invitation> getSentInvites(Long userId) {
         if (userId == null) {
             return List.of();
         }
@@ -90,31 +103,56 @@ public class InvitationRepository {
         if (user == null) {
             return List.of();
         }
-        return entityManager.createQuery("select u from Invitation u where u.sender = :user", Invitation.class).setParameter("user", user).getResultList();
+        return entityManager.createQuery("select u from Invitation u where u.sender = :user", Invitation.class)
+                .setParameter("user", user)
+                .getResultList();
     }
 
-    public Response deleteInvite(Long id, Long userId){
-    if (userId == null) {
-        return Response.status(Response.Status.BAD_REQUEST)
-                .entity("{\"error\": \"User ID required\"}")
-                .build();
-    }
-    
-    Invitation invitation = entityManager.find(Invitation.class, id);
-    if (invitation == null) {
-        return Response.status(Response.Status.NOT_FOUND).build();
+    public Response deleteInvite(Long id, Long userId) {
+        if (userId == null) {
+            return Response.status(Response.Status.BAD_REQUEST)
+                    .entity("{\"error\": \"User ID required\"}")
+                    .build();
+        }
+
+        Invitation invitation = entityManager.find(Invitation.class, id);
+        if (invitation == null) {
+            return Response.status(Response.Status.NOT_FOUND).build();
+        }
+
+        Long senderId = invitation.getSender() != null ? invitation.getSender().getId() : null;
+        Long recipientId = invitation.getRecipient() != null ? invitation.getRecipient().getId() : null;
+
+        if ((senderId == null || !senderId.equals(userId)) &&
+                (recipientId == null || !recipientId.equals(userId))) {
+            return Response.status(Response.Status.FORBIDDEN)
+                    .entity("{\"error\": \"Not authorized to delete this invitation\"}")
+                    .build();
+        }
+
+        Party party = invitation.getParty();
+        if (party != null && party.getInvitations() != null) {
+            party.getInvitations().remove(invitation);
+        }
+
+        entityManager.remove(invitation);
+        return Response.noContent().build();
     }
 
-    Long senderId = invitation.getSender() != null ? invitation.getSender().getId() : null;
-    Long recipientId = invitation.getRecipient() != null ? invitation.getRecipient().getId() : null;
-    
-    if ((senderId == null || !senderId.equals(userId)) && 
-        (recipientId == null || !recipientId.equals(userId))) {
-        return Response.status(Response.Status.FORBIDDEN)
-                .entity("{\"error\": \"Not authorized to delete this invitation\"}")
-                .build();
+    private Invitation findInvitation(Long partyId, Long recipientId) {
+        List<Invitation> result = entityManager.createQuery(
+                        "select i from Invitation i where i.party.id = :partyId and i.recipient.id = :recipientId",
+                        Invitation.class)
+                .setParameter("partyId", partyId)
+                .setParameter("recipientId", recipientId)
+                .setMaxResults(1)
+                .getResultList();
+        return result.isEmpty() ? null : result.get(0);
     }
-    
-    entityManager.remove(invitation);
-    return Response.noContent().build(); 
-    }}
+
+    private void sendInvitationNotification(User recipient, User sender, Party party) {
+        String hostName = sender.getDisplayName() != null ? sender.getDisplayName() : sender.getUsername();
+        String message = hostName + " hat dich zu der Party \"" + party.getTitle() + "\" eingeladen";
+        notificationRepository.createNotification(new Notification(recipient, sender, party, message));
+    }
+}
