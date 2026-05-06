@@ -18,6 +18,7 @@ import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import jakarta.persistence.EntityManager;
 import jakarta.transaction.Transactional;
+import jakarta.validation.Valid;
 import jakarta.ws.rs.Consumes;
 import jakarta.ws.rs.DELETE;
 import jakarta.ws.rs.FormParam;
@@ -53,7 +54,7 @@ public class UserResource {
     @Transactional
     @Consumes(MediaType.APPLICATION_JSON)
     @Path("")
-    public Response createUser(UserCreateDto userCreateDto) {
+    public Response createUser(@Valid UserCreateDto userCreateDto) {
         return userRepository.createUser(createUserDtoToUser(userCreateDto));
     }
 
@@ -152,7 +153,7 @@ public class UserResource {
     @Produces(MediaType.APPLICATION_JSON)
     @Transactional
     @PermitAll
-    public Response updateUser(@PathParam("id") long id, UserCreateDto userCreateDto) {
+    public Response updateUser(@PathParam("id") long id, @Valid UserCreateDto userCreateDto) {
         logger.info("updateUser called with id: " + id);
         
         User user = em.find(User.class, id);
@@ -346,7 +347,7 @@ public class UserResource {
     @Produces(MediaType.APPLICATION_JSON)
     @Transactional
     public Response updateUserLocation(@HeaderParam("X-User-Id") Long userId,
-                                       at.htl.user_location.UserLocationUpdateDto dto) {
+                                       @Valid at.htl.user_location.UserLocationUpdateDto dto) {
         if (userId == null) {
             return Response.status(Response.Status.BAD_REQUEST).build();
         }
