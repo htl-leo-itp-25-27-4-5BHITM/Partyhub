@@ -142,6 +142,7 @@ async function loadPartyDetails(partyId) {
     console.log("Geladene Party Details:", party);
 
     updatePartyDisplay(party);
+    await loadInvitedMembers(partyId);
 
     await checkAttendanceStatus(partyId);
   } catch (error) {
@@ -294,6 +295,7 @@ async function handleJoinParty(partyId) {
 
     if (response.ok) {
       await checkAttendanceStatus(partyId);
+      await loadInvitedMembers(partyId);
     } else {
       const errorText = await response.text().catch(() => "");
       console.error("Failed to update party attendance:", response.status, errorText);
@@ -306,6 +308,116 @@ async function handleJoinParty(partyId) {
   } finally {
     joinBtn.disabled = false;
   }
+}
+
+async function loadInvitedMembers(partyId) {
+  const list = document.querySelector(".invited-list");
+
+  if (!list) {
+    return;
+  }
+
+  const userId = getCurrentUserIdSafe();
+  const url = userId
+    ? `/api/parties/${encodeURIComponent(partyId)}/invited-members?user=${encodeURIComponent(userId)}`
+    : `/api/parties/${encodeURIComponent(partyId)}/invited-members`;
+
+  try {
+    const response = await fetch(url, {
+      cache: "no-store",
+      headers: userId
+        ? { "X-User-Id": String(userId), "Cache-Control": "no-cache" }
+        : { "Cache-Control": "no-cache" },
+    });
+
+    if (!response.ok) {
+      throw new Error(`Failed to fetch invited members. Status: ${response.status}`);
+    }
+
+    const invitedMembers = await response.json();
+    renderInvitedMembers(Array.isArray(invitedMembers) ? invitedMembers : []);
+  } catch (error) {
+    console.error("Error loading invited members:", error);
+    renderInvitedMembers([]);
+  }
+}
+
+function renderInvitedMembers(invitedMembers) {
+  const list = document.querySelector(".invited-list");
+  const toggleText = document.querySelector(".invited-toggle span:first-child");
+
+  if (!list) {
+    return;
+  }
+
+  list.innerHTML = "";
+
+  if (toggleText) {
+    toggleText.textContent = `Invited Members${invitedMembers.length ? ` (${invitedMembers.length})` : ""}`;
+  }
+
+  if (!invitedMembers.length) {
+    const empty = document.createElement("li");
+    empty.className = "invited-empty";
+    empty.textContent = "Keine eingeladenen Mitglieder";
+    list.appendChild(empty);
+    return;
+  }
+
+  invitedMembers.forEach((member) => {
+    const normalizedStatus = normalizeInvitationStatus(member.status);
+    const item = document.createElement("li");
+    item.className = `invited-item ${normalizedStatus.className}`;
+
+    const name = document.createElement("span");
+    name.className = "invited-name";
+    name.textContent = getInvitedMemberName(member);
+
+    const status = document.createElement("span");
+    status.className = `status ${normalizedStatus.className}`;
+    status.title = normalizedStatus.label;
+    status.setAttribute("aria-label", normalizedStatus.label);
+    status.innerHTML = normalizedStatus.icon;
+
+    item.appendChild(name);
+    item.appendChild(status);
+    list.appendChild(item);
+  });
+}
+
+function getInvitedMemberName(member) {
+  return (
+    member.displayName ||
+    member.username ||
+    member.distinctName ||
+    (member.userId ? `User#${member.userId}` : "Unbekannter User")
+  );
+}
+
+function normalizeInvitationStatus(status) {
+  const value = String(status || "PENDING").toUpperCase();
+
+  if (value === "ACCEPTED") {
+    return {
+      className: "accepted",
+      label: "Angenommen",
+      icon: '<svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true" fill="none"><path d="M20 6L9 17l-5-5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+    };
+  }
+
+  if (value === "DECLINED") {
+    return {
+      className: "declined",
+      label: "Abgelehnt",
+      icon: '<svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true" fill="none"><path d="M18 6L6 18M6 6l12 12" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+    };
+  }
+
+  return {
+    className: "pending",
+    label: "Noch offen",
+    icon: '<svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true" fill="none"><path d="M5 12h14" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>',
+  };
 }
 
 async function updatePartyDisplay(party) {

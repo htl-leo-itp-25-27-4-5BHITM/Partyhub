@@ -4,6 +4,7 @@ import at.htl.invitation.Invitation;
 import at.htl.invitation.InvitationDto;
 import at.htl.invitation.InvitationRepository;
 import at.htl.location.Location;
+import at.htl.notification.Notification;
 import at.htl.party.Party;
 import at.htl.user.User;
 import io.quarkus.test.junit.QuarkusTest;
@@ -83,13 +84,21 @@ public class InvitationRepositoryTest {
 
         Party party = createTestParty(sender);
 
-        InvitationDto dto = new InvitationDto(party.getId(), recipient.getId());
+        InvitationDto dto = new InvitationDto(recipient.getId(), party.getId());
         Response response = invitationRepository.invite(dto, sender.getId());
         
         assertEquals(201, response.getStatus());
         
         List<Invitation> invitations = entityManager.createQuery("SELECT i FROM Invitation i", Invitation.class).getResultList();
         assertEquals(1, invitations.size());
+        assertEquals("PENDING", invitations.get(0).getStatus());
+
+        List<Notification> notifications = entityManager
+                .createQuery("SELECT n FROM Notification n WHERE n.recipient.id = :recipientId", Notification.class)
+                .setParameter("recipientId", recipient.getId())
+                .getResultList();
+        assertEquals(1, notifications.size());
+        assertTrue(notifications.get(0).getMessage().contains("eingeladen"));
     }
 
     @Test
@@ -99,7 +108,7 @@ public class InvitationRepositoryTest {
 
         Party party = createTestParty(recipient);
 
-        InvitationDto dto = new InvitationDto(party.getId(), recipient.getId());
+        InvitationDto dto = new InvitationDto(recipient.getId(), party.getId());
         Response response = invitationRepository.invite(dto, null);
         
         assertEquals(200, response.getStatus());
@@ -113,7 +122,7 @@ public class InvitationRepositoryTest {
 
         Party party = createTestParty(sender);
 
-        InvitationDto dto = new InvitationDto(party.getId(), recipient.getId());
+        InvitationDto dto = new InvitationDto(recipient.getId(), party.getId());
         invitationRepository.invite(dto, sender.getId());
         entityManager.flush();
 
@@ -125,6 +134,41 @@ public class InvitationRepositoryTest {
 
         List<Invitation> afterDelete = entityManager.createQuery("SELECT i FROM Invitation i", Invitation.class).getResultList();
         assertTrue(afterDelete.isEmpty());
+    }
+
+    @Test
+    void testInvite_reactivatesDeclinedInvitationAndSendsNotification() {
+        User sender = createTestUser("Sender User", "sender");
+        User recipient = createTestUser("Recipient User", "recipient");
+        entityManager.flush();
+
+        Party party = createTestParty(sender);
+
+        Invitation invitation = new Invitation();
+        invitation.setSender(sender);
+        invitation.setRecipient(recipient);
+        invitation.setParty(party);
+        invitation.setStatus("DECLINED");
+        entityManager.persist(invitation);
+        entityManager.flush();
+
+        InvitationDto dto = new InvitationDto(recipient.getId(), party.getId());
+        Response response = invitationRepository.invite(dto, sender.getId());
+
+        assertEquals(201, response.getStatus());
+        assertEquals("PENDING", invitation.getStatus());
+
+        List<Invitation> invitations = entityManager
+                .createQuery("SELECT i FROM Invitation i WHERE i.party.id = :partyId", Invitation.class)
+                .setParameter("partyId", party.getId())
+                .getResultList();
+        assertEquals(1, invitations.size());
+
+        Long notificationCount = entityManager
+                .createQuery("SELECT COUNT(n) FROM Notification n WHERE n.recipient.id = :recipientId", Long.class)
+                .setParameter("recipientId", recipient.getId())
+                .getSingleResult();
+        assertEquals(1L, notificationCount);
     }
 
     @Test

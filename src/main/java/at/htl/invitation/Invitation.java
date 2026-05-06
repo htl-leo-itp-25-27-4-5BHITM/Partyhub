@@ -33,6 +33,9 @@ public class Invitation {
     @JoinColumn(name = "party_id")
     private Party party;
 
+    @Column(nullable = false)
+    private String status = "PENDING";
+
 
     public void setParty(Party party) {
         this.party = party;
@@ -55,6 +58,18 @@ public class Invitation {
 
     public User getRecipient() {
         return recipient;
+    }
+
+    public Party getParty() {
+        return party;
+    }
+
+    public String getStatus() {
+        return status == null ? "PENDING" : status;
+    }
+
+    public void setStatus(String status) {
+        this.status = status == null || status.isBlank() ? "PENDING" : status;
     }
 
     @JsonProperty("sender_id")

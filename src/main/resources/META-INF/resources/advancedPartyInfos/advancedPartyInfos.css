@@ -257,6 +257,17 @@ body {
   font-size: 0.9rem;
 }
 
+.invited-empty {
+  padding: 10px 2px;
+  color: var(--muted);
+  font-size: 0.88rem;
+}
+
+.invited-name {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
 .invited-item:last-child {
   border-bottom: none;
 }
@@ -265,6 +276,10 @@ body {
   display: inline-flex;
   align-items: center;
   justify-content: center;
+}
+
+.invited-item.pending .status {
+  color: var(--muted);
 }
 
 .invited-item.accepted .status {

@@ -524,7 +524,10 @@ document.addEventListener("DOMContentLoaded", async () => {
             try {
               if (item.type === "invite") {
                 if (typeof attendParty === "function" && item.partyId) {
-                  await attendParty(item.partyId);
+                  const joined = await attendParty(item.partyId);
+                  if (joined === false || joined?.ok === false) {
+                    throw new Error("Party konnte nicht angenommen werden");
+                  }
                 }
                 if (typeof deleteInvite === "function" && item.invitationId) {
                   await deleteInvite(item.invitationId);

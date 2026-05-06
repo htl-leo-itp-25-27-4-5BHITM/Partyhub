@@ -6,6 +6,7 @@ import java.time.format.DateTimeParseException;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 
 import at.htl.location.Location;
@@ -41,6 +42,9 @@ public class PartyRepository {
     FollowRepository followRepository;
 
     private static final DateTimeFormatter PARTY_DTF = DateTimeFormatter.ofPattern("dd.MM.yyyy HH:mm");
+    private static final String INVITATION_PENDING = "PENDING";
+    private static final String INVITATION_ACCEPTED = "ACCEPTED";
+    private static final String INVITATION_DECLINED = "DECLINED";
 
     public List<Party> getParties() {
         return entityManager.createQuery("SELECT p FROM Party p", Party.class).getResultList();
@@ -185,7 +189,9 @@ public class PartyRepository {
             if (party.getInvitations() != null) {
                 for (Invitation invitation : party.getInvitations()) {
                     User recipient = invitation.getRecipient();
-                    if (!recipient.getId().equals(userId)) {
+                    if (recipient != null &&
+                            !recipient.getId().equals(userId) &&
+                            !INVITATION_DECLINED.equalsIgnoreCase(invitation.getStatus())) {
                         Notification notification = new Notification(recipient, host, party, message);
                         notificationRepository.createNotification(notification);
                     }
@@ -214,7 +220,16 @@ public class PartyRepository {
                 continue;
             }
 
-            if (hasInvitationForRecipient(party, recipient)) {
+            Optional<Invitation> existingInvitation = findInvitationForRecipient(party, recipient);
+            if (existingInvitation.isPresent()) {
+                Invitation invitation = existingInvitation.get();
+                if (!shouldSendRenewedInvitation(invitation, party, recipient)) {
+                    continue;
+                }
+
+                invitation.setStatus(INVITATION_PENDING);
+                entityManager.merge(invitation);
+                sendInvitationNotification(recipient, host, party);
                 continue;
             }
 
@@ -222,37 +237,62 @@ public class PartyRepository {
             invitation.setSender(host);
             invitation.setRecipient(recipient);
             invitation.setParty(party);
+            invitation.setStatus(INVITATION_PENDING);
             entityManager.persist(invitation);
 
             if (party.getInvitations() != null) {
                 party.getInvitations().add(invitation);
             }
 
-            String hostName = host.getDisplayName() != null ? host.getDisplayName() : host.getUsername();
-            String message = hostName + " hat dich zu der Party \"" + party.getTitle() + "\" eingeladen";
-            Notification notification = new Notification(recipient, host, party, message);
-            notificationRepository.createNotification(notification);
+            sendInvitationNotification(recipient, host, party);
         }
     }
 
     private boolean hasInvitationForRecipient(Party party, User recipient) {
+        return findInvitationForRecipient(party, recipient).isPresent();
+    }
+
+    private Optional<Invitation> findInvitationForRecipient(Party party, User recipient) {
+        if (party == null || recipient == null || recipient.getId() == null) {
+            return Optional.empty();
+        }
+
         if (party.getInvitations() != null &&
                 party.getInvitations().stream()
                         .anyMatch(i -> i.getRecipient() != null && i.getRecipient().getId().equals(recipient.getId()))) {
-            return true;
+            return party.getInvitations().stream()
+                    .filter(i -> i.getRecipient() != null && i.getRecipient().getId().equals(recipient.getId()))
+                    .findFirst();
         }
 
         if (party.getId() == null) {
-            return false;
+            return Optional.empty();
         }
 
-        Long count = entityManager.createQuery(
-                        "SELECT COUNT(i) FROM Invitation i WHERE i.party.id = :partyId AND i.recipient.id = :recipientId",
-                        Long.class)
+        return entityManager.createQuery(
+                        "SELECT i FROM Invitation i WHERE i.party.id = :partyId AND i.recipient.id = :recipientId",
+                        Invitation.class)
                 .setParameter("partyId", party.getId())
                 .setParameter("recipientId", recipient.getId())
-                .getSingleResult();
-        return count > 0;
+                .getResultStream()
+                .findFirst();
+    }
+
+    private boolean shouldSendRenewedInvitation(Invitation invitation, Party party, User recipient) {
+        String status = invitation.getStatus();
+        boolean attending = party.getUsers() != null &&
+                party.getUsers().stream()
+                        .anyMatch(user -> user.getId() != null && user.getId().equals(recipient.getId()));
+
+        return INVITATION_DECLINED.equalsIgnoreCase(status) ||
+                (INVITATION_ACCEPTED.equalsIgnoreCase(status) && !attending);
+    }
+
+    private void sendInvitationNotification(User recipient, User host, Party party) {
+        String hostName = displayName(host);
+        String message = hostName + " hat dich zu der Party \"" + party.getTitle() + "\" eingeladen";
+        Notification notification = new Notification(recipient, host, party, message);
+        notificationRepository.createNotification(notification);
     }
 
     private void notifyCancellationRecipients(Party party) {
@@ -356,7 +396,7 @@ public class PartyRepository {
                 return party;
             }
 
-            boolean hasInvitation = party.getInvitations() != null && 
+            boolean hasInvitation = party.getInvitations() != null &&
                     party.getInvitations().stream().anyMatch(i -> i.getRecipient().getId().equals(userId));
             if (hasInvitation) {
                 return party;
@@ -368,6 +408,64 @@ public class PartyRepository {
         }
 
         return null;
+    }
+
+    public Response getInvitedMembers(Long partyId, Long userId) {
+        Party party = getPartyByIdIfVisible(partyId, userId);
+        if (party == null) {
+            return Response.status(Response.Status.NOT_FOUND).build();
+        }
+
+        Set<Long> attendeeIds = new HashSet<>();
+        if (party.getUsers() != null) {
+            for (User attendee : party.getUsers()) {
+                if (attendee.getId() != null) {
+                    attendeeIds.add(attendee.getId());
+                }
+            }
+        }
+
+        List<Invitation> invitations = entityManager.createQuery(
+                        "SELECT i FROM Invitation i " +
+                                "LEFT JOIN FETCH i.recipient " +
+                                "WHERE i.party.id = :partyId " +
+                                "ORDER BY i.recipient.displayName, i.recipient.distinctName",
+                        Invitation.class)
+                .setParameter("partyId", partyId)
+                .getResultList();
+
+        List<InvitedMemberDto> invitedMembers = invitations.stream()
+                .filter(invitation -> invitation.getRecipient() != null)
+                .map(invitation -> {
+                    User recipient = invitation.getRecipient();
+                    String status = invitationStatusForDisplay(invitation, attendeeIds);
+                    return new InvitedMemberDto(
+                            recipient.getId(),
+                            recipient.getUsername(),
+                            recipient.getDisplayName(),
+                            recipient.getDistinctName(),
+                            status
+                    );
+                })
+                .toList();
+
+        return Response.ok(invitedMembers).build();
+    }
+
+    private String invitationStatusForDisplay(Invitation invitation, Set<Long> attendeeIds) {
+        User recipient = invitation.getRecipient();
+        String status = invitation.getStatus();
+
+        if ("DECLINED".equalsIgnoreCase(status)) {
+            return "DECLINED";
+        }
+
+        if ("ACCEPTED".equalsIgnoreCase(status) ||
+                (recipient != null && recipient.getId() != null && attendeeIds.contains(recipient.getId()))) {
+            return "ACCEPTED";
+        }
+
+        return "PENDING";
     }
 
     public Response attendParty(Long partyId, Long userId) {
@@ -394,7 +492,13 @@ public class PartyRepository {
         Set<User> attendees = ensureUsers(party);
 
         if (!attendees.contains(user)) {
+            Optional<Invitation> invitation = findInvitationForRecipient(party, user);
             attendees.add(user);
+            if (invitation.isPresent()) {
+                invitation.get().setStatus(INVITATION_ACCEPTED);
+                entityManager.merge(invitation.get());
+                notifyHost(party, user, displayName(user) + " hat deine Einladung zur Party \"" + party.getTitle() + "\" angenommen.");
+            }
         }
 
         return Response.noContent().build();
@@ -425,6 +529,12 @@ public class PartyRepository {
 
         if (attendees.contains(user)) {
             attendees.remove(user);
+            Optional<Invitation> invitation = findInvitationForRecipient(party, user);
+            if (invitation.isPresent()) {
+                invitation.get().setStatus(INVITATION_DECLINED);
+                entityManager.merge(invitation.get());
+            }
+            notifyHost(party, user, displayName(user) + " hat die Party \"" + party.getTitle() + "\" verlassen.");
             entityManager.merge(party);
             return Response.ok(party).build();
         }
@@ -536,5 +646,35 @@ public class PartyRepository {
         }
 
         return party.getUsers();
+    }
+
+    private void notifyHost(Party party, User actor, String message) {
+        User host = party.getHost_user();
+        if (host == null || actor == null) {
+            return;
+        }
+
+        if (host.getId() != null && host.getId().equals(actor.getId())) {
+            return;
+        }
+
+        Notification notification = new Notification(host, actor, party, message);
+        notificationRepository.createNotification(notification);
+    }
+
+    private String displayName(User user) {
+        if (user == null) {
+            return "Jemand";
+        }
+        if (user.getDisplayName() != null && !user.getDisplayName().isBlank()) {
+            return user.getDisplayName();
+        }
+        if (user.getUsername() != null && !user.getUsername().isBlank()) {
+            return user.getUsername();
+        }
+        if (user.getDistinctName() != null && !user.getDistinctName().isBlank()) {
+            return user.getDistinctName();
+        }
+        return "Jemand";
     }
 }
