@@ -182,4 +182,59 @@ public class UserRepositoryTest {
         List<User> results = userRepository.getUsersByDistinctNameSearch("user_");
         assertEquals(2, results.size());
     }
+
+    @Test
+    void testFindById_found() {
+        User user = new User();
+        user.setDisplayName("Test User");
+        user.setDistinctName("testuser");
+        user.setEmail("test@example.com");
+        entityManager.persist(user);
+        entityManager.flush();
+
+        var found = userRepository.findById(user.getId());
+        assertTrue(found.isPresent());
+        assertEquals("testuser", found.get().getDistinctName());
+    }
+
+    @Test
+    void testFindById_notFound() {
+        var found = userRepository.findById(999L);
+        assertTrue(found.isEmpty());
+    }
+
+    @Test
+    void testFindByUsername_found() {
+        User user = new User();
+        user.setDisplayName("Test User");
+        user.setDistinctName("testuser");
+        user.setEmail("test@example.com");
+        user.setUsername("testusername");
+        entityManager.persist(user);
+        entityManager.flush();
+
+        var found = userRepository.findByUsername("testusername");
+        assertTrue(found.isPresent());
+        assertEquals("testuser", found.get().getDistinctName());
+    }
+
+    @Test
+    void testFindByUsername_notFound() {
+        var found = userRepository.findByUsername("nonexistent");
+        assertTrue(found.isEmpty());
+    }
+
+    @Test
+    void testPersist() {
+        User user = new User();
+        user.setDisplayName("Persist User");
+        user.setDistinctName("persistuser");
+        user.setEmail("persist@example.com");
+
+        userRepository.persist(user);
+        entityManager.flush();
+
+        assertNotNull(user.getId());
+        assertTrue(user.getId() > 0);
+    }
 }
