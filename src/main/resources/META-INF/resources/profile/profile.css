@@ -42,14 +42,14 @@
   color: #4f3b9a;
 }
 
-/* Navbar-Icons größer */
+/* Larger navbar icons */
 #mobileNavbar svg {
   width: 32px;
   height: 32px;
   display: block;
 }
 
-/* Aktives Icon: grün */
+/* Active icon: green */
 .navbar-btn.active svg {
   color: #56f27c;
   stroke: #56f27c;
@@ -62,13 +62,13 @@
   transition: stroke 0.2s, fill 0.2s;
 }
 
-/* Party-Popper Icon: normal weiß, aktiv dunkel */
-#tabPartys.tab-btn .tab-icon svg {
+/* Party popper icon: white by default, dark when active */
+#tabParties.tab-btn .tab-icon svg {
   stroke: #fff;
   fill: #fff;
 }
 
-#tabPartys.tab-btn.active .tab-icon svg {
+#tabParties.tab-btn.active .tab-icon svg {
   stroke: #1c274c;
   fill: #1c274c;
 }
@@ -257,7 +257,7 @@
   transform: none;
 }
 
-/* Tabs für Beiträge und Favoriten */
+/* Tabs for posts and favorites */
 #profileTabs {
   width: 100%;
   max-width: 520px;
@@ -341,7 +341,7 @@
   border-radius: 999px;
 }
 
-#tabContentPartys {
+#tabContentParties {
   width: 100%;
   max-height: none;
   overflow-y: auto;

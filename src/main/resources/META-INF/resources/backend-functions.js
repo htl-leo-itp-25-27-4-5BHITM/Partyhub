@@ -288,12 +288,12 @@ async function deleteInvite(invitationId) {
 
     if (!response.ok) {
       if (response.status === 404) {
-        throw new Error("Einladung nicht gefunden");
+        throw new Error("Invitation not found");
       }
       if (response.status === 403) {
         throw new Error("Nicht berechtigt");
       }
-      throw new Error(`Fehler beim Löschen: ${response.status}`);
+      throw new Error(`Error while deleting: ${response.status}`);
     }
 
     return true;

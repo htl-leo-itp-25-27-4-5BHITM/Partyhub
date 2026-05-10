@@ -245,7 +245,7 @@ public class PartyRepositoryTest {
                 .setParameter("recipientId", attendeeId)
                 .getResultList();
         assertEquals(1, notifications.size());
-        assertTrue(notifications.get(0).getMessage().contains("wurde abgesagt"));
+        assertTrue(notifications.get(0).getMessage().contains("was canceled"));
     }
 
     @Test
@@ -377,6 +377,51 @@ public class PartyRepositoryTest {
                 member.userId().equals(pendingUser.getId()) && "PENDING".equals(member.status())));
         assertTrue(members.stream().anyMatch(member ->
                 member.userId().equals(declinedUser.getId()) && "DECLINED".equals(member.status())));
+    }
+
+    @Test
+    @SuppressWarnings("unchecked")
+    void testGetJoinedMembersReturnsPublicPartyAttendees() {
+        createTestData();
+
+        Location location = entityManager.createQuery("SELECT l FROM Location l", Location.class).getSingleResult();
+        User host = entityManager.createQuery("SELECT u FROM User u", User.class).getSingleResult();
+
+        User firstAttendee = new User();
+        firstAttendee.setDisplayName("First Attendee");
+        firstAttendee.setDistinctName("first-attendee");
+        firstAttendee.setEmail("first-attendee@example.com");
+        entityManager.persist(firstAttendee);
+
+        User secondAttendee = new User();
+        secondAttendee.setDisplayName("Second Attendee");
+        secondAttendee.setDistinctName("second-attendee");
+        secondAttendee.setEmail("second-attendee@example.com");
+        entityManager.persist(secondAttendee);
+
+        Party party = new Party();
+        party.setTitle("Public Joined Members Party");
+        party.setTheme("Test Theme");
+        party.setLocation(location);
+        party.setHost_user(host);
+        party.setVisibility("PUBLIC");
+        party.setTime_start(LocalDateTime.now().plusDays(1));
+        party.setTime_end(LocalDateTime.now().plusDays(1).plusHours(2));
+        party.getUsers().add(firstAttendee);
+        party.getUsers().add(secondAttendee);
+        entityManager.persist(party);
+        entityManager.flush();
+
+        Response response = partyRepository.getJoinedMembers(party.getId(), null);
+
+        assertEquals(200, response.getStatus());
+
+        List<InvitedMemberDto> members = (List<InvitedMemberDto>) response.getEntity();
+        assertEquals(2, members.size());
+        assertTrue(members.stream().anyMatch(member ->
+                member.userId().equals(firstAttendee.getId()) && "JOINED".equals(member.status())));
+        assertTrue(members.stream().anyMatch(member ->
+                member.userId().equals(secondAttendee.getId()) && "JOINED".equals(member.status())));
     }
 
     @Test
@@ -587,7 +632,7 @@ public class PartyRepositoryTest {
                 .getResultList();
         assertEquals(1, notifications.size());
         assertEquals(invitedUserId, notifications.get(0).getSender().getId());
-        assertTrue(notifications.get(0).getMessage().contains("angenommen"));
+        assertTrue(notifications.get(0).getMessage().contains("accepted"));
     }
 
     @Test
@@ -633,7 +678,7 @@ public class PartyRepositoryTest {
                 .getResultList();
         assertEquals(1, notifications.size());
         assertEquals(attendeeId, notifications.get(0).getSender().getId());
-        assertTrue(notifications.get(0).getMessage().contains("verlassen"));
+        assertTrue(notifications.get(0).getMessage().contains("left"));
     }
 
     @Test

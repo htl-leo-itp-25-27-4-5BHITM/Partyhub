@@ -22,6 +22,8 @@ document.addEventListener("DOMContentLoaded", function () {
   setupJoinPartyButton();
 });
 
+let currentPartyIsPrivate = false;
+
 function getCurrentUserIdSafe() {
   try {
     if (typeof window.getCurrentUserId === "function") {
@@ -38,7 +40,7 @@ function getCurrentUserIdSafe() {
       null
     );
   } catch (error) {
-    console.warn("Current User ID konnte nicht gelesen werden:", error);
+    console.warn("Current User ID could not be read:", error);
     return null;
   }
 }
@@ -139,10 +141,10 @@ async function loadPartyDetails(partyId) {
 
     const party = await response.json();
 
-    console.log("Geladene Party Details:", party);
+    console.log("Loaded party details:", party);
 
     updatePartyDisplay(party);
-    await loadInvitedMembers(partyId);
+    await loadPartyMembers(partyId, party);
 
     await checkAttendanceStatus(partyId);
   } catch (error) {
@@ -272,7 +274,7 @@ async function handleJoinParty(partyId) {
   const userId = getCurrentUserIdSafe();
 
   if (!userId) {
-    alert("Bitte melde dich an");
+    alert("Please log in");
     return;
   }
 
@@ -295,18 +297,41 @@ async function handleJoinParty(partyId) {
 
     if (response.ok) {
       await checkAttendanceStatus(partyId);
-      await loadInvitedMembers(partyId);
+      await loadPartyMembers(partyId);
     } else {
       const errorText = await response.text().catch(() => "");
       console.error("Failed to update party attendance:", response.status, errorText);
 
-      alert("Teilnahme konnte nicht aktualisiert werden.");
+      alert("Attendance could not be updated.");
     }
   } catch (error) {
     console.error("Error updating party attendance:", error);
-    alert("Fehler beim Aktualisieren der Teilnahme.");
+    alert("Error while updating attendance.");
   } finally {
     joinBtn.disabled = false;
+  }
+}
+
+function isPrivateParty(party) {
+  const visibility =
+    party?.visibility ??
+    party?.Visibility ??
+    party?.partyVisibility ??
+    party?.type ??
+    "";
+
+  return String(visibility).toUpperCase() === "PRIVATE";
+}
+
+async function loadPartyMembers(partyId, party = null) {
+  if (party) {
+    currentPartyIsPrivate = isPrivateParty(party);
+  }
+
+  if (currentPartyIsPrivate) {
+    await loadInvitedMembers(partyId);
+  } else {
+    await loadJoinedMembers(partyId);
   }
 }
 
@@ -342,6 +367,38 @@ async function loadInvitedMembers(partyId) {
   }
 }
 
+async function loadJoinedMembers(partyId) {
+  const list = document.querySelector(".invited-list");
+
+  if (!list) {
+    return;
+  }
+
+  const userId = getCurrentUserIdSafe();
+  const url = userId
+    ? `/api/parties/${encodeURIComponent(partyId)}/joined-members?user=${encodeURIComponent(userId)}`
+    : `/api/parties/${encodeURIComponent(partyId)}/joined-members`;
+
+  try {
+    const response = await fetch(url, {
+      cache: "no-store",
+      headers: userId
+        ? { "X-User-Id": String(userId), "Cache-Control": "no-cache" }
+        : { "Cache-Control": "no-cache" },
+    });
+
+    if (!response.ok) {
+      throw new Error(`Failed to fetch joined members. Status: ${response.status}`);
+    }
+
+    const joinedMembers = await response.json();
+    renderJoinedMembers(Array.isArray(joinedMembers) ? joinedMembers : []);
+  } catch (error) {
+    console.error("Error loading joined members:", error);
+    renderJoinedMembers([]);
+  }
+}
+
 function renderInvitedMembers(invitedMembers) {
   const list = document.querySelector(".invited-list");
   const toggleText = document.querySelector(".invited-toggle span:first-child");
@@ -359,7 +416,7 @@ function renderInvitedMembers(invitedMembers) {
   if (!invitedMembers.length) {
     const empty = document.createElement("li");
     empty.className = "invited-empty";
-    empty.textContent = "Keine eingeladenen Mitglieder";
+    empty.textContent = "No invited members";
     list.appendChild(empty);
     return;
   }
@@ -385,12 +442,47 @@ function renderInvitedMembers(invitedMembers) {
   });
 }
 
+function renderJoinedMembers(joinedMembers) {
+  const list = document.querySelector(".invited-list");
+  const toggleText = document.querySelector(".invited-toggle span:first-child");
+
+  if (!list) {
+    return;
+  }
+
+  list.innerHTML = "";
+
+  if (toggleText) {
+    toggleText.textContent = `Joined Members${joinedMembers.length ? ` (${joinedMembers.length})` : ""}`;
+  }
+
+  if (!joinedMembers.length) {
+    const empty = document.createElement("li");
+    empty.className = "invited-empty";
+    empty.textContent = "No joined members";
+    list.appendChild(empty);
+    return;
+  }
+
+  joinedMembers.forEach((member) => {
+    const item = document.createElement("li");
+    item.className = "invited-item joined";
+
+    const name = document.createElement("span");
+    name.className = "invited-name";
+    name.textContent = getInvitedMemberName(member);
+
+    item.appendChild(name);
+    list.appendChild(item);
+  });
+}
+
 function getInvitedMemberName(member) {
   return (
     member.displayName ||
     member.username ||
     member.distinctName ||
-    (member.userId ? `User#${member.userId}` : "Unbekannter User")
+    (member.userId ? `User#${member.userId}` : "Unknown user")
   );
 }
 
@@ -400,7 +492,7 @@ function normalizeInvitationStatus(status) {
   if (value === "ACCEPTED") {
     return {
       className: "accepted",
-      label: "Angenommen",
+      label: "Accepted",
       icon: '<svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true" fill="none"><path d="M20 6L9 17l-5-5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>',
     };
   }
@@ -408,20 +500,21 @@ function normalizeInvitationStatus(status) {
   if (value === "DECLINED") {
     return {
       className: "declined",
-      label: "Abgelehnt",
+      label: "Declined",
       icon: '<svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true" fill="none"><path d="M18 6L6 18M6 6l12 12" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>',
     };
   }
 
   return {
     className: "pending",
-    label: "Noch offen",
+    label: "Pending",
     icon: '<svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true" fill="none"><path d="M5 12h14" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>',
   };
 }
 
 async function updatePartyDisplay(party) {
   updatePartyTitle(party);
+  updateVisibilityDisplay(party);
   await updateMediaCount(party);
   updateLocationDisplay(party);
   updateDateDisplay(party);
@@ -451,6 +544,26 @@ function updatePartyTitle(party) {
   titleElement.textContent = party.title || party.name || "Loading...";
 }
 
+function updateVisibilityDisplay(party) {
+  const visibilityElement = document.getElementById("visibility-display");
+
+  if (!visibilityElement) {
+    return;
+  }
+
+  const isPrivate = isPrivateParty(party);
+  visibilityElement.classList.toggle("private", isPrivate);
+  visibilityElement.classList.toggle("public", !isPrivate);
+  visibilityElement.setAttribute(
+    "aria-label",
+    isPrivate ? "Private party" : "Public party"
+  );
+  visibilityElement.title = isPrivate ? "Private party" : "Public party";
+  visibilityElement.innerHTML = isPrivate
+    ? '<svg viewBox="0 0 24 24" aria-hidden="true" fill="none"><rect x="5" y="10" width="14" height="10" rx="2" stroke-width="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3" stroke-width="2" stroke-linecap="round"/></svg><span>Private</span>'
+    : '<svg viewBox="0 0 24 24" aria-hidden="true" fill="none"><rect x="5" y="10" width="14" height="10" rx="2" stroke-width="2"/><path d="M8 10V7a4 4 0 0 1 7.25-2.34" stroke-width="2" stroke-linecap="round"/></svg><span>Public</span>';
+}
+
 async function updateMediaCount(party) {
   const mediaCountElement = document.getElementById("media-count");
 
@@ -459,7 +572,7 @@ async function updateMediaCount(party) {
   }
 
   if (!party.id) {
-    mediaCountElement.textContent = "0 Fotos";
+    mediaCountElement.textContent = "0 photos";
     return;
   }
 
@@ -469,13 +582,13 @@ async function updateMediaCount(party) {
     if (mediaResponse.ok) {
       const media = await mediaResponse.json();
       const count = Array.isArray(media) ? media.length : 0;
-      mediaCountElement.textContent = `${count} Fotos`;
+      mediaCountElement.textContent = `${count} ${count === 1 ? "photo" : "photos"}`;
     } else {
-      mediaCountElement.textContent = "0 Fotos";
+      mediaCountElement.textContent = "0 photos";
     }
   } catch (error) {
     console.error("Error fetching media count:", error);
-    mediaCountElement.textContent = "0 Fotos";
+    mediaCountElement.textContent = "0 photos";
   }
 }
 

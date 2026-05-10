@@ -32,7 +32,7 @@ body {
   font-family: "Montserrat", sans-serif;
 }
 
-/* Falls global irgendwo overflow hidden gesetzt ist */
+/* In case global styles set overflow hidden */
 .app-shell,
 .container,
 .party-info-root {
@@ -107,6 +107,32 @@ body {
   border: 1px solid var(--border);
   font-size: 0.82rem;
   color: var(--text-soft);
+}
+
+.visibility-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-weight: 700;
+}
+
+.visibility-chip svg {
+  width: 15px;
+  height: 15px;
+  flex: 0 0 auto;
+  stroke: currentColor;
+}
+
+.visibility-chip.private {
+  color: #ffd166;
+  border-color: rgba(255, 209, 102, 0.35);
+  background: rgba(255, 209, 102, 0.12);
+}
+
+.visibility-chip.public {
+  color: var(--success);
+  border-color: rgba(86, 242, 124, 0.35);
+  background: rgba(86, 242, 124, 0.1);
 }
 
 .description {

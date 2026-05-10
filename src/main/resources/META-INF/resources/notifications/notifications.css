@@ -9,7 +9,7 @@
 .notif-panel {
   width:100%;
   max-width: none;
-  position: static;            /* nicht fixed */
+  position: static;            /* not fixed */
   margin: 0;
   background: transparent;
   border-radius: 0;
@@ -37,19 +37,19 @@
   color: #fff;
   font-weight: 700;
   background: transparent;
-  padding: 6px 10px;      /* etwas weniger Abstand */
+  padding: 6px 10px;      /* slightly less spacing */
   border-radius: 6px;
-  font-size: 1.2rem;    /* größer */
+  font-size: 1.2rem;    /* larger */
   pointer-events: auto;
-  display: inline-block; /* bleibt inline in Flow */
-  margin-top: 8px;     /* kleiner Abstand oberhalb */
-  margin-bottom: 6px;   /* reduziert Abstand unterhalb */
+  display: inline-block; /* stays inline in the flow */
+  margin-top: 8px;     /* smaller spacing above */
+  margin-bottom: 6px;   /* reduced spacing below */
 }
 
-/* Liste: kompakter Abstand direkt unter dem Titel */
+/* List: compact spacing directly below the title */
 .notif-list { margin-top: 6px; }
 
-/* Card: etwas hellerer Hintergrund, kein sichtbarer Rand - nur Schatten für Abgrenzung */
+/* Card: slightly brighter background, no visible border - only shadow for separation */
 .notif-card {
   background: var(--bg-tertiary);
   border: 1px solid rgba(255, 255, 255, 0.1);
@@ -57,7 +57,7 @@
   padding:10px;
   display:block;
   transition:opacity .18s ease, transform .18s ease;
-  box-shadow: 0 2px 10px rgba(0,0,0,0.25), 0 0 0 1px rgba(255,255,255,0.02); /* Schatten + subtiler "Outline"-Effekt */
+  box-shadow: 0 2px 10px rgba(0,0,0,0.25), 0 0 0 1px rgba(255,255,255,0.02); /* shadow + subtle outline effect */
 }
 
 .notif-row {
@@ -195,7 +195,7 @@
   fill: none;
 }
 
-/* kleine Hilfsklasse für leeren Zustand */
+/* Small helper class for empty states */
 .muted { color:rgba(255,255,255,0.6); text-align:center; padding:18px 6px; font-family: var(--font-body); }
 
 @media (max-width:420px) {
@@ -212,14 +212,14 @@
 
 .notif-message {
   font-weight:700;
-  font-size:0.84rem; /* leicht kleiner */
+  font-size:0.84rem; /* slightly smaller */
   white-space:normal;
   color:#fff;
   font-family: var(--font-body);
 }
 
 .notif-time {
-  font-size:0.72rem; /* verkleinert von 0.78rem */
+  font-size:0.72rem; /* reduced from 0.78rem */
   color:rgba(255,255,255,0.6);
   margin-top:4px;
   font-family: var(--font-body);
@@ -274,7 +274,7 @@
   display: block;
 }
 
-/* Success Toast (grüner Akzent) */
+/* Success toast (green accent) */
 .toast.success {
   background: linear-gradient(135deg, rgba(86,242,124,0.15) 0%, rgba(86,242,124,0.05) 100%);
   border: 1px solid rgba(86,242,124,0.25);
@@ -311,9 +311,9 @@
 }
 
 input::placeholder {
-  color: rgba(255,255,255,0.75); /* sichtbar auf dunklem BG */
+  color: rgba(255,255,255,0.75); /* visible on dark backgrounds */
   opacity: 1;
 }
 input {
-  color: #fff; /* eigentlicher Text */
+  color: #fff; /* actual text */
 }

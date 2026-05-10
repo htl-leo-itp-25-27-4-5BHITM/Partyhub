@@ -1,9 +1,9 @@
 <!doctype html>
-<html lang="de">
+<html lang="en">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Party erstellen</title>
+    <title>Create Party</title>
     <link rel="stylesheet" href="./addParty.css" />
     <link rel="stylesheet" href="../global.css" />
     <link rel="stylesheet" href="../index.css" />
@@ -52,23 +52,23 @@
               <input name="title" placeholder="Party Name" />
             </div>
             <div class="field">
-              <div class="field-label">Beschreibung</div>
-              <input name="description" placeholder="Was passiert?" />
+              <div class="field-label">Description</div>
+              <input name="description" placeholder="What is happening?" />
             </div>
             <div class="field">
-              <div class="field-label">Beginn</div>
+              <div class="field-label">Start</div>
               <input
                 id="time_start"
                 name="time_start"
-                placeholder="Startzeit"
+                placeholder="Start time"
               />
             </div>
             <div class="field">
-              <div class="field-label">Ende</div>
-              <input id="time_end" name="time_end" placeholder="Endzeit" />
+              <div class="field-label">End</div>
+              <input id="time_end" name="time_end" placeholder="End time" />
             </div>
             <div class="field">
-              <div class="field-label">Adresse</div>
+              <div class="field-label">Address</div>
               <input id="location_address" name="location_address" />
               <div id="addressSuggestions" class="suggestions"></div>
             </div>
@@ -77,33 +77,33 @@
           <div class="step" data-step="2">
             <div class="visibility-options">
               <button type="button" class="vis-card active" data-mode="private">
-                🔒 Privat
+                🔒 Private
               </button>
               <button type="button" class="vis-card" data-mode="public">
-                🔓 Öffentlich
+                🔓 Public
               </button>
             </div>
             <div class="user-list" id="userList"></div>
             <p class="everyone-hint" id="everyoneHint" style="display: none">
-              Sichtbar für alle.
+              Visible to everyone.
             </p>
           </div>
 
           <div class="step" data-step="3">
             <div class="field">
-              <div class="field-label">Eintritt (€)</div>
+              <div class="field-label">Entry fee (€)</div>
               <input name="entry_costs" type="number" />
             </div>
             <div class="field">
-              <div class="field-label">Motto</div>
-              <input name="theme" placeholder="90er, etc." />
+              <div class="field-label">Theme</div>
+              <input name="theme" placeholder="90s, etc." />
             </div>
             <div class="field">
-              <div class="field-label">Mindestalter</div>
+              <div class="field-label">Minimum age</div>
               <input name="min_age" type="number" value="18" />
             </div>
             <div class="field">
-              <div class="field-label">Max. Alter</div>
+              <div class="field-label">Max. age</div>
               <input name="max_age" type="number" />
             </div>
             <div class="field">
@@ -129,7 +129,7 @@
                 id="mapMessage"
                 style="color: #999; text-align: center; padding: 20px"
               >
-                Party wird auf der Karte angezeigt
+                Party will be shown on the map
               </p>
             </div>
           </div>

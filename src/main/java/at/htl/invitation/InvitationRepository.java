@@ -179,11 +179,11 @@ public class InvitationRepository {
             hostName = sender.getDistinctName();
         }
         if (hostName == null || hostName.isBlank()) {
-            hostName = "Jemand";
+            hostName = "Someone";
         }
 
-        String partyTitle = party.getTitle() != null ? party.getTitle() : "eine Party";
-        String message = hostName + " hat dich zu der Party \"" + partyTitle + "\" eingeladen";
+        String partyTitle = party.getTitle() != null ? party.getTitle() : "a party";
+        String message = hostName + " invited you to the party \"" + partyTitle + "\"";
         notificationRepository.createNotification(new Notification(recipient, sender, party, message));
     }
 }

@@ -4,7 +4,7 @@ import java.util.List;
 import java.util.Map;
 
 import at.htl.FilterDto;
-import at.htl.PushNotificationService; // 1. WICHTIGER IMPORT
+import at.htl.PushNotificationService;
 import at.htl.media.MediaRepository;
 import at.htl.user_location.UserLocationRepository;
 import jakarta.enterprise.context.ApplicationScoped;
@@ -41,7 +41,7 @@ public class PartyResource {
     @Inject
     EntityManager em;
 
-    @Inject // 2. WICHTIGE DEKLARATION
+    @Inject
     PushNotificationService pushService;
 
     @GET
@@ -141,7 +141,7 @@ public class PartyResource {
         Long actualUserId = userId != null ? userId : headerUserId;
         Response response = partyRepository.updateParty(id, partyCreateDto, actualUserId);
 
-        // Push triggern, wenn das Update erfolgreich war
+        // Trigger push notifications after a successful update
         if (response.getStatus() == Response.Status.OK.getStatusCode()) {
             pushService.notifyParticipants(id, "Update: " + partyCreateDto.title());
         }
@@ -205,6 +205,16 @@ public class PartyResource {
                                    @HeaderParam("X-User-Id") Long headerUserId) {
         Long actualUserId = userId != null ? userId : headerUserId;
         return partyRepository.getInvitedMembers(partyId, actualUserId);
+    }
+
+    @GET
+    @Produces(MediaType.APPLICATION_JSON)
+    @Path("/{id}/joined-members")
+    public Response joinedMembers(@PathParam("id") Long partyId,
+                                  @QueryParam("user") Long userId,
+                                  @HeaderParam("X-User-Id") Long headerUserId) {
+        Long actualUserId = userId != null ? userId : headerUserId;
+        return partyRepository.getJoinedMembers(partyId, actualUserId);
     }
 
     @POST

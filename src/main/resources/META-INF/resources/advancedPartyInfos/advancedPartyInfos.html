@@ -12,7 +12,7 @@
     <script src="../user-utils.js" defer></script>
     <script src="../nav.js" defer></script>
     <script src="../backend-functions.js?v=20260429-fresh-db" defer></script>
-    <script src="./advancedPartyInfos.js?v=20260506-invited-status" defer></script>
+    <script src="./advancedPartyInfos.js?v=20260510-visibility-lock" defer></script>
   </head>
 
   <body class="bg-light">
@@ -29,6 +29,7 @@
               <span class="meta-chip" id="media-count"></span>
               <span class="meta-chip" id="location-display"></span>
               <span class="meta-chip" id="party-date"></span>
+              <span class="meta-chip visibility-chip" id="visibility-display" aria-label="Party visibility"></span>
             </div>
 
             <p class="description" id="party-description"></p>
@@ -85,7 +86,7 @@
 
             <section class="invited-section">
               <button class="secondary-btn invited-toggle">
-                <span>Invited Members</span>
+                <span>Members</span>
                 <span class="arrow">
                   <svg viewBox="0 0 24 24" width="14" height="14" aria-hidden="true">
                     <path d="M9 6l6 6-6 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
@@ -94,7 +95,7 @@
               </button>
 
               <ul class="invited-list" aria-hidden="true">
-                <li class="invited-empty">Lade eingeladene Mitglieder...</li>
+                <li class="invited-empty">Loading members...</li>
               </ul>
             </section>
           </section>

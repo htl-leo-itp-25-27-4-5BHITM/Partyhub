@@ -59,7 +59,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const isEditMode = Boolean(editPartyId);
 
   const stepTitles = {
-    1: isEditMode ? "Party bearbeiten" : "Add new Party",
+    1: isEditMode ? "Edit Party" : "Add new Party",
     2: "Who can attend the party?",
     3: "Other Infos",
     4: "Map Preview",
@@ -85,7 +85,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   function setupFlatpickr() {
     if (typeof flatpickr === "undefined") {
-      console.error("Flatpickr wurde nicht geladen.");
+      console.error("Flatpickr was not loaded.");
       return;
     }
 
@@ -180,7 +180,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   function setupAddressSearch() {
     if (!addressInput) {
-      console.error("Adressfeld mit id='location_address' wurde nicht gefunden.");
+      console.error("Address field with id='location_address' was not found.");
       return;
     }
 
@@ -233,18 +233,18 @@ document.addEventListener("DOMContentLoaded", () => {
 
       const response = await fetch(url, {
         headers: {
-          "Accept-Language": "de",
+          "Accept-Language": "en",
         },
       });
 
       if (!response.ok) {
-        throw new Error("Adresssuche fehlgeschlagen.");
+        throw new Error("Address search failed.");
       }
 
       const results = await response.json();
       renderAddressSuggestions(results);
     } catch (error) {
-      console.error("Fehler bei der Adresssuche:", error);
+      console.error("Error during address search:", error);
     }
   }
 
@@ -286,7 +286,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     clearAddressSuggestions();
 
-    console.log("Adresse ausgewählt:", {
+    console.log("Selected address:", {
       address: state.location_address,
       latitude: state.latitude,
       longitude: state.longitude,
@@ -331,8 +331,8 @@ document.addEventListener("DOMContentLoaded", () => {
 
       if (!users || users.length === 0) {
         userList.innerHTML = currentUserId
-          ? "<p>Keine gegenseitigen Follower gefunden.</p>"
-          : "<p>Keine User gefunden.</p>";
+          ? "<p>No mutual followers found.</p>"
+          : "<p>No users found.</p>";
         return;
       }
 
@@ -368,8 +368,8 @@ document.addEventListener("DOMContentLoaded", () => {
         userList.appendChild(item);
       });
     } catch (error) {
-      console.error("Fehler beim Laden der User:", error);
-      userList.innerHTML = "<p>User konnten nicht geladen werden.</p>";
+      console.error("Error loading users:", error);
+      userList.innerHTML = "<p>Users could not be loaded.</p>";
     }
   }
 
@@ -377,7 +377,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const response = await fetch(url);
 
     if (!response.ok) {
-      throw new Error(`User konnten nicht geladen werden: ${response.status}`);
+      throw new Error(`Users could not be loaded: ${response.status}`);
     }
 
     return response.json();
@@ -455,7 +455,7 @@ document.addEventListener("DOMContentLoaded", () => {
       item.classList.add("selected");
     }
 
-    console.log("Ausgewählte User:", selectedUsers);
+    console.log("Selected users:", selectedUsers);
   }
 
   async function loadPartyForEdit(id) {
@@ -478,7 +478,7 @@ document.addEventListener("DOMContentLoaded", () => {
       if (response.ok) {
         party = await response.json();
       } else {
-        console.warn(`${partyUrl} ging nicht, versuche Party-Liste aus dem Backend ...`);
+        console.warn(`${partyUrl} failed, trying the backend party list ...`);
         const listUrl = hasUser
           ? `/api/parties?user=${encodeURIComponent(currentUserId)}`
           : "/api/parties";
@@ -486,7 +486,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
         if (!listResponse.ok) {
           throw new Error(
-            `Party konnte nicht aus dem Backend geladen werden. Einzelstatus: ${response.status}, Listenstatus: ${listResponse.status}`
+            `Party could not be loaded from the backend. Detail status: ${response.status}, list status: ${listResponse.status}`
           );
         }
 
@@ -494,21 +494,21 @@ document.addEventListener("DOMContentLoaded", () => {
         party = parties.find((p) => String(p.id) === String(id));
 
         if (!party) {
-          throw new Error(`Party mit ID ${id} wurde in der sichtbaren Backend-Party-Liste nicht gefunden.`);
+          throw new Error(`Party with ID ${id} was not found in the visible backend party list.`);
         }
       }
 
-      console.log("Geladene Party:", party);
-      console.log("Alle Feldnamen:", Object.keys(party));
-      console.log("Adresse location_address:", party.location_address);
-      console.log("Adresse locationAddress:", party.locationAddress);
-      console.log("Adresse address:", party.address);
-      console.log("Adresse location:", party.location);
+      console.log("Loaded party:", party);
+      console.log("All field names:", Object.keys(party));
+      console.log("Address location_address:", party.location_address);
+      console.log("Address locationAddress:", party.locationAddress);
+      console.log("Address address:", party.address);
+      console.log("Address location:", party.location);
 
       fillFormWithParty(party);
     } catch (error) {
-      console.error("Fehler beim Laden der Party:", error);
-      alert("Party konnte nicht geladen werden.");
+      console.error("Error loading party:", error);
+      alert("Party could not be loaded.");
     }
   }
 
@@ -591,13 +591,13 @@ document.addEventListener("DOMContentLoaded", () => {
   setDateValues(party);
   setVisibilityFromParty();
 
-  console.log("Adresse ins Feld geschrieben:", locationAddress);
-  console.log("State nach Laden:", state);
+  console.log("Address written into field:", locationAddress);
+  console.log("State after loading:", state);
 }
 
   function setInputValue(name, value) {
     if (!form || !form.elements[name]) {
-      console.warn(`Input mit name='${name}' wurde nicht gefunden.`);
+      console.warn(`Input with name='${name}' was not found.`);
       return;
     }
 
@@ -618,19 +618,19 @@ document.addEventListener("DOMContentLoaded", () => {
 
     const response = await fetch(url, {
       headers: {
-        "Accept-Language": "de",
+        "Accept-Language": "en",
       },
     });
 
     if (!response.ok) {
-      throw new Error("Reverse Geocoding fehlgeschlagen.");
+      throw new Error("Reverse geocoding failed.");
     }
 
     const result = await response.json();
 
     const foundAddress = result.display_name || "";
 
-    console.log("Adresse aus Koordinaten gefunden:", foundAddress);
+    console.log("Address found from coordinates:", foundAddress);
 
     if (foundAddress) {
       state.location_address = foundAddress;
@@ -643,7 +643,7 @@ document.addEventListener("DOMContentLoaded", () => {
       }
     }
   } catch (error) {
-    console.error("Adresse konnte nicht aus Koordinaten geladen werden:", error);
+    console.error("Address could not be loaded from coordinates:", error);
   }
 }
 
@@ -664,8 +664,8 @@ document.addEventListener("DOMContentLoaded", () => {
     party.end ||
     null;
 
-  console.log("Startzeit aus Backend:", startValue);
-  console.log("Endzeit aus Backend:", endValue);
+  console.log("Start time from backend:", startValue);
+  console.log("End time from backend:", endValue);
 
   if (startValue) {
     const startDate = parseBackendDate(startValue);
@@ -716,14 +716,14 @@ function parseBackendDate(value) {
   }
 
   if (typeof value === "string") {
-    // Falls Backend z. B. "2026-04-08T21:00:00" sendet
+    // If the backend sends e.g. "2026-04-08T21:00:00"
     const normalDate = new Date(value);
 
     if (!isNaN(normalDate.getTime())) {
       return normalDate;
     }
 
-    // Falls Backend z. B. "08.04.2026 21:00" sendet
+    // If the backend sends e.g. "08.04.2026 21:00"
     const match = value.match(
       /^(\d{2})\.(\d{2})\.(\d{4})\s+(\d{2}):(\d{2})$/
     );
@@ -767,7 +767,7 @@ function parseBackendDate(value) {
     }
 
     if (stepNumber === 4) {
-      continueBtn.textContent = isEditMode ? "Änderungen speichern" : "Party erstellen";
+      continueBtn.textContent = isEditMode ? "Save changes" : "Create party";
       showMapPreview();
     } else {
       continueBtn.textContent = "Continue";
@@ -779,32 +779,32 @@ function parseBackendDate(value) {
 
     if (stepNumber === 1) {
       if (!state.title.trim()) {
-        alert("Bitte gib einen Namen für die Party ein.");
+        alert("Please enter a name for the party.");
         return false;
       }
 
       if (!state.description.trim()) {
-        alert("Bitte gib eine Beschreibung ein.");
+        alert("Please enter a description.");
         return false;
       }
 
       if (!state.time_start) {
-        alert("Bitte gib eine Startzeit ein.");
+        alert("Please enter a start time.");
         return false;
       }
 
       if (!state.time_end) {
-        alert("Bitte gib eine Endzeit ein.");
+        alert("Please enter an end time.");
         return false;
       }
 
       if (state.time_end <= state.time_start) {
-        alert("Die Endzeit muss nach der Startzeit liegen.");
+        alert("The end time must be after the start time.");
         return false;
       }
 
       if (!state.location_address.trim()) {
-        alert("Bitte gib eine Adresse ein.");
+        alert("Please enter an address.");
         return false;
       }
 
@@ -814,7 +814,7 @@ function parseBackendDate(value) {
     if (stepNumber === 2) {
       if (visibility === "private" && selectedUsers.length === 0) {
         const confirmPrivateWithoutUsers = confirm(
-          "Du hast keine Personen ausgewählt. Willst du trotzdem fortfahren?"
+          "You have not selected anyone. Do you still want to continue?"
         );
 
         if (!confirmPrivateWithoutUsers) {
@@ -830,17 +830,17 @@ function parseBackendDate(value) {
       const maxAge = state.max_age;
 
       if (minAge !== null && minAge < 0) {
-        alert("Das Mindestalter darf nicht negativ sein.");
+        alert("The minimum age cannot be negative.");
         return false;
       }
 
       if (maxAge !== null && maxAge < 0) {
-        alert("Das maximale Alter darf nicht negativ sein.");
+        alert("The maximum age cannot be negative.");
         return false;
       }
 
       if (minAge !== null && maxAge !== null && maxAge < minAge) {
-        alert("Das maximale Alter darf nicht kleiner als das Mindestalter sein.");
+        alert("The maximum age cannot be lower than the minimum age.");
         return false;
       }
 
@@ -926,7 +926,7 @@ function parseBackendDate(value) {
       if (mapMessage) {
         mapMessage.style.display = "block";
         mapMessage.textContent =
-          "Adresse konnte nicht auf der Karte angezeigt werden.";
+          "Address could not be shown on the map.";
       }
 
       return;
@@ -964,12 +964,12 @@ function parseBackendDate(value) {
 
       const response = await fetch(url, {
         headers: {
-          "Accept-Language": "de",
+          "Accept-Language": "en",
         },
       });
 
       if (!response.ok) {
-        throw new Error("Geocoding fehlgeschlagen.");
+        throw new Error("Geocoding failed.");
       }
 
       const results = await response.json();
@@ -984,7 +984,7 @@ function parseBackendDate(value) {
         }
       }
     } catch (error) {
-      console.error("Fehler beim Geocoding:", error);
+      console.error("Error during geocoding:", error);
     }
   }
 
@@ -994,7 +994,7 @@ function parseBackendDate(value) {
     }
 
     if (typeof L === "undefined") {
-      console.error("Leaflet wurde nicht geladen.");
+      console.error("Leaflet was not loaded.");
       return;
     }
 
@@ -1045,7 +1045,7 @@ function parseBackendDate(value) {
   const currentUserId = getCurrentUserIdSafe();
 
   if (!currentUserId) {
-    alert("Kein User angemeldet. Bitte neu einloggen.");
+    alert("No user is logged in. Please log in again.");
     return;
   }
 
@@ -1101,8 +1101,8 @@ function parseBackendDate(value) {
     console.log("SAVE RESPONSE TEXT:", responseText);
 
     if (!response.ok) {
-      console.error("Backend Fehler:", responseText);
-      throw new Error(`Speichern fehlgeschlagen. Status: ${response.status}`);
+      console.error("Backend error:", responseText);
+      throw new Error(`Saving failed. Status: ${response.status}`);
     }
 
     let savedParty = null;
@@ -1111,18 +1111,18 @@ function parseBackendDate(value) {
       try {
         savedParty = JSON.parse(responseText);
       } catch (error) {
-        console.warn("Response war kein JSON:", responseText);
+        console.warn("Response was not JSON:", responseText);
       }
     }
 
-    console.log("Gespeicherte Party:", savedParty);
+    console.log("Saved party:", savedParty);
 
-    alert(isEditMode ? "Party wurde gespeichert." : "Party wurde erstellt.");
+    alert(isEditMode ? "Party was saved." : "Party was created.");
 
     window.location.href = "../listPartys/listPartys.html";
   } catch (error) {
-    console.error("Fehler beim Speichern:", error);
-    alert("Party konnte nicht gespeichert werden. Schau bitte in die Konsole.");
+    console.error("Error while saving:", error);
+    alert("Party could not be saved. Please check the console.");
   }
 }
 
@@ -1136,8 +1136,8 @@ function parseBackendDate(value) {
     }
 
     /**
-     * Sendet lokale Zeit ohne UTC-Verschiebung.
-     * Beispiel: 09.04.2026 21:00 wird zu 2026-04-09T21:00:00
+     * Sends local time without a UTC offset.
+     * Example: 04/09/2026 21:00 becomes 2026-04-09T21:00:00
      */
     const year = date.getFullYear();
     const month = pad(date.getMonth() + 1);
@@ -1181,7 +1181,7 @@ function parseBackendDate(value) {
         null
       );
     } catch (error) {
-      console.warn("Current User ID konnte nicht gelesen werden:", error);
+      console.warn("Current User ID could not be read:", error);
       return null;
     }
   }

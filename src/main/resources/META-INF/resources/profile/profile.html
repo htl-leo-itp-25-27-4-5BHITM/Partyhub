@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="de">
+<html lang="en">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -102,7 +102,7 @@
 
           <div id="profileTabs">
             <div class="tab-buttons">
-              <button id="tabPartys" class="tab-btn" type="button" aria-label="Partys">
+              <button id="tabParties" class="tab-btn" type="button" aria-label="Parties">
                 <span class="tab-icon">
                   <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                     <path
@@ -155,7 +155,7 @@
                 </span>
               </button>
 
-              <button id="tabPosts" class="tab-btn active" type="button" aria-label="Beiträge">
+              <button id="tabPosts" class="tab-btn active" type="button" aria-label="Posts">
                 <span class="tab-icon">
                   <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                     <rect x="4" y="4" width="16" height="16" rx="3" stroke="currentColor" stroke-width="2" fill="none" />
@@ -166,7 +166,7 @@
                 </span>
               </button>
 
-              <button id="tabFavorites" class="tab-btn" type="button" aria-label="Favoriten">
+              <button id="tabFavorites" class="tab-btn" type="button" aria-label="Favorites">
                 <span class="tab-icon">
                   <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                     <path
@@ -183,8 +183,8 @@
             <div class="tab-underline"></div>
 
             <div class="tab-content" style="background:none; box-shadow:none; border-radius:0; padding-top:18px;">
-              <section id="tabContentPartys" class="tab-section" style="display:none;">
-                <p class="muted no-parties">Keine Partys vorhanden</p>
+              <section id="tabContentParties" class="tab-section" style="display:none;">
+                <p class="muted no-parties">No parties available</p>
 
                 <template id="party-template">
                   <article class="party-card" data-id="">
@@ -216,16 +216,16 @@
 
                     <div class="party-body">
                       <div class="info-box">
-                        <div class="info-value">Datum</div>
-                        <div class="info-label">Datum</div>
+                        <div class="info-value">Date</div>
+                        <div class="info-label">Date</div>
                       </div>
                       <div class="info-box">
-                        <div class="info-value">Uhrzeit</div>
-                        <div class="info-label">Uhrzeit</div>
+                        <div class="info-value">Time</div>
+                        <div class="info-label">Time</div>
                       </div>
                       <div class="info-box">
-                        <div class="info-value">Ort</div>
-                        <div class="info-label">Ort</div>
+                        <div class="info-value">Location</div>
+                        <div class="info-label">Location</div>
                       </div>
                     </div>
 
@@ -239,12 +239,12 @@
               </section>
 
               <section id="tabContentPosts" class="tab-section" style="display:block;">
-                <p class="muted no-posts">Keine Beiträge vorhanden</p>
+                <p class="muted no-posts">No posts available</p>
 
                 <template id="post-template">
                   <article class="post-card" data-id="">
                     <header class="post-header">
-                      <h4 class="post-title">Beitragstitel</h4>
+                      <h4 class="post-title">Post title</h4>
                       <div class="post-actions">
                         <button class="icon-btn edit-btn" aria-label="Edit post" title="Edit">
                           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" focusable="false">
@@ -264,19 +264,19 @@
                     </header>
 
                     <div class="post-body">
-                      <div class="content-placeholder">Inhalt des Beitrags</div>
+                      <div class="content-placeholder">Post content</div>
                     </div>
                   </article>
                 </template>
               </section>
 
               <section id="tabContentFavorites" class="tab-section" style="display:none;">
-                <p class="muted no-favorites">Keine Favoriten vorhanden</p>
+                <p class="muted no-favorites">No favorites available</p>
 
                 <template id="favorite-template">
                   <article class="favorite-card" data-id="">
                     <header class="favorite-header">
-                      <h4 class="favorite-title">Favoriten Titel</h4>
+                      <h4 class="favorite-title">Favorite title</h4>
                       <div class="favorite-actions">
                         <button class="icon-btn delete-btn" aria-label="Remove from favorites" title="Remove">
                           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" focusable="false">
@@ -289,7 +289,7 @@
                     </header>
 
                     <div class="favorite-body">
-                      <div class="content-placeholder">Inhalt des Favoriten</div>
+                      <div class="content-placeholder">Favorite content</div>
                     </div>
                   </article>
                 </template>
@@ -307,13 +307,13 @@
           <span class="nav-label">Home</span>
         </a>
 
-        <a class="nav-btn" href="/listPartys/listPartys.html" aria-label="Partys">
+        <a class="nav-btn" href="/listPartys/listPartys.html" aria-label="Parties">
           <svg class="nav-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
             <rect x="3" y="3" width="18" height="18" rx="3" stroke="currentColor" stroke-width="1.6"/>
             <circle cx="8.5" cy="8.5" r="1.8" fill="currentColor" />
             <path d="M21 21l-6-6-5 5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
           </svg>
-          <span class="nav-label">Partys</span>
+          <span class="nav-label">Parties</span>
         </a>
 
         <a class="nav-btn" href="/notifications/notifications.html" aria-label="Inbox">
@@ -329,7 +329,7 @@
             <circle cx="12" cy="8.5" r="3" stroke="currentColor" stroke-width="1.6"/>
             <path d="M4 20a8 8 0 0 1 16 0" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
           </svg>
-          <span class="nav-label">Profil</span>
+          <span class="nav-label">Profile</span>
         </a>
       </nav>
     </div>

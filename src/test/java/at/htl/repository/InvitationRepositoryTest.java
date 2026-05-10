@@ -98,7 +98,7 @@ public class InvitationRepositoryTest {
                 .setParameter("recipientId", recipient.getId())
                 .getResultList();
         assertEquals(1, notifications.size());
-        assertTrue(notifications.get(0).getMessage().contains("eingeladen"));
+        assertTrue(notifications.get(0).getMessage().contains("invited"));
     }
 
     @Test

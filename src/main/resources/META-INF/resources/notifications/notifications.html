@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="de">
+<html lang="en">
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width,initial-scale=1" />
@@ -17,7 +17,7 @@
     <script src="../user-utils.js" defer></script>
     <script src="../nav.js" defer></script>
     <script src="../backend-functions.js?v=20260429-notifications" defer></script>
-    <script src="./notifications.js?v=20260506-invite-accept-check" defer></script>
+    <script src="./notifications.js?v=20260506-english-notifications" defer></script>
   </head>
 
   <body class="bg-light">
@@ -28,28 +28,28 @@
           <p class="page-subtitle font-body-text">Stay updated with your events</p>
         </header>
 
-        <section class="notif-panel" aria-live="polite" aria-label="Benachrichtigungen">
+        <section class="notif-panel" aria-live="polite" aria-label="Notifications">
           <div class="notif-list" id="notifList"></div>
 
           <template id="notifTpl">
-            <article class="notif-card" role="group" aria-label="Benachrichtigung">
+            <article class="notif-card" role="group" aria-label="Notification">
               <div class="notif-row">
                 <div class="notif-avatar">
                   <a class="avatar-link" href="#" target="_blank" rel="noopener">
-                    <img src="./images/profile.jpeg" alt="Profilbild" />
+                    <img src="./images/profile.jpeg" alt="Profile picture" />
                   </a>
                 </div>
 
                 <div class="notif-text">
-                  <div class="notif-message">Nachricht</div>
-                  <div class="notif-time">vor kurzem</div>
+                  <div class="notif-message">Message</div>
+                  <div class="notif-time">just now</div>
                 </div>
 
                 <div class="notif-actions" aria-hidden="false">
                   <button
                     class="btn-view-party"
-                    aria-label="Party anzeigen"
-                    title="Party anzeigen"
+                    aria-label="View party"
+                    title="View party"
                   >
                     <svg
                       viewBox="0 0 24 24"
@@ -77,8 +77,8 @@
 
                   <button
                     class="btn-accept"
-                    aria-label="Einladung annehmen"
-                    title="Annehmen"
+                    aria-label="Accept invitation"
+                    title="Accept"
                   >
                     <svg
                       viewBox="0 0 24 24"
@@ -99,8 +99,8 @@
 
                   <button
                     class="btn-dismiss"
-                    aria-label="Benachrichtigung löschen"
-                    title="Löschen"
+                    aria-label="Delete notification"
+                    title="Delete"
                   >
                     <svg
                       viewBox="0 0 24 24"
@@ -139,7 +139,7 @@
           <span class="nav-label">Home</span>
         </a>
 
-        <a class="nav-btn" href="/listPartys/listPartys.html" aria-label="Partys">
+        <a class="nav-btn" href="/listPartys/listPartys.html" aria-label="Parties">
           <svg class="nav-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
             <rect
               x="3"
@@ -159,7 +159,7 @@
               stroke-linejoin="round"
             />
           </svg>
-          <span class="nav-label">Partys</span>
+          <span class="nav-label">Parties</span>
         </a>
 
         <a class="nav-btn active" href="/notifications/notifications.html" aria-label="Inbox" aria-current="page">
@@ -179,7 +179,7 @@
           <span class="nav-label">Inbox</span>
         </a>
 
-        <a class="nav-btn" href="/profile/profile.html" aria-label="Profil">
+        <a class="nav-btn" href="/profile/profile.html" aria-label="Profile">
           <svg class="nav-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
             <circle
               cx="12"
@@ -196,7 +196,7 @@
               stroke-linejoin="round"
             />
           </svg>
-          <span class="nav-label">Profil</span>
+          <span class="nav-label">Profile</span>
         </a>
       </nav>
 

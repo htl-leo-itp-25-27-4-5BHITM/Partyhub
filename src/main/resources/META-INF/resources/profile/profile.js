@@ -444,7 +444,7 @@ document.addEventListener("DOMContentLoaded", function () {
     if (!users || users.length === 0) {
       const empty = document.createElement("div");
       empty.className = "follow-menu-empty";
-      empty.textContent = "Keine Nutzer gefunden";
+      empty.textContent = "No users found";
       content.appendChild(empty);
     } else {
       users.forEach((user) => {
@@ -1362,8 +1362,8 @@ document.addEventListener("DOMContentLoaded", function () {
       const parties = await window.backend.getPartiesByUser(viewedUserId);
       const ownParties = filterCreatedParties(parties, viewedUserId);
 
-      console.log("Alle geladenen Partys:", parties);
-      console.log("Nur erstellte Partys von User", viewedUserId, ownParties);
+      console.log("All loaded parties:", parties);
+      console.log("Only parties created by user", viewedUserId, ownParties);
 
       renderParties(ownParties);
     } catch (error) {
@@ -1375,7 +1375,7 @@ document.addEventListener("DOMContentLoaded", function () {
   function renderParties(parties) {
     const container = document.getElementById("partiesContainer");
     const template = document.getElementById("party-template");
-    const noMsg = document.querySelector("#tabContentPartys .no-parties");
+    const noMsg = document.querySelector("#tabContentParties .no-parties");
 
     if (!container || !template) {
       return;
@@ -1469,7 +1469,7 @@ document.addEventListener("DOMContentLoaded", function () {
           deleteBtn.onclick = async (event) => {
             event.stopPropagation();
 
-            if (!confirm("Löschen?")) {
+            if (!confirm("Delete?")) {
               return;
             }
 
@@ -1520,7 +1520,7 @@ document.addEventListener("DOMContentLoaded", function () {
   // Tabs
   // -----------------------------
   function initTabs() {
-    const ids = ["Partys", "Posts", "Favorites"];
+    const ids = ["Parties", "Posts", "Favorites"];
 
     function showTab(name) {
       ids.forEach((key) => {
@@ -1536,7 +1536,7 @@ document.addEventListener("DOMContentLoaded", function () {
         }
       });
 
-      if (name === "Partys" && viewedUserId != null) {
+      if (name === "Parties" && viewedUserId != null) {
         loadUserParties().catch(() => {});
       }
     }
@@ -1564,7 +1564,7 @@ document.addEventListener("DOMContentLoaded", function () {
       });
     });
 
-    showTab("Partys");
+    showTab("Parties");
   }
 
   initTabs();

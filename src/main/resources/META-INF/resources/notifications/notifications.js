@@ -39,17 +39,50 @@ document.addEventListener("DOMContentLoaded", async () => {
   }
 
   function formatNotificationTime(value) {
-    if (!value) return "vor kurzem";
+    if (!value) return "just now";
 
     const date = new Date(value);
-    if (Number.isNaN(date.getTime())) return "vor kurzem";
+    if (Number.isNaN(date.getTime())) return "just now";
 
-    return date.toLocaleString("de-AT", {
+    return date.toLocaleString("en-GB", {
       day: "2-digit",
       month: "2-digit",
       hour: "2-digit",
       minute: "2-digit"
     });
+  }
+
+  function normalizeLegacyNotificationMessage(message) {
+    if (!message || typeof message !== "string") return "New notification";
+
+    let normalized = message.trim();
+
+    normalized = normalized.replace(
+      /^(.+?) hat dich zu der Party "(.+?)" eingeladen\.?$/,
+      '$1 invited you to the party "$2"'
+    );
+
+    normalized = normalized.replace(
+      /^Die Party "(.+?)" wurde abgesagt\.?$/,
+      'The party "$1" was canceled.'
+    );
+
+    normalized = normalized.replace(
+      /^"(.+?)" wurde aktualisiert: (.+)$/,
+      '"$1" was updated: $2'
+    );
+
+    normalized = normalized.replace(
+      /^(.+?) hat deine Einladung zur Party "(.+?)" angenommen\.?$/,
+      '$1 accepted your invitation to the party "$2".'
+    );
+
+    normalized = normalized.replace(
+      /^(.+?) hat die Party "(.+?)" verlassen\.?$/,
+      '$1 left the party "$2".'
+    );
+
+    return normalized;
   }
 
   function getUsername(user, id) {
@@ -324,7 +357,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         })
       );
     } else {
-      console.warn("getUserById() fehlt – usernames werden als User#id angezeigt");
+      console.warn("getUserById() is missing; usernames will be shown as User#id");
     }
 
     console.log("notifications: userMap ->", userMap);
@@ -383,7 +416,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
       const message =
         rid != null && String(rid) === String(currentUserId)
-          ? `${getUsername(sender, sid)} hat dich zu "${partyTitle ?? "einem Event"}" eingeladen`
+          ? `${getUsername(sender, sid)} invited you to "${partyTitle ?? "an event"}"`
           : `${getUsername(sender, sid)} sent ${getUsername(null, rid)} an invitation${partyTitle ? ` to ${partyTitle}` : ""}`;
 
       data.push({
@@ -407,13 +440,15 @@ document.addEventListener("DOMContentLoaded", async () => {
       const sid = readId(notification, "sender");
       const rid = readId(notification, "recipient");
       const partyId = readPartyId(notification);
-      const message = notification.message ?? notification.text ?? "Neue Benachrichtigung";
+      const rawMessage = notification.message ?? notification.text ?? "New notification";
+      const message = normalizeLegacyNotificationMessage(rawMessage);
       const duplicateInviteKey = notificationKey(sid, rid, partyId);
       const isInviteDuplicate =
         partyId != null &&
         duplicateInviteKey != null &&
         invitationNotificationKeys.has(duplicateInviteKey) &&
-        message.toLowerCase().includes("eingeladen");
+        (/\u0065ingeladen|invited/.test(String(rawMessage).toLowerCase()) ||
+          message.toLowerCase().includes("invited"));
 
       if (isInviteDuplicate) {
         return;
@@ -448,7 +483,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         id: `follow-${followerId}`,
         type: "follow",
         followerId: Number(followerId),
-        text: `${getUsername(sender, followerId)} möchte dir folgen`,
+        text: `${getUsername(sender, followerId)} wants to follow you`,
         actorAvatar: sender?.id
           ? `/api/users/${sender.id}/profile-picture`
           : "/images/default_profile-picture.svg",
@@ -471,7 +506,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     list.innerHTML = "";
 
     if (!data.length) {
-      list.innerHTML = "<p class='muted'>Keine Benachrichtigungen</p>";
+      list.innerHTML = "<p class='muted'>No notifications</p>";
       return;
     }
 
@@ -507,7 +542,7 @@ document.addEventListener("DOMContentLoaded", async () => {
             if (item.partyId) {
               window.location.href = `/advancedPartyInfos/advancedPartyInfos.html?id=${item.partyId}`;
             } else {
-              showToast("Keine Party-Information vorhanden", "error");
+              showToast("No party information available", "error");
             }
           });
         } else {
@@ -526,7 +561,7 @@ document.addEventListener("DOMContentLoaded", async () => {
                 if (typeof attendParty === "function" && item.partyId) {
                   const joined = await attendParty(item.partyId);
                   if (joined === false || joined?.ok === false) {
-                    throw new Error("Party konnte nicht angenommen werden");
+                    throw new Error("Party could not be accepted");
                   }
                 }
                 if (typeof deleteInvite === "function" && item.invitationId) {
@@ -544,13 +579,13 @@ document.addEventListener("DOMContentLoaded", async () => {
               render();
               showToast(
                 item.type === "follow"
-                  ? "Follow-Anfrage akzeptiert ✓"
-                  : "Einladung angenommen ✓",
+                  ? "Follow request accepted ✓"
+                  : "Invitation accepted ✓",
                 "success"
               );
             } catch (err) {
               console.error("Accept failed", err);
-              showToast("Fehler beim Annehmen", "error");
+              showToast("Error while accepting", "error");
             }
           });
         }
@@ -584,16 +619,16 @@ document.addEventListener("DOMContentLoaded", async () => {
               render();
               showToast(
                 item.type === "follow"
-                  ? "Follow-Anfrage abgelehnt"
+                  ? "Follow request declined"
                   : item.type === "notification"
-                    ? "Benachrichtigung gelöscht"
-                  : "Einladung abgelehnt",
+                    ? "Notification deleted"
+                  : "Invitation declined",
                 "success"
               );
             }
           } catch (err) {
             console.error("Reject failed", err);
-            showToast("Fehler beim Ablehnen: " + err.message, "error");
+            showToast("Error while declining: " + err.message, "error");
           }
         });
       }
