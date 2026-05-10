@@ -12,7 +12,8 @@
 GET {{baseUrl}}?user={{mia}}
 X-User-Id: {{mia}}
 
-?? status == 200
+?? status === 200
+?? Array.isArray(response.body)
 
 
 ###########################################
@@ -20,7 +21,8 @@ X-User-Id: {{mia}}
 ###########################################
 GET {{baseUrl}}/1
 
-?? status == 200
+?? status === 200
+?? response.body.id === 1
 
 
 ###########################################
@@ -28,7 +30,7 @@ GET {{baseUrl}}/1
 ###########################################
 GET {{baseUrl}}/4
 
-?? status == 404
+?? status === 404
 
 
 ###########################################
@@ -37,7 +39,8 @@ GET {{baseUrl}}/4
 GET {{baseUrl}}/4?user={{michael}}
 X-User-Id: {{michael}}
 
-?? status == 200
+?? status === 200
+?? response.body.id === 4
 
 
 ###########################################
@@ -46,7 +49,7 @@ X-User-Id: {{michael}}
 GET {{baseUrl}}/9?user={{michael}}
 X-User-Id: {{michael}}
 
-?? status == 404
+?? status === 404
 
 
 ###########################################
@@ -55,7 +58,8 @@ X-User-Id: {{michael}}
 GET {{baseUrl}}?q=Hauptplatz
 X-User-Id: {{anna}}
 
-?? status == 200
+?? status === 200
+?? Array.isArray(response.body)
 
 
 ###########################################
@@ -64,7 +68,8 @@ X-User-Id: {{anna}}
 GET {{baseUrl}}?theme=Techno
 X-User-Id: {{anna}}
 
-?? status == 200
+?? status === 200
+?? Array.isArray(response.body)
 
 
 ###########################################
@@ -73,7 +78,8 @@ X-User-Id: {{anna}}
 GET {{baseUrl}}?date_from=2026-05-02T00:00:00&date_to=2026-05-04T23:59:59
 X-User-Id: {{anna}}
 
-?? status == 200
+?? status === 200
+?? Array.isArray(response.body)
 
 
 ###########################################
@@ -82,7 +88,8 @@ X-User-Id: {{anna}}
 GET {{baseUrl}}?sort=asc
 X-User-Id: {{anna}}
 
-?? status == 200
+?? status === 200
+?? Array.isArray(response.body)
 
 
 ###########################################
@@ -110,7 +117,8 @@ Content-Type: application/json
   "selectedUsers": []
 }
 
-?? status == 201
+?? status === 201
+?? response.body.id !== undefined
 
 
 ###########################################
@@ -138,7 +146,8 @@ Content-Type: application/json
   "selectedUsers": ["2", "8"]
 }
 
-?? status == 201
+?? status === 201
+?? response.body.id !== undefined
 
 
 ###########################################

@@ -6,7 +6,8 @@
 ###########################################
 GET {{baseUrl}}?user=2&direction=received
 
-?? status == 200
+?? status === 200
+?? Array.isArray(response.body)
 
 
 ###########################################
@@ -14,7 +15,8 @@ GET {{baseUrl}}?user=2&direction=received
 ###########################################
 GET {{baseUrl}}?user=4&direction=sent
 
-?? status == 200
+?? status === 200
+?? Array.isArray(response.body)
 
 
 ###########################################
@@ -22,7 +24,8 @@ GET {{baseUrl}}?user=4&direction=sent
 ###########################################
 GET {{baseUrl}}?user=1&direction=received
 
-?? status == 200
+?? status === 200
+?? Array.isArray(response.body)
 
 
 ###########################################
@@ -30,7 +33,7 @@ GET {{baseUrl}}?user=1&direction=received
 ###########################################
 GET {{baseUrl}}
 
-?? status == 400
+?? status === 400
 
 
 ###########################################
@@ -44,7 +47,7 @@ Content-Type: application/json
   "partyId": 4
 }
 
-?? status == 409
+?? status === 409
 
 
 ###########################################
@@ -52,7 +55,7 @@ Content-Type: application/json
 ###########################################
 DELETE {{baseUrl}}/1?user=5
 
-?? status == 403
+?? status === 403
 
 
 ###########################################
@@ -60,4 +63,4 @@ DELETE {{baseUrl}}/1?user=5
 ###########################################
 DELETE {{baseUrl}}/99999?user=8
 
-?? status == 404
+?? status === 404

@@ -1,4 +1,4 @@
-@host = http://10.214.0.225:8080
+@host = http://localhost:8080
 @baseUrl = {{host}}/api/users
 @anna = 1
 @michael = 2
@@ -10,25 +10,25 @@
 ############################################
 GET {{baseUrl}}/{{anna}}/profile-picture
 
-?? status == 200
-?? headers["Content-Type"] != null
+?? status === 200
+?? headers["Content-Type"] !== undefined
 
 
 ############################################
-#### GET: Profile picture for Sabine (after upload)
+#### GET: Profile picture for Sabine
 ############################################
 GET {{baseUrl}}/{{sabine}}/profile-picture
 
-?? status == 200
-?? headers["Content-Type"] != null
+?? status === 200
+?? headers["Content-Type"] !== undefined
 
 
 ############################################
-#### GET: Profile picture for Mia (no picture uploaded)
+#### GET: Profile picture for Mia
 ############################################
 GET {{baseUrl}}/{{mia}}/profile-picture
 
-?? status == 200 || status == 404
+?? (status === 200 || status === 404)
 
 
 ############################################
@@ -36,23 +36,23 @@ GET {{baseUrl}}/{{mia}}/profile-picture
 ############################################
 GET {{baseUrl}}/{{anna}}/profile-picture-filename
 
-?? status == 200
+?? status === 200
 
 
 ############################################
-#### GET: Profile picture filename for Mia (null/no upload)
+#### GET: Profile picture filename for Mia
 ############################################
 GET {{baseUrl}}/{{mia}}/profile-picture-filename
 
-?? status == 200 || status == 204
+?? (status === 200 || status === 204)
 
 
 ############################################
-#### GET: Unknown user profile picture (not found)
+#### GET: Unknown user profile picture
 ############################################
 GET {{baseUrl}}/99999/profile-picture
 
-?? status == 404
+?? status === 404
 
 
 ############################################
@@ -63,13 +63,13 @@ Content-Type: multipart/form-data; boundary=WebAppBoundary
 X-User-Id: {{sabine}}
 
 --WebAppBoundary
-Content-Disposition: form-data; name="file"; filename="profile.jpg"
+Content-Disposition: form-data; name="file"; filename="testing.jpg"
 Content-Type: image/jpeg
 
-< ./profile.jpg
+< ./testing.jpg
 --WebAppBoundary--
 
-?? status == 200 || status == 201
+?? (status === 200 || status === 201)
 
 
 ############################################
@@ -78,7 +78,7 @@ Content-Type: image/jpeg
 DELETE {{baseUrl}}/{{sabine}}/profile-picture
 X-User-Id: {{sabine}}
 
-?? status == 204 || status == 200
+?? (status === 200 || status === 204)
 
 
 ############################################
@@ -89,10 +89,10 @@ Content-Type: multipart/form-data; boundary=WebAppBoundary
 X-User-Id: {{anna}}
 
 --WebAppBoundary
-Content-Disposition: form-data; name="file"; filename="anna_new.jpg"
+Content-Disposition: form-data; name="file"; filename="testing.jpg"
 Content-Type: image/jpeg
 
-< ./profile.jpg
+< ./testing.jpg
 --WebAppBoundary--
 
-?? status == 200
+?? status === 200

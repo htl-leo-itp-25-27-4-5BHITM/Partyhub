@@ -1,0 +1,8 @@
+{
+  "timeout": 10000,
+  "verbose": true,
+  "parallel": false,
+  "failOnError": true,
+  "logLevel": "verbose",
+  "outputDirectory": "./test-results/"
+}

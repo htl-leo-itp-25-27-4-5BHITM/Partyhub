@@ -9,7 +9,8 @@
 ###########################################
 GET {{baseUrl}}
 
-?? status == 200
+?? status === 200
+?? response.body.length > 0
 
 
 ###########################################
@@ -17,7 +18,8 @@ GET {{baseUrl}}
 ###########################################
 GET {{baseUrl}}?q=anna
 
-?? status == 200
+?? status === 200
+?? response.body.length > 0
 
 
 ###########################################
@@ -25,7 +27,8 @@ GET {{baseUrl}}?q=anna
 ###########################################
 GET {{baseUrl}}/{{anna}}
 
-?? status == 200
+?? status === 200
+?? response.body.id === 1
 
 
 ###########################################
@@ -33,7 +36,8 @@ GET {{baseUrl}}/{{anna}}
 ###########################################
 GET {{baseUrl}}/handle/anna_huber
 
-?? status == 200
+?? status === 200
+?? response.body.handle === "anna_huber"
 
 
 ###########################################
@@ -41,7 +45,8 @@ GET {{baseUrl}}/handle/anna_huber
 ###########################################
 GET {{baseUrl}}/username/anna_huber
 
-?? status == 200
+?? status === 200
+?? response.body.handle === "anna_huber"
 
 
 ###########################################
@@ -49,7 +54,8 @@ GET {{baseUrl}}/username/anna_huber
 ###########################################
 GET {{baseUrl}}/me?userId={{anna}}
 
-?? status == 200
+?? status === 200
+?? response.body.id === 1
 
 
 ###########################################
@@ -57,7 +63,7 @@ GET {{baseUrl}}/me?userId={{anna}}
 ###########################################
 GET {{baseUrl}}/me
 
-?? status == 400
+?? status === 400
 
 
 ###########################################
@@ -65,7 +71,8 @@ GET {{baseUrl}}/me
 ###########################################
 GET {{baseUrl}}/{{anna}}/followers/count
 
-?? status == 200
+?? status === 200
+?? response.body >= 0
 
 
 ###########################################
@@ -73,7 +80,8 @@ GET {{baseUrl}}/{{anna}}/followers/count
 ###########################################
 GET {{baseUrl}}/{{anna}}/following/count
 
-?? status == 200
+?? status === 200
+?? response.body >= 0
 
 
 ###########################################
@@ -81,7 +89,8 @@ GET {{baseUrl}}/{{anna}}/following/count
 ###########################################
 GET {{baseUrl}}/{{anna}}/followers
 
-?? status == 200
+?? status === 200
+?? Array.isArray(response.body)
 
 
 ###########################################
@@ -89,7 +98,8 @@ GET {{baseUrl}}/{{anna}}/followers
 ###########################################
 GET {{baseUrl}}/{{anna}}/following
 
-?? status == 200
+?? status === 200
+?? Array.isArray(response.body)
 
 
 ###########################################
@@ -182,7 +192,8 @@ Content-Type: application/json
 ###########################################
 GET {{baseUrl}}/{{anna}}/profile-picture
 
-?? status == 200
+?? status === 200
+?? headers["Content-Type"] !== undefined
 
 
 ###########################################
@@ -190,13 +201,15 @@ GET {{baseUrl}}/{{anna}}/profile-picture
 ###########################################
 GET {{baseUrl}}/{{anna}}/profile-picture-filename
 
-?? status == 200
+?? (status === 200 || status === 204)
 
 
 ###########################################
 ### User media
 ###########################################
 GET {{baseUrl}}/{{anna}}/media
+
+?? status === 200
 
 ?? status == 200
 

@@ -26,32 +26,74 @@ jobs:
 
       - name: Wait for database to be ready
         run: |
-          until docker compose -f docker-compose.yml exec postgres pg_isready; do
-            echo "Waiting for database to be ready..."
-            sleep 1
-          done
-
-      - name: Build with Maven
-        run: mvn -B test
-      - name: Start Quarkus in dev mode
-        run: |
-          mvn quarkus:dev -Dquarkus.http.host=0.0.0.0 -Dquarkus.http.port=8080 &
-          echo "Waiting for Quarkus to start..."
-          for i in {1..60}; do
-            if curl -s http://localhost:8080/q/openapi > /dev/null 2>&1; then
-              echo "Quarkus is ready!"
+          for i in {1..120}; do
+            if docker compose exec -T postgres pg_isready -U postgres -d partyhub > /dev/null 2>&1; then
+              echo "PostgreSQL is ready!"
               exit 0
             fi
-            sleep 2
+            echo "Waiting for PostgreSQL... ($i/120)"
+            sleep 1
           done
-          echo "Quarkus failed to start"
-          exit 1 
+          echo "PostgreSQL failed to start"
+          docker compose logs postgres
+          exit 1
+
+      - name: Build with Maven (run tests)
+        run: mvn clean test
+      
+      - name: Start Quarkus server for HTTPYac tests
+        run: |
+          mvn quarkus:dev -Dquarkus.http.host=0.0.0.0 -Dquarkus.http.port=8080 \
+            -Dquarkus.log.level=INFO &
+          QUARKUS_PID=$!
+          echo $QUARKUS_PID > /tmp/quarkus.pid
+          
+          echo "Waiting for Quarkus to be ready..."
+          for i in {1..180}; do
+            if curl -s -f http://localhost:8080/q/openapi > /dev/null 2>&1; then
+              echo "Quarkus is ready on port 8080!"
+              exit 0
+            fi
+            if ! kill -0 $QUARKUS_PID 2>/dev/null; then
+              echo "Quarkus process died"
+              exit 1
+            fi
+            echo "Waiting for Quarkus... ($i/180)"
+            sleep 1
+          done
+          echo "Quarkus failed to start within timeout"
+          kill $QUARKUS_PID 2>/dev/null || true
+          exit 1
+        timeout-minutes: 5
+
+      - name: Verify API is responsive
+        run: |
+          echo "Testing API endpoints..."
+          curl -v http://localhost:8080/api/users | head -20
+          curl -v http://localhost:8080/q/openapi | head -20
 
       - name: Install npm dependencies
         uses: bahmutov/npm-install@v1
         with:
           working-directory: api
 
-      - name: api tests
-        run: npm t
+      - name: Run HTTPYac API tests (sequential)
+        run: npx httpyac --timeout 10000 --verbose --output ./test-results/ *.http
         working-directory: api
+        timeout-minutes: 10
+
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: api-test-results
+          path: api/test-results/
+          retention-days: 7
+
+      - name: Display test results
+        if: always()
+        run: |
+          if [ -f api/test-results/http-log.txt ]; then
+            echo "=== HTTPYac Test Log ==="
+            tail -100 api/test-results/http-log.txt
+          fi
