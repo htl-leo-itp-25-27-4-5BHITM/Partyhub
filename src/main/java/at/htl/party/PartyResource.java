@@ -4,7 +4,6 @@ import java.util.List;
 import java.util.Map;
 
 import at.htl.FilterDto;
-import at.htl.PushNotificationService;
 import at.htl.media.MediaRepository;
 import at.htl.user_location.UserLocationRepository;
 import jakarta.enterprise.context.ApplicationScoped;
@@ -40,9 +39,6 @@ public class PartyResource {
 
     @Inject
     EntityManager em;
-
-    @Inject
-    PushNotificationService pushService;
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
@@ -139,14 +135,7 @@ public class PartyResource {
         }
         
         Long actualUserId = userId != null ? userId : headerUserId;
-        Response response = partyRepository.updateParty(id, partyCreateDto, actualUserId);
-
-        // Trigger push notifications after a successful update
-        if (response.getStatus() == Response.Status.OK.getStatusCode()) {
-            pushService.notifyParticipants(id, "Update: " + partyCreateDto.title());
-        }
-
-        return response;
+        return partyRepository.updateParty(id, partyCreateDto, actualUserId);
     }
 
     @PUT
@@ -207,16 +196,6 @@ public class PartyResource {
         return partyRepository.getInvitedMembers(partyId, actualUserId);
     }
 
-    @GET
-    @Produces(MediaType.APPLICATION_JSON)
-    @Path("/{id}/joined-members")
-    public Response joinedMembers(@PathParam("id") Long partyId,
-                                  @QueryParam("user") Long userId,
-                                  @HeaderParam("X-User-Id") Long headerUserId) {
-        Long actualUserId = userId != null ? userId : headerUserId;
-        return partyRepository.getJoinedMembers(partyId, actualUserId);
-    }
-
     @POST
     @Path("/{partyId}/media/upload")
     @Consumes(MediaType.MULTIPART_FORM_DATA)
@@ -272,6 +251,10 @@ public class PartyResource {
     @Path("/{id}/locations")
     @Produces(MediaType.APPLICATION_JSON)
     public Response getPartyLocations(@PathParam("id") Long partyId) {
+        Party party = em.find(Party.class, partyId);
+        if (party == null) {
+            return Response.status(Response.Status.NOT_FOUND).build();
+        }
         return Response.ok(userLocationRepository.getLocationsByPartyId(partyId)).build();
     }
 
@@ -279,6 +262,10 @@ public class PartyResource {
     @Path("/{id}/media")
     @Produces(MediaType.APPLICATION_JSON)
     public Response getPartyMedia(@PathParam("id") Long partyId) {
+        Party party = em.find(Party.class, partyId);
+        if (party == null) {
+            return Response.status(Response.Status.NOT_FOUND).build();
+        }
         return Response.ok().entity(mediaRepository.getMediaByParty(partyId)).build();
     }
 }

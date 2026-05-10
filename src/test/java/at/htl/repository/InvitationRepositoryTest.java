@@ -83,6 +83,7 @@ public class InvitationRepositoryTest {
         entityManager.flush();
 
         Party party = createTestParty(sender);
+        entityManager.flush();
 
         InvitationDto dto = new InvitationDto(recipient.getId(), party.getId());
         Response response = invitationRepository.invite(dto, sender.getId());
@@ -107,6 +108,7 @@ public class InvitationRepositoryTest {
         entityManager.flush();
 
         Party party = createTestParty(recipient);
+        entityManager.flush();
 
         InvitationDto dto = new InvitationDto(recipient.getId(), party.getId());
         Response response = invitationRepository.invite(dto, null);
@@ -121,6 +123,7 @@ public class InvitationRepositoryTest {
         entityManager.flush();
 
         Party party = createTestParty(sender);
+        entityManager.flush();
 
         InvitationDto dto = new InvitationDto(recipient.getId(), party.getId());
         invitationRepository.invite(dto, sender.getId());

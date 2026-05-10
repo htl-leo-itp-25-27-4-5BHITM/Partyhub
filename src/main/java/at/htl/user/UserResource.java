@@ -74,6 +74,7 @@ public class UserResource {
         user.setDisplayName(userCreateDto.displayName());
         user.setDistinctName(userCreateDto.distinctName());
         user.setEmail(userCreateDto.email());
+        user.setPhoneNumber(userCreateDto.phoneNumber());
         user.setBiography(userCreateDto.biography());
         return user;
     }
@@ -165,6 +166,7 @@ public class UserResource {
         user.setDisplayName(userCreateDto.displayName());
         user.setDistinctName(userCreateDto.distinctName());
         user.setEmail(userCreateDto.email());
+        user.setPhoneNumber(userCreateDto.phoneNumber());
         user.setBiography(userCreateDto.biography());
         
         User merged = em.merge(user);

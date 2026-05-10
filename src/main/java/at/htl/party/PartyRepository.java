@@ -4,8 +4,10 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
 import java.util.HashSet;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 
@@ -15,6 +17,7 @@ import at.htl.user.User;
 import at.htl.invitation.Invitation;
 import at.htl.notification.Notification;
 import at.htl.notification.NotificationRepository;
+import at.htl.notification.OutOfAppNotificationService;
 import at.htl.follow.FollowRepository;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
@@ -37,6 +40,9 @@ public class PartyRepository {
 
     @Inject
     NotificationRepository notificationRepository;
+
+    @Inject
+    OutOfAppNotificationService outOfAppNotificationService;
 
     @Inject
     FollowRepository followRepository;
@@ -116,8 +122,13 @@ public class PartyRepository {
         if (party == null) {
             return Response.status(Response.Status.NOT_FOUND).build();
         }
-        notifyCancellationRecipients(party);
-        notificationRepository.deleteByPartyId(id);
+        notifyPartyDeleted(party);
+        List<Notification> notifications = entityManager.createQuery(
+                        "SELECT n FROM Notification n WHERE n.party.id = :partyId",
+                        Notification.class)
+                .setParameter("partyId", party.getId())
+                .getResultList();
+        notifications.forEach(entityManager::remove);
         entityManager.remove(party);
         return Response.noContent().build();
     }
@@ -141,7 +152,7 @@ public class PartyRepository {
                     .build();
         }
 
-        String oldDescription = party.getDescription();
+        String oldSignature = partyUpdateSignature(party);
 
         party.setTitle(partyCreateDto.title());
         party.setDescription(partyCreateDto.description());
@@ -170,47 +181,25 @@ public class PartyRepository {
         }
 
         party.setTheme(partyCreateDto.theme());
-        inviteSelectedUsersForPrivateParty(partyCreateDto, party, host, userId);
+        Set<Long> newlyInvitedUserIds = inviteSelectedUsersForPrivateParty(partyCreateDto, party, host, userId);
 
-        String newDescription = partyCreateDto.description();
-
-        if (newDescription != null && !newDescription.equals(oldDescription)) {
-            String message = "\"" + party.getTitle() + "\" was updated: " + newDescription;
-
-            if (party.getUsers() != null) {
-                for (User attendee : party.getUsers()) {
-                    if (!attendee.getId().equals(userId)) {
-                        Notification notification = new Notification(attendee, host, party, message);
-                        notificationRepository.createNotification(notification);
-                    }
-                }
-            }
-
-            if (party.getInvitations() != null) {
-                for (Invitation invitation : party.getInvitations()) {
-                    User recipient = invitation.getRecipient();
-                    if (recipient != null &&
-                            !recipient.getId().equals(userId) &&
-                            !INVITATION_DECLINED.equalsIgnoreCase(invitation.getStatus())) {
-                        Notification notification = new Notification(recipient, host, party, message);
-                        notificationRepository.createNotification(notification);
-                    }
-                }
-            }
+        if (!Objects.equals(oldSignature, partyUpdateSignature(party))) {
+            notifyPartyUpdated(party, host, userId, newlyInvitedUserIds);
         }
 
         return Response.ok(party).build();
     }
 
-    private void inviteSelectedUsersForPrivateParty(
+    private Set<Long> inviteSelectedUsersForPrivateParty(
             PartyCreateDto partyCreateDto,
             Party party,
             User host,
             Long hostUserId) {
+        Set<Long> notifiedRecipientIds = new HashSet<>();
         if (!"PRIVATE".equalsIgnoreCase(party.getVisibility()) ||
                 partyCreateDto.selectedUsers() == null ||
                 partyCreateDto.selectedUsers().isEmpty()) {
-            return;
+            return notifiedRecipientIds;
         }
 
         for (String selectedUser : partyCreateDto.selectedUsers()) {
@@ -244,8 +233,14 @@ public class PartyRepository {
                 party.getInvitations().add(invitation);
             }
 
-            sendInvitationNotification(recipient, host, party);
+            String hostName = host.getDisplayName() != null ? host.getDisplayName() : host.getUsername();
+            String message = hostName + " hat dich zu der Party \"" + party.getTitle() + "\" eingeladen";
+            Notification notification = new Notification(recipient, host, party, message);
+            notificationRepository.createNotification(notification);
+            notifiedRecipientIds.add(recipient.getId());
         }
+
+        return notifiedRecipientIds;
     }
 
     private boolean hasInvitationForRecipient(Party party, User recipient) {
@@ -290,7 +285,7 @@ public class PartyRepository {
 
     private void sendInvitationNotification(User recipient, User host, Party party) {
         String hostName = displayName(host);
-        String message = hostName + " invited you to the party \"" + party.getTitle() + "\"";
+        String message = hostName + " hat dich zu der Party \"" + party.getTitle() + "\" eingeladen";
         Notification notification = new Notification(recipient, host, party, message);
         notificationRepository.createNotification(notification);
     }
@@ -335,9 +330,68 @@ public class PartyRepository {
             return;
         }
 
-        String message = "The party \"" + party.getTitle() + "\" was canceled.";
+        String message = "Die Party \"" + party.getTitle() + "\" wurde abgesagt.";
         Notification notification = new Notification(recipient, host, null, message);
         notificationRepository.createNotification(notification);
+    }
+
+    private void notifyPartyUpdated(Party party, User sender, Long actorUserId, Set<Long> skippedUserIds) {
+        String message = "\"" + party.getTitle() + "\" wurde aktualisiert. Schau dir die neuen Details in PartyHub an.";
+        for (User recipient : collectPartyRecipients(party).values()) {
+            if (recipient.getId() != null &&
+                    !recipient.getId().equals(actorUserId) &&
+                    (skippedUserIds == null || !skippedUserIds.contains(recipient.getId()))) {
+                notificationRepository.createNotification(new Notification(recipient, sender, party, message));
+            }
+        }
+    }
+
+    private void notifyPartyDeleted(Party party) {
+        String message = "Die Party \"" + party.getTitle() + "\" wurde geloescht.";
+        for (User recipient : collectPartyRecipients(party).values()) {
+            outOfAppNotificationService.send(recipient, "PartyHub: Party geloescht", message);
+        }
+    }
+
+    private Map<Long, User> collectPartyRecipients(Party party) {
+        Map<Long, User> recipients = new LinkedHashMap<>();
+
+        if (party.getUsers() != null) {
+            for (User attendee : party.getUsers()) {
+                addRecipient(recipients, attendee);
+            }
+        }
+
+        if (party.getInvitations() != null) {
+            for (Invitation invitation : party.getInvitations()) {
+                addRecipient(recipients, invitation.getRecipient());
+            }
+        }
+
+        return recipients;
+    }
+
+    private void addRecipient(Map<Long, User> recipients, User user) {
+        if (user != null && user.getId() != null) {
+            recipients.putIfAbsent(user.getId(), user);
+        }
+    }
+
+    private String partyUpdateSignature(Party party) {
+        return Objects.toString(party.getTitle(), "") + "|" +
+                Objects.toString(party.getDescription(), "") + "|" +
+                Objects.toString(party.getFee(), "") + "|" +
+                Objects.toString(party.getTime_start(), "") + "|" +
+                Objects.toString(party.getTime_end(), "") + "|" +
+                Objects.toString(party.getWebsite(), "") + "|" +
+                Objects.toString(party.getMax_age(), "") + "|" +
+                Objects.toString(party.getMin_age(), "") + "|" +
+                Objects.toString(party.getMax_people(), "") + "|" +
+                Objects.toString(party.getVisibility(), "") + "|" +
+                Objects.toString(party.getTheme(), "") + "|" +
+                (party.getLocation() != null ? Objects.toString(party.getLocation().getAddress(), "") : "") + "|" +
+                (party.getLocation() != null ? Objects.toString(party.getLocation().getLatitude(), "") : "") + "|" +
+                (party.getLocation() != null ? Objects.toString(party.getLocation().getLongitude(), "") : "");
     }
 
     public List<Party> findByTitleOrDescription(String q) {
@@ -452,33 +506,6 @@ public class PartyRepository {
         return Response.ok(invitedMembers).build();
     }
 
-    public Response getJoinedMembers(Long partyId, Long userId) {
-        Party party = getPartyByIdIfVisible(partyId, userId);
-        if (party == null) {
-            return Response.status(Response.Status.NOT_FOUND).build();
-        }
-
-        List<User> attendees = entityManager.createQuery(
-                        "SELECT u FROM Party p JOIN p.users u " +
-                                "WHERE p.id = :partyId " +
-                                "ORDER BY u.displayName, u.username, u.distinctName",
-                        User.class)
-                .setParameter("partyId", partyId)
-                .getResultList();
-
-        List<InvitedMemberDto> joinedMembers = attendees.stream()
-                .map(user -> new InvitedMemberDto(
-                        user.getId(),
-                        user.getUsername(),
-                        user.getDisplayName(),
-                        user.getDistinctName(),
-                        "JOINED"
-                ))
-                .toList();
-
-        return Response.ok(joinedMembers).build();
-    }
-
     private String invitationStatusForDisplay(Invitation invitation, Set<Long> attendeeIds) {
         User recipient = invitation.getRecipient();
         String status = invitation.getStatus();
@@ -524,7 +551,7 @@ public class PartyRepository {
             if (invitation.isPresent()) {
                 invitation.get().setStatus(INVITATION_ACCEPTED);
                 entityManager.merge(invitation.get());
-                notifyHost(party, user, displayName(user) + " accepted your invitation to the party \"" + party.getTitle() + "\".");
+                notifyHost(party, user, displayName(user) + " hat deine Einladung zur Party \"" + party.getTitle() + "\" angenommen.");
             }
         }
 
@@ -561,7 +588,7 @@ public class PartyRepository {
                 invitation.get().setStatus(INVITATION_DECLINED);
                 entityManager.merge(invitation.get());
             }
-            notifyHost(party, user, displayName(user) + " left the party \"" + party.getTitle() + "\".");
+            notifyHost(party, user, displayName(user) + " hat die Party \"" + party.getTitle() + "\" verlassen.");
             entityManager.merge(party);
             return Response.ok(party).build();
         }
@@ -604,7 +631,7 @@ public class PartyRepository {
             }
             return LocalDateTime.parse(dateStr.trim(), PARTY_DTF);
         } catch (DateTimeParseException e) {
-            throw new BadRequestException("Invalid date format: " + dateStr + ". Expected: yyyy-MM-ddTHH:mm:ss or dd.MM.yyyy HH:mm");
+            throw new BadRequestException("Ungültiges Datumsformat: " + dateStr + ". Erwartet: yyyy-MM-ddTHH:mm:ss oder dd.MM.yyyy HH:mm");
         }
     }
 
@@ -691,7 +718,7 @@ public class PartyRepository {
 
     private String displayName(User user) {
         if (user == null) {
-            return "Someone";
+            return "Jemand";
         }
         if (user.getDisplayName() != null && !user.getDisplayName().isBlank()) {
             return user.getDisplayName();
@@ -702,6 +729,6 @@ public class PartyRepository {
         if (user.getDistinctName() != null && !user.getDistinctName().isBlank()) {
             return user.getDistinctName();
         }
-        return "Someone";
+        return "Jemand";
     }
 }

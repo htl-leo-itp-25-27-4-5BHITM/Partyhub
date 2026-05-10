@@ -1,7 +1,6 @@
 package at.htl.invitation;
 
 import java.util.List;
-import java.util.Optional;
 
 import at.htl.notification.Notification;
 import at.htl.notification.NotificationRepository;
@@ -22,13 +21,9 @@ public class InvitationRepository {
     @Inject
     NotificationRepository notificationRepository;
 
-    private static final String STATUS_PENDING = "PENDING";
-    private static final String STATUS_ACCEPTED = "ACCEPTED";
-    private static final String STATUS_DECLINED = "DECLINED";
-
-    public Response invite(InvitationDto invitationDto, Long senderId){
+    public Response invite(InvitationDto invitationDto, Long senderId) {
         if (senderId == null) {
-                return Response.ok().entity(List.of()).build();
+            return Response.ok().entity(List.of()).build();
         }
 
         User sender = entityManager.find(User.class, senderId);
@@ -39,51 +34,53 @@ public class InvitationRepository {
         }
 
         Party party = partyRepository.getPartyById(invitationDto.partyId());
-        if (party == null) {
-            return Response.status(Response.Status.NOT_FOUND)
-                    .entity("{\"error\": \"Party not found\"}")
-                    .build();
-        }
-
         User recipient = entityManager.find(User.class, invitationDto.recipient());
-        if (recipient == null) {
+        if (party == null && recipient != null) {
+            Party swappedParty = partyRepository.getPartyById(invitationDto.recipient());
+            User swappedRecipient = entityManager.find(User.class, invitationDto.partyId());
+            if (swappedParty != null && swappedRecipient != null) {
+                party = swappedParty;
+                recipient = swappedRecipient;
+            }
+        }
+
+        if (party == null || recipient == null) {
             return Response.status(Response.Status.NOT_FOUND)
-                    .entity("{\"error\": \"Recipient user not found\"}")
+                    .entity("{\"error\": \"Party or recipient user not found\"}")
                     .build();
         }
 
-        Optional<Invitation> existingInvite = findInvitation(invitationDto.partyId(), invitationDto.recipient());
-        if (existingInvite.isPresent()) {
-            Invitation invitation = existingInvite.get();
-            if (canReactivate(invitation, party, recipient)) {
-                invitation.setStatus(STATUS_PENDING);
-                entityManager.merge(invitation);
-                sendInvitationNotification(recipient, sender, party);
-                return Response.status(Response.Status.CREATED)
-                        .entity("{\"message\": \"Invitation sent\"}")
-                        .build();
+        Invitation existingInvitation = findInvitation(party.getId(), recipient.getId());
+        if (existingInvitation != null) {
+            if (!"DECLINED".equalsIgnoreCase(existingInvitation.getStatus())) {
+                return Response.status(Response.Status.CONFLICT).build();
             }
 
-            return Response.status(Response.Status.CONFLICT).build();
+            existingInvitation.setStatus("PENDING");
+            entityManager.merge(existingInvitation);
+            sendInvitationNotification(recipient, sender, party);
+            return Response.status(Response.Status.CREATED).build();
         }
 
         Invitation invitation = new Invitation();
         invitation.setParty(party);
         invitation.setRecipient(recipient);
         invitation.setSender(sender);
-        invitation.setStatus(STATUS_PENDING);
+        invitation.setStatus("PENDING");
         entityManager.persist(invitation);
+
         if (party.getInvitations() != null) {
             party.getInvitations().add(invitation);
         }
 
-        sendInvitationNotification(recipient, sender, party);
-        return Response.status(Response.Status.CREATED)
-                .entity("{\"message\": \"Invitation sent\"}")
-                .build();
+        String hostName = sender.getDisplayName() != null ? sender.getDisplayName() : sender.getUsername();
+        String message = hostName + " hat dich zu der Party \"" + party.getTitle() + "\" eingeladen";
+        notificationRepository.createNotification(new Notification(recipient, sender, party, message));
+
+        return Response.status(Response.Status.CREATED).build();
     }
 
-    public List<Invitation> getReceivedInvites(Long userId){
+    public List<Invitation> getReceivedInvites(Long userId) {
         if (userId == null) {
             return List.of();
         }
@@ -92,13 +89,13 @@ public class InvitationRepository {
             return List.of();
         }
         return entityManager.createQuery(
-                        "select u from Invitation u where u.recipient = :user and (u.status is null or u.status = 'PENDING')",
+                        "select u from Invitation u where u.recipient = :user",
                         Invitation.class)
                 .setParameter("user", user)
                 .getResultList();
     }
 
-    public List<Invitation> getSentInvites(Long userId){
+    public List<Invitation> getSentInvites(Long userId) {
         if (userId == null) {
             return List.of();
         }
@@ -106,84 +103,56 @@ public class InvitationRepository {
         if (user == null) {
             return List.of();
         }
-        return entityManager.createQuery("select u from Invitation u where u.sender = :user", Invitation.class).setParameter("user", user).getResultList();
+        return entityManager.createQuery("select u from Invitation u where u.sender = :user", Invitation.class)
+                .setParameter("user", user)
+                .getResultList();
     }
 
-    public Response deleteInvite(Long id, Long userId){
-    if (userId == null) {
-        return Response.status(Response.Status.BAD_REQUEST)
-                .entity("{\"error\": \"User ID required\"}")
-                .build();
-    }
-    
-    Invitation invitation = entityManager.find(Invitation.class, id);
-    if (invitation == null) {
-        return Response.status(Response.Status.NOT_FOUND).build();
-    }
+    public Response deleteInvite(Long id, Long userId) {
+        if (userId == null) {
+            return Response.status(Response.Status.BAD_REQUEST)
+                    .entity("{\"error\": \"User ID required\"}")
+                    .build();
+        }
 
-    Long senderId = invitation.getSender() != null ? invitation.getSender().getId() : null;
-    Long recipientId = invitation.getRecipient() != null ? invitation.getRecipient().getId() : null;
-    
-    if ((senderId == null || !senderId.equals(userId)) && 
-        (recipientId == null || !recipientId.equals(userId))) {
-        return Response.status(Response.Status.FORBIDDEN)
-                .entity("{\"error\": \"Not authorized to delete this invitation\"}")
-                .build();
-    }
-    
-    if (recipientId != null && recipientId.equals(userId)) {
+        Invitation invitation = entityManager.find(Invitation.class, id);
+        if (invitation == null) {
+            return Response.status(Response.Status.NOT_FOUND).build();
+        }
+
+        Long senderId = invitation.getSender() != null ? invitation.getSender().getId() : null;
+        Long recipientId = invitation.getRecipient() != null ? invitation.getRecipient().getId() : null;
+
+        if ((senderId == null || !senderId.equals(userId)) &&
+                (recipientId == null || !recipientId.equals(userId))) {
+            return Response.status(Response.Status.FORBIDDEN)
+                    .entity("{\"error\": \"Not authorized to delete this invitation\"}")
+                    .build();
+        }
+
         Party party = invitation.getParty();
-        boolean isAttending = party != null &&
-                party.getUsers() != null &&
-                party.getUsers().stream()
-                        .anyMatch(user -> user.getId() != null && user.getId().equals(userId));
+        if (party != null && party.getInvitations() != null) {
+            party.getInvitations().remove(invitation);
+        }
 
-        invitation.setStatus(isAttending ? STATUS_ACCEPTED : STATUS_DECLINED);
-        entityManager.merge(invitation);
+        entityManager.remove(invitation);
         return Response.noContent().build();
     }
 
-    Party party = invitation.getParty();
-    if (party != null && party.getInvitations() != null) {
-        party.getInvitations().remove(invitation);
-    }
-    entityManager.remove(invitation);
-    return Response.noContent().build(); 
-    }
-
-    private Optional<Invitation> findInvitation(Long partyId, Long recipientId) {
-        return entityManager.createQuery(
-                        "select i from Invitation i where i.recipient.id = :recipientId and i.party.id = :partyId",
+    private Invitation findInvitation(Long partyId, Long recipientId) {
+        List<Invitation> result = entityManager.createQuery(
+                        "select i from Invitation i where i.party.id = :partyId and i.recipient.id = :recipientId",
                         Invitation.class)
-                .setParameter("recipientId", recipientId)
                 .setParameter("partyId", partyId)
-                .getResultStream()
-                .findFirst();
-    }
-
-    private boolean canReactivate(Invitation invitation, Party party, User recipient) {
-        String status = invitation.getStatus();
-        boolean attending = party.getUsers() != null &&
-                party.getUsers().stream()
-                        .anyMatch(user -> user.getId() != null && user.getId().equals(recipient.getId()));
-
-        return STATUS_DECLINED.equalsIgnoreCase(status) ||
-                (STATUS_ACCEPTED.equalsIgnoreCase(status) && !attending);
+                .setParameter("recipientId", recipientId)
+                .setMaxResults(1)
+                .getResultList();
+        return result.isEmpty() ? null : result.get(0);
     }
 
     private void sendInvitationNotification(User recipient, User sender, Party party) {
-        String hostName = sender.getDisplayName() != null && !sender.getDisplayName().isBlank()
-                ? sender.getDisplayName()
-                : sender.getUsername();
-        if (hostName == null || hostName.isBlank()) {
-            hostName = sender.getDistinctName();
-        }
-        if (hostName == null || hostName.isBlank()) {
-            hostName = "Someone";
-        }
-
-        String partyTitle = party.getTitle() != null ? party.getTitle() : "a party";
-        String message = hostName + " invited you to the party \"" + partyTitle + "\"";
+        String hostName = sender.getDisplayName() != null ? sender.getDisplayName() : sender.getUsername();
+        String message = hostName + " hat dich zu der Party \"" + party.getTitle() + "\" eingeladen";
         notificationRepository.createNotification(new Notification(recipient, sender, party, message));
     }
 }

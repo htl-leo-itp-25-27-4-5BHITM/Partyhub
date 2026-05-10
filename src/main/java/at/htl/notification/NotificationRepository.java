@@ -15,6 +15,9 @@ public class NotificationRepository {
     @Inject
     EntityManager entityManager;
 
+    @Inject
+    OutOfAppNotificationService outOfAppNotificationService;
+
     public List<Notification> getNotificationsByUser(Long userId) {
         if (userId == null) {
             return List.of();
@@ -76,6 +79,7 @@ public class NotificationRepository {
 
     public void createNotification(Notification notification) {
         entityManager.persist(notification);
+        outOfAppNotificationService.sendNotification(notification);
     }
 
     public int deleteByPartyId(Long partyId) {
