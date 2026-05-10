@@ -50,7 +50,8 @@ struct UserProfileImageView: View {
                     lineWidth: showBorder ? 2 : 0
                 )
         )
-        .task {
+        .task(id: userId) {
+            guard profileImage == nil, !isLoading else { return }
             await loadProfilePicture()
         }
     }
@@ -67,6 +68,15 @@ struct UserProfileImageView: View {
             await MainActor.run {
                 self.profileImage = image
             }
+        } catch is CancellationError {
+            // SwiftUI cancelt .task häufig bei Re-Renders; kein echter Fehler.
+            return
+        } catch let error as NSError where error.domain == NSURLErrorDomain && error.code == NSURLErrorCancelled {
+            // URLSession-Abbruch bei View-Neuzeichnung ist erwartbar.
+            return
+        } catch let error as NSError where error.domain == "NotFound" && error.code == 404 {
+            // User hat kein eigenes Profilbild -> Default-Icon anzeigen, kein Fehlerlog nötig.
+            return
         } catch {
             print("❌ Fehler beim Laden von Profilbild für User \(userId):")
             print("   Error Domain: \((error as NSError).domain)")
