@@ -196,6 +196,16 @@ public class PartyResource {
         return partyRepository.getInvitedMembers(partyId, actualUserId);
     }
 
+    @GET
+    @Produces(MediaType.APPLICATION_JSON)
+    @Path("/{id}/joined-members")
+    public Response joinedMembers(@PathParam("id") Long partyId,
+                                  @QueryParam("user") Long userId,
+                                  @HeaderParam("X-User-Id") Long headerUserId) {
+        Long actualUserId = userId != null ? userId : headerUserId;
+        return partyRepository.getJoinedMembers(partyId, actualUserId);
+    }
+
     @POST
     @Path("/{partyId}/media/upload")
     @Consumes(MediaType.MULTIPART_FORM_DATA)

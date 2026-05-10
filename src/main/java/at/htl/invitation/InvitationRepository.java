@@ -74,7 +74,7 @@ public class InvitationRepository {
         }
 
         String hostName = sender.getDisplayName() != null ? sender.getDisplayName() : sender.getUsername();
-        String message = hostName + " hat dich zu der Party \"" + party.getTitle() + "\" eingeladen";
+        String message = hostName + " invited you to the party \"" + party.getTitle() + "\"";
         notificationRepository.createNotification(new Notification(recipient, sender, party, message));
 
         return Response.status(Response.Status.CREATED).build();
@@ -152,7 +152,7 @@ public class InvitationRepository {
 
     private void sendInvitationNotification(User recipient, User sender, Party party) {
         String hostName = sender.getDisplayName() != null ? sender.getDisplayName() : sender.getUsername();
-        String message = hostName + " hat dich zu der Party \"" + party.getTitle() + "\" eingeladen";
+        String message = hostName + " invited you to the party \"" + party.getTitle() + "\"";
         notificationRepository.createNotification(new Notification(recipient, sender, party, message));
     }
 }

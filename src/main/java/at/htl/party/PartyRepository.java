@@ -234,7 +234,7 @@ public class PartyRepository {
             }
 
             String hostName = host.getDisplayName() != null ? host.getDisplayName() : host.getUsername();
-            String message = hostName + " hat dich zu der Party \"" + party.getTitle() + "\" eingeladen";
+            String message = hostName + " invited you to the party \"" + party.getTitle() + "\"";
             Notification notification = new Notification(recipient, host, party, message);
             notificationRepository.createNotification(notification);
             notifiedRecipientIds.add(recipient.getId());
@@ -285,7 +285,7 @@ public class PartyRepository {
 
     private void sendInvitationNotification(User recipient, User host, Party party) {
         String hostName = displayName(host);
-        String message = hostName + " hat dich zu der Party \"" + party.getTitle() + "\" eingeladen";
+        String message = hostName + " invited you to the party \"" + party.getTitle() + "\"";
         Notification notification = new Notification(recipient, host, party, message);
         notificationRepository.createNotification(notification);
     }
@@ -330,13 +330,13 @@ public class PartyRepository {
             return;
         }
 
-        String message = "Die Party \"" + party.getTitle() + "\" wurde abgesagt.";
+        String message = "The party \"" + party.getTitle() + "\" was canceled.";
         Notification notification = new Notification(recipient, host, null, message);
         notificationRepository.createNotification(notification);
     }
 
     private void notifyPartyUpdated(Party party, User sender, Long actorUserId, Set<Long> skippedUserIds) {
-        String message = "\"" + party.getTitle() + "\" wurde aktualisiert. Schau dir die neuen Details in PartyHub an.";
+        String message = "\"" + party.getTitle() + "\" was updated. Check the new details in PartyHub.";
         for (User recipient : collectPartyRecipients(party).values()) {
             if (recipient.getId() != null &&
                     !recipient.getId().equals(actorUserId) &&
@@ -347,9 +347,9 @@ public class PartyRepository {
     }
 
     private void notifyPartyDeleted(Party party) {
-        String message = "Die Party \"" + party.getTitle() + "\" wurde geloescht.";
+        String message = "The party \"" + party.getTitle() + "\" was deleted.";
         for (User recipient : collectPartyRecipients(party).values()) {
-            outOfAppNotificationService.send(recipient, "PartyHub: Party geloescht", message);
+            outOfAppNotificationService.send(recipient, "PartyHub: Party deleted", message);
         }
     }
 
@@ -506,6 +506,33 @@ public class PartyRepository {
         return Response.ok(invitedMembers).build();
     }
 
+    public Response getJoinedMembers(Long partyId, Long userId) {
+        Party party = getPartyByIdIfVisible(partyId, userId);
+        if (party == null) {
+            return Response.status(Response.Status.NOT_FOUND).build();
+        }
+
+        List<User> attendees = entityManager.createQuery(
+                        "SELECT u FROM Party p JOIN p.users u " +
+                                "WHERE p.id = :partyId " +
+                                "ORDER BY u.displayName, u.username, u.distinctName",
+                        User.class)
+                .setParameter("partyId", partyId)
+                .getResultList();
+
+        List<InvitedMemberDto> joinedMembers = attendees.stream()
+                .map(user -> new InvitedMemberDto(
+                        user.getId(),
+                        user.getUsername(),
+                        user.getDisplayName(),
+                        user.getDistinctName(),
+                        "JOINED"
+                ))
+                .toList();
+
+        return Response.ok(joinedMembers).build();
+    }
+
     private String invitationStatusForDisplay(Invitation invitation, Set<Long> attendeeIds) {
         User recipient = invitation.getRecipient();
         String status = invitation.getStatus();
@@ -551,7 +578,7 @@ public class PartyRepository {
             if (invitation.isPresent()) {
                 invitation.get().setStatus(INVITATION_ACCEPTED);
                 entityManager.merge(invitation.get());
-                notifyHost(party, user, displayName(user) + " hat deine Einladung zur Party \"" + party.getTitle() + "\" angenommen.");
+                notifyHost(party, user, displayName(user) + " accepted your invitation to the party \"" + party.getTitle() + "\".");
             }
         }
 
@@ -588,7 +615,7 @@ public class PartyRepository {
                 invitation.get().setStatus(INVITATION_DECLINED);
                 entityManager.merge(invitation.get());
             }
-            notifyHost(party, user, displayName(user) + " hat die Party \"" + party.getTitle() + "\" verlassen.");
+            notifyHost(party, user, displayName(user) + " left the party \"" + party.getTitle() + "\".");
             entityManager.merge(party);
             return Response.ok(party).build();
         }

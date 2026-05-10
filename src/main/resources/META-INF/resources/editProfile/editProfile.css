@@ -1,7 +1,14 @@
 /* Edit Profile Page Styles */
 
+body.bg-light .app-shell {
+  height: 100dvh;
+  min-height: 0;
+  overflow: hidden;
+}
+
 .edit-header {
   display: flex;
+  flex: 0 0 auto;
   align-items: center;
   padding: 16px 24px;
   background: rgba(34, 30, 54, 0.95);
@@ -42,6 +49,10 @@
 }
 
 .edit-container {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
   padding: 24px;
   padding-bottom: 140px; /* Increased bottom padding for better mobile spacing */
 }
@@ -278,7 +289,7 @@
 /* Responsive Design */
 @media (max-width: 480px) {
   .edit-container {
-    padding: 16px;
+    padding: 16px 16px 120px;
   }
 
   .edit-header {

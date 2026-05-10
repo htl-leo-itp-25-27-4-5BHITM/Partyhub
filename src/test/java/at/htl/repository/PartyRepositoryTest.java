@@ -2,6 +2,7 @@ package at.htl.repository;
 
 import at.htl.location.Location;
 import at.htl.notification.Notification;
+import at.htl.party.InvitedMemberDto;
 import at.htl.party.Party;
 import at.htl.party.PartyCreateDto;
 import at.htl.party.PartyRepository;
@@ -212,5 +213,50 @@ public class PartyRepositoryTest {
         Party updated = partyRepository.getPartyById(party.getId());
         assertEquals("PRIVATE", updated.getVisibility());
         assertEquals(1, updated.getInvitations().size());
+    }
+
+    @Test
+    @SuppressWarnings("unchecked")
+    void testGetJoinedMembersReturnsPublicPartyAttendees() {
+        createTestData();
+
+        Location location = entityManager.createQuery("SELECT l FROM Location l", Location.class).getSingleResult();
+        User host = entityManager.createQuery("SELECT u FROM User u", User.class).getSingleResult();
+
+        User firstAttendee = new User();
+        firstAttendee.setDisplayName("First Attendee");
+        firstAttendee.setDistinctName("first-attendee");
+        firstAttendee.setEmail("first-attendee@example.com");
+        entityManager.persist(firstAttendee);
+
+        User secondAttendee = new User();
+        secondAttendee.setDisplayName("Second Attendee");
+        secondAttendee.setDistinctName("second-attendee");
+        secondAttendee.setEmail("second-attendee@example.com");
+        entityManager.persist(secondAttendee);
+
+        Party party = new Party();
+        party.setTitle("Public Joined Members Party");
+        party.setTheme("Test Theme");
+        party.setLocation(location);
+        party.setHost_user(host);
+        party.setVisibility("PUBLIC");
+        party.setTime_start(LocalDateTime.now().plusDays(1));
+        party.setTime_end(LocalDateTime.now().plusDays(1).plusHours(2));
+        party.getUsers().add(firstAttendee);
+        party.getUsers().add(secondAttendee);
+        entityManager.persist(party);
+        entityManager.flush();
+
+        Response response = partyRepository.getJoinedMembers(party.getId(), null);
+
+        assertEquals(200, response.getStatus());
+
+        List<InvitedMemberDto> members = (List<InvitedMemberDto>) response.getEntity();
+        assertEquals(2, members.size());
+        assertTrue(members.stream().anyMatch(member ->
+                member.userId().equals(firstAttendee.getId()) && "JOINED".equals(member.status())));
+        assertTrue(members.stream().anyMatch(member ->
+                member.userId().equals(secondAttendee.getId()) && "JOINED".equals(member.status())));
     }
 }
