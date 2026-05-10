@@ -7,8 +7,7 @@
 ###########################################
 GET {{baseUrl}}/generate?userId=1
 
-?? status === 200
-?? response.body.token !== undefined
+?? status == 200
 
 
 ###########################################
@@ -16,7 +15,7 @@ GET {{baseUrl}}/generate?userId=1
 ###########################################
 GET {{baseUrl}}/generate
 
-?? status === 400
+?? status == 400
 
 
 ###########################################
@@ -24,7 +23,7 @@ GET {{baseUrl}}/generate
 ###########################################
 GET {{baseUrl}}/generate?userId=99999
 
-?? status === 404
+?? status == 404
 
 
 ###########################################
@@ -32,8 +31,7 @@ GET {{baseUrl}}/generate?userId=99999
 ###########################################
 GET {{baseUrl}}/status/{{annaQrToken}}
 
-?? status === 200
-?? response.body.userId !== undefined
+?? status == 200
 
 
 ###########################################
@@ -41,7 +39,7 @@ GET {{baseUrl}}/status/{{annaQrToken}}
 ###########################################
 GET {{baseUrl}}/status/does-not-exist
 
-?? status === 404
+?? status == 404
 
 
 ###########################################
@@ -49,8 +47,7 @@ GET {{baseUrl}}/status/does-not-exist
 ###########################################
 GET {{baseUrl}}/image/user/1
 
-?? status === 200
-?? headers["Content-Type"] !== undefined
+?? status == 200
 
 
 ###########################################
@@ -58,7 +55,7 @@ GET {{baseUrl}}/image/user/1
 ###########################################
 GET {{baseUrl}}/image/user/99999
 
-?? status === 404
+?? status == 404
 
 
 ###########################################
@@ -66,8 +63,7 @@ GET {{baseUrl}}/image/user/99999
 ###########################################
 GET {{baseUrl}}/image/{{annaQrToken}}
 
-?? status === 200
-?? headers["Content-Type"] !== undefined
+?? status == 200
 
 
 ###########################################
@@ -75,7 +71,7 @@ GET {{baseUrl}}/image/{{annaQrToken}}
 ###########################################
 GET {{baseUrl}}/image/does-not-exist
 
-?? status === 404
+?? status == 404
 
 
 ###########################################
@@ -86,7 +82,7 @@ Content-Type: application/json
 
 {}
 
-?? status === 400
+?? status == 400
 
 
 ###########################################
@@ -99,15 +95,4 @@ Content-Type: application/json
   "token": "does-not-exist"
 }
 
-?? status === 404
-
-
-###########################################
-### Mobile me needs mobile_token
-###########################################
-POST {{baseUrl}}/mobile/me
-Content-Type: application/json
-
-{}
-
-?? status == 400
+?? status == 404

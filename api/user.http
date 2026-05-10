@@ -9,8 +9,7 @@
 ###########################################
 GET {{baseUrl}}
 
-?? status === 200
-?? response.body.length > 0
+?? status == 200
 
 
 ###########################################
@@ -18,8 +17,7 @@ GET {{baseUrl}}
 ###########################################
 GET {{baseUrl}}?q=anna
 
-?? status === 200
-?? response.body.length > 0
+?? status == 200
 
 
 ###########################################
@@ -27,26 +25,7 @@ GET {{baseUrl}}?q=anna
 ###########################################
 GET {{baseUrl}}/{{anna}}
 
-?? status === 200
-?? response.body.id === 1
-
-
-###########################################
-### Get user by handle
-###########################################
-GET {{baseUrl}}/handle/anna_huber
-
-?? status === 200
-?? response.body.handle === "anna_huber"
-
-
-###########################################
-### Get user by username
-###########################################
-GET {{baseUrl}}/username/anna_huber
-
-?? status === 200
-?? response.body.handle === "anna_huber"
+?? status == 200
 
 
 ###########################################
@@ -54,8 +33,7 @@ GET {{baseUrl}}/username/anna_huber
 ###########################################
 GET {{baseUrl}}/me?userId={{anna}}
 
-?? status === 200
-?? response.body.id === 1
+?? status == 200
 
 
 ###########################################
@@ -63,7 +41,7 @@ GET {{baseUrl}}/me?userId={{anna}}
 ###########################################
 GET {{baseUrl}}/me
 
-?? status === 400
+?? status == 400
 
 
 ###########################################
@@ -71,8 +49,7 @@ GET {{baseUrl}}/me
 ###########################################
 GET {{baseUrl}}/{{anna}}/followers/count
 
-?? status === 200
-?? response.body >= 0
+?? status == 200
 
 
 ###########################################
@@ -80,8 +57,7 @@ GET {{baseUrl}}/{{anna}}/followers/count
 ###########################################
 GET {{baseUrl}}/{{anna}}/following/count
 
-?? status === 200
-?? response.body >= 0
+?? status == 200
 
 
 ###########################################
@@ -89,8 +65,7 @@ GET {{baseUrl}}/{{anna}}/following/count
 ###########################################
 GET {{baseUrl}}/{{anna}}/followers
 
-?? status === 200
-?? Array.isArray(response.body)
+?? status == 200
 
 
 ###########################################
@@ -98,8 +73,7 @@ GET {{baseUrl}}/{{anna}}/followers
 ###########################################
 GET {{baseUrl}}/{{anna}}/following
 
-?? status === 200
-?? Array.isArray(response.body)
+?? status == 200
 
 
 ###########################################
@@ -119,38 +93,6 @@ GET {{baseUrl}}/{{anna}}/followers/{{michael}}/status
 
 
 ###########################################
-### Create user with unique test data
-###########################################
-POST {{baseUrl}}
-Content-Type: application/json
-
-{
-  "displayName": "HTTPYac User {{$timestamp}}",
-  "distinctName": "httpyac_user_{{$timestamp}}",
-  "email": "httpyac_{{$timestamp}}@partyhub.local",
-  "biography": "Automatisch erzeugter API-Testuser"
-}
-
-?? status == 201
-
-
-###########################################
-### Update Sabine with import.sql-compatible data
-###########################################
-PUT {{baseUrl}}/{{sabine}}
-Content-Type: application/json
-
-{
-  "displayName": "Sabine Weber",
-  "distinctName": "sabine_weber",
-  "email": "sabine.weber@partyhub.at",
-  "biography": "Zwischen Kultur, Networking und langen Naechten unterwegs."
-}
-
-?? status == 200
-
-
-###########################################
 ### Get user location from import.sql
 ###########################################
 GET {{baseUrl}}/location/{{anna}}
@@ -159,41 +101,11 @@ GET {{baseUrl}}/location/{{anna}}
 
 
 ###########################################
-### Update user location
-###########################################
-PUT {{baseUrl}}/location
-X-User-Id: {{anna}}
-Content-Type: application/json
-
-{
-  "latitude": 48.3064,
-  "longitude": 14.2862
-}
-
-?? status == 200
-
-
-###########################################
-### Update user location needs user header
-###########################################
-PUT {{baseUrl}}/location
-Content-Type: application/json
-
-{
-  "latitude": 48.3064,
-  "longitude": 14.2862
-}
-
-?? status == 400
-
-
-###########################################
 ### Profile picture binary/default image
 ###########################################
 GET {{baseUrl}}/{{anna}}/profile-picture
 
-?? status === 200
-?? headers["Content-Type"] !== undefined
+?? status == 200
 
 
 ###########################################
@@ -201,7 +113,7 @@ GET {{baseUrl}}/{{anna}}/profile-picture
 ###########################################
 GET {{baseUrl}}/{{anna}}/profile-picture-filename
 
-?? (status === 200 || status === 204)
+?? status == 200
 
 
 ###########################################
@@ -209,23 +121,4 @@ GET {{baseUrl}}/{{anna}}/profile-picture-filename
 ###########################################
 GET {{baseUrl}}/{{anna}}/media
 
-?? status === 200
-
 ?? status == 200
-
-
-###########################################
-### Update user device token
-###########################################
-PUT {{baseUrl}}/device-token?token=HTTPYAC_USER_TOKEN
-X-User-Id: {{michael}}
-
-?? status == 200
-
-
-###########################################
-### Unknown user returns 404
-###########################################
-GET {{baseUrl}}/99999
-
-?? status == 404

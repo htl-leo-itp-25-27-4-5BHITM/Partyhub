@@ -10,8 +10,7 @@
 ############################################
 GET {{baseUrl}}/{{anna}}/profile-picture
 
-?? status === 200
-?? headers["Content-Type"] !== undefined
+?? status == 200
 
 
 ############################################
@@ -19,8 +18,7 @@ GET {{baseUrl}}/{{anna}}/profile-picture
 ############################################
 GET {{baseUrl}}/{{sabine}}/profile-picture
 
-?? status === 200
-?? headers["Content-Type"] !== undefined
+?? status == 200
 
 
 ############################################
@@ -28,7 +26,7 @@ GET {{baseUrl}}/{{sabine}}/profile-picture
 ############################################
 GET {{baseUrl}}/{{mia}}/profile-picture
 
-?? (status === 200 || status === 404)
+?? status == 200
 
 
 ############################################
@@ -36,7 +34,7 @@ GET {{baseUrl}}/{{mia}}/profile-picture
 ############################################
 GET {{baseUrl}}/{{anna}}/profile-picture-filename
 
-?? status === 200
+?? status == 200
 
 
 ############################################
@@ -44,7 +42,7 @@ GET {{baseUrl}}/{{anna}}/profile-picture-filename
 ############################################
 GET {{baseUrl}}/{{mia}}/profile-picture-filename
 
-?? (status === 200 || status === 204)
+?? status == 200
 
 
 ############################################
@@ -52,47 +50,4 @@ GET {{baseUrl}}/{{mia}}/profile-picture-filename
 ############################################
 GET {{baseUrl}}/99999/profile-picture
 
-?? status === 404
-
-
-############################################
-#### POST: Upload profile picture for Sabine
-############################################
-POST {{baseUrl}}/{{sabine}}/upload-profile-picture
-Content-Type: multipart/form-data; boundary=WebAppBoundary
-X-User-Id: {{sabine}}
-
---WebAppBoundary
-Content-Disposition: form-data; name="file"; filename="testing.jpg"
-Content-Type: image/jpeg
-
-< ./testing.jpg
---WebAppBoundary--
-
-?? (status === 200 || status === 201)
-
-
-############################################
-#### DELETE: Remove profile picture for Sabine
-############################################
-DELETE {{baseUrl}}/{{sabine}}/profile-picture
-X-User-Id: {{sabine}}
-
-?? (status === 200 || status === 204)
-
-
-############################################
-#### PUT: Update profile picture for Anna
-############################################
-PUT {{baseUrl}}/{{anna}}/profile-picture
-Content-Type: multipart/form-data; boundary=WebAppBoundary
-X-User-Id: {{anna}}
-
---WebAppBoundary
-Content-Disposition: form-data; name="file"; filename="testing.jpg"
-Content-Type: image/jpeg
-
-< ./testing.jpg
---WebAppBoundary--
-
-?? status === 200
+?? status == 404

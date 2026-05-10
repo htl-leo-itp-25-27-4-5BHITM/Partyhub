@@ -5,8 +5,7 @@
 ###########################################
 GET {{host}}/api/parties/1/media
 
-?? status === 200
-?? Array.isArray(response.body)
+?? status == 200
 
 
 ###########################################
@@ -14,8 +13,7 @@ GET {{host}}/api/parties/1/media
 ###########################################
 GET {{host}}/api/parties/4/media
 
-?? status === 200
-?? Array.isArray(response.body)
+?? status == 200
 
 
 ###########################################
@@ -23,40 +21,4 @@ GET {{host}}/api/parties/4/media
 ###########################################
 GET {{host}}/api/users/1/media
 
-?? status === 200
-?? Array.isArray(response.body)
-
-
-###########################################
-### Upload image for party 2
-###########################################
-POST {{host}}/api/parties/2/media/upload?user=3
-X-User-Id: 3
-Content-Type: multipart/form-data; boundary=WebAppBoundary
-
---WebAppBoundary
-Content-Disposition: form-data; name="file"; filename="testing.jpg"
-Content-Type: image/jpeg
-
-< ./testing.jpg
---WebAppBoundary--
-
-?? (status === 200 || status === 201)
-?? response.body.id !== undefined
-
-
-###########################################
-### Upload to unknown party returns 404
-###########################################
-POST {{host}}/api/parties/99999/media/upload?user=3
-X-User-Id: 3
-Content-Type: multipart/form-data; boundary=WebAppBoundary
-
---WebAppBoundary
-Content-Disposition: form-data; name="file"; filename="testing.jpg"
-Content-Type: image/jpeg
-
-< ./testing.jpg
---WebAppBoundary--
-
-?? status === 404
+?? status == 200

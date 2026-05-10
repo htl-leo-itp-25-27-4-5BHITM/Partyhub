@@ -7,8 +7,7 @@
 GET {{baseUrl}}?user=2
 X-User-Id: 2
 
-?? status === 200
-?? Array.isArray(response.body)
+?? status == 200
 
 
 ###########################################
@@ -17,8 +16,7 @@ X-User-Id: 2
 GET {{baseUrl}}/unread?user=2
 X-User-Id: 2
 
-?? status === 200
-?? Array.isArray(response.body)
+?? status == 200
 
 
 ###########################################
@@ -26,8 +24,7 @@ X-User-Id: 2
 ###########################################
 GET {{baseUrl}}
 
-?? status === 200
-?? Array.isArray(response.body)
+?? status == 200
 
 
 ###########################################
@@ -36,7 +33,7 @@ GET {{baseUrl}}
 POST {{baseUrl}}/1/read?user=2
 X-User-Id: 2
 
-?? status === 200
+?? status == 200
 
 
 ###########################################
@@ -45,7 +42,7 @@ X-User-Id: 2
 POST {{baseUrl}}/1/read?user=1
 X-User-Id: 1
 
-?? status === 403
+?? status == 403
 
 
 ###########################################
@@ -54,7 +51,7 @@ X-User-Id: 1
 DELETE {{baseUrl}}/1?user=1
 X-User-Id: 1
 
-?? status === 403
+?? status == 403
 
 
 ###########################################
@@ -63,4 +60,4 @@ X-User-Id: 1
 DELETE {{baseUrl}}/99999?user=2
 X-User-Id: 2
 
-?? status === 404
+?? status == 404

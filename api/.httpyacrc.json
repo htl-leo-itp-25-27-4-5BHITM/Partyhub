@@ -4,5 +4,10 @@
   "parallel": false,
   "failOnError": true,
   "logLevel": "verbose",
-  "outputDirectory": "./test-results/"
+  "outputDirectory": "./test-results/",
+  "requestMetadata": {
+    "http": {
+      "useRejectUnauthorizedForTls": false
+    }
+  }
 }
