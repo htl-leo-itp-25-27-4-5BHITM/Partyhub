@@ -2,12 +2,6 @@ import SwiftUI
 import MapKit
 import SwiftData
 
-extension CLLocationCoordinate2D: @retroactive Equatable {
-    public static func == (lhs: CLLocationCoordinate2D, rhs: CLLocationCoordinate2D) -> Bool {
-        lhs.latitude == rhs.latitude && lhs.longitude == rhs.longitude
-    }
-}
-
 enum MapFilter: String, CaseIterable {
     case all = "Alle"
     case invited = "Eingeladen"
@@ -34,10 +28,17 @@ struct MapView: View {
     @State private var invitedPartyIds: Set<Int> = []
     @State private var followingUserIds: Set<Int64> = []
     @State private var showFilterDialog = false
+    @State private var currentRegion: MKCoordinateRegion = MKCoordinateRegion(
+        center: CLLocationCoordinate2D(latitude: 48.2082, longitude: 16.3738),
+        span: MKCoordinateSpan(latitudeDelta: 0.1, longitudeDelta: 0.1)
+    )
+    @State private var mapViewSize: CGSize = .zero
+    @State private var partyClusters: [Cluster<Party>] = []
 
     @Query var parties: [Party]
     private let highlightedPartyId: Int?
     
+    private let clusteringEngine = MapClusteringEngine()
     private let impactGenerator = UIImpactFeedbackGenerator(style: .medium)
 
     private var currentUserId: Int? {
@@ -79,65 +80,109 @@ struct MapView: View {
     }
 
     var body: some View {
+        GeometryReader { geo in
+            mapContent
+                .ignoresSafeArea()
+                .onAppear {
+                    mapViewSize = geo.size
+                    locationManager.requestPermission()
+                    focusMap(on: displayedParty)
+                    loadFilterData()
+                }
+                .onChange(of: geo.size) { _, newSize in
+                    mapViewSize = newSize
+                }
+                .onMapCameraChange(frequency: .onEnd) { context in
+                    currentRegion = context.region
+                }
+                .onChange(of: displayedParty?.backendId) { _, _ in
+                    focusMap(on: displayedParty)
+                }
+                .onChange(of: currentRegion) { _, _ in
+                    triggerRecomputeClusters()
+                }
+                .onChange(of: filteredParties.count) { _, _ in
+                    triggerRecomputeClusters()
+                }
+                .onChange(of: followingUserIds) { _, _ in
+                    triggerRecomputeClusters()
+                }
+                .onChange(of: invitedPartyIds) { _, _ in
+                    triggerRecomputeClusters()
+                }
+                .navigationTitle(displayedParty?.name ?? "Map")
+                .navigationBarTitleDisplayMode(.inline)
+                .toolbar { filterToolbarButton }
+                .confirmationDialog("Filter", isPresented: $showFilterDialog) {
+                    filterDialogButtons
+                } message: {
+                    Text("Zeige nur Partys aus einer Kategorie")
+                }
+        }
+    }
+    
+    private var mapContent: some View {
         Map(position: $position) {
+            userLocationAnnotation
+            partyClusterAnnotations
+        }
+    }
+    
+    private var userLocationAnnotation: some MapContent {
+        Group {
             if let coord = locationManager.currentLocation {
                 Annotation("Du", coordinate: coord) {
                     AttendeePin(isAtParty: locationManager.isAtParty, isSelf: true, userId: currentUserId)
                 }
             }
-
-            ForEach(filteredParties) { party in
-                let isHostedByFriend: Bool = {
-                    guard let hostId = party.hostUserId else { return false }
-                    return followingUserIds.contains(hostId)
-                }()
-                
-                let isInvited = invitedPartyIds.contains(party.backendId)
-                
-                Annotation(party.name, coordinate: party.coordinate) {
-                    PartyPin(
-                        isActive: party.isActive,
-                        isHostedByFriend: isHostedByFriend,
-                        isInvited: isInvited
-                    )
-                }
+        }
+    }
+    
+    private var partyClusterAnnotations: some MapContent {
+        ForEach(partyClusters, id: \.id) { cluster in
+            if cluster.items.count == 1, let party = cluster.items.first {
+                singlePartyAnnotation(for: party, at: cluster.coordinate)
+            } else {
+                partyClusterAnnotation(for: cluster)
             }
         }
-        .ignoresSafeArea()
-        .onAppear {
-            locationManager.requestPermission()
-            focusMap(on: displayedParty)
-            loadFilterData()
+    }
+    
+    private func singlePartyAnnotation(for party: Party, at coordinate: CLLocationCoordinate2D) -> some MapContent {
+        let isHostedByFriend = party.hostUserId.flatMap { followingUserIds.contains($0) } ?? false
+        let isInvited = invitedPartyIds.contains(party.backendId)
+        
+        return Annotation(party.name, coordinate: coordinate) {
+            PartyPin(isActive: party.isActive, isHostedByFriend: isHostedByFriend, isInvited: isInvited)
+                .onTapGesture { focusMap(on: party) }
         }
-        .onChange(of: displayedParty?.backendId) { _, _ in
-            focusMap(on: displayedParty)
+    }
+    
+    private func partyClusterAnnotation(for cluster: Cluster<Party>) -> some MapContent {
+        Annotation("\(cluster.items.count) Partys", coordinate: cluster.coordinate) {
+            PartyClusterPin(parties: cluster.items, followingUserIds: followingUserIds, invitedPartyIds: invitedPartyIds)
+                .onTapGesture { zoomToFit(cluster: cluster) }
         }
-        .navigationTitle(displayedParty?.name ?? "Map")
-        .navigationBarTitleDisplayMode(.inline)
-        .toolbar {
-            ToolbarItem(placement: .navigationBarTrailing) {
-                Button {
-                    showFilterDialog = true
-                } label: {
-                    Image(systemName: isFilterActive ? "line.3.horizontal.decrease.circle.fill" : "line.3.horizontal.decrease.circle")
-                        .font(.title2)
-                        .foregroundStyle(isFilterActive ? Color("primary pink") : .primary)
-                }
+    }
+    
+    private var filterToolbarButton: some ToolbarContent {
+        ToolbarItem(placement: .navigationBarTrailing) {
+            Button {
+                showFilterDialog = true
+            } label: {
+                Image(systemName: isFilterActive ? "line.3.horizontal.decrease.circle.fill" : "line.3.horizontal.decrease.circle")
+                    .font(.title2)
+                    .foregroundStyle(isFilterActive ? Color("primary pink") : .primary)
             }
         }
-        .confirmationDialog("Filter", isPresented: $showFilterDialog) {
-            Button("Alle") {
-                setFilter(.all)
-            }
-            Button("Eingeladen") {
-                setFilter(.invited)
-            }
-            Button("Freunde") {
-                setFilter(.friends)
-            }
+    }
+    
+    private var filterDialogButtons: some View {
+        Group {
+            Button("Alle") { setFilter(.all) }
+            Button("Eingeladen") { setFilter(.invited) }
+            Button("Freunde") { setFilter(.friends) }
             Button("Abbrechen", role: .cancel) { }
-        } message: {
-            Text("Zeige nur Partys aus einer Kategorie")
         }
     }
     
@@ -147,19 +192,39 @@ struct MapView: View {
             selectedFilter = filter
         }
     }
+    
+    private func triggerRecomputeClusters() {
+        guard mapViewSize.width > 0, mapViewSize.height > 0 else { return }
+        
+        partyClusters = clusteringEngine.computeClusters(
+            items: filteredParties,
+            for: currentRegion,
+            in: mapViewSize
+        )
+    }
+    
+    private func zoomToFit<T: Clusterable>(cluster: Cluster<T>) {
+        let coordinates = cluster.items.map { $0.coordinate }
+        if let fitRegion = MKCoordinateRegion.fitting(coordinates: coordinates) {
+            withAnimation {
+                position = .region(fitRegion)
+            }
+        }
+    }
 }
 
 private extension MapView {
     func focusMap(on party: Party?) {
         guard let party else { return }
 
-        position = .region(
-            MKCoordinateRegion(
-                center: party.coordinate,
-                latitudinalMeters: max(party.radiusMeters * 6, 600),
-                longitudinalMeters: max(party.radiusMeters * 6, 600)
-            )
+        let newRegion = MKCoordinateRegion(
+            center: party.coordinate,
+            latitudinalMeters: max(party.radiusMeters * 6, 600),
+            longitudinalMeters: max(party.radiusMeters * 6, 600)
         )
+        
+        currentRegion = newRegion
+        position = .region(newRegion)
     }
 
     func loadFilterData() {
