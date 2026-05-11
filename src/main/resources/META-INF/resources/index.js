@@ -1,6 +1,81 @@
 document.addEventListener("DOMContentLoaded", async () => {
   const mapEl = document.getElementById("map");
   if (!mapEl) return;
+  const languageToggleBtn = document.getElementById("languageToggleBtn");
+
+  const i18n = {
+    de: {
+      heroTitle: "Finde deine nächste Party",
+      heroSubtitle: "Wähle ein Event aus und entdecke die Teilnehmer direkt auf der Karte.",
+      partySelectLabel: "Party auswählen",
+      partySelectPlaceholder: "Party auswählen, um Teilnehmende zu sehen",
+      mapTitle: "Live-Karte",
+      attendeesChip: "Teilnehmende",
+      toggleLabel: "EN",
+      detailsTitle: "Details öffnen",
+      detailsAria: "Partydetails öffnen",
+      userFallback: "Nutzer",
+    },
+    en: {
+      heroTitle: "Find your next party",
+      heroSubtitle: "Select an event and discover attendees directly on the map.",
+      partySelectLabel: "Select party",
+      partySelectPlaceholder: "Select a party to see attendees",
+      mapTitle: "Live Map",
+      attendeesChip: "Attendees",
+      toggleLabel: "DE",
+      detailsTitle: "Open details",
+      detailsAria: "Open party details",
+      userFallback: "User",
+    },
+  };
+
+  let currentLanguage = localStorage.getItem("partyhub.language") || "de";
+  if (!i18n[currentLanguage]) {
+    currentLanguage = "de";
+  }
+
+  function t(key) {
+    return i18n[currentLanguage][key] || i18n.de[key] || key;
+  }
+
+  function applyLanguage() {
+    const heroTitle = document.querySelector(".hero__title");
+    const heroSubtitle = document.querySelector(".hero__subtitle");
+    const selectLabel = document.querySelector(".control-card__label");
+    const mapTitle = document.querySelector(".section-title");
+    const attendeesChip = document.getElementById("attendeesChip");
+    const select = document.getElementById("partySelect");
+
+    if (heroTitle) heroTitle.textContent = t("heroTitle");
+    if (heroSubtitle) heroSubtitle.textContent = t("heroSubtitle");
+    if (selectLabel) selectLabel.textContent = t("partySelectLabel");
+    if (mapTitle) mapTitle.textContent = t("mapTitle");
+    if (attendeesChip) attendeesChip.textContent = t("attendeesChip");
+
+    if (select && select.options.length > 0 && select.options[0].value === "") {
+      select.options[0].textContent = t("partySelectPlaceholder");
+    }
+
+    if (languageToggleBtn) {
+      languageToggleBtn.textContent = t("toggleLabel");
+      languageToggleBtn.setAttribute(
+        "aria-label",
+        currentLanguage === "de" ? "Switch to English" : "Auf Deutsch umschalten"
+      );
+    }
+  }
+
+  if (languageToggleBtn) {
+    languageToggleBtn.addEventListener("click", () => {
+      currentLanguage = currentLanguage === "de" ? "en" : "de";
+      localStorage.setItem("partyhub.language", currentLanguage);
+      applyLanguage();
+      loadPartiesForDropdown();
+    });
+  }
+
+  applyLanguage();
 
   // Map initialisieren
   const map = L.map("map", {
@@ -49,7 +124,7 @@ document.addEventListener("DOMContentLoaded", async () => {
       const parties = await response.json();
       
       // Keep the first option
-      select.innerHTML = '<option value="">Select a party to see attendees</option>';
+      select.innerHTML = `<option value="">${t("partySelectPlaceholder")}</option>`;
       
       parties.forEach(party => {
         const option = document.createElement("option");
@@ -93,7 +168,10 @@ document.addEventListener("DOMContentLoaded", async () => {
             })
           });
           
-          const displayName = loc.user?.displayName || loc.user?.distinctName || `User #${loc.user?.id}`;
+          const displayName =
+            loc.user?.displayName ||
+            loc.user?.distinctName ||
+            `${t("userFallback")} #${loc.user?.id}`;
           marker.bindPopup(`<strong>${escapeHtml(displayName)}</strong>`).addTo(layer);
         }
       });
@@ -244,7 +322,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         <div style="font-weight:700;margin-bottom:6px;display:flex;align-items:center;justify-content:space-between">
           <div style="flex:1;margin-right:8px">${title}</div>
           <!-- Details / fullscreen icon -->
-          <a href="${detailsUrl}" title="Open details" style="text-decoration:none;color:inherit;display:inline-flex;align-items:center" aria-label="Open party details">
+          <a href="${detailsUrl}" title="${t("detailsTitle")}" style="text-decoration:none;color:inherit;display:inline-flex;align-items:center" aria-label="${t("detailsAria")}">
             <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
               <path d="M8 3H5a2 2 0 0 0-2 2v3"></path>
               <path d="M16 3h3a2 2 0 0 1 2 2v3"></path>

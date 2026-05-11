@@ -59,10 +59,10 @@ document.addEventListener("DOMContentLoaded", () => {
   const isEditMode = Boolean(editPartyId);
 
   const stepTitles = {
-    1: isEditMode ? "Party bearbeiten" : "Add new Party",
-    2: "Who can attend the party?",
-    3: "Other Infos",
-    4: "Map Preview",
+    1: isEditMode ? "Party bearbeiten" : "Neue Party erstellen",
+    2: "Wer kann an der Party teilnehmen?",
+    3: "Weitere Infos",
+    4: "Kartenvorschau",
   };
 
   init();
@@ -72,15 +72,17 @@ document.addEventListener("DOMContentLoaded", () => {
     setupStepButtons();
     setupVisibilityButtons();
     setupAddressSearch();
+    setupValidationListeners();
 
     if (isEditMode) {
-      continueBtn.textContent = "Continue";
+      continueBtn.textContent = "Weiter";
       await loadPartyForEdit(editPartyId);
     }
 
     await loadUsers();
 
     showStep(1);
+    updateContinueButtonState();
   }
 
   function setupFlatpickr() {
@@ -102,6 +104,8 @@ document.addEventListener("DOMContentLoaded", () => {
             fpEnd.set("minDate", selectedDates[0]);
           }
         }
+
+        updateContinueButtonState();
       },
     });
 
@@ -114,6 +118,8 @@ document.addEventListener("DOMContentLoaded", () => {
         if (selectedDates.length > 0) {
           state.time_end = selectedDates[0];
         }
+
+        updateContinueButtonState();
       },
     });
   }
@@ -157,6 +163,7 @@ document.addEventListener("DOMContentLoaded", () => {
         state.visibility = visibility;
 
         updateVisibilityUI();
+        updateContinueButtonState();
       });
     });
 
@@ -193,6 +200,7 @@ document.addEventListener("DOMContentLoaded", () => {
         state.latitude = null;
         state.longitude = null;
         clearAddressSuggestions();
+        updateContinueButtonState();
         return;
       }
 
@@ -201,6 +209,8 @@ document.addEventListener("DOMContentLoaded", () => {
       addressSearchTimeout = setTimeout(() => {
         searchAddress(value);
       }, 400);
+
+      updateContinueButtonState();
     });
 
     document.addEventListener("click", (event) => {
@@ -293,6 +303,7 @@ document.addEventListener("DOMContentLoaded", () => {
     });
 
     updateMapMarker();
+    updateContinueButtonState();
   }
 
   function clearAddressSuggestions() {
@@ -456,6 +467,21 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     console.log("Ausgewählte User:", selectedUsers);
+    updateContinueButtonState();
+  }
+
+  function setupValidationListeners() {
+    if (!form) {
+      return;
+    }
+
+    form.addEventListener("input", () => {
+      updateContinueButtonState();
+    });
+
+    form.addEventListener("change", () => {
+      updateContinueButtonState();
+    });
   }
 
   async function loadPartyForEdit(id) {
@@ -758,8 +784,10 @@ function parseBackendDate(value) {
       continueBtn.textContent = isEditMode ? "Änderungen speichern" : "Party erstellen";
       showMapPreview();
     } else {
-      continueBtn.textContent = "Continue";
+      continueBtn.textContent = "Weiter";
     }
+
+    updateContinueButtonState();
   }
 
   function validateStep(stepNumber) {
@@ -840,6 +868,63 @@ function parseBackendDate(value) {
     }
 
     return true;
+  }
+
+  function validateStepSilently(stepNumber) {
+    readFormIntoState();
+
+    if (stepNumber === 1) {
+      if (!state.title.trim()) {
+        return false;
+      }
+
+      if (!state.description.trim()) {
+        return false;
+      }
+
+      if (!state.time_start || !state.time_end) {
+        return false;
+      }
+
+      if (state.time_end <= state.time_start) {
+        return false;
+      }
+
+      if (!state.location_address.trim()) {
+        return false;
+      }
+
+      return true;
+    }
+
+    if (stepNumber === 3) {
+      const minAge = state.min_age;
+      const maxAge = state.max_age;
+
+      if (minAge !== null && minAge < 0) {
+        return false;
+      }
+
+      if (maxAge !== null && maxAge < 0) {
+        return false;
+      }
+
+      if (minAge !== null && maxAge !== null && maxAge < minAge) {
+        return false;
+      }
+    }
+
+    return true;
+  }
+
+  function updateContinueButtonState() {
+    if (!continueBtn) {
+      return;
+    }
+
+    const isValid = validateStepSilently(currentStep);
+    continueBtn.disabled = !isValid;
+    continueBtn.setAttribute("aria-disabled", String(!isValid));
   }
 
   function readFormIntoState() {
@@ -1016,7 +1101,7 @@ function parseBackendDate(value) {
       addPartyMarker = L.marker(latLng).addTo(addPartyMap);
     }
 
-    addPartyMarker.bindPopup(state.location_address || "Party Location").openPopup();
+    addPartyMarker.bindPopup(state.location_address || "Party-Standort").openPopup();
 
     setTimeout(() => {
       addPartyMap.invalidateSize();

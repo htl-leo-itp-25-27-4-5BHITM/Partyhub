@@ -10,10 +10,10 @@ document.addEventListener("DOMContentLoaded", function () {
     const titleElement = document.querySelector(".party-title");
 
     if (titleElement) {
-      titleElement.textContent = "Party Not Found";
+      titleElement.textContent = "Party nicht gefunden";
     }
 
-    console.error("No party ID provided");
+    console.error("Keine Party-ID angegeben");
   }
 
   setupInvitedSectionToggle();
@@ -132,7 +132,7 @@ async function loadPartyDetails(partyId) {
     });
 
     if (!response.ok) {
-      throw new Error(`Failed to fetch party details. Status: ${response.status}`);
+      throw new Error(`Partydetails konnten nicht geladen werden. Status: ${response.status}`);
     }
 
     const party = await response.json();
@@ -143,12 +143,12 @@ async function loadPartyDetails(partyId) {
 
     await checkAttendanceStatus(partyId);
   } catch (error) {
-    console.error("Error loading party details:", error);
+    console.error("Fehler beim Laden der Partydetails:", error);
 
     const titleElement = document.querySelector(".party-title");
 
     if (titleElement) {
-      titleElement.textContent = "Error loading party";
+      titleElement.textContent = "Fehler beim Laden der Party";
     }
   }
 }
@@ -157,7 +157,7 @@ async function checkAttendanceStatus(partyId) {
   const userId = getCurrentUserIdSafe();
 
   if (!userId) {
-    console.warn("No user logged in");
+    console.warn("Kein Benutzer angemeldet");
 
     const joinBtn = document.getElementById("joinPartyBtn");
 
@@ -168,7 +168,7 @@ async function checkAttendanceStatus(partyId) {
       const text = joinBtn.querySelector(".btn-text");
 
       if (text) {
-        text.textContent = "Join Party";
+        text.textContent = "Party beitreten";
       }
     }
 
@@ -186,7 +186,7 @@ async function checkAttendanceStatus(partyId) {
     );
 
     if (!response.ok) {
-      throw new Error(`Failed to check attendance status. Status: ${response.status}`);
+      throw new Error(`Teilnahmestatus konnte nicht geprueft werden. Status: ${response.status}`);
     }
 
     const status = await response.json();
@@ -208,7 +208,7 @@ async function checkAttendanceStatus(partyId) {
 
     updateJoinButton(Boolean(isAttending), attendeeCount);
   } catch (error) {
-    console.error("Error checking attendance status:", error);
+    console.error("Fehler beim Pruefen des Teilnahmestatus:", error);
 
     const joinBtn = document.getElementById("joinPartyBtn");
 
@@ -234,7 +234,7 @@ function updateJoinButton(isAttending, attendeeCount) {
     joinBtn.classList.add("joined");
 
     if (textElement) {
-      textElement.textContent = "Leave Party";
+      textElement.textContent = "Party verlassen";
     }
 
     if (iconSvg) {
@@ -245,7 +245,7 @@ function updateJoinButton(isAttending, attendeeCount) {
     joinBtn.classList.remove("joined");
 
     if (textElement) {
-      textElement.textContent = "Join Party";
+      textElement.textContent = "Party beitreten";
     }
 
     if (iconSvg) {
@@ -299,7 +299,7 @@ async function handleJoinParty(partyId) {
       alert("Teilnahme konnte nicht aktualisiert werden.");
     }
   } catch (error) {
-    console.error("Error updating party attendance:", error);
+    console.error("Fehler beim Aktualisieren der Teilnahme:", error);
     alert("Fehler beim Aktualisieren der Teilnahme.");
   } finally {
     joinBtn.disabled = false;
@@ -334,7 +334,7 @@ function updatePartyTitle(party) {
     lockIcon.remove();
   }
 
-  titleElement.textContent = party.title || party.name || "Loading...";
+  titleElement.textContent = party.title || party.name || "Wird geladen...";
 }
 
 async function updateMediaCount(party) {
@@ -360,7 +360,7 @@ async function updateMediaCount(party) {
       mediaCountElement.textContent = "0 Fotos";
     }
   } catch (error) {
-    console.error("Error fetching media count:", error);
+    console.error("Fehler beim Laden der Medienanzahl:", error);
     mediaCountElement.textContent = "0 Fotos";
   }
 }

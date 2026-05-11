@@ -7,7 +7,7 @@ document.addEventListener("DOMContentLoaded", function () {
   if (partyId) {
     loadGallery(partyId);
   } else {
-    showError('No party ID provided');
+    showError("Keine Party-ID angegeben");
   }
 
   // Set up back button
@@ -27,20 +27,20 @@ async function loadGallery(partyId) {
     // Load party details for the title
     const partyResponse = await fetch(`/api/parties/${partyId}`);
     if (!partyResponse.ok) {
-      throw new Error('Failed to fetch party details');
+      throw new Error("Partydetails konnten nicht geladen werden");
     }
     const party = await partyResponse.json();
 
     // Update party name
     const partyNameElement = document.getElementById('party-name');
     if (partyNameElement) {
-      partyNameElement.textContent = party.title || 'Party Gallery';
+      partyNameElement.textContent = party.title || "Party-Galerie";
     }
 
     // Load media for this party
     const mediaResponse = await fetch(`/api/parties/${partyId}/media`);
     if (!mediaResponse.ok) {
-      throw new Error('Failed to fetch media');
+      throw new Error("Medien konnten nicht geladen werden");
     }
 
     const mediaList = await mediaResponse.json();
@@ -48,15 +48,15 @@ async function loadGallery(partyId) {
     // Update photo count
     const photoCountElement = document.getElementById('photo-count');
     if (photoCountElement) {
-      photoCountElement.textContent = `${mediaList.length} photo${mediaList.length !== 1 ? 's' : ''}`;
+      photoCountElement.textContent = `${mediaList.length} Foto${mediaList.length !== 1 ? "s" : ""}`;
     }
 
     // Display the gallery
     displayGallery(mediaList);
 
   } catch (error) {
-    console.error('Error loading gallery:', error);
-    showError('Failed to load gallery');
+    console.error("Fehler beim Laden der Galerie:", error);
+    showError("Galerie konnte nicht geladen werden");
   }
 }
 
@@ -68,7 +68,7 @@ function displayGallery(mediaList) {
   galleryGrid.innerHTML = '';
 
   if (mediaList.length === 0) {
-    galleryGrid.innerHTML = '<div class="no-images">No photos available for this party yet.</div>';
+    galleryGrid.innerHTML = '<div class="no-images">Fuer diese Party sind noch keine Fotos vorhanden.</div>';
     return;
   }
 
@@ -81,13 +81,13 @@ function displayGallery(mediaList) {
 
     const img = document.createElement('img');
     img.src = `/api/media/${media.id}`;
-    img.alt = `Party photo ${index + 1}`;
+    img.alt = `Partyfoto ${index + 1}`;
     img.loading = 'lazy';
 
     // Add error handling for broken images
     img.onerror = function() {
       this.style.display = 'none';
-      galleryItem.innerHTML = '<div style="width: 100%; height: 100%; background: var(--bg-secondary); display: flex; align-items: center; justify-content: center; color: rgba(255,255,255,0.5);">Image unavailable</div>';
+      galleryItem.innerHTML = '<div style="width: 100%; height: 100%; background: var(--bg-secondary); display: flex; align-items: center; justify-content: center; color: rgba(255,255,255,0.5);">Bild nicht verfuegbar</div>';
     };
 
     galleryItem.appendChild(img);
@@ -101,10 +101,10 @@ function setupModal() {
   modal.className = 'image-modal';
   modal.innerHTML = `
     <div class="modal-content">
-      <button class="modal-close" aria-label="Close">&times;</button>
-      <button class="modal-nav modal-prev" aria-label="Previous image">&larr;</button>
+      <button class="modal-close" aria-label="Schliessen">&times;</button>
+      <button class="modal-nav modal-prev" aria-label="Vorheriges Bild">&larr;</button>
       <img class="modal-image" src="" alt="">
-      <button class="modal-nav modal-next" aria-label="Next image">&rarr;</button>
+      <button class="modal-nav modal-next" aria-label="Naechstes Bild">&rarr;</button>
     </div>
   `;
   document.body.appendChild(modal);
@@ -158,7 +158,7 @@ function openModal(mediaList, index) {
   const nextBtn = modal.querySelector('.modal-next');
 
   modalImage.src = `/api/media/${mediaList[index].id}`;
-  modalImage.alt = `Party photo ${index + 1}`;
+  modalImage.alt = `Partyfoto ${index + 1}`;
 
   // Show/hide navigation buttons
   prevBtn.style.display = mediaList.length > 1 ? 'block' : 'none';
@@ -187,7 +187,7 @@ function navigateModal(direction) {
   const modalImage = modal.querySelector('.modal-image');
 
   modalImage.src = `/api/media/${currentMediaList[currentIndex].id}`;
-  modalImage.alt = `Party photo ${currentIndex + 1}`;
+  modalImage.alt = `Partyfoto ${currentIndex + 1}`;
 }
 
 function showError(message) {
@@ -198,11 +198,11 @@ function showError(message) {
 
   const partyNameElement = document.getElementById('party-name');
   if (partyNameElement) {
-    partyNameElement.textContent = 'Error';
+    partyNameElement.textContent = "Fehler";
   }
 
   const photoCountElement = document.getElementById('photo-count');
   if (photoCountElement) {
-    photoCountElement.textContent = '0 photos';
+    photoCountElement.textContent = "0 Fotos";
   }
 }

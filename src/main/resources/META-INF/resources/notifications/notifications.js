@@ -286,7 +286,7 @@ document.addEventListener("DOMContentLoaded", async () => {
       const message =
         rid != null && String(rid) === String(currentUserId)
           ? `${getUsername(sender, sid)} hat dich zu "${partyTitle ?? "einem Event"}" eingeladen`
-          : `${getUsername(sender, sid)} sent ${getUsername(null, rid)} an invitation${partyTitle ? ` to ${partyTitle}` : ""}`;
+          : `${getUsername(sender, sid)} hat ${getUsername(null, rid)} zu "${partyTitle ?? "einem Event"}" eingeladen`;
 
       data.push({
         id: `invite-${inv.id ?? inv.invitationId ?? `${sid}-${rid}-${partyId ?? "x"}`}`,

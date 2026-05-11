@@ -44,7 +44,7 @@
           <label for="partySelect" class="control-card__label">Party auswählen</label>
           <div class="select-wrap">
             <select id="partySelect" class="party-select">
-              <option value="">Select a party to see attendees</option>
+              <option value="">Party auswählen, um Teilnehmende zu sehen</option>
             </select>
           </div>
         </section>
@@ -52,7 +52,12 @@
         <section class="map-section">
           <div class="section-heading">
             <h2 class="section-title">Live-Karte</h2>
-            <span class="section-chip">Attendees</span>
+            <div class="section-heading-right">
+              <span class="section-chip" id="attendeesChip">Teilnehmende</span>
+              <button id="languageToggleBtn" class="lang-toggle-btn" type="button" aria-label="Sprache umschalten">
+                EN
+              </button>
+            </div>
           </div>
 
           <div class="map-card">
@@ -61,8 +66,8 @@
         </section>
       </main>
 
-      <nav class="bottom-nav" role="navigation" aria-label="Bottom navigation">
-        <a class="nav-btn active" href="/index.html" aria-label="Home" aria-current="page">
+      <nav class="bottom-nav" role="navigation" aria-label="Untere Navigation">
+        <a class="nav-btn active" href="/index.html" aria-label="Startseite" aria-current="page">
           <svg class="nav-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
             <path
               d="M3 6.5L8 4l7 2.5 6-2.5v11l-6 2.5L10 15 3 17.5v-11z"
@@ -72,7 +77,7 @@
               stroke-linecap="round"
             />
           </svg>
-          <span class="nav-label">Home</span>
+          <span class="nav-label">Startseite</span>
         </a>
 
         <a class="nav-btn" href="/listPartys/listPartys.html" aria-label="Partys">
@@ -90,7 +95,7 @@
           <span class="nav-label">Partys</span>
         </a>
 
-        <a class="nav-btn" href="/notifications/notifications.html" aria-label="Inbox">
+        <a class="nav-btn" href="/notifications/notifications.html" aria-label="Benachrichtigungen">
           <svg class="nav-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
             <path d="M12 22a2.5 2.5 0 0 0 2.45-2H9.55A2.5 2.5 0 0 0 12 22z" fill="currentColor" />
             <path
@@ -101,7 +106,7 @@
               stroke-linejoin="round"
             />
           </svg>
-          <span class="nav-label">Inbox</span>
+          <span class="nav-label">Benachrichtigungen</span>
         </a>
 
         <a class="nav-btn" href="/profile/profile.html" aria-label="Profil">

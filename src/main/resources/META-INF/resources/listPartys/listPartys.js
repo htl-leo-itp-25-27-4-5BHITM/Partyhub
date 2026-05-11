@@ -27,13 +27,13 @@ async function loadAllParties() {
             headers: currentUserId ? { 'X-User-Id': String(currentUserId) } : {}
         });
         if (!response.ok) {
-            throw new Error('Failed to fetch parties');
+            throw new Error('Partys konnten nicht geladen werden');
         }
 
         const parties = await response.json();
 
         if (parties.length === 0) {
-            container.innerHTML = '<div class="loading">No parties found.</div>';
+            container.innerHTML = '<div class="loading">Keine Partys gefunden.</div>';
             return;
         }
 
@@ -46,7 +46,7 @@ async function loadAllParties() {
 
     } catch (error) {
         console.error('Error loading parties:', error);
-        container.innerHTML = '<div class="loading">Error loading parties. Please try again.</div>';
+        container.innerHTML = '<div class="loading">Fehler beim Laden der Partys. Bitte versuche es erneut.</div>';
     }
 }
 
@@ -60,12 +60,12 @@ function createPartyCard(party) {
     const partyDate = new Date(party.time_start);
     const formattedDate = formatPartyDateList(partyDate);
 
-    const location = 'Location TBA';
+    const location = 'Ort wird noch bekanntgegeben';
 
     card.innerHTML = `
         <header class="party-header-list">
             <h3 class="party-name-list">${party.title}</h3>
-            <span class="party-category">${party.category_id || 'General'}</span>
+            <span class="party-category">${party.category_id || 'Allgemein'}</span>
         </header>
 
         <div class="party-meta">
@@ -89,7 +89,7 @@ function createPartyCard(party) {
         </div>
 
         <div class="party-attendees">
-            <strong>${party.max_people || 'Unlimited'}</strong> max attendees
+            <strong>${party.max_people || 'Unbegrenzt'}</strong> max. Teilnehmer
         </div>
     `;
 
@@ -105,12 +105,12 @@ function formatPartyDateList(date) {
     const partyDate = new Date(date.getFullYear(), date.getMonth(), date.getDate());
 
     if (isSameDay(partyDate, today)) {
-        return 'Today';
+        return 'Heute';
     } else if (isSameDay(partyDate, tomorrow)) {
-        return 'Tomorrow';
+        return 'Morgen';
     } else {
         // Show abbreviated day name and date
-        const dayName = date.toLocaleDateString('en-US', { weekday: 'short' });
+        const dayName = date.toLocaleDateString('de-DE', { weekday: 'short' });
         const dateStr = date.toLocaleDateString('de-DE', {
             day: '2-digit',
             month: '2-digit',
