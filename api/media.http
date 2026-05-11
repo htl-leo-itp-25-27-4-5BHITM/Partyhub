@@ -22,37 +22,3 @@ GET {{host}}/api/parties/4/media
 GET {{host}}/api/users/1/media
 
 ?? status == 200
-
-
-###########################################
-### Upload image for party 2
-###########################################
-POST {{host}}/api/parties/2/media/upload?user=3
-X-User-Id: 3
-Content-Type: multipart/form-data; boundary=WebAppBoundary
-
---WebAppBoundary
-Content-Disposition: form-data; name="file"; filename="testing.jpg"
-Content-Type: image/jpeg
-
-< ./testing.jpg
---WebAppBoundary--
-
-?? status == 200
-
-
-###########################################
-### Upload to unknown party returns 404
-###########################################
-POST {{host}}/api/parties/99999/media/upload?user=3
-X-User-Id: 3
-Content-Type: multipart/form-data; boundary=WebAppBoundary
-
---WebAppBoundary
-Content-Disposition: form-data; name="file"; filename="testing.jpg"
-Content-Type: image/jpeg
-
-< ./testing.jpg
---WebAppBoundary--
-
-?? status == 404

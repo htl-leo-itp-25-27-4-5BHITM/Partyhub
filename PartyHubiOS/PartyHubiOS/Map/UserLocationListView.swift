@@ -15,6 +15,10 @@ struct UserLocation: Codable, Identifiable {
         let distinctName: String?
     }
 
+    var coordinate: CLLocationCoordinate2D {
+        CLLocationCoordinate2D(latitude: latitude, longitude: longitude)
+    }
+
     func isInsideParty(_ party: Party) -> Bool {
         let userCoord = CLLocation(latitude: latitude, longitude: longitude)
         let partyCoord = CLLocation(latitude: party.latitude, longitude: party.longitude)
@@ -227,6 +231,32 @@ struct UserLocationListView: View {
     }
 }
 
+private struct AttendeeMapItem: Identifiable, Clusterable {
+    let id: UUID
+    let coordinate: CLLocationCoordinate2D
+    let isSelf: Bool
+    let userId: Int64?
+    let isAtParty: Bool
+    let displayName: String?
+    let sourceUserLocation: UserLocation?
+
+    init(id: UUID = UUID(),
+         coordinate: CLLocationCoordinate2D,
+         isSelf: Bool,
+         userId: Int64?,
+         isAtParty: Bool,
+         displayName: String?,
+         sourceUserLocation: UserLocation? = nil) {
+        self.id = id
+        self.coordinate = coordinate
+        self.isSelf = isSelf
+        self.userId = userId
+        self.isAtParty = isAtParty
+        self.displayName = displayName
+        self.sourceUserLocation = sourceUserLocation
+    }
+}
+
 struct PartyAttendeeMapView: View {
     let party: Party
     let locationManager: LocationManager
@@ -235,77 +265,174 @@ struct PartyAttendeeMapView: View {
     @State private var position: MapCameraPosition
     @State private var hasAppliedInitialRegion = false
     @State private var shouldPreserveUserCamera = false
+    @State private var currentRegion: MKCoordinateRegion
+    @State private var mapViewSize: CGSize = .zero
+    @State private var attendeeClusters: [Cluster<AttendeeMapItem>] = []
+
+    private let clusteringEngine = MapClusteringEngine()
+
+    private var currentUserId: Int64? {
+        let storedId = UserDefaults.standard.integer(forKey: "partyhub_user_id")
+        return storedId > 0 ? Int64(storedId) : nil
+    }
 
     init(party: Party, locationManager: LocationManager) {
         self.party = party
         self.locationManager = locationManager
-        _position = State(
-            initialValue: .region(
-                MKCoordinateRegion(
-                    center: party.coordinate,
-                    latitudinalMeters: max(party.radiusMeters * 6, 600),
-                    longitudinalMeters: max(party.radiusMeters * 6, 600)
-                )
+        let initialRegion = MKCoordinateRegion(
+            center: party.coordinate,
+            latitudinalMeters: max(party.radiusMeters * 6, 600),
+            longitudinalMeters: max(party.radiusMeters * 6, 600)
+        )
+        _position = State(initialValue: .region(initialRegion))
+        _currentRegion = State(initialValue: initialRegion)
+    }
+
+    private func buildAttendeeItems() -> [AttendeeMapItem] {
+        var items: [AttendeeMapItem] = []
+        let excludeUserId = currentUserId
+
+        for userLocation in viewModel.locations {
+            if let userId = userLocation.user?.id, let excludeUserId = excludeUserId, userId == excludeUserId {
+                continue
+            }
+            let item = AttendeeMapItem(
+                coordinate: userLocation.coordinate,
+                isSelf: false,
+                userId: userLocation.user?.id,
+                isAtParty: userLocation.isInsideParty(party),
+                displayName: userLocation.user?.displayName ?? userLocation.user?.distinctName,
+                sourceUserLocation: userLocation
             )
+            items.append(item)
+        }
+
+        if let selfCoord = locationManager.currentLocation {
+            let selfItem = AttendeeMapItem(
+                coordinate: selfCoord,
+                isSelf: true,
+                userId: currentUserId,
+                isAtParty: locationManager.isAtParty,
+                displayName: "Du"
+            )
+            items.append(selfItem)
+        }
+
+        return items
+    }
+
+    private func recomputeAttendeeClusters() {
+        guard mapViewSize.width > 0, mapViewSize.height > 0 else { return }
+
+        let items = buildAttendeeItems()
+        attendeeClusters = clusteringEngine.computeClusters(
+            items: items,
+            for: currentRegion,
+            in: mapViewSize
         )
     }
 
+    private func zoomToFit<T: Clusterable>(cluster: Cluster<T>) {
+        let coordinates = cluster.items.map { $0.coordinate }
+        if let fitRegion = MKCoordinateRegion.fitting(coordinates: coordinates) {
+            withAnimation {
+                position = .region(fitRegion)
+            }
+        }
+    }
+
     var body: some View {
+        GeometryReader { geo in
+            mapContent
+                .ignoresSafeArea()
+                .navigationTitle("Teilnehmer-Karte")
+                .navigationBarTitleDisplayMode(.inline)
+                .onAppear {
+                    mapViewSize = geo.size
+                    locationManager.requestPermission()
+                    viewModel.coordinateProvider = { locationManager.currentLocation }
+                    viewModel.startPolling(partyId: Int64(party.backendId))
+                    if let userId = UserDefaults.standard.object(forKey: "currentUserId") as? Int64 {
+                        viewModel.startUploading(userId: userId)
+                    }
+                    updateVisibleRegion(force: true)
+                }
+                .onChange(of: geo.size) { _, newSize in
+                    mapViewSize = newSize
+                }
+                .onMapCameraChange(frequency: .onEnd) { context in
+                    currentRegion = context.region
+                    if hasAppliedInitialRegion {
+                        shouldPreserveUserCamera = true
+                    }
+                }
+                .onChange(of: currentRegion) { _, _ in
+                    recomputeAttendeeClusters()
+                }
+                .onChange(of: locationManager.currentLocation) { _, _ in
+                    viewModel.coordinateProvider = { locationManager.currentLocation }
+                    if let userId = UserDefaults.standard.object(forKey: "currentUserId") as? Int64 {
+                        viewModel.uploadUserLocation(userId: userId)
+                    }
+                    updateVisibleRegion()
+                    recomputeAttendeeClusters()
+                }
+                .onChange(of: viewModel.locations.count) { _, _ in
+                    updateVisibleRegion()
+                    recomputeAttendeeClusters()
+                }
+                .onDisappear {
+                    viewModel.stopPolling()
+                    viewModel.stopUploading()
+                }
+                .overlay(alignment: .top) {
+                    statusOverlay
+                }
+        }
+    }
+    
+    private var mapContent: some View {
         Map(position: $position) {
-            if let coord = locationManager.currentLocation {
-                let currentUserId = UserDefaults.standard.integer(forKey: "partyhub_user_id")
-                Annotation("Du", coordinate: coord) {
-                    AttendeePin(isAtParty: locationManager.isAtParty, isSelf: true, userId: currentUserId > 0 ? currentUserId : nil)
-                }
-            }
-
-            Annotation(party.name, coordinate: party.coordinate) {
-                PartyPin(isActive: party.isActive)
-            }
-
-            ForEach(viewModel.locations) { user in
-                let coord = CLLocationCoordinate2D(
-                    latitude: user.latitude,
-                    longitude: user.longitude
-                )
-
-                Annotation(user.user?.displayName ?? user.user?.distinctName ?? "User", coordinate: coord) {
-                    AttendeePin(isAtParty: user.isInsideParty(party), isSelf: false, userId: Int(user.user?.id ?? 0))
-                }
+            partyAnnotation
+            attendeeClusterAnnotations
+        }
+    }
+    
+    private var partyAnnotation: some MapContent {
+        Annotation(party.name, coordinate: party.coordinate) {
+            PartyPin(isActive: party.isActive)
+        }
+    }
+    
+    private var attendeeClusterAnnotations: some MapContent {
+        ForEach(attendeeClusters, id: \.id) { cluster in
+            if cluster.items.count == 1, let item = cluster.items.first {
+                singleAttendeeAnnotation(for: item, at: cluster.coordinate)
+            } else {
+                attendeeClusterAnnotation(for: cluster)
             }
         }
-        .ignoresSafeArea()
-        .navigationTitle("Teilnehmer-Karte")
-        .navigationBarTitleDisplayMode(.inline)
-        .onMapCameraChange(frequency: .onEnd) { _ in
-            if hasAppliedInitialRegion {
-                shouldPreserveUserCamera = true
-            }
+    }
+    
+    private func singleAttendeeAnnotation(for item: AttendeeMapItem, at coordinate: CLLocationCoordinate2D) -> some MapContent {
+        Annotation(item.displayName ?? "User", coordinate: coordinate) {
+            AttendeePin(
+                isAtParty: item.isAtParty,
+                isSelf: item.isSelf,
+                userId: item.userId != nil ? Int(item.userId!) : nil
+            )
         }
-        .onAppear {
-            locationManager.requestPermission()
-            viewModel.coordinateProvider = { locationManager.currentLocation }
-            viewModel.startPolling(partyId: Int64(party.backendId))
-            if let userId = UserDefaults.standard.object(forKey: "currentUserId") as? Int64 {
-                viewModel.startUploading(userId: userId)
-            }
-            updateVisibleRegion(force: true)
+    }
+    
+    private func attendeeClusterAnnotation(for cluster: Cluster<AttendeeMapItem>) -> some MapContent {
+        Annotation("\(cluster.items.count) Teilnehmer", coordinate: cluster.coordinate) {
+            AttendeeClusterPin(count: cluster.items.count)
+                .onTapGesture { zoomToFit(cluster: cluster) }
         }
-        .onChange(of: locationManager.currentLocation) { _, _ in
-            viewModel.coordinateProvider = { locationManager.currentLocation }
-            if let userId = UserDefaults.standard.object(forKey: "currentUserId") as? Int64 {
-                viewModel.uploadUserLocation(userId: userId)
-            }
-            updateVisibleRegion()
-        }
-        .onChange(of: viewModel.locations.count) { _, _ in
-            updateVisibleRegion()
-        }
-        .onDisappear {
-            viewModel.stopPolling()
-            viewModel.stopUploading()
-        }
-        .overlay(alignment: .top) {
+    }
+    
+    private var statusOverlay: some View {
+        Group {
             if let errorMessage = viewModel.errorMessage {
                 Text("Fehler beim Laden: \(errorMessage)")
                     .font(.footnote)
@@ -319,7 +446,7 @@ struct PartyAttendeeMapView: View {
                     .padding(.vertical, 8)
                     .background(.ultraThinMaterial, in: Capsule())
                     .padding(.top, 12)
-            } else if viewModel.locations.isEmpty {
+            } else if viewModel.locations.isEmpty && locationManager.currentLocation == nil {
                 Text("Noch keine Teilnehmer-Standorte vorhanden.")
                     .font(.footnote)
                     .padding(.horizontal, 12)

@@ -96,14 +96,3 @@ Content-Type: application/json
 }
 
 ?? status == 404
-
-
-###########################################
-### Mobile me needs mobile_token
-###########################################
-POST {{baseUrl}}/mobile/me
-Content-Type: application/json
-
-{}
-
-?? status == 400

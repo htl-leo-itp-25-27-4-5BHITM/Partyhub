@@ -32,20 +32,54 @@ struct AttendeePin: View {
 import SwiftUI
 struct PartyPin: View {
     let isActive: Bool
-
+    let isHostedByFriend: Bool
+    let isInvited: Bool
+    
+    private var mainFillColor: Color {
+        if isHostedByFriend {
+            return Color("primary pink")
+        }
+        return isActive ? .green : .blue
+    }
+    
+    private var invitedRingColor: Color {
+        Color("primary yellow")
+    }
+    
     var body: some View {
         ZStack {
+            if isInvited {
+                Circle()
+                    .fill(invitedRingColor.opacity(0.15))
+                    .frame(width: 56, height: 56)
+                    .overlay(
+                        Circle()
+                            .stroke(invitedRingColor, lineWidth: 3)
+                            .frame(width: 54, height: 54)
+                    )
+            } else {
+                Circle()
+                    .fill(mainFillColor.opacity(0.2))
+                    .frame(width: 52, height: 52)
+            }
+            
             Circle()
-                .fill(isActive ? Color.green.opacity(0.2) : Color.blue.opacity(0.2))
-                .frame(width: 52, height: 52)
-            Circle()
-                .fill(isActive ? Color.green : Color.blue)
+                .fill(mainFillColor)
                 .frame(width: 42, height: 42)
-                .shadow(color: (isActive ? Color.green : Color.blue).opacity(0.5), radius: 8)
+                .shadow(color: mainFillColor.opacity(0.5), radius: 8)
+            
             Image(systemName: "party.popper.fill")
                 .resizable()
                 .foregroundStyle(.white)
                 .frame(width: 22, height: 22)
         }
+    }
+}
+
+extension PartyPin {
+    init(isActive: Bool) {
+        self.isActive = isActive
+        self.isHostedByFriend = false
+        self.isInvited = false
     }
 }

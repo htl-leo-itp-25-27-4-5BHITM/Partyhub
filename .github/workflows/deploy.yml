@@ -29,7 +29,8 @@ jobs:
       - name: Deploy to Kubernetes
         run: |
           echo "Applying Kubernetes manifests"
-          kubectl delete -f k8s/quarkus.yaml
+          kubectl delete deployment quarkus --ignore-not-found=true
+          kubectl delete service quarkus --ignore-not-found=true
           kubectl apply -f k8s/quarkus.yaml
           echo "Deployment successful."
 

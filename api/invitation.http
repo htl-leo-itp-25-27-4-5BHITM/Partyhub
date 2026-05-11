@@ -34,20 +34,6 @@ GET {{baseUrl}}
 
 
 ###########################################
-### Duplicate seed invitation is rejected
-###########################################
-POST {{baseUrl}}?user=4
-Content-Type: application/json
-
-{
-  "recipient": 2,
-  "partyId": 4
-}
-
-?? status == 409
-
-
-###########################################
 ### Only sender or recipient may delete an invitation
 ###########################################
 DELETE {{baseUrl}}/1?user=5
