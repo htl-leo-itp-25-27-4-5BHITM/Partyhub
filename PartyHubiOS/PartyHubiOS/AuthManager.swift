@@ -9,12 +9,15 @@ class AuthManager: ObservableObject {
     @Published var userId: Int? = nil
 
     private let userIdKey = "partyhub_user_id"
+    private let mobileTokenKey = "partyhub_mobile_token"
 
     private init() {
-        self.userId = UserDefaults.standard.integer(forKey: userIdKey)
-        if self.userId == 0 {
-            self.userId = nil
+        let storedId = UserDefaults.standard.integer(forKey: userIdKey)
+        if storedId > 0 {
+            self.userId = storedId
         }
+        
+        self.mobileToken = UserDefaults.standard.string(forKey: mobileTokenKey)
     }
 
     func loginWithUserId(_ id: Int) async throws {
@@ -30,22 +33,24 @@ class AuthManager: ObservableObject {
 
         userId = id
         UserDefaults.standard.set(id, forKey: userIdKey)
-        mobileToken = "user_\(id)"
+        
+        let fallbackToken = "user_\(id)"
+        mobileToken = fallbackToken
+        UserDefaults.standard.set(fallbackToken, forKey: mobileTokenKey)
     }
 
     func saveToken(_ token: String) {
         mobileToken = token
-        UserDefaults.standard.set(token, forKey: "partyhub_mobile_token")
+        UserDefaults.standard.set(token, forKey: mobileTokenKey)
     }
 
     func clear() {
         mobileToken = nil
         userId = nil
         UserDefaults.standard.removeObject(forKey: userIdKey)
-        UserDefaults.standard.removeObject(forKey: "partyhub_mobile_token")
+        UserDefaults.standard.removeObject(forKey: mobileTokenKey)
     }
 
-    // Exchange QR token for mobile_token via backend
     func exchangeQrToken(_ token: String) async throws -> String {
         guard let url = URL(string: "\(Config.backendURL)/api/qr/exchange") else {
             throw URLError(.badURL)
@@ -71,7 +76,6 @@ class AuthManager: ObservableObject {
         throw NSError(domain: "Auth", code: 2, userInfo: [NSLocalizedDescriptionKey: "mobile_token missing"])
     }
 
-    // Verify mobile token by calling /api/qr/mobile/me to get userId
     func fetchMobileMe() async throws -> Int {
         guard let token = mobileToken else { throw URLError(.userAuthenticationRequired) }
         guard let url = URL(string: "\(Config.backendURL)/api/qr/mobile/me") else { throw URLError(.badURL) }
@@ -89,6 +93,7 @@ class AuthManager: ObservableObject {
 
         if let dict = try JSONSerialization.jsonObject(with: data) as? [String: Any], let uidStr = dict["userId"] as? String, let uid = Int(uidStr) {
             userId = uid
+            UserDefaults.standard.set(uid, forKey: userIdKey)
             return uid
         }
         throw NSError(domain: "Auth", code: 4, userInfo: [NSLocalizedDescriptionKey: "userId missing"])

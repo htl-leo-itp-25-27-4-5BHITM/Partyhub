@@ -6,10 +6,6 @@ enum Config {
             return override
         }
 
-        #if DEBUG
-        return "http://localhost:8080"
-        #else
         return "https://it220274.cloud.htl-leonding.ac.at"
-        #endif
     }()
 }

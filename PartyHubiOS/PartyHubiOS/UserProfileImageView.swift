@@ -1,9 +1,5 @@
 import SwiftUI
 
-/// Wiederverwendbare View für die Anzeige von Benutzer-Profilbildern
-/// - Lädt das Bild vom Backend oder zeigt ein Default-Bild
-/// - Cached Bilder für bessere Performance
-/// - Zeigt einen Loading-State während das Bild geladen wird
 struct UserProfileImageView: View {
     let userId: Int
     let size: CGFloat
@@ -21,11 +17,9 @@ struct UserProfileImageView: View {
     
     var body: some View {
         ZStack {
-            // Background Kreis
             Circle()
                 .fill(Color.gray.opacity(0.2))
             
-            // Profilbild oder Default-Icon
             if let image = profileImage {
                 Image(uiImage: image)
                     .resizable()
@@ -50,14 +44,15 @@ struct UserProfileImageView: View {
                     lineWidth: showBorder ? 2 : 0
                 )
         )
-        .task(id: userId) {
-            guard profileImage == nil, !isLoading else { return }
+        .task {
             await loadProfilePicture()
         }
     }
     
     private func loadProfilePicture() async {
+        if isLoading { return }
         isLoading = true
+        profileImage = nil
         defer { isLoading = false }
         
         print("🖼️ Lade Profilbild für User \(userId)...")
@@ -69,13 +64,10 @@ struct UserProfileImageView: View {
                 self.profileImage = image
             }
         } catch is CancellationError {
-            // SwiftUI cancelt .task häufig bei Re-Renders; kein echter Fehler.
             return
         } catch let error as NSError where error.domain == NSURLErrorDomain && error.code == NSURLErrorCancelled {
-            // URLSession-Abbruch bei View-Neuzeichnung ist erwartbar.
             return
         } catch let error as NSError where error.domain == "NotFound" && error.code == 404 {
-            // User hat kein eigenes Profilbild -> Default-Icon anzeigen, kein Fehlerlog nötig.
             return
         } catch {
             print("❌ Fehler beim Laden von Profilbild für User \(userId):")
