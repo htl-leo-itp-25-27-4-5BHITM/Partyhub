@@ -122,7 +122,7 @@ public class PartyRepository {
         if (party == null) {
             return Response.status(Response.Status.NOT_FOUND).build();
         }
-        notifyPartyDeleted(party);
+        notifyCancellationRecipients(party);
         List<Notification> notifications = entityManager.createQuery(
                         "SELECT n FROM Notification n WHERE n.party.id = :partyId",
                         Notification.class)
@@ -219,6 +219,7 @@ public class PartyRepository {
                 invitation.setStatus(INVITATION_PENDING);
                 entityManager.merge(invitation);
                 sendInvitationNotification(recipient, host, party);
+                notifiedRecipientIds.add(recipient.getId());
                 continue;
             }
 
@@ -233,10 +234,7 @@ public class PartyRepository {
                 party.getInvitations().add(invitation);
             }
 
-            String hostName = host.getDisplayName() != null ? host.getDisplayName() : host.getUsername();
-            String message = hostName + " invited you to the party \"" + party.getTitle() + "\"";
-            Notification notification = new Notification(recipient, host, party, message);
-            notificationRepository.createNotification(notification);
+            sendInvitationNotification(recipient, host, party);
             notifiedRecipientIds.add(recipient.getId());
         }
 
@@ -284,6 +282,11 @@ public class PartyRepository {
     }
 
     private void sendInvitationNotification(User recipient, User host, Party party) {
+        notificationRepository.deleteInvitationNotifications(
+                party.getId(),
+                host.getId(),
+                recipient.getId()
+        );
         String hostName = displayName(host);
         String message = hostName + " invited you to the party \"" + party.getTitle() + "\"";
         Notification notification = new Notification(recipient, host, party, message);
@@ -578,6 +581,10 @@ public class PartyRepository {
             if (invitation.isPresent()) {
                 invitation.get().setStatus(INVITATION_ACCEPTED);
                 entityManager.merge(invitation.get());
+                Long senderId = invitation.get().getSender() != null
+                        ? invitation.get().getSender().getId()
+                        : null;
+                notificationRepository.deleteInvitationNotifications(party.getId(), senderId, user.getId());
                 notifyHost(party, user, displayName(user) + " accepted your invitation to the party \"" + party.getTitle() + "\".");
             }
         }
@@ -745,7 +752,7 @@ public class PartyRepository {
 
     private String displayName(User user) {
         if (user == null) {
-            return "Jemand";
+            return "Someone";
         }
         if (user.getDisplayName() != null && !user.getDisplayName().isBlank()) {
             return user.getDisplayName();
@@ -756,6 +763,6 @@ public class PartyRepository {
         if (user.getDistinctName() != null && !user.getDistinctName().isBlank()) {
             return user.getDistinctName();
         }
-        return "Jemand";
+        return "Someone";
     }
 }

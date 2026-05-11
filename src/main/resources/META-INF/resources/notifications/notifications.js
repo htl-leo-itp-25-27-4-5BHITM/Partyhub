@@ -38,6 +38,31 @@ document.addEventListener("DOMContentLoaded", async () => {
     return `${senderId}-${recipientId}-${partyId}`;
   }
 
+  function readNotificationId(notification) {
+    return notification?.id ?? notification?.notificationId ?? notification?.notification_id ?? null;
+  }
+
+  function invitationStatus(invitation) {
+    return String(invitation?.status ?? "PENDING").toUpperCase();
+  }
+
+  function isPendingInvitation(invitation) {
+    return invitationStatus(invitation) === "PENDING";
+  }
+
+  function isInvitationNotification(notification) {
+    const rawMessage = notification?.message ?? notification?.text ?? "";
+    const message = normalizeLegacyNotificationMessage(String(rawMessage)).toLowerCase();
+    const rawLower = String(rawMessage).toLowerCase();
+
+    return (
+      message.includes("invited you to the party") ||
+      message.includes("invited you to") ||
+      rawLower.includes("invited") ||
+      rawLower.includes("eingeladen")
+    );
+  }
+
   function formatNotificationTime(value) {
     if (!value) return "just now";
 
@@ -261,15 +286,71 @@ document.addEventListener("DOMContentLoaded", async () => {
     const userId = window.getCurrentUserId();
     if (!userId || !notificationId) return null;
 
-    return fetchWithFallback([
-      {
-        url: `/api/notifications/${encodeURIComponent(notificationId)}?user=${encodeURIComponent(userId)}`,
-        options: {
-          method: "DELETE",
-          headers: { "X-User-Id": String(userId) }
-        }
+    const url = `/api/notifications/${encodeURIComponent(notificationId)}?user=${encodeURIComponent(userId)}`;
+    const response = await fetch(url, {
+      method: "DELETE",
+      headers: { "X-User-Id": String(userId) }
+    });
+
+    if (response.ok || response.status === 404) {
+      return response;
+    }
+
+    throw new Error(`${url} -> ${response.status}`);
+  }
+
+  function isNotFoundError(error) {
+    return /404|not found/i.test(String(error?.message ?? error ?? ""));
+  }
+
+  async function deleteInvitationRecord(invitationId) {
+    const deleteFn = window.deleteInvite || window.backend?.deleteInvite;
+
+    if (!deleteFn || !invitationId) {
+      return false;
+    }
+
+    try {
+      await deleteFn(invitationId);
+      return true;
+    } catch (error) {
+      if (isNotFoundError(error)) {
+        return true;
       }
-    ]);
+      throw error;
+    }
+  }
+
+  async function deleteInviteNotifications(item) {
+    const notificationIds = [
+      ...(Array.isArray(item.notificationIds) ? item.notificationIds : []),
+      item.notificationId
+    ].filter(id => id != null);
+
+    const uniqueIds = [...new Set(notificationIds.map(id => String(id)))];
+
+    if (!uniqueIds.length) {
+      return false;
+    }
+
+    const results = await Promise.allSettled(
+      uniqueIds.map(id => deleteBackendNotification(id))
+    );
+    const failed = results.find(result => result.status === "rejected");
+
+    if (failed && results.every(result => result.status === "rejected")) {
+      throw failed.reason;
+    }
+
+    return true;
+  }
+
+  async function declineInvite(item) {
+    if (item.invitationId) {
+      return deleteInvitationRecord(item.invitationId);
+    }
+
+    return deleteInviteNotifications(item);
   }
 
   function showToast(message, type = "success") {
@@ -307,19 +388,22 @@ document.addEventListener("DOMContentLoaded", async () => {
       );
     } catch {}
 
-    let filteredInvites = invitations;
+    let relevantInvites = invitations;
 
     if (currentUserId != null) {
-      filteredInvites = invitations.filter(inv => {
-        const rid = readId(inv, "recipient");
-        return rid != null && Number(rid) === Number(currentUserId);
-      });
+      const invitationsWithRecipientId = invitations.filter(inv => readId(inv, "recipient") != null);
 
-      if (filteredInvites.length === 0 && invitations.length > 0) {
-        console.warn("Filter removed all items; falling back to backend list");
-        filteredInvites = invitations;
+      if (invitationsWithRecipientId.length > 0) {
+        relevantInvites = invitations.filter(inv => {
+          const rid = readId(inv, "recipient");
+          return rid != null && Number(rid) === Number(currentUserId);
+        });
+      } else if (invitations.length > 0) {
+        console.warn("Invitations did not contain recipient ids; falling back to backend list");
       }
     }
+
+    let filteredInvites = relevantInvites.filter(isPendingInvitation);
 
     const ids = new Set();
 
@@ -386,11 +470,31 @@ document.addEventListener("DOMContentLoaded", async () => {
     data = [];
 
     const invitationNotificationKeys = new Set();
+    const invitationStatusByKey = new Map();
+    const backendInviteNotificationsByKey = new Map();
+
+    relevantInvites.forEach(inv => {
+      const key = notificationKey(readId(inv, "sender"), readId(inv, "recipient"), readPartyId(inv));
+      if (key) {
+        invitationStatusByKey.set(key, invitationStatus(inv));
+      }
+    });
+
+    backendNotifications.forEach(notification => {
+      const key = notificationKey(readId(notification, "sender"), readId(notification, "recipient"), readPartyId(notification));
+
+      if (key && isInvitationNotification(notification)) {
+        const existing = backendInviteNotificationsByKey.get(key) ?? [];
+        existing.push(notification);
+        backendInviteNotificationsByKey.set(key, existing);
+      }
+    });
 
     filteredInvites.forEach(inv => {
-      invitationNotificationKeys.add(
-        notificationKey(readId(inv, "sender"), readId(inv, "recipient"), readPartyId(inv))
-      );
+      const key = notificationKey(readId(inv, "sender"), readId(inv, "recipient"), readPartyId(inv));
+      if (key) {
+        invitationNotificationKeys.add(key);
+      }
     });
 
     filteredInvites.forEach(inv => {
@@ -414,6 +518,14 @@ document.addEventListener("DOMContentLoaded", async () => {
         }
       }
 
+      const inviteKey = notificationKey(sid, rid, partyId);
+      const matchingBackendNotifications = inviteKey
+        ? backendInviteNotificationsByKey.get(inviteKey) ?? []
+        : [];
+      const backendNotificationIds = matchingBackendNotifications
+        .map(readNotificationId)
+        .filter(id => id != null);
+
       const message =
         rid != null && String(rid) === String(currentUserId)
           ? `${getUsername(sender, sid)} invited you to "${partyTitle ?? "an event"}"`
@@ -423,6 +535,8 @@ document.addEventListener("DOMContentLoaded", async () => {
         id: `invite-${inv.id ?? inv.invitationId ?? `${sid}-${rid}-${partyId ?? "x"}`}`,
         type: "invite",
         invitationId: inv.id ?? inv.invitationId ?? null,
+        notificationId: backendNotificationIds.length ? Number(backendNotificationIds[0]) : null,
+        notificationIds: backendNotificationIds.map(id => Number(id)),
         partyId: partyId != null ? Number(partyId) : null,
         text: message,
         actorAvatar: sender?.id
@@ -436,21 +550,30 @@ document.addEventListener("DOMContentLoaded", async () => {
     });
 
     backendNotifications.forEach(notification => {
-      const notificationId = notification.id ?? notification.notificationId ?? null;
+      const notificationId = readNotificationId(notification);
       const sid = readId(notification, "sender");
       const rid = readId(notification, "recipient");
       const partyId = readPartyId(notification);
       const rawMessage = notification.message ?? notification.text ?? "New notification";
       const message = normalizeLegacyNotificationMessage(rawMessage);
       const duplicateInviteKey = notificationKey(sid, rid, partyId);
+      const invitationState = duplicateInviteKey
+        ? invitationStatusByKey.get(duplicateInviteKey)
+        : null;
+      const isBackendInvite = isInvitationNotification(notification);
       const isInviteDuplicate =
         partyId != null &&
         duplicateInviteKey != null &&
         invitationNotificationKeys.has(duplicateInviteKey) &&
-        (/\u0065ingeladen|invited/.test(String(rawMessage).toLowerCase()) ||
-          message.toLowerCase().includes("invited"));
+        isBackendInvite;
+      const isStaleInviteNotification =
+        partyId != null &&
+        duplicateInviteKey != null &&
+        invitationState != null &&
+        invitationState !== "PENDING" &&
+        isBackendInvite;
 
-      if (isInviteDuplicate) {
+      if (isInviteDuplicate || isStaleInviteNotification) {
         return;
       }
 
@@ -564,9 +687,6 @@ document.addEventListener("DOMContentLoaded", async () => {
                     throw new Error("Party could not be accepted");
                   }
                 }
-                if (typeof deleteInvite === "function" && item.invitationId) {
-                  await deleteInvite(item.invitationId);
-                }
               } else if (item.type === "follow") {
                 if (item.followerId != null && currentUserId != null) {
                   await acceptFollowRequest(currentUserId, item.followerId);
@@ -596,11 +716,7 @@ document.addEventListener("DOMContentLoaded", async () => {
           try {
             let deleted = false;
             if (item.type === "invite") {
-              const deleteFn = window.deleteInvite || window.backend?.deleteInvite;
-              if (deleteFn && item.invitationId) {
-                await deleteFn(item.invitationId);
-                deleted = true;
-              }
+              deleted = await declineInvite(item);
             } else if (item.type === "follow") {
               if (item.followerId != null && currentUserId != null) {
                 await removeFollowRequest(currentUserId, item.followerId);

@@ -137,6 +137,43 @@ public class InvitationRepositoryTest {
 
         List<Invitation> afterDelete = entityManager.createQuery("SELECT i FROM Invitation i", Invitation.class).getResultList();
         assertTrue(afterDelete.isEmpty());
+
+        Long notificationCount = entityManager
+                .createQuery("SELECT COUNT(n) FROM Notification n WHERE n.recipient.id = :recipientId", Long.class)
+                .setParameter("recipientId", recipient.getId())
+                .getSingleResult();
+        assertEquals(0L, notificationCount);
+    }
+
+    @Test
+    void testDeleteInvite_byRecipientMarksDeclined() {
+        User sender = createTestUser("Sender User", "sender");
+        User recipient = createTestUser("Recipient User", "recipient");
+        entityManager.flush();
+
+        Party party = createTestParty(sender);
+        entityManager.flush();
+
+        InvitationDto dto = new InvitationDto(recipient.getId(), party.getId());
+        invitationRepository.invite(dto, sender.getId());
+        entityManager.flush();
+
+        Invitation invitation = entityManager
+                .createQuery("SELECT i FROM Invitation i", Invitation.class)
+                .getSingleResult();
+
+        Response response = invitationRepository.deleteInvite(invitation.getId(), recipient.getId());
+        assertEquals(204, response.getStatus());
+
+        Invitation declinedInvitation = entityManager.find(Invitation.class, invitation.getId());
+        assertNotNull(declinedInvitation);
+        assertEquals("DECLINED", declinedInvitation.getStatus());
+
+        Long notificationCount = entityManager
+                .createQuery("SELECT COUNT(n) FROM Notification n WHERE n.recipient.id = :recipientId", Long.class)
+                .setParameter("recipientId", recipient.getId())
+                .getSingleResult();
+        assertEquals(0L, notificationCount);
     }
 
     @Test

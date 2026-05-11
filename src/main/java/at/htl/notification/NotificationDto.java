@@ -1,27 +1,47 @@
 package at.htl.notification;
 
-import jakarta.validation.constraints.NotNull;
-import at.htl.validation.SafeText;
 import java.time.LocalDateTime;
 
 public record NotificationDto(
-        @NotNull(message = "User ID is required")
-        @SafeText
+        Long id,
+
         Long userId,
 
-        @NotNull(message = "Message is required")
-        @SafeText
+        Long recipientId,
+
+        Long senderId,
+
+        Long partyId,
+
+        String partyTitle,
+
         String message,
 
-        @NotNull(message = "Status is required")
-        @SafeText
         String status,
 
         LocalDateTime createdAt
 ) {
     public static NotificationDto from(Notification notification) {
+        Long recipientId = notification.getRecipient() != null
+                ? notification.getRecipient().getId()
+                : null;
+        Long senderId = notification.getSender() != null
+                ? notification.getSender().getId()
+                : null;
+        Long partyId = notification.getParty() != null
+                ? notification.getParty().getId()
+                : null;
+        String partyTitle = notification.getParty() != null
+                ? notification.getParty().getTitle()
+                : null;
+
         return new NotificationDto(
-            notification.getRecipient().getId(),
+            notification.getId(),
+            recipientId,
+            recipientId,
+            senderId,
+            partyId,
+            partyTitle,
             notification.getMessage(),
             notification.getStatus(),
             notification.getCreated_at()

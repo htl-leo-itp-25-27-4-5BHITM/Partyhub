@@ -226,6 +226,41 @@ public class NotificationRepositoryTest {
     }
 
     @Test
+    void testDeleteInvitationNotifications() {
+        User sender = createUser("sender-invite");
+        User recipient = createUser("recipient-invite");
+        Party party = createParty(sender);
+
+        Notification inviteNotification = new Notification(
+                recipient,
+                sender,
+                party,
+                "Sender invited you to the party \"Test Party\""
+        );
+        Notification updateNotification = new Notification(
+                recipient,
+                sender,
+                party,
+                "\"Test Party\" was updated. Check the new details in PartyHub."
+        );
+        entityManager.persist(inviteNotification);
+        entityManager.persist(updateNotification);
+        entityManager.flush();
+
+        int deleted = notificationRepository.deleteInvitationNotifications(
+                party.getId(),
+                sender.getId(),
+                recipient.getId()
+        );
+
+        assertEquals(1, deleted);
+
+        List<Notification> remaining = notificationRepository.getNotificationsByUser(recipient.getId());
+        assertEquals(1, remaining.size());
+        assertTrue(remaining.get(0).getMessage().contains("updated"));
+    }
+
+    @Test
     void testCreateNotification() {
         User sender = createUser("sender7");
         User recipient = createUser("recipient7");

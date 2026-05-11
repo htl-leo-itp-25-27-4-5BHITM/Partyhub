@@ -1,5 +1,6 @@
 package at.htl.repository;
 
+import at.htl.invitation.Invitation;
 import at.htl.location.Location;
 import at.htl.notification.Notification;
 import at.htl.party.InvitedMemberDto;
@@ -145,6 +146,71 @@ public class PartyRepositoryTest {
     }
 
     @Test
+    void testRemovePrivatePartySendsCancellationNotifications() {
+        createTestData();
+
+        Location location = entityManager.createQuery("SELECT l FROM Location l", Location.class).getSingleResult();
+        User host = entityManager.createQuery("SELECT u FROM User u", User.class).getSingleResult();
+
+        User pendingInvitee = new User();
+        pendingInvitee.setDisplayName("Pending Invitee");
+        pendingInvitee.setDistinctName("pending-invitee");
+        pendingInvitee.setEmail("pending-invitee@example.com");
+        entityManager.persist(pendingInvitee);
+
+        User acceptedInvitee = new User();
+        acceptedInvitee.setDisplayName("Accepted Invitee");
+        acceptedInvitee.setDistinctName("accepted-invitee");
+        acceptedInvitee.setEmail("accepted-invitee@example.com");
+        entityManager.persist(acceptedInvitee);
+
+        Party party = new Party();
+        party.setTitle("Canceled Private Party");
+        party.setTheme("Test Theme");
+        party.setLocation(location);
+        party.setHost_user(host);
+        party.setVisibility("PRIVATE");
+        party.setTime_start(LocalDateTime.now().plusDays(1));
+        party.setTime_end(LocalDateTime.now().plusDays(1).plusHours(2));
+        party.setMax_people(50);
+        party.getUsers().add(acceptedInvitee);
+        entityManager.persist(party);
+
+        Invitation pendingInvitation = new Invitation();
+        pendingInvitation.setSender(host);
+        pendingInvitation.setRecipient(pendingInvitee);
+        pendingInvitation.setParty(party);
+        pendingInvitation.setStatus("PENDING");
+        entityManager.persist(pendingInvitation);
+        party.getInvitations().add(pendingInvitation);
+
+        Invitation acceptedInvitation = new Invitation();
+        acceptedInvitation.setSender(host);
+        acceptedInvitation.setRecipient(acceptedInvitee);
+        acceptedInvitation.setParty(party);
+        acceptedInvitation.setStatus("ACCEPTED");
+        entityManager.persist(acceptedInvitation);
+        party.getInvitations().add(acceptedInvitation);
+        entityManager.flush();
+
+        Response response = partyRepository.removeParty(party.getId());
+        assertEquals(204, response.getStatus());
+
+        List<Notification> cancellationNotifications = entityManager
+                .createQuery(
+                        "SELECT n FROM Notification n WHERE n.party IS NULL AND n.message LIKE :message",
+                        Notification.class)
+                .setParameter("message", "%was canceled%")
+                .getResultList();
+
+        assertEquals(2, cancellationNotifications.size());
+        assertTrue(cancellationNotifications.stream()
+                .anyMatch(notification -> notification.getRecipient().getId().equals(pendingInvitee.getId())));
+        assertTrue(cancellationNotifications.stream()
+                .anyMatch(notification -> notification.getRecipient().getId().equals(acceptedInvitee.getId())));
+    }
+
+    @Test
     void testAddParty_normalizesPublicVisibility() {
         createTestData();
         User host = entityManager.createQuery("SELECT u FROM User u", User.class).getSingleResult();
@@ -258,5 +324,82 @@ public class PartyRepositoryTest {
                 member.userId().equals(firstAttendee.getId()) && "JOINED".equals(member.status())));
         assertTrue(members.stream().anyMatch(member ->
                 member.userId().equals(secondAttendee.getId()) && "JOINED".equals(member.status())));
+    }
+
+    @Test
+    @SuppressWarnings("unchecked")
+    void testGetInvitedMembersReturnsInvitationStatuses() {
+        createTestData();
+
+        Location location = entityManager.createQuery("SELECT l FROM Location l", Location.class).getSingleResult();
+        User host = entityManager.createQuery("SELECT u FROM User u", User.class).getSingleResult();
+
+        User pendingInvitee = new User();
+        pendingInvitee.setDisplayName("Pending Invitee");
+        pendingInvitee.setDistinctName("pending-invitee");
+        pendingInvitee.setEmail("pending-invitee@example.com");
+        entityManager.persist(pendingInvitee);
+
+        User acceptedInvitee = new User();
+        acceptedInvitee.setDisplayName("Accepted Invitee");
+        acceptedInvitee.setDistinctName("accepted-invitee");
+        acceptedInvitee.setEmail("accepted-invitee@example.com");
+        entityManager.persist(acceptedInvitee);
+
+        User declinedInvitee = new User();
+        declinedInvitee.setDisplayName("Declined Invitee");
+        declinedInvitee.setDistinctName("declined-invitee");
+        declinedInvitee.setEmail("declined-invitee@example.com");
+        entityManager.persist(declinedInvitee);
+
+        Party party = new Party();
+        party.setTitle("Private Invited Members Party");
+        party.setTheme("Test Theme");
+        party.setLocation(location);
+        party.setHost_user(host);
+        party.setVisibility("PRIVATE");
+        party.setTime_start(LocalDateTime.now().plusDays(1));
+        party.setTime_end(LocalDateTime.now().plusDays(1).plusHours(2));
+        party.setMax_people(50);
+        party.getUsers().add(acceptedInvitee);
+        entityManager.persist(party);
+
+        Invitation pendingInvitation = new Invitation();
+        pendingInvitation.setSender(host);
+        pendingInvitation.setRecipient(pendingInvitee);
+        pendingInvitation.setParty(party);
+        pendingInvitation.setStatus("PENDING");
+        entityManager.persist(pendingInvitation);
+        party.getInvitations().add(pendingInvitation);
+
+        Invitation acceptedInvitation = new Invitation();
+        acceptedInvitation.setSender(host);
+        acceptedInvitation.setRecipient(acceptedInvitee);
+        acceptedInvitation.setParty(party);
+        acceptedInvitation.setStatus("ACCEPTED");
+        entityManager.persist(acceptedInvitation);
+        party.getInvitations().add(acceptedInvitation);
+
+        Invitation declinedInvitation = new Invitation();
+        declinedInvitation.setSender(host);
+        declinedInvitation.setRecipient(declinedInvitee);
+        declinedInvitation.setParty(party);
+        declinedInvitation.setStatus("DECLINED");
+        entityManager.persist(declinedInvitation);
+        party.getInvitations().add(declinedInvitation);
+        entityManager.flush();
+
+        Response response = partyRepository.getInvitedMembers(party.getId(), host.getId());
+
+        assertEquals(200, response.getStatus());
+
+        List<InvitedMemberDto> members = (List<InvitedMemberDto>) response.getEntity();
+        assertEquals(3, members.size());
+        assertTrue(members.stream().anyMatch(member ->
+                member.userId().equals(pendingInvitee.getId()) && "PENDING".equals(member.status())));
+        assertTrue(members.stream().anyMatch(member ->
+                member.userId().equals(acceptedInvitee.getId()) && "ACCEPTED".equals(member.status())));
+        assertTrue(members.stream().anyMatch(member ->
+                member.userId().equals(declinedInvitee.getId()) && "DECLINED".equals(member.status())));
     }
 }

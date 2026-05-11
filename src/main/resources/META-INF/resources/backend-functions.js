@@ -291,7 +291,7 @@ async function deleteInvite(invitationId) {
         throw new Error("Invitation not found");
       }
       if (response.status === 403) {
-        throw new Error("Nicht berechtigt");
+        throw new Error("Not authorized");
       }
       throw new Error(`Error while deleting: ${response.status}`);
     }

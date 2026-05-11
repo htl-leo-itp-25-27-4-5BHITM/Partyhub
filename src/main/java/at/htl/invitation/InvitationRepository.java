@@ -73,9 +73,7 @@ public class InvitationRepository {
             party.getInvitations().add(invitation);
         }
 
-        String hostName = sender.getDisplayName() != null ? sender.getDisplayName() : sender.getUsername();
-        String message = hostName + " invited you to the party \"" + party.getTitle() + "\"";
-        notificationRepository.createNotification(new Notification(recipient, sender, party, message));
+        sendInvitationNotification(recipient, sender, party);
 
         return Response.status(Response.Status.CREATED).build();
     }
@@ -122,12 +120,22 @@ public class InvitationRepository {
 
         Long senderId = invitation.getSender() != null ? invitation.getSender().getId() : null;
         Long recipientId = invitation.getRecipient() != null ? invitation.getRecipient().getId() : null;
+        Long partyId = invitation.getParty() != null ? invitation.getParty().getId() : null;
+        boolean isSender = senderId != null && senderId.equals(userId);
+        boolean isRecipient = recipientId != null && recipientId.equals(userId);
 
-        if ((senderId == null || !senderId.equals(userId)) &&
-                (recipientId == null || !recipientId.equals(userId))) {
+        if (!isSender && !isRecipient) {
             return Response.status(Response.Status.FORBIDDEN)
                     .entity("{\"error\": \"Not authorized to delete this invitation\"}")
                     .build();
+        }
+
+        notificationRepository.deleteInvitationNotifications(partyId, senderId, recipientId);
+
+        if (isRecipient) {
+            invitation.setStatus("DECLINED");
+            entityManager.merge(invitation);
+            return Response.noContent().build();
         }
 
         Party party = invitation.getParty();
@@ -151,6 +159,11 @@ public class InvitationRepository {
     }
 
     private void sendInvitationNotification(User recipient, User sender, Party party) {
+        notificationRepository.deleteInvitationNotifications(
+                party.getId(),
+                sender.getId(),
+                recipient.getId()
+        );
         String hostName = sender.getDisplayName() != null ? sender.getDisplayName() : sender.getUsername();
         String message = hostName + " invited you to the party \"" + party.getTitle() + "\"";
         notificationRepository.createNotification(new Notification(recipient, sender, party, message));

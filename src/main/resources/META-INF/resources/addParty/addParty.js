@@ -318,7 +318,7 @@ document.addEventListener("DOMContentLoaded", () => {
           fetchUsers(`/api/users/${encodeURIComponent(currentUserId)}/following`),
         ]);
 
-        users = getMutualUsers(
+        users = getConnectedUsers(
           normalizeUsers(followersRaw),
           normalizeUsers(followingRaw),
           currentUserId
@@ -331,7 +331,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
       if (!users || users.length === 0) {
         userList.innerHTML = currentUserId
-          ? "<p>No mutual followers found.</p>"
+          ? "<p>No connected users found.</p>"
           : "<p>No users found.</p>";
         return;
       }
@@ -402,21 +402,10 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
-  function getMutualUsers(followers, following, currentUserId) {
-    const followingIds = new Set(
-      following
-        .map(getUserId)
-        .filter((id) => id != null)
-        .map(String)
-    );
-
-    return followers.filter((user) => {
+  function getConnectedUsers(followers, following, currentUserId) {
+    return [...followers, ...following].filter((user) => {
       const id = getUserId(user);
-      return (
-        id != null &&
-        String(id) !== String(currentUserId) &&
-        followingIds.has(String(id))
-      );
+      return id != null && String(id) !== String(currentUserId);
     });
   }
 
