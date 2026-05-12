@@ -45,7 +45,7 @@ struct PartyAttendeeMapView: View {
     @State private var mapViewSize: CGSize = .zero
     @State private var attendeeClusters: [Cluster<AttendeeMapItem>] = []
 
-    @State private var activeFilter: AttendeeFilter = .all
+    @State private var activeFilters: Set<AttendeeFilter> = [.all]
     @State private var showFilterSheet = false
 
     @State private var invitedUserIds: Set<Int> = []
@@ -227,50 +227,49 @@ struct PartyAttendeeMapView: View {
             allLocations.append(currentUserLocation)
         }
 
-        switch activeFilter {
-
-        case .all:
-
+        // If "all" is selected, show all attendees
+        if activeFilters.contains(.all) {
             return allLocations
+        }
 
-        case .atParty:
+        // Otherwise, combine results from all selected filters
+        var filteredResults: [UserLocation] = []
 
-            return allLocations.filter {
-                $0.isInsideParty(party)
-            }
+        if activeFilters.contains(.atParty) {
+            filteredResults.append(contentsOf: allLocations.filter { $0.isInsideParty(party) })
+        }
 
-        case .invited:
-
-            return allLocations.filter { location in
-
+        if activeFilters.contains(.invited) {
+            let invited = allLocations.filter { location in
                 if Int(location.user?.id ?? 0) == currentUserId {
-                    // Show current user if they have a location
                     return currentUserAttendeeLocation != nil
                 }
-
-                guard let userId = location.user?.id else {
-                    return false
-                }
-
-                // Invited but NOT friends - to avoid overlap
+                guard let userId = location.user?.id else { return false }
                 return invitedUserIds.contains(Int(userId)) && !friendUserIds.contains(Int(userId))
             }
+            filteredResults.append(contentsOf: invited)
+        }
 
-        case .friends:
-
-            return allLocations.filter { location in
-
-                guard let userId = location.user?.id else {
-                    return false
-                }
-
+        if activeFilters.contains(.friends) {
+            let friends = allLocations.filter { location in
+                guard let userId = location.user?.id else { return false }
                 return friendUserIds.contains(Int(userId))
             }
-
-        case .accepted, .pending:
-
-            return []
+            filteredResults.append(contentsOf: friends)
         }
+
+        // Remove duplicates (same user might match multiple filters)
+        var uniqueResults: [UserLocation] = []
+        var seenIds: Set<Int64> = []
+        for location in filteredResults {
+            let id = location.user?.id ?? 0
+            if !seenIds.contains(id) {
+                uniqueResults.append(location)
+                seenIds.insert(id)
+            }
+        }
+
+        return uniqueResults
     }
 
     private func countFor(_ filter: AttendeeFilter) -> Int {
@@ -299,7 +298,6 @@ struct PartyAttendeeMapView: View {
                     return false
                 }
 
-                // Invited but NOT friends - to avoid overlap
                 return invitedUserIds.contains(Int(userId)) && !friendUserIds.contains(Int(userId))
 
             }.count
@@ -453,12 +451,12 @@ struct PartyAttendeeMapView: View {
                             )
                             .font(.title3)
                             .foregroundStyle(
-                                activeFilter == .all
+                                activeFilters == [.all]
                                     ? .secondary
                                     : Color("primary pink")
                             )
 
-                            if activeFilter != .all {
+                            if activeFilters != [.all] {
 
                                 Circle()
                                     .fill(.red)
@@ -511,7 +509,7 @@ struct PartyAttendeeMapView: View {
                 recomputeAttendeeClusters()
             }
 
-            .onChange(of: activeFilter) { _, _ in
+            .onChange(of: activeFilters) { _, _ in
                 recomputeAttendeeClusters()
             }
 
@@ -560,10 +558,23 @@ struct PartyAttendeeMapView: View {
                                 Button {
 
                                     withAnimation {
-                                        activeFilter = filter
+                                        if filter == .all {
+                                            // "All" filter toggles off all other filters
+                                            activeFilters = [.all]
+                                        } else if activeFilters.contains(.all) {
+                                            // When selecting another filter, remove "all"
+                                            activeFilters = [filter]
+                                        } else if activeFilters.contains(filter) {
+                                            // Deselect the filter
+                                            activeFilters.remove(filter)
+                                            if activeFilters.isEmpty {
+                                                activeFilters = [.all]
+                                            }
+                                        } else {
+                                            // Add the filter
+                                            activeFilters.insert(filter)
+                                        }
                                     }
-
-                                    showFilterSheet = false
 
                                 } label: {
 
@@ -574,7 +585,7 @@ struct PartyAttendeeMapView: View {
                                         )
                                         .frame(width: 28)
                                         .foregroundStyle(
-                                            activeFilter == filter
+                                            activeFilters.contains(filter)
                                                 ? Color("primary pink")
                                                 : .primary
                                         )
@@ -592,7 +603,7 @@ struct PartyAttendeeMapView: View {
                                             .background(Color(.systemGray5))
                                             .clipShape(Capsule())
 
-                                        if activeFilter == filter {
+                                        if activeFilters.contains(filter) {
 
                                             Image(systemName: "checkmark")
                                                 .foregroundStyle(
@@ -614,7 +625,7 @@ struct PartyAttendeeMapView: View {
                             placement: .cancellationAction
                         ) {
 
-                            Button("Abbrechen") {
+                            Button("Fertig") {
                                 showFilterSheet = false
                             }
                         }
