@@ -138,7 +138,7 @@ INSERT INTO party_user (party_id, user_id) VALUES
     (8, 3), (8, 6), (8, 10),
     (9, 5), (9, 7),
     (10, 1), (10, 2), (10, 4), (10, 6),
-    (11, 2), (11, 3), (11, 4), (11, 5), (11, 6), (11, 7), (11, 8), (11, 9), (11, 10),
+    (11, 1), (11, 2), (11, 3), (11, 4), (11, 5), (11, 6),
     (12, 1), (12, 3);
 
 -- =========================
@@ -159,7 +159,10 @@ INSERT INTO invitation (id, sender_id, recipient_id, party_id, status) VALUES
     (1, 4, 2, 4, 'PENDING'),
     (2, 4, 8, 4, 'PENDING'),
     (3, 9, 1, 9, 'PENDING'),
-    (4, 9, 3, 9, 'PENDING');
+    (4, 9, 3, 9, 'PENDING'),
+    (5, 1, 4, 11, 'ACCEPTED'),
+    (6, 1, 5, 11, 'ACCEPTED'),
+    (7, 1, 6, 11, 'ACCEPTED');
 
 -- =========================
 -- NOTIFICATIONS
@@ -169,7 +172,10 @@ INSERT INTO notification (id, recipient_id, sender_id, party_id, status, created
     (2, 8, 4, 4, 'READ', '2026-04-27 09:06:00', 'Thomas Schneider hat dich zu der Party "Private Birthday in Leonding" eingeladen'),
     (3, 1, 9, 9, 'UNREAD', '2026-04-28 10:15:00', 'Nina Fischer hat dich zu der Party "Private Dinner Party in Steyregg" eingeladen'),
     (4, 3, 9, 9, 'UNREAD', '2026-04-28 10:16:00', 'Nina Fischer hat dich zu der Party "Private Dinner Party in Steyregg" eingeladen'),
-    (5, 7, 5, 5, 'READ', '2026-04-28 12:00:00', '"Cocktail Night beim Musiktheater" wurde aktualisiert: Schick anziehen, gute Drinks und entspannte Lounge-Musik.');
+    (5, 7, 5, 5, 'READ', '2026-04-28 12:00:00', '"Cocktail Night beim Musiktheater" wurde aktualisiert: Schick anziehen, gute Drinks und entspannte Lounge-Musik.'),
+    (6, 4, 1, 11, 'READ', '2026-04-28 19:59:00', 'Victoria Vejmelek hat dich zu der Party "Graduation Gala" eingeladen'),
+    (7, 5, 1, 11, 'READ', '2026-04-28 19:59:00', 'Victoria Vejmelek hat dich zu der Party "Graduation Gala" eingeladen'),
+    (8, 6, 1, 11, 'READ', '2026-04-28 19:59:00', 'Victoria Vejmelek hat dich zu der Party "Graduation Gala" eingeladen');
 
 -- =========================
 -- FOLLOWS
@@ -178,6 +184,7 @@ INSERT INTO follow (user1_id, user2_id, status_id) VALUES
     (1, 2, 2),
     (2, 1, 2),
     (1, 3, 2),
+    (3, 1, 2),
     (2, 4, 1),
     (3, 5, 2),
     (4, 8, 2),
