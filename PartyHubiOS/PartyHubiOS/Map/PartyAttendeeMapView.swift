@@ -84,6 +84,15 @@ struct PartyAttendeeMapView: View {
         ]
     }
 
+    private var activeFilterDisplayText: String {
+        let count = filteredLocations().count
+        let filterNames = activeFilters
+            .sorted { $0.rawValue < $1.rawValue }
+            .map { $0.rawValue.lowercased() }
+        let text = filterNames.joined(separator: ", ")
+        return "\(text)       \(count)"
+    }
+
     // MARK: - Load Data
 
     private func loadData() {
@@ -429,6 +438,26 @@ struct PartyAttendeeMapView: View {
                 }
             }
             .ignoresSafeArea()
+            .overlay(alignment: .top) {
+                VStack {
+                    HStack {
+                        Image(systemName: "line.3.horizontal.decrease.circle.fill")
+                            .font(.caption)
+                        Text(activeFilterDisplayText)
+                            .font(.caption)
+                            .fontWeight(.semibold)
+                        Spacer()
+                    }
+                    .padding(.horizontal, 12)
+                    .padding(.vertical, 8)
+                    .background(Color.black.opacity(0.6))
+                    .foregroundStyle(.white)
+                    .cornerRadius(8)
+                    .padding(12)
+                    
+                    Spacer()
+                }
+            }
             .navigationTitle("Teilnehmer-Karte")
             .navigationBarTitleDisplayMode(.inline)
 
