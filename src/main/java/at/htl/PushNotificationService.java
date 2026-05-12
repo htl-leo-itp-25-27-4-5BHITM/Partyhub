@@ -19,11 +19,11 @@ public class PushNotificationService {
             .version(HttpClient.Version.HTTP_2)
             .build();
 
-    // Sandbox URL für Entwicklung
+    // Sandbox URL for development
     private static final String APNS_SERVER = "https://api.sandbox.push.apple.com:443";
 
     public void notifyParticipants(Long partyId, String message) {
-        // Findet alle Tokens der Teilnehmer, die in party_user eingetragen sind
+        // Finds all participant tokens listed in party_user
         List<String> tokens = em.createNativeQuery("""
             SELECT u.device_token FROM users u 
             JOIN party_user pu ON u.id = pu.user_id 
@@ -57,7 +57,7 @@ public class PushNotificationService {
                 .POST(HttpRequest.BodyPublishers.ofString(payload))
                 .build();
 
-        // Asynchroner Versand, damit das Backend nicht blockiert
+        // Sends asynchronously so the backend is not blocked
         httpClient.sendAsync(request, HttpResponse.BodyHandlers.ofString())
                 .thenAccept(res -> System.out.println("Push an " + token + " Status: " + res.statusCode()));
     }

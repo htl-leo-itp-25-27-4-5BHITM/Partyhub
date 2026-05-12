@@ -1,28 +1,33 @@
 import SwiftUI
 import AVFoundation
 import AudioToolbox
+import PhotosUI
 
 struct ProfileView: View {
     @EnvironmentObject var authManager: AuthManager
-    @State private var user: UserProfile? = nil
-    @State private var isLoading = false
     @State private var showSignOutAlert = false
     @State private var showCamera = false
     @State private var followerCount: Int = 0
     @State private var followingCount: Int = 0
-    
-    struct UserProfile: Codable {
-        let id: Int
-        let username: String
-        let displayName: String?
-        let distinctName: String?
-        let email: String?
-        let biography: String?
+
+    @State private var selectedPhotoItem: PhotosPickerItem?
+    @State private var showUploadError = false
+    @State private var uploadErrorMessage = ""
+    @State private var profilePictureRefreshTrigger = false
+
+    enum LoadState {
+        case loading
+        case loaded(UserProfile)
+        case error(String)
     }
-    
-    struct CountResponse: Codable {
-        let count: Int
-    }
+
+    @State private var loadState: LoadState = .loading
+    @State private var initialLoadComplete = false
+
+    @State private var testLoginUserId = ""
+    @State private var testLoginError = false
+    @State private var testLoginErrorMessage = ""
+    @State private var isLoggingIn = false
 
     var body: some View {
         contentView
@@ -37,13 +42,23 @@ struct ProfileView: View {
             } message: {
                 Text("Möchtest du dich wirklich abmelden?")
             }
+            .alert("Upload Fehler", isPresented: $showUploadError) {
+                Button("OK", role: .cancel) {}
+            } message: {
+                Text(uploadErrorMessage)
+            }
+            .alert("Login Fehler", isPresented: $testLoginError) {
+                Button("OK", role: .cancel) {}
+            } message: {
+                Text(testLoginErrorMessage.isEmpty ? "Ungültige Benutzer-ID oder Server nicht erreichbar." : testLoginErrorMessage)
+            }
             .fullScreenCover(isPresented: $showCamera) {
                 CameraView()
                     .ignoresSafeArea()
                     .environmentObject(authManager)
             }
     }
-    
+
     @ViewBuilder
     private var contentView: some View {
         if let userId = authManager.userId {
@@ -52,24 +67,24 @@ struct ProfileView: View {
             notLoggedInView
         }
     }
-    
+
     @ViewBuilder
     private var notLoggedInView: some View {
         VStack(spacing: 20) {
             Image(systemName: "person.crop.circle.badge.questionmark")
                 .font(.system(size: 80))
                 .foregroundStyle(.gray)
-            
+
             Text("Nicht angemeldet")
                 .font(.headline)
                 .foregroundStyle(.gray)
-            
+
             Text("Scanne einen QR-Code, um dich anzumelden")
                 .font(.subheadline)
                 .foregroundStyle(.gray)
                 .multilineTextAlignment(.center)
                 .padding(.horizontal, 40)
-            
+
             Button(action: { showCamera = true }) {
                 HStack(spacing: 8) {
                     Image(systemName: "qrcode.viewfinder")
@@ -82,52 +97,119 @@ struct ProfileView: View {
                 .cornerRadius(10)
                 .shadow(color: Color("primary dark blue").opacity(0.5), radius: 10)
             }
+            .disabled(isLoggingIn)
+
+            Divider().padding(.horizontal, 40)
+
+            VStack(spacing: 12) {
+                Text("Test-Login")
+                    .font(.headline)
+                    .foregroundStyle(.secondary)
+
+                TextField("Benutzer-ID eingeben", text: $testLoginUserId)
+                    .textFieldStyle(.roundedBorder)
+                    .keyboardType(.numberPad)
+                    .frame(maxWidth: 200)
+                    .multilineTextAlignment(.center)
+                    .disabled(isLoggingIn)
+
+                if isLoggingIn {
+                    ProgressView()
+                        .padding(.top, 8)
+                } else {
+                    Button(action: {
+                        Task { await performTestLogin() }
+                    }) {
+                        Text("Anmelden")
+                            .fontWeight(.semibold)
+                            .frame(width: 150, height: 40)
+                            .background(Color.accentColor)
+                            .foregroundStyle(.white)
+                            .cornerRadius(10)
+                    }
+                }
+            }
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
-    
+
     @ViewBuilder
     private func loggedInView(userId: Int) -> some View {
-        if isLoading {
-            ProgressView()
-                .task {
-                    await loadUserProfile(userId: userId)
+        Group {
+            switch loadState {
+            case .loading:
+                ProgressView()
+            case .loaded(let user):
+                profileContent(user: user)
+            case .error(let message):
+                VStack(spacing: 16) {
+                    Image(systemName: "exclamationmark.triangle")
+                        .font(.largeTitle)
+                        .foregroundStyle(.gray)
+                    Text(message)
+                        .foregroundStyle(.secondary)
+                    Button("Erneut versuchen") {
+                        loadState = .loading
+                        Task { await loadUserProfile(userId: userId) }
+                    }
+                    .buttonStyle(.borderedProminent)
+                    Button("Anderer Benutzer") {
+                        signOut()
+                    }
+                    .foregroundStyle(.red)
                 }
-        } else if let user = user {
-            profileContent(user: user)
-        } else {
-            ProgressView()
-                .task {
-                    await loadUserProfile(userId: userId)
-                }
+            }
+        }
+        .task(id: userId) {
+            await loadUserProfile(userId: userId)
         }
     }
-    
+
     private func profileContent(user: UserProfile) -> some View {
         VStack {
-            ZStack(alignment: .bottom) {
-                Image(systemName: "person.circle.fill")
-                    .resizable()
-                    .scaledToFill()
-                    .frame(width: 120, height: 120)
-                    .clipShape(Circle())
-                    .overlay(Circle().stroke(Color.white, lineWidth: 4))
-                    .shadow(radius: 10)
-                    .offset(y: 50)
+            ZStack(alignment: .bottomTrailing) {
+                if let userId = authManager.userId {
+                    UserProfileImageView(userId: userId, size: 120, showBorder: false)
+                        .overlay(Circle().stroke(Color.white, lineWidth: 4))
+                        .shadow(radius: 10)
+                        .id(profilePictureRefreshTrigger)
+                } else {
+                    Image(systemName: "person.circle.fill")
+                        .resizable()
+                        .scaledToFill()
+                        .frame(width: 120, height: 120)
+                        .clipShape(Circle())
+                        .overlay(Circle().stroke(Color.white, lineWidth: 4))
+                        .shadow(radius: 10)
+                }
+
+                PhotosPicker(selection: $selectedPhotoItem, matching: .images) {
+                    ZStack {
+                        Circle()
+                            .fill(Color("primary dark blue"))
+                            .frame(width: 36, height: 36)
+                        Image(systemName: "camera.fill")
+                            .font(.system(size: 16))
+                            .foregroundStyle(.white)
+                    }
+                }
+                .onChange(of: selectedPhotoItem) { _, newItem in
+                    Task { await uploadSelectedPhoto(newItem) }
+                }
             }
             .padding(.bottom, 60)
-            
+
             VStack(spacing: 4) {
-                Text("@\(user.username)")
+                Text("@\(user.username ?? "user_\(user.id)")")
                     .font(.headline)
                     .fontWeight(.medium)
-                
+
                 if let displayName = user.displayName {
                     Text(displayName)
                         .font(.subheadline)
                         .foregroundStyle(.gray)
                 }
-                
+
                 if let bio = user.biography {
                     Text(bio)
                         .font(.caption)
@@ -137,13 +219,13 @@ struct ProfileView: View {
                         .padding(.top, 8)
                 }
             }
-            
+
             HStack(spacing: 20) {
                 StatView(number: "\(followerCount)", label: "Follower")
                 StatView(number: "\(followingCount)", label: "Following")
             }
             .padding(.vertical, 25)
-            
+
             HStack(spacing: 20) {
                 Button(action: {}) {
                     Text("Folgen")
@@ -154,7 +236,7 @@ struct ProfileView: View {
                         .cornerRadius(10)
                         .shadow(color: Color("primary dark blue").opacity(0.5), radius: 10)
                 }
-                
+
                 Button(action: {}) {
                     Text("Nachricht")
                         .fontWeight(.semibold)
@@ -164,9 +246,9 @@ struct ProfileView: View {
                         .cornerRadius(10)
                 }
             }
-            
+
             Spacer()
-            
+
             Button(action: { showSignOutAlert = true }) {
                 HStack(spacing: 8) {
                     Image(systemName: "rectangle.portrait.and.arrow.right")
@@ -183,51 +265,118 @@ struct ProfileView: View {
             .padding(.bottom, 20)
         }
     }
-    
+
     @MainActor
     private func signOut() {
-        UserDefaults.standard.removeObject(forKey: "partyhub_user_id")
-        authManager.userId = nil
-        user = nil
+        authManager.clear()
+        loadState = .loading
         followerCount = 0
         followingCount = 0
+        initialLoadComplete = false
+        profilePictureRefreshTrigger.toggle()
     }
-    
+
     @MainActor
     private func restoreSession() async {
-        if authManager.userId == nil {
-            let storedId = UserDefaults.standard.integer(forKey: "partyhub_user_id")
-            if storedId > 0 {
-                authManager.userId = storedId
-                await loadUserProfile(userId: storedId)
-            }
-        }
     }
-    
+
     @MainActor
     private func loadUserProfile(userId: Int) async {
-        guard let profileUrl = URL(string: "\(Config.backendURL)/api/users/\(userId)"),
-              let followerUrl = URL(string: "\(Config.backendURL)/api/users/\(userId)/followers/count"),
-              let followingUrl = URL(string: "\(Config.backendURL)/api/users/\(userId)/following/count") else { return }
-        
-        isLoading = true
+        guard !initialLoadComplete else { return }
+        loadState = .loading
+
         do {
-            async let profileRequest = URLSession.shared.data(from: profileUrl)
-            async let followerRequest = URLSession.shared.data(from: followerUrl)
-            async let followingRequest = URLSession.shared.data(from: followingUrl)
-            
-            let (profileData, _) = try await profileRequest
-            let (followerData, _) = try await followerRequest
-            let (followingData, _) = try await followingRequest
-            
-            user = try JSONDecoder().decode(UserProfile.self, from: profileData)
-            followerCount = (try? JSONDecoder().decode(CountResponse.self, from: followerData))?.count ?? 0
-            followingCount = (try? JSONDecoder().decode(CountResponse.self, from: followingData))?.count ?? 0
-            
+            async let profile: UserProfile = APIClient.shared.request(
+                method: .GET,
+                path: "/api/users/\(userId)",
+                authType: .none
+            )
+            async let followerCountResp: CountResponse = APIClient.shared.request(
+                method: .GET,
+                path: "/api/users/\(userId)/followers/count",
+                authType: .none
+            )
+            async let followingCountResp: CountResponse = APIClient.shared.request(
+                method: .GET,
+                path: "/api/users/\(userId)/following/count",
+                authType: .none
+            )
+
+            let user = try await profile
+            followerCount = try await followerCountResp.count
+            followingCount = try await followingCountResp.count
+
+            loadState = .loaded(user)
+            initialLoadComplete = true
         } catch {
-            print("Failed to load user profile: \(error)")
+            print("❌ Failed to load profile: \(error)")
+            let fallback = UserProfile(
+                id: userId, 
+                username: "User \(userId)", 
+                displayName: nil, 
+                distinctName: nil, 
+                email: nil, 
+                biography: nil,
+                phoneNumber: nil
+            )
+            loadState = .loaded(fallback)
+            initialLoadComplete = true
         }
-        isLoading = false
+    }
+
+    @MainActor
+    private func performTestLogin() async {
+        guard let userId = Int(testLoginUserId), userId > 0 else {
+            testLoginErrorMessage = "Bitte gib eine gültige Benutzer-ID ein."
+            testLoginError = true
+            return
+        }
+
+        isLoggingIn = true
+        defer { isLoggingIn = false }
+
+        do {
+            try await authManager.loginWithUserId(userId)
+            testLoginUserId = ""
+            initialLoadComplete = false
+            loadState = .loading
+            print("✅ Login successful for user \(userId)")
+        } catch {
+            print("❌ Login failed: \(error)")
+            testLoginErrorMessage = "Login fehlgeschlagen: \(error.localizedDescription)"
+            testLoginError = true
+        }
+    }
+
+    private func uploadSelectedPhoto(_ item: PhotosPickerItem?) async {
+        guard let item, let userId = authManager.userId else { return }
+        
+        guard let data = try? await item.loadTransferable(type: Data.self) else {
+            uploadErrorMessage = "Foto konnte nicht geladen werden."
+            showUploadError = true
+            return
+        }
+
+        do {
+            let _: EmptyResponse = try await APIClient.shared.upload(
+                path: "/api/users/\(userId)/upload-profile-picture",
+                data: data,
+                fileName: "profile.jpg",
+                mimeType: "image/jpeg",
+                authType: .userIdHeader
+            )
+            
+            ApiService.shared.invalidateProfilePictureCache(for: userId)
+            
+            await MainActor.run {
+                profilePictureRefreshTrigger.toggle()
+            }
+            
+            print("✅ Profile picture uploaded successfully")
+        } catch {
+            uploadErrorMessage = "Fehler beim Hochladen: \(error.localizedDescription)"
+            showUploadError = true
+        }
     }
 }
 
@@ -269,10 +418,15 @@ struct CameraView: UIViewControllerRepresentable {
                 return
             }
 
-            DispatchQueue.main.async {
-                self.authManager.userId = userId
-                UserDefaults.standard.set(userId, forKey: "partyhub_user_id")
-                self.dismiss()
+            Task { @MainActor in
+                do {
+                    try await authManager.loginWithUserId(userId)
+                    print("✅ QR login succeeded for userId: \(userId)")
+                    NotificationCenter.default.post(name: .didLoginMobile, object: userId)
+                    self.dismiss()
+                } catch {
+                    print("❌ QR login failed: \(error)")
+                }
             }
         }
     }
@@ -364,7 +518,7 @@ class ScannerViewController: UIViewController, AVCaptureMetadataOutputObjectsDel
 struct StatView: View {
     let number: String
     let label: String
-    
+
     var body: some View {
         VStack {
             Text(number)

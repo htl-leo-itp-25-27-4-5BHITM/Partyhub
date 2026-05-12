@@ -76,8 +76,8 @@ async function fetchParties() {
                     <td>${party.min_age}</td>
                     <td>${party.max_age}</td>
                     <td>
-                        <button class="btn btn-sm btn-success" onclick="attendParty(${party.id})">Anmelden</button>
-                        <button class="btn btn-sm btn-danger" onclick="unattendParty(${party.id})">Abmelden</button>
+                        <button class="btn btn-sm btn-success" onclick="attendParty(${party.id})">Join</button>
+                        <button class="btn btn-sm btn-danger" onclick="unattendParty(${party.id})">Leave</button>
                     </td>
                 </tr>`;
             partyTableBody.insertAdjacentHTML('beforeend', row);
@@ -90,7 +90,7 @@ async function fetchParties() {
 async function attendParty(partyId) {
     const userId = window.getCurrentUserId() || document.getElementById('currentUserId')?.value;
     if (!userId) {
-        alert('Bitte melde dich an');
+        alert('Please log in');
         return;
     }
     try {
@@ -103,20 +103,20 @@ async function attendParty(partyId) {
         });
         if (!res.ok) {
             console.error('Attend failed', res.status);
-            alert('Anmelden fehlgeschlagen: ' + res.status);
+            alert('Joining failed: ' + res.status);
             return;
         }
         await fetchParties();
     } catch (err) {
         console.error('Attend error', err);
-        alert('Fehler beim Anmelden');
+        alert('Error while joining');
     }
 }
 
 async function unattendParty(partyId) {
     const userId = window.getCurrentUserId() || document.getElementById('currentUserId')?.value;
     if (!userId) {
-        alert('Bitte melde dich an');
+        alert('Please log in');
         return;
     }
     try {
@@ -128,13 +128,13 @@ async function unattendParty(partyId) {
         });
         if (!res.ok) {
             console.error('Unattend failed', res.status);
-            alert('Abmelden fehlgeschlagen: ' + res.status);
+            alert('Leaving failed: ' + res.status);
             return;
         }
         await fetchParties();
     } catch (err) {
         console.error('Unattend error', err);
-        alert('Fehler beim Abmelden');
+        alert('Error while leaving');
     }
 }
 

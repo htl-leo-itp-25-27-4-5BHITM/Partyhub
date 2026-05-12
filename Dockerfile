@@ -1,8 +1,9 @@
-FROM eclipse-temurin:25-jre-alpine
+FROM eclipse-temurin:21-jre-alpine
 
 WORKDIR /app
-COPY target/*.jar app.jar
+COPY target/quarkus-app/ ./
+# Copy profile pictures for users to have avatars
+COPY src/main/resources/uploads/profiles ./uploads/profiles/
 EXPOSE 8080
 
-CMD ["java", "-Dquarkus.profile=prod" , "-jar", "app.jar"]
-# ENTRYPOINT ["java", "-jar", "app.jar"]
+CMD ["java", "-Dquarkus.profile=prod", "-jar", "quarkus-run.jar"]

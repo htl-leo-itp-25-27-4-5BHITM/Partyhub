@@ -15,12 +15,19 @@ public class NotificationRepository {
     @Inject
     EntityManager entityManager;
 
+    @Inject
+    OutOfAppNotificationService outOfAppNotificationService;
+
     public List<Notification> getNotificationsByUser(Long userId) {
         if (userId == null) {
             return List.of();
         }
         return entityManager.createQuery(
-                "SELECT n FROM Notification n WHERE n.recipient.id = :userId ORDER BY n.created_at DESC",
+                "SELECT n FROM Notification n " +
+                        "LEFT JOIN FETCH n.recipient " +
+                        "LEFT JOIN FETCH n.sender " +
+                        "LEFT JOIN FETCH n.party " +
+                        "WHERE n.recipient.id = :userId ORDER BY n.created_at DESC",
                 Notification.class)
                 .setParameter("userId", userId)
                 .getResultList();
@@ -31,7 +38,11 @@ public class NotificationRepository {
             return List.of();
         }
         return entityManager.createQuery(
-                "SELECT n FROM Notification n WHERE n.recipient.id = :userId AND n.status = 'UNREAD' ORDER BY n.created_at DESC",
+                "SELECT n FROM Notification n " +
+                        "LEFT JOIN FETCH n.recipient " +
+                        "LEFT JOIN FETCH n.sender " +
+                        "LEFT JOIN FETCH n.party " +
+                        "WHERE n.recipient.id = :userId AND n.status = 'UNREAD' ORDER BY n.created_at DESC",
                 Notification.class)
                 .setParameter("userId", userId)
                 .getResultList();
@@ -76,5 +87,37 @@ public class NotificationRepository {
 
     public void createNotification(Notification notification) {
         entityManager.persist(notification);
+        outOfAppNotificationService.sendNotification(notification);
+    }
+
+    public int deleteByPartyId(Long partyId) {
+        if (partyId == null) {
+            return 0;
+        }
+
+        return entityManager.createQuery(
+                        "DELETE FROM Notification n WHERE n.party.id = :partyId")
+                .setParameter("partyId", partyId)
+                .executeUpdate();
+    }
+
+    public int deleteInvitationNotifications(Long partyId, Long senderId, Long recipientId) {
+        if (partyId == null || senderId == null || recipientId == null) {
+            return 0;
+        }
+
+        return entityManager.createQuery(
+                        "DELETE FROM Notification n " +
+                                "WHERE n.party.id = :partyId " +
+                                "AND n.sender.id = :senderId " +
+                                "AND n.recipient.id = :recipientId " +
+                                "AND (LOWER(n.message) LIKE :englishInvite " +
+                                "OR LOWER(n.message) LIKE :legacyInvite)")
+                .setParameter("partyId", partyId)
+                .setParameter("senderId", senderId)
+                .setParameter("recipientId", recipientId)
+                .setParameter("englishInvite", "%invited you to the party%")
+                .setParameter("legacyInvite", "%eingeladen%")
+                .executeUpdate();
     }
 }

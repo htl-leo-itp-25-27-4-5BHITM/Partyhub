@@ -47,7 +47,10 @@ async function getAllParties() {
       ? `/api/parties?user=${encodeURIComponent(userId)}`
       : "/api/parties";
     const response = await fetch(url, {
-      headers: userId ? { "X-User-Id": String(userId) } : {}
+      cache: "no-store",
+      headers: userId
+        ? { "X-User-Id": String(userId), "Cache-Control": "no-cache" }
+        : { "Cache-Control": "no-cache" }
     });
     if (!response.ok) throw new Error("Network response was not ok");
     return await response.json();
@@ -59,7 +62,10 @@ async function getAllParties() {
 
 async function sortParties(sortKey) {
   try {
-    const response = await fetch(`/api/parties?sort=${sortKey}`);
+    const response = await fetch(`/api/parties?sort=${sortKey}`, {
+      cache: "no-store",
+      headers: { "Cache-Control": "no-cache" }
+    });
     if (!response.ok) throw new Error("Network response was not ok");
     return await response.json();
   } catch (error) {
@@ -72,8 +78,10 @@ async function filterParties(content) {
   const filterPayload = { value: content };
   try {
     const response = await fetch("/api/parties?q=" + encodeURIComponent(content), {
+      cache: "no-store",
       method: "POST",
       headers: {
+        "Cache-Control": "no-cache",
         "Content-Type": "application/json"
       },
       body: JSON.stringify(filterPayload)
@@ -86,9 +94,18 @@ async function filterParties(content) {
   }
 }
 
-async function getPartyById(partyId) {
+async function getPartyById(partyId, userId = getUserIdFromStorage()) {
   try {
-    const response = await fetch(`/api/parties/${partyId}`);
+    const hasUser = userId !== null && userId !== undefined && String(userId) !== "";
+    const url = hasUser
+      ? `/api/parties/${encodeURIComponent(partyId)}?user=${encodeURIComponent(userId)}`
+      : `/api/parties/${encodeURIComponent(partyId)}`;
+    const response = await fetch(url, {
+      cache: "no-store",
+      headers: hasUser
+        ? { "X-User-Id": String(userId), "Cache-Control": "no-cache" }
+        : { "Cache-Control": "no-cache" }
+    });
     if (!response.ok) throw new Error("Network response was not ok");
     return await response.json();
   } catch (error) {
@@ -271,12 +288,12 @@ async function deleteInvite(invitationId) {
 
     if (!response.ok) {
       if (response.status === 404) {
-        throw new Error("Einladung nicht gefunden");
+        throw new Error("Invitation not found");
       }
       if (response.status === 403) {
-        throw new Error("Nicht berechtigt");
+        throw new Error("Not authorized");
       }
-      throw new Error(`Fehler beim Löschen: ${response.status}`);
+      throw new Error(`Error while deleting: ${response.status}`);
     }
 
     return true;

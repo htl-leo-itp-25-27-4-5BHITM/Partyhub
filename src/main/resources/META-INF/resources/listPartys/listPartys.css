@@ -166,7 +166,7 @@
   font-family: var(--app-body-font);
 }
 
-/* einzelne Info-Blöcke */
+/* Individual info blocks */
 .party-date,
 .party-location,
 .party-attendees,
@@ -217,7 +217,7 @@
   opacity: 0.95;
 }
 
-/* Falls Linien/Trenner vorhanden */
+/* If dividers are present */
 .party-divider,
 .meta-divider {
   width: 1px;

@@ -7,6 +7,7 @@ CREATE TABLE IF NOT EXISTS users (
     display_name VARCHAR(255),
     distinct_name VARCHAR(255),
     email VARCHAR(255),
+    phone_number VARCHAR(50),
     biography VARCHAR(255)
 );
 

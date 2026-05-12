@@ -1,109 +1,85 @@
-@baseUrl = http://localhost:8080/api/parties
-@partyId = 11
+@host = http://localhost:8080
+@baseUrl = {{host}}/api/parties
+@anna = 1
+@michael = 2
+@thomas = 4
+@mia = 7
+@elias = 10
 
 ###########################################
-### 1. Create Party (Anna erstellt eine Party)
+### Seed: visible parties for Mia include public + joined/invited
 ###########################################
-POST {{baseUrl}}
-X-User-Id: 1
-Content-Type: application/json
-
-{
-  "title": "Test Party",
-  "description": "Party zum Testen",
-  "fee": 10.0,
-  "time_start": "2026-03-10T20:00:00",
-  "time_end": "2026-03-10T23:00:00",
-  "max_people": 50,
-  "website": "https://party.example.com",
-  "min_age": 18,
-  "max_age": 99,
-  "latitude": 48.2082,
-  "longitude": 16.3738,
-  "location_address": "Wien, Österreich",
-  "theme": "Test",
-  "visibility": "PUBLIC",
-  "selectedUsers": []
-}
-
-?? status == 201
-
-
-###########################################
-### 2. Get all parties (Header für Personalisierung)
-###########################################
-GET {{baseUrl}}
-X-User-Id: 1
+GET {{baseUrl}}?user={{mia}}
+X-User-Id: {{mia}}
 
 ?? status == 200
 
 
 ###########################################
-### 3. Get Party by ID
+### Seed: public party can be loaded without user
 ###########################################
 GET {{baseUrl}}/1
-X-User-Id: 1
 
 ?? status == 200
 
 
 ###########################################
-### 4. Update Party (Michael Wagner (2) bearbeitet Party 1)
+### Seed: private party is hidden without user context
 ###########################################
-PUT {{baseUrl}}/1
-X-User-Id: 2
-Content-Type: application/json
+GET {{baseUrl}}/4
 
-{
-  "title": "Updated Test Party",
-  "description": "Updated Description",
-  "fee": 15.0,
-  "time_start": "2026-03-11T20:00:00",
-  "time_end": "2026-03-11T23:00:00",
-  "max_people": 60,
-  "website": "https://party-updated.example.com",
-  "min_age": 18,
-  "max_age": 99,
-  "latitude": 48.2082,
-  "longitude": 16.3738,
-  "location_address": "Wien, Österreich",
-  "theme": "Updated",
-  "visibility": "PUBLIC",
-  "selectedUsers": []
-}
+?? status == 404
+
+
+###########################################
+### Seed: invited user can load private party 4
+###########################################
+GET {{baseUrl}}/4?user={{michael}}
+X-User-Id: {{michael}}
 
 ?? status == 200
 
 
 ###########################################
-### 7. Check if user can edit party
+### Seed: unrelated user cannot load private party 9
 ###########################################
-GET {{baseUrl}}/1/can-edit
-X-User-Id: 2
+GET {{baseUrl}}/9?user={{michael}}
+X-User-Id: {{michael}}
+
+?? status == 404
+
+
+###########################################
+### Search by title/description
+###########################################
+GET {{baseUrl}}?q=Hauptplatz
+X-User-Id: {{anna}}
 
 ?? status == 200
 
 
 ###########################################
-### 8. Media Upload
+### Filter by theme
 ###########################################
-POST {{baseUrl}}/2/media/upload
-X-User-Id: 3
-Content-Type: multipart/form-data; boundary=boundary
-
---boundary
-Content-Disposition: form-data; name="file"; filename="testing.jpg"
-Content-Type: image/jpeg
-
-< ./testing.jpg
---boundary--
+GET {{baseUrl}}?theme=Techno
+X-User-Id: {{anna}}
 
 ?? status == 200
 
+
 ###########################################
-### 11. Filter (Header oft nötig für Sichtbarkeit)
+### Filter by date range
 ###########################################
-GET {{baseUrl}}?q=Linz
-X-User-Id: 1
+GET {{baseUrl}}?date_from=2026-05-02T00:00:00&date_to=2026-05-04T23:59:59
+X-User-Id: {{anna}}
+
+?? status == 200
+
+
+###########################################
+### Sort by start date ascending
+###########################################
+GET {{baseUrl}}?sort=asc
+X-User-Id: {{anna}}
 
 ?? status == 200

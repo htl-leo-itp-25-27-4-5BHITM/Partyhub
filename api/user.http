@@ -1,171 +1,124 @@
-@searchName = anna
-@searchResultId = 1
+@host = http://localhost:8080
+@baseUrl = {{host}}/api/users
+@anna = 1
+@michael = 2
+@sabine = 5
 
 ###########################################
-### 1. Get all users
+### Seed: get all users from import.sql
 ###########################################
-GET http://localhost:8080/api/users
+GET {{baseUrl}}
 
 ?? status == 200
 
 
 ###########################################
-### 2. Search users by name
+### Search users by distinct name
 ###########################################
-# @name searchUsersByName
-GET http://localhost:8080/api/users?q={{searchName}}
+GET {{baseUrl}}?q=anna
 
 ?? status == 200
 
 
 ###########################################
-### 3. Get user by ID
+### Get user by ID
 ###########################################
-GET http://localhost:8080/api/users/{{searchResultId}}
+GET {{baseUrl}}/{{anna}}
 
 ?? status == 200
 
 
 ###########################################
-### 4. Get user by ID (alternative)
+### Get current user by query param
 ###########################################
-GET http://localhost:8080/api/users/1
+GET {{baseUrl}}/me?userId={{anna}}
 
 ?? status == 200
 
 
 ###########################################
-### 5. Get user by handle
+### Current user needs query param
 ###########################################
-GET http://localhost:8080/api/users/handle/anna_huber
+GET {{baseUrl}}/me
+
+?? status == 400
+
+
+###########################################
+### Follower count for Anna
+###########################################
+GET {{baseUrl}}/{{anna}}/followers/count
 
 ?? status == 200
 
 
 ###########################################
-### 6. Follower Count von User 1
+### Following count for Anna
 ###########################################
-GET http://localhost:8080/api/users/1/followers/count
+GET {{baseUrl}}/{{anna}}/following/count
 
 ?? status == 200
 
 
 ###########################################
-### 7. Following Count von User 3
+### Followers of Anna
 ###########################################
-GET http://localhost:8080/api/users/3/following/count
+GET {{baseUrl}}/{{anna}}/followers
 
 ?? status == 200
 
 
 ###########################################
-### 8. Get followers of user
+### Following of Anna
 ###########################################
-GET http://localhost:8080/api/users/1/followers
+GET {{baseUrl}}/{{anna}}/following
 
 ?? status == 200
 
 
 ###########################################
-### 9. Get following of user
+### Pending follow requests for Thomas
 ###########################################
-GET http://localhost:8080/api/users/2/following
+GET {{baseUrl}}/4/follow-requests
 
 ?? status == 200
 
 
 ###########################################
-### 10. Check if user1 is following user2
+### Follow status: Anna follows Michael in import.sql
 ###########################################
-GET http://localhost:8080/api/users/1/followers/2/status
+GET {{baseUrl}}/{{anna}}/followers/{{michael}}/status
 
 ?? status == 200
 
 
 ###########################################
-### 11. Remove follow
-### Note: Returns 404 if no relationship exists
+### Get user location from import.sql
 ###########################################
-DELETE http://localhost:8080/api/users/1/followers/7
-
-?? status == 404
-
-
-###########################################
-### 13. Get pending follow requests
-###########################################
-GET http://localhost:8080/api/users/1/follow-requests
+GET {{baseUrl}}/location/{{anna}}
 
 ?? status == 200
 
 
 ###########################################
-### 14. User anlegen
+### Profile picture binary/default image
 ###########################################
-POST http://localhost:8080/api/users
-Content-Type: application/json
-
-{
-  "displayName": "Max Mustermann",
-  "distinctName": "max_m",
-  "email": "max.mustermann@test.at",
-  "biography": "Neuer User"
-}
-
-?? status == 201
-
-
-###########################################
-### 15. Update user
-###########################################
-PUT http://localhost:8080/api/users/5
-Content-Type: application/json
-
-{
-  "id": 5,
-  "displayName": "Sabine Weber",
-  "distinctName": "sabine_w",
-  "email": "sabine.weber@wien.at",
-  "biography": "Immer auf der Suche nach neuen Events"
-}
+GET {{baseUrl}}/{{anna}}/profile-picture
 
 ?? status == 200
 
 
 ###########################################
-### 16. Get user location by user ID
+### Profile picture filename
 ###########################################
-GET http://localhost:8080/api/users/location/1
+GET {{baseUrl}}/{{anna}}/profile-picture-filename
 
 ?? status == 200
 
 
 ###########################################
-### 17. Update user location (uses X-User-Id header)
+### User media
 ###########################################
-PUT http://localhost:8080/api/users/location
-X-User-Id: 1
-Content-Type: application/json
-
-{
-  "latitude": 48.2082,
-  "longitude": 16.3738
-}
-
-?? status == 200
-
-
-###########################################
-### 18. Get user profile picture
-###########################################
-GET http://localhost:8080/api/users/1/profile-picture
-
-?? status == 200
-
-
-###########################################
-### 19. Get user media
-###########################################
-GET http://localhost:8080/api/users/1/media
+GET {{baseUrl}}/{{anna}}/media
 
 ?? status == 200

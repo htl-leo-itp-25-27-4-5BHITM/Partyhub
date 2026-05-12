@@ -1,17 +1,17 @@
-// Karte initialisieren (z.B. Linz)
+// Initialize map (e.g. Linz)
 const map = L.map("map").setView([48.3069, 14.2858], 13);
 
 // OpenStreetMap Layer
 L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
   maxZoom: 19,
-  attribution: '&copy; OpenStreetMap-Mitwirkende'
+  attribution: '&copy; OpenStreetMap contributors'
 }).addTo(map);
 
-// Marker setzen
+// Place marker
 const marker = L.marker([48.3069, 14.2858]).addTo(map);
-marker.bindPopup("Startpunkt").openPopup();
+marker.bindPopup("Starting point").openPopup();
 
-// Klick auf Karte → neuer Marker
+// Click on the map -> new marker
 map.on("click", (event) => {
   const lat = event.latlng.lat;
   const lng = event.latlng.lng;

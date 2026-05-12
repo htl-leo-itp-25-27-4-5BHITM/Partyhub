@@ -28,7 +28,10 @@ async function loadAllParties() {
             ? `/api/parties?user=${encodeURIComponent(currentUserId)}`
             : '/api/parties';
         const response = await fetch(url, {
-            headers: currentUserId ? { 'X-User-Id': String(currentUserId) } : {}
+            cache: 'no-store',
+            headers: currentUserId
+                ? { 'X-User-Id': String(currentUserId), 'Cache-Control': 'no-cache' }
+                : { 'Cache-Control': 'no-cache' }
         });
         if (!response.ok) {
             throw new Error(t('Partys konnten nicht geladen werden'));

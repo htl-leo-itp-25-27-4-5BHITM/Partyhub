@@ -1,22 +1,53 @@
-###
-GET http://localhost:8080/api/users/1/profile-picture
+@host = http://localhost:8080
+@baseUrl = {{host}}/api/users
+@anna = 1
+@michael = 2
+@sabine = 5
+@mia = 7
+
+############################################
+#### GET: Profile picture for Anna (Seed/Default)
+############################################
+GET {{baseUrl}}/{{anna}}/profile-picture
 
 ?? status == 200
 
-###
-GET http://localhost:8080/api/users/1/profile-picture-filename
+
+############################################
+#### GET: Profile picture for Sabine
+############################################
+GET {{baseUrl}}/{{sabine}}/profile-picture
 
 ?? status == 200
 
-###
-POST http://localhost:8080/api/users/5/upload-profile-picture
-Content-Type: multipart/form-data; boundary=WebAppBoundary
 
---WebAppBoundary
-Content-Disposition: form-data; name="file"; filename="testing.jpg"
-Content-Type: image/jpeg
-
-< testing.jpg
---WebAppBoundary--
+############################################
+#### GET: Profile picture for Mia
+############################################
+GET {{baseUrl}}/{{mia}}/profile-picture
 
 ?? status == 200
+
+
+############################################
+#### GET: Profile picture filename for Anna
+############################################
+GET {{baseUrl}}/{{anna}}/profile-picture-filename
+
+?? status == 200
+
+
+############################################
+#### GET: Profile picture filename for Mia
+############################################
+GET {{baseUrl}}/{{mia}}/profile-picture-filename
+
+?? status == 200
+
+
+############################################
+#### GET: Unknown user profile picture
+############################################
+GET {{baseUrl}}/99999/profile-picture
+
+?? status == 404

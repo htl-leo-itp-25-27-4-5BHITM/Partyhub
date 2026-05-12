@@ -31,6 +31,13 @@ class LocationManager: NSObject, CLLocationManagerDelegate {
         manager.requestAlwaysAuthorization()
     }
 
+    func ensureLocationUpdates() {
+        if manager.authorizationStatus == .authorizedAlways ||
+           manager.authorizationStatus == .authorizedWhenInUse {
+            manager.startUpdatingLocation()
+        }
+    }
+
     func registerGeofences(for parties: [Party]) {
         for region in manager.monitoredRegions {
             manager.stopMonitoring(for: region)

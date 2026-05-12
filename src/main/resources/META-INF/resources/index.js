@@ -149,7 +149,12 @@ document.addEventListener("DOMContentLoaded", async () => {
       const url = userId
         ? `/api/parties?user=${encodeURIComponent(userId)}`
         : "/api/parties";
-      const response = await fetch(url, { headers });
+      const response = await fetch(url, {
+        cache: "no-store",
+        headers: userId
+          ? { ...headers, "Cache-Control": "no-cache" }
+          : { "Cache-Control": "no-cache" }
+      });
       if (!response.ok) throw new Error("Failed to fetch parties");
       const parties = await response.json();
       
@@ -301,7 +306,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     if (latDirect !== null && lngDirect !== null)
       return { lat: latDirect, lng: lngDirect };
 
-    // In party.location (dein Fall)
+    // In party.location
     if (party.location && typeof party.location === "object") {
       const loc = party.location;
       const latLoc = toNumber(pick(loc, ["lat", "latitude", "Latitude", "y"]));
@@ -372,7 +377,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   }
 
   // ---------------------------
-  // Filter: nur nächste 14 Tage (robust + Logs)
+  // Filter: next 14 days only (robust + logs)
   // ---------------------------
 
   // parsePartyStart: handle ISO, numeric timestamp, and backend format "dd.MM.yyyy HH:mm"
@@ -442,7 +447,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   }
 
   // ---------------------------
-  // Parties laden + anzeigen
+  // Load and display parties
   // ---------------------------
   async function loadAllPartiesToMap() {
     const parties = window.backend?.getAllParties
@@ -452,7 +457,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     // Debug: show what we received
     console.debug("loadAllPartiesToMap: received parties:", parties);
     if (!Array.isArray(parties)) {
-      console.warn("Parties nicht als Array bekommen:", parties);
+      console.warn("Received parties are not an array:", parties);
       return;
     }
 
@@ -479,19 +484,19 @@ document.addEventListener("DOMContentLoaded", async () => {
       bounds.push([ll.lat, ll.lng]);
     }
 
-    // Zoom auf Marker (nur wenn es welche gibt)
+    // Zoom to markers when present
     if (bounds.length === 1) {
       map.setView(bounds[0], 14);
     } else if (bounds.length > 1) {
       map.fitBounds(bounds, { padding: [30, 30] });
     } else {
-      // keine Parties in den nächsten 2 Wochen -> Default View
+      // No parties in the next 2 weeks -> default view
       map.setView([48.3069, 14.2858], 8);
     }
   }
 
   // ---------------------------
-  // Geräte-Location anzeigen (optional) - from API
+  // Show device location (optional) - from API
   // ---------------------------
   let centeredOnce = false;
 
@@ -588,7 +593,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     setTimeout(async () => {
       await loadAllPartiesToMap();
-      // danach alle 24h
+      // then every 24h
       setInterval(loadAllPartiesToMap, 24 * 60 * 60 * 1000);
     }, ms);
   }

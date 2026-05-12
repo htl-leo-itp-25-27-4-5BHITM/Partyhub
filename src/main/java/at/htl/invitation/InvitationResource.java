@@ -3,6 +3,7 @@ package at.htl.invitation;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import jakarta.transaction.Transactional;
+import jakarta.validation.Valid;
 import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
@@ -17,7 +18,7 @@ public class InvitationResource {
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     @Transactional
-    public Response createInvitation(InvitationDto invitationDto,
+    public Response createInvitation(@Valid InvitationDto invitationDto,
                                       @QueryParam("user") Long userId,
                                       @HeaderParam("X-User-Id") Long headerUserId) {
         Long actualUserId = userId != null ? userId : headerUserId;

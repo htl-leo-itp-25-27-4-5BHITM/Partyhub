@@ -210,9 +210,9 @@ public class MediaRepository {
     java.nio.file.Path filePath = Paths.get("src/main/resources/uploads", url);
 
     if (!Files.exists(filePath)) {
-        logger.error("Datei nicht gefunden: " + filePath.toAbsolutePath());
+        logger.error("File not found: " + filePath.toAbsolutePath());
         return Response.status(Response.Status.NOT_FOUND)
-                .entity("Resource nicht gefunden: " + filePath)
+                .entity("Resource not found: " + filePath)
                 .type("text/plain")
                 .build();
     }

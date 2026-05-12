@@ -30,7 +30,10 @@ public class NotificationResource {
             @QueryParam("user") Long userId,
             @HeaderParam("X-User-Id") Long headerUserId) {
         Long actualUserId = userId != null ? userId : headerUserId;
-        List<Notification> notifications = notificationRepository.getNotificationsByUser(actualUserId);
+        List<NotificationDto> notifications = notificationRepository.getNotificationsByUser(actualUserId)
+                .stream()
+                .map(NotificationDto::from)
+                .toList();
         return Response.ok().entity(notifications).build();
     }
 
@@ -42,7 +45,10 @@ public class NotificationResource {
             @QueryParam("user") Long userId,
             @HeaderParam("X-User-Id") Long headerUserId) {
         Long actualUserId = userId != null ? userId : headerUserId;
-        List<Notification> notifications = notificationRepository.getUnreadNotifications(actualUserId);
+        List<NotificationDto> notifications = notificationRepository.getUnreadNotifications(actualUserId)
+                .stream()
+                .map(NotificationDto::from)
+                .toList();
         return Response.ok().entity(notifications).build();
     }
 

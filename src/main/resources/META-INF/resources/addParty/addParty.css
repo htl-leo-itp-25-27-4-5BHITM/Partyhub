@@ -309,16 +309,15 @@ body {
   flex-direction: column;
   gap: 12px;
 }
-/* Markiert das Feld rot bei Fehlern */
+/* Marks invalid fields in red */
 .input-error {
   background-color: #ff220060 !important;
   transition: all 0.3s ease;
 }
 
-/* Optional: Verhindert, dass der User in Step 2 hängen bleibt,
-   wenn keine User geladen werden konnten */
+/* Keeps step 2 usable when no users could be loaded */
 .user-list:empty::after {
-  content: "Keine Teilnehmer gefunden.";
+  content: "No participants found.";
   color: #888;
   font-size: 0.9rem;
 }
