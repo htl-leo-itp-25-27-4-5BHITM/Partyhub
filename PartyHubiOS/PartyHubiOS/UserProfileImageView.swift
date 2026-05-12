@@ -32,7 +32,7 @@ struct UserProfileImageView: View {
                 Image(systemName: "person.circle.fill")
                     .resizable()
                     .scaledToFit()
-                    .foregroundStyle(.gray)
+                    .foregroundStyle(.white)
                     .padding(size * 0.2)
             }
         }
@@ -41,7 +41,7 @@ struct UserProfileImageView: View {
             Circle()
                 .stroke(
                     showBorder ? Color("primary pink") : Color.clear,
-                    lineWidth: showBorder ? 2 : 0
+                    lineWidth: showBorder ? 1 : 0
                 )
         )
         .task {
