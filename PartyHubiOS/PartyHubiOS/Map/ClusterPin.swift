@@ -2,6 +2,7 @@ import Foundation
 import SwiftUI
 import MapKit
 
+// MARK: - Party Cluster Pin
 struct PartyClusterPin: View {
     let parties: [Party]
     let isHostedByFriend: Bool
@@ -63,27 +64,47 @@ struct PartyClusterPin: View {
     }
 }
 
+// MARK: - Attendee Cluster Pin
 struct AttendeeClusterPin: View {
     let count: Int
     
-    private var clusterColor: Color {
+    private var badgeColor: Color {
         Color("primary pink")
     }
     
     var body: some View {
         ZStack {
+            // Hintergrund des Pins: Jetzt in Grau
             Circle()
-                .fill(clusterColor.opacity(0.2))
-                .frame(width: 60, height: 60)
-            
-            Circle()
-                .fill(clusterColor)
+                .fill(Color.gray)
                 .frame(width: 50, height: 50)
-                .shadow(color: clusterColor.opacity(0.5), radius: 8)
+                .shadow(color: .black.opacity(0.2), radius: 4)
             
-            Text("\(count)")
-                .font(.system(size: 20, weight: .bold))
+            // Das Icon: Jetzt in Weiß (umgekehrt)
+            Image(systemName: "person.2.fill")
+                .font(.system(size: 20, weight: .semibold))
                 .foregroundStyle(.white)
+
+            // Das Badge: Bleibt Pink mit weißer Zahl
+            VStack {
+                HStack {
+                    Spacer()
+                    Text("\(count)")
+                        .font(.system(size: 11, weight: .bold))
+                        .foregroundStyle(.white)
+                        .padding(.horizontal, 6)
+                        .padding(.vertical, 3)
+                        .background(badgeColor)
+                        .clipShape(Capsule())
+                        .overlay(
+                            Capsule()
+                                .stroke(.white, lineWidth: 1)
+                        )
+                        .offset(x: 8, y: -8)
+                }
+                Spacer()
+            }
+            .frame(width: 50, height: 50)
         }
     }
 }
