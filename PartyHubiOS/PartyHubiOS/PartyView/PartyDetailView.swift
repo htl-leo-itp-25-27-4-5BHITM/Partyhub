@@ -106,7 +106,7 @@ struct PartyDetailView: View {
                 resolvedAddress: $resolvedAddress
             )
 
-            Section("Teilnehmer Map") {
+            Section("Teilnehmer") {
                 NavigationLink {
                     PartyAttendeeMapView(
                         party: party,
@@ -114,6 +114,12 @@ struct PartyDetailView: View {
                     )
                 } label: {
                     Label("Teilnehmer auf Karte anzeigen", systemImage: "person.2.fill")
+                }
+                
+                NavigationLink {
+                    UserLocationListView(parties: [party])
+                } label: {
+                    Label("Teilnehmerliste", systemImage: "list.bullet")
                 }
             }
             

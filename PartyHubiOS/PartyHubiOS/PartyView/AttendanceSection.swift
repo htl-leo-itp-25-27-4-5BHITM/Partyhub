@@ -28,5 +28,6 @@ struct AttendanceSection: View {
             return "\(minutes)m"
         }
     }
+    
 }
 
