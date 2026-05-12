@@ -58,7 +58,7 @@ INSERT INTO profile_picture (id, picture_name, user_id) VALUES
 -- USER LOCATION
 -- =========================
 INSERT INTO user_location (id, user_id, longitude, latitude) VALUES
-    (1, 1, 14.2862, 48.3064),
+    (1, 1, 14.251920, 48.268335),
     (2, 2, 14.3014, 48.3141),
     (3, 3, 14.2849, 48.3008),
     (4, 4, 14.2708, 48.3060),
@@ -138,7 +138,7 @@ INSERT INTO party_user (party_id, user_id) VALUES
     (8, 3), (8, 6), (8, 10),
     (9, 5), (9, 7),
     (10, 1), (10, 2), (10, 4), (10, 6),
-    (11, 1), (11, 2), (11, 3), (11, 4), (11, 5), (11, 6),
+    (11, 2), (11, 3), (11, 4), (11, 5), (11, 6),
     (12, 1), (12, 3);
 
 -- =========================
@@ -160,9 +160,11 @@ INSERT INTO invitation (id, sender_id, recipient_id, party_id, status) VALUES
     (2, 4, 8, 4, 'PENDING'),
     (3, 9, 1, 9, 'PENDING'),
     (4, 9, 3, 9, 'PENDING'),
-    (5, 1, 4, 11, 'ACCEPTED'),
-    (6, 1, 5, 11, 'ACCEPTED'),
-    (7, 1, 6, 11, 'ACCEPTED');
+    (5, 1, 2, 11, 'ACCEPTED'),
+    (6, 1, 3, 11, 'ACCEPTED'),
+    (7, 1, 4, 11, 'ACCEPTED'),
+    (8, 1, 5, 11, 'ACCEPTED'),
+    (9, 1, 6, 11, 'ACCEPTED');
 
 -- =========================
 -- NOTIFICATIONS

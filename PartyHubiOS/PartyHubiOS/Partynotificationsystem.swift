@@ -393,7 +393,20 @@ class PartyUpdateService: ObservableObject {
         request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
         
         do {
-            let (data, _) = try await URLSession.shared.data(for: request)
+            let (data, response) = try await URLSession.shared.data(for: request)
+            
+            // Check HTTP status
+            if let httpResponse = response as? HTTPURLResponse, httpResponse.statusCode != 200 {
+                print("⚠️ Attendees endpoint returned status \(httpResponse.statusCode)")
+                return false
+            }
+            
+            // Skip empty responses
+            if data.isEmpty {
+                print("⚠️ Attendees endpoint returned empty data")
+                return false
+            }
+            
             let attendees = try JSONDecoder().decode([Attendee].self, from: data)
             return attendees.contains { $0.userId == userId }
         } catch {

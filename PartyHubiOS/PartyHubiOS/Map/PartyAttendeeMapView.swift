@@ -11,13 +11,15 @@ private struct AttendeeMapItem: Identifiable, Clusterable {
     let displayName: String?
     let sourceUserLocation: UserLocation?
 
-    init(id: UUID = UUID(),
-         coordinate: CLLocationCoordinate2D,
-         isSelf: Bool,
-         userId: Int64?,
-         isAtParty: Bool,
-         displayName: String?,
-         sourceUserLocation: UserLocation? = nil) {
+    init(
+        id: UUID = UUID(),
+        coordinate: CLLocationCoordinate2D,
+        isSelf: Bool,
+        userId: Int64?,
+        isAtParty: Bool,
+        displayName: String?,
+        sourceUserLocation: UserLocation? = nil
+    ) {
         self.id = id
         self.coordinate = coordinate
         self.isSelf = isSelf
@@ -29,180 +31,328 @@ private struct AttendeeMapItem: Identifiable, Clusterable {
 }
 
 struct PartyAttendeeMapView: View {
+
     let party: Party
     let locationManager: LocationManager
 
     @State private var viewModel = UserLocationViewModel()
+
     @State private var position: MapCameraPosition
     @State private var hasAppliedInitialRegion = false
     @State private var shouldPreserveUserCamera = false
     @State private var currentRegion: MKCoordinateRegion
+
     @State private var mapViewSize: CGSize = .zero
     @State private var attendeeClusters: [Cluster<AttendeeMapItem>] = []
+
     @State private var activeFilter: AttendeeFilter = .all
     @State private var showFilterSheet = false
 
-    // User-Daten
-    @State private var acceptedUserIds: Set<Int> = []
-    @State private var pendingUserIds: Set<Int> = []
+    @State private var invitedUserIds: Set<Int> = []
     @State private var friendUserIds: Set<Int> = []
+    @State private var currentUserAttendeeLocation: UserLocation? = nil
 
-    private let currentUserId: Int = 1 // Default User
+    private let currentUserId: Int = 1
     private let clusteringEngine = MapClusteringEngine()
 
-    init(party: Party, locationManager: LocationManager) {
+    init(
+        party: Party,
+        locationManager: LocationManager
+    ) {
+
         self.party = party
         self.locationManager = locationManager
+
         let initialRegion = MKCoordinateRegion(
             center: party.coordinate,
             latitudinalMeters: max(party.radiusMeters * 6, 600),
             longitudinalMeters: max(party.radiusMeters * 6, 600)
         )
+
         _position = State(initialValue: .region(initialRegion))
         _currentRegion = State(initialValue: initialRegion)
     }
 
-    // MARK: - Data Loading
+    // MARK: - Visible Filters
+
+    private var visibleFilters: [AttendeeFilter] {
+        [
+            .all,
+            .atParty,
+            .invited,
+            .friends
+        ]
+    }
+
+    // MARK: - Load Data
 
     private func loadData() {
         loadInvitations()
         loadFriends()
+        refreshCurrentUserAttendeeLocation()
+    }
+
+    private func refreshCurrentUserAttendeeLocation() {
+        currentUserAttendeeLocation = currentUserLocationIfAtParty()
+    }
+
+    private func isCurrentUserAtParty() -> Bool {
+        guard let currentLocation = locationManager.currentLocation else { return false }
+
+        let userLocation = CLLocation(
+            latitude: currentLocation.latitude,
+            longitude: currentLocation.longitude
+        )
+        let partyLocation = CLLocation(
+            latitude: party.latitude,
+            longitude: party.longitude
+        )
+
+        return userLocation.distance(from: partyLocation) <= party.radiusMeters
+    }
+
+    private func shouldShowCurrentUser() -> Bool {
+        party.hostUserId == Int64(currentUserId) || isCurrentUserAtParty()
+    }
+
+    private func currentUserLocationIfAtParty() -> UserLocation? {
+        // Get current location from GPS
+        guard let currentLocation = locationManager.currentLocation else {
+            // Fallback to party location if host
+            let isHost = party.hostUserId == 1
+            if isHost {
+                return UserLocation(
+                    latitude: party.latitude,
+                    longitude: party.longitude,
+                    user: .init(
+                        id: Int64(currentUserId),
+                        displayName: "Du",
+                        distinctName: "Du"
+                    )
+                )
+            }
+            return nil
+        }
+        
+        // Always show current user with their GPS location if available
+        return UserLocation(
+            latitude: currentLocation.latitude,
+            longitude: currentLocation.longitude,
+            user: .init(
+                id: Int64(currentUserId),
+                displayName: "Du",
+                distinctName: "Du"
+            )
+        )
+    }
+
+    private func attendeeLocationsIncludingCurrentUserIfNeeded() -> [UserLocation] {
+        var locations = viewModel.locations
+
+        // Remove current user from backend locations if present
+        locations.removeAll { Int($0.user?.id ?? 0) == currentUserId }
+
+        guard let currentUserLocation = currentUserAttendeeLocation else {
+            return locations
+        }
+
+        // Always add current user with their actual GPS location from device
+        locations.append(currentUserLocation)
+
+        return locations
     }
 
     private func loadInvitations() {
-        guard let url = URL(string: "\(Config.backendURL)/api/invitations?direction=received&party=\(party.backendId)") else { return }
+
+        guard let url = URL(
+            string: "\(Config.backendURL)/api/parties/\(party.backendId)/invited-members"
+        ) else { return }
 
         struct InvitationResponse: Decodable {
-            let recipientId: Int?
-            let status: String?
-            enum CodingKeys: String, CodingKey {
-                case recipientId = "recipient_id"
-                case status
-            }
+
+            let userId: Int?
         }
 
         URLSession.shared.dataTask(with: url) { data, _, _ in
+
             guard let data = data else { return }
+
             if let invitations = try? JSONDecoder().decode([InvitationResponse].self, from: data) {
+
                 DispatchQueue.main.async {
-                    acceptedUserIds = Set(invitations.filter { $0.status?.uppercased() == "ACCEPTED" }.compactMap { $0.recipientId })
-                    pendingUserIds = Set(invitations.filter { $0.status?.uppercased() == "PENDING" }.compactMap { $0.recipientId })
+
+                    invitedUserIds = Set(
+                        invitations.compactMap { $0.userId }
+                    )
                 }
             }
+
         }.resume()
     }
 
     private func loadFriends() {
-        guard let url = URL(string: "\(Config.backendURL)/api/users/\(currentUserId)/following") else { return }
+
+        guard let url = URL(
+            string: "\(Config.backendURL)/api/users/\(currentUserId)/following"
+        ) else { return }
 
         struct FollowResponse: Decodable {
             let id: Int
         }
 
         URLSession.shared.dataTask(with: url) { data, _, _ in
+
             guard let data = data else { return }
+
             if let users = try? JSONDecoder().decode([FollowResponse].self, from: data) {
+
                 DispatchQueue.main.async {
+
                     friendUserIds = Set(users.map { $0.id })
                 }
             }
+
         }.resume()
     }
 
     // MARK: - Filter Logic
 
     private func filteredLocations() -> [UserLocation] {
+
+        var allLocations = attendeeLocationsIncludingCurrentUserIfNeeded()
+        
+        // Ensure current user is always included if they should be shown
+        if let currentUserLocation = currentUserAttendeeLocation,
+           !allLocations.contains(where: { Int($0.user?.id ?? 0) == currentUserId }) {
+            allLocations.append(currentUserLocation)
+        }
+
         switch activeFilter {
+
         case .all:
-            return viewModel.locations
+
+            return allLocations
+
         case .atParty:
-            return viewModel.locations.filter { $0.isInsideParty(party) }
+
+            return allLocations.filter {
+                $0.isInsideParty(party)
+            }
+
         case .invited:
-            return viewModel.locations.filter { location in
-                guard let userId = location.user?.id else { return false }
-                return acceptedUserIds.contains(Int(userId)) || pendingUserIds.contains(Int(userId))
+
+            return allLocations.filter { location in
+
+                if Int(location.user?.id ?? 0) == currentUserId {
+                    // Show current user if they have a location
+                    return currentUserAttendeeLocation != nil
+                }
+
+                guard let userId = location.user?.id else {
+                    return false
+                }
+
+                // Invited but NOT friends - to avoid overlap
+                return invitedUserIds.contains(Int(userId)) && !friendUserIds.contains(Int(userId))
             }
-        case .accepted:
-            return viewModel.locations.filter { location in
-                guard let userId = location.user?.id else { return false }
-                return acceptedUserIds.contains(Int(userId))
-            }
-        case .pending:
-            return viewModel.locations.filter { location in
-                guard let userId = location.user?.id else { return false }
-                return pendingUserIds.contains(Int(userId))
-            }
+
         case .friends:
-            return viewModel.locations.filter { location in
-                guard let userId = location.user?.id else { return false }
+
+            return allLocations.filter { location in
+
+                guard let userId = location.user?.id else {
+                    return false
+                }
+
                 return friendUserIds.contains(Int(userId))
             }
+
+        case .accepted, .pending:
+
+            return []
         }
     }
 
     private func countFor(_ filter: AttendeeFilter) -> Int {
+
         switch filter {
+
         case .all:
-            return viewModel.locations.count
+
+            return attendeeLocationsIncludingCurrentUserIfNeeded().count
+
         case .atParty:
-            return viewModel.locations.filter { $0.isInsideParty(party) }.count
+
+            return attendeeLocationsIncludingCurrentUserIfNeeded().filter {
+                $0.isInsideParty(party)
+            }.count
+
         case .invited:
-            return viewModel.locations.filter { location in
-                guard let userId = location.user?.id else { return false }
-                return acceptedUserIds.contains(Int(userId)) || pendingUserIds.contains(Int(userId))
+
+            return attendeeLocationsIncludingCurrentUserIfNeeded().filter { location in
+
+                if Int(location.user?.id ?? 0) == currentUserId {
+                    return currentUserAttendeeLocation != nil
+                }
+
+                guard let userId = location.user?.id else {
+                    return false
+                }
+
+                // Invited but NOT friends - to avoid overlap
+                return invitedUserIds.contains(Int(userId)) && !friendUserIds.contains(Int(userId))
+
             }.count
-        case .accepted:
-            return viewModel.locations.filter { location in
-                guard let userId = location.user?.id else { return false }
-                return acceptedUserIds.contains(Int(userId))
-            }.count
-        case .pending:
-            return viewModel.locations.filter { location in
-                guard let userId = location.user?.id else { return false }
-                return pendingUserIds.contains(Int(userId))
-            }.count
+
         case .friends:
+
             return viewModel.locations.filter { location in
-                guard let userId = location.user?.id else { return false }
+
+                guard let userId = location.user?.id else {
+                    return false
+                }
+
                 return friendUserIds.contains(Int(userId))
+
             }.count
+
+        case .accepted, .pending:
+
+            return 0
         }
     }
 
     // MARK: - Map Logic
 
     private func buildAttendeeItems() -> [AttendeeMapItem] {
+
         var items: [AttendeeMapItem] = []
 
         for userLocation in filteredLocations() {
-            if let userId = userLocation.user?.id, Int(userId) == currentUserId {
-                continue
-            }
-            items.append(AttendeeMapItem(
-                coordinate: userLocation.coordinate,
-                isSelf: false,
-                userId: userLocation.user?.id,
-                isAtParty: userLocation.isInsideParty(party),
-                displayName: userLocation.user?.displayName ?? userLocation.user?.distinctName,
-                sourceUserLocation: userLocation
-            ))
-        }
 
-        if let selfCoord = locationManager.currentLocation {
-            items.append(AttendeeMapItem(
-                coordinate: selfCoord,
-                isSelf: true,
-                userId: Int64(currentUserId),
-                isAtParty: locationManager.isAtParty,
-                displayName: "Du"
-            ))
+            items.append(
+                AttendeeMapItem(
+                    coordinate: userLocation.coordinate,
+                    isSelf: Int(userLocation.user?.id ?? 0) == currentUserId,
+                    userId: userLocation.user?.id,
+                    isAtParty: userLocation.isInsideParty(party),
+                    displayName: userLocation.user?.displayName
+                        ?? userLocation.user?.distinctName,
+                    sourceUserLocation: userLocation
+                )
+            )
         }
 
         return items
     }
 
     private func recomputeAttendeeClusters() {
-        guard mapViewSize.width > 0, mapViewSize.height > 0 else { return }
+
+        guard mapViewSize.width > 0,
+              mapViewSize.height > 0 else {
+            return
+        }
+
         attendeeClusters = clusteringEngine.computeClusters(
             items: buildAttendeeItems(),
             for: currentRegion,
@@ -210,34 +360,72 @@ struct PartyAttendeeMapView: View {
         )
     }
 
-    private func zoomToFit<T: Clusterable>(cluster: Cluster<T>) {
-        let coordinates = cluster.items.map { $0.coordinate }
-        if let fitRegion = MKCoordinateRegion.fitting(coordinates: coordinates) {
-            withAnimation { position = .region(fitRegion) }
+    private func zoomToFit<T: Clusterable>(
+        cluster: Cluster<T>
+    ) {
+
+        let coordinates = cluster.items.map {
+            $0.coordinate
+        }
+
+        if let fitRegion = MKCoordinateRegion.fitting(
+            coordinates: coordinates
+        ) {
+
+            withAnimation {
+                position = .region(fitRegion)
+            }
         }
     }
 
     // MARK: - Body
 
     var body: some View {
+
         GeometryReader { geo in
+
             Map(position: $position) {
-                Annotation(party.name, coordinate: party.coordinate) {
+
+                Annotation(
+                    party.name,
+                    coordinate: party.coordinate
+                ) {
+
                     PartyPin(isActive: party.isActive)
                 }
+
                 ForEach(attendeeClusters, id: \.id) { cluster in
-                    if cluster.items.count == 1, let item = cluster.items.first {
-                        Annotation(item.displayName ?? "User", coordinate: cluster.coordinate) {
+
+                    if cluster.items.count == 1,
+                       let item = cluster.items.first {
+
+                        Annotation(
+                            item.displayName ?? "User",
+                            coordinate: cluster.coordinate
+                        ) {
+
                             AttendeePin(
                                 isAtParty: item.isAtParty,
                                 isSelf: item.isSelf,
-                                userId: item.userId != nil ? Int(item.userId!) : nil
+                                userId: item.userId != nil
+                                    ? Int(item.userId!)
+                                    : nil
                             )
                         }
+
                     } else {
-                        Annotation("\(cluster.items.count) Teilnehmer", coordinate: cluster.coordinate) {
-                            AttendeeClusterPin(count: cluster.items.count)
-                                .onTapGesture { zoomToFit(cluster: cluster) }
+
+                        Annotation(
+                            "\(cluster.items.count) Teilnehmer",
+                            coordinate: cluster.coordinate
+                        ) {
+
+                            AttendeeClusterPin(
+                                count: cluster.items.count
+                            )
+                            .onTapGesture {
+                                zoomToFit(cluster: cluster)
+                            }
                         }
                     }
                 }
@@ -245,16 +433,33 @@ struct PartyAttendeeMapView: View {
             .ignoresSafeArea()
             .navigationTitle("Teilnehmer-Karte")
             .navigationBarTitleDisplayMode(.inline)
+
             .toolbar {
-                ToolbarItem(placement: .navigationBarTrailing) {
+
+                ToolbarItem(
+                    placement: .navigationBarTrailing
+                ) {
+
                     Button {
+
                         showFilterSheet = true
+
                     } label: {
+
                         ZStack(alignment: .topTrailing) {
-                            Image(systemName: "line.3.horizontal.decrease.circle.fill")
-                                .font(.title3)
-                                .foregroundStyle(activeFilter == .all ? .secondary : Color("primary pink"))
+
+                            Image(
+                                systemName: "line.3.horizontal.decrease.circle.fill"
+                            )
+                            .font(.title3)
+                            .foregroundStyle(
+                                activeFilter == .all
+                                    ? .secondary
+                                    : Color("primary pink")
+                            )
+
                             if activeFilter != .all {
+
                                 Circle()
                                     .fill(.red)
                                     .frame(width: 8, height: 8)
@@ -264,51 +469,121 @@ struct PartyAttendeeMapView: View {
                     }
                 }
             }
+
             .onAppear {
+
                 mapViewSize = geo.size
+
                 locationManager.requestPermission()
-                viewModel.coordinateProvider = { locationManager.currentLocation }
-                viewModel.startPolling(partyId: Int64(party.backendId))
-                if let userId = UserDefaults.standard.object(forKey: "currentUserId") as? Int64 {
-                    viewModel.startUploading(userId: userId)
+                locationManager.ensureLocationUpdates()
+
+                viewModel.coordinateProvider = {
+                    locationManager.currentLocation
                 }
+
+                viewModel.startPolling(
+                    partyId: Int64(party.backendId)
+                )
+
+                if let userId = UserDefaults.standard.object(
+                    forKey: "currentUserId"
+                ) as? Int64 {
+
+                    viewModel.startUploading(
+                        userId: userId
+                    )
+                }
+
                 loadData()
             }
-            .onChange(of: geo.size) { _, newSize in mapViewSize = newSize }
+
+            .onChange(of: geo.size) { _, newSize in
+                mapViewSize = newSize
+            }
+
             .onMapCameraChange(frequency: .onEnd) { context in
+
                 currentRegion = context.region
                 shouldPreserveUserCamera = true
             }
-            .onChange(of: currentRegion) { _, _ in recomputeAttendeeClusters() }
-            .onChange(of: activeFilter) { _, _ in recomputeAttendeeClusters() }
-            .onChange(of: acceptedUserIds) { _, _ in recomputeAttendeeClusters() }
-            .onChange(of: pendingUserIds) { _, _ in recomputeAttendeeClusters() }
-            .onChange(of: friendUserIds) { _, _ in recomputeAttendeeClusters() }
-            .onChange(of: locationManager.currentLocation) { _, _ in
-                viewModel.coordinateProvider = { locationManager.currentLocation }
+
+            .onChange(of: currentRegion) { _, _ in
                 recomputeAttendeeClusters()
             }
-            .onChange(of: viewModel.locations.count) { _, _ in recomputeAttendeeClusters() }
+
+            .onChange(of: activeFilter) { _, _ in
+                recomputeAttendeeClusters()
+            }
+
+            .onChange(of: invitedUserIds) { _, _ in
+                recomputeAttendeeClusters()
+            }
+
+            .onChange(of: friendUserIds) { _, _ in
+                recomputeAttendeeClusters()
+            }
+
+            .onChange(of: locationManager.currentLocation) { _, _ in
+
+                viewModel.coordinateProvider = {
+                    locationManager.currentLocation
+                }
+
+                refreshCurrentUserAttendeeLocation()
+
+                recomputeAttendeeClusters()
+            }
+
+            .onChange(of: viewModel.locations.count) { _, _ in
+                recomputeAttendeeClusters()
+            }
+
             .onDisappear {
+
                 viewModel.stopPolling()
                 viewModel.stopUploading()
             }
+
             .sheet(isPresented: $showFilterSheet) {
+
                 NavigationStack {
+
                     List {
+
                         Section("Anzeigen") {
-                            ForEach(AttendeeFilter.allCases, id: \.self) { filter in
+
+                            ForEach(
+                                visibleFilters,
+                                id: \.self
+                            ) { filter in
+
                                 Button {
-                                    withAnimation { activeFilter = filter }
+
+                                    withAnimation {
+                                        activeFilter = filter
+                                    }
+
                                     showFilterSheet = false
+
                                 } label: {
+
                                     HStack(spacing: 12) {
-                                        Image(systemName: filter.systemImage)
-                                            .frame(width: 28)
-                                            .foregroundStyle(activeFilter == filter ? Color("primary pink") : .primary)
+
+                                        Image(
+                                            systemName: filter.systemImage
+                                        )
+                                        .frame(width: 28)
+                                        .foregroundStyle(
+                                            activeFilter == filter
+                                                ? Color("primary pink")
+                                                : .primary
+                                        )
+
                                         Text(filter.rawValue)
                                             .foregroundStyle(.primary)
+
                                         Spacer()
+
                                         Text("\(countFor(filter))")
                                             .font(.caption)
                                             .fontWeight(.semibold)
@@ -316,9 +591,13 @@ struct PartyAttendeeMapView: View {
                                             .padding(.vertical, 3)
                                             .background(Color(.systemGray5))
                                             .clipShape(Capsule())
+
                                         if activeFilter == filter {
+
                                             Image(systemName: "checkmark")
-                                                .foregroundStyle(Color("primary pink"))
+                                                .foregroundStyle(
+                                                    Color("primary pink")
+                                                )
                                                 .fontWeight(.semibold)
                                         }
                                     }
@@ -328,9 +607,16 @@ struct PartyAttendeeMapView: View {
                     }
                     .navigationTitle("Filtern")
                     .navigationBarTitleDisplayMode(.inline)
+
                     .toolbar {
-                        ToolbarItem(placement: .cancellationAction) {
-                            Button("Abbrechen") { showFilterSheet = false }
+
+                        ToolbarItem(
+                            placement: .cancellationAction
+                        ) {
+
+                            Button("Abbrechen") {
+                                showFilterSheet = false
+                            }
                         }
                     }
                 }

@@ -9,3 +9,6 @@ enum Config {
         return "https://it220274.cloud.htl-leonding.ac.at"
     }()
 }
+//http://localhost:8080
+//https://it220274.cloud.htl-leonding.ac.at
+ 

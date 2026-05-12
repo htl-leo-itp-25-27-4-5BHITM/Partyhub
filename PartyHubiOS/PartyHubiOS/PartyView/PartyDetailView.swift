@@ -8,6 +8,7 @@ struct PartyDetailView: View {
     @Bindable var party: Party
     @Environment(LocationManager.self) private var locationManager
     @Environment(\.modelContext) private var modelContext
+    @EnvironmentObject private var authManager: AuthManager
     @State private var now = Date()
     let timer = Timer.publish(every: 1, on: .main, in: .common).autoconnect()
     
@@ -47,7 +48,7 @@ struct PartyDetailView: View {
     
     // MARK: - Owner Check
     private var currentUserId: Int64? {
-        UserDefaults.standard.object(forKey: "currentUserId") as? Int64
+        authManager.userId.map { Int64($0) }
     }
     
     private var isOwner: Bool {
@@ -357,13 +358,7 @@ struct PartyDetailView: View {
         }
         
         func becomeOwner() {
-            guard let hostId = party.hostUserId else {
-                print("❌ Party hat keine hostUserId")
-                return
-            }
-            
-            UserDefaults.standard.set(hostId, forKey: "currentUserId")
-            print("✅ User ID gesetzt auf: \(hostId) (Owner)")
+            print("ℹ️ becomeOwner() is deprecated - user authentication is handled by AuthManager")
         }
 #endif
         
