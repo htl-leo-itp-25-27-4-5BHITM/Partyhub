@@ -5,6 +5,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   const i18n = {
     de: {
+      pageTitle: "PartyHub - Homepage",
       heroTitle: "Finde deine nächste Party",
       heroSubtitle: "Wähle ein Event aus und entdecke die Teilnehmer direkt auf der Karte.",
       partySelectLabel: "Party auswählen",
@@ -14,9 +15,16 @@ document.addEventListener("DOMContentLoaded", async () => {
       toggleLabel: "EN",
       detailsTitle: "Details öffnen",
       detailsAria: "Partydetails öffnen",
+      bottomNavAria: "Untere Navigation",
+      homeAria: "Startseite",
+      partiesAria: "Partys",
+      notificationsAria: "Benachrichtigungen",
+      profileAria: "Profil",
+      currentLocationPopup: "Du bist hier (HTL Leonding)",
       userFallback: "Nutzer",
     },
     en: {
+      pageTitle: "PartyHub - Homepage",
       heroTitle: "Find your next party",
       heroSubtitle: "Select an event and discover attendees directly on the map.",
       partySelectLabel: "Select party",
@@ -26,6 +34,12 @@ document.addEventListener("DOMContentLoaded", async () => {
       toggleLabel: "DE",
       detailsTitle: "Open details",
       detailsAria: "Open party details",
+      bottomNavAria: "Bottom navigation",
+      homeAria: "Home",
+      partiesAria: "Parties",
+      notificationsAria: "Notifications",
+      profileAria: "Profile",
+      currentLocationPopup: "You are here (HTL Leonding)",
       userFallback: "User",
     },
   };
@@ -46,12 +60,26 @@ document.addEventListener("DOMContentLoaded", async () => {
     const mapTitle = document.querySelector(".section-title");
     const attendeesChip = document.getElementById("attendeesChip");
     const select = document.getElementById("partySelect");
+    const bottomNav = document.querySelector(".bottom-nav");
+    const navLinks = {
+      homeAria: document.querySelector('.bottom-nav a[href="/index.html"]'),
+      partiesAria: document.querySelector('.bottom-nav a[href="/listPartys/listPartys.html"]'),
+      notificationsAria: document.querySelector('.bottom-nav a[href="/notifications/notifications.html"]'),
+      profileAria: document.querySelector('.bottom-nav a[href="/profile/profile.html"]'),
+    };
 
+    document.documentElement.lang = currentLanguage;
+    document.title = t("pageTitle");
     if (heroTitle) heroTitle.textContent = t("heroTitle");
     if (heroSubtitle) heroSubtitle.textContent = t("heroSubtitle");
     if (selectLabel) selectLabel.textContent = t("partySelectLabel");
     if (mapTitle) mapTitle.textContent = t("mapTitle");
     if (attendeesChip) attendeesChip.textContent = t("attendeesChip");
+    if (bottomNav) bottomNav.setAttribute("aria-label", t("bottomNavAria"));
+
+    Object.entries(navLinks).forEach(([key, link]) => {
+      if (link) link.setAttribute("aria-label", t(key));
+    });
 
     if (select && select.options.length > 0 && select.options[0].value === "") {
       select.options[0].textContent = t("partySelectPlaceholder");
@@ -71,7 +99,9 @@ document.addEventListener("DOMContentLoaded", async () => {
       currentLanguage = currentLanguage === "de" ? "en" : "de";
       localStorage.setItem("partyhub.language", currentLanguage);
       applyLanguage();
+      window.partyHubI18n?.apply?.();
       loadPartiesForDropdown();
+      loadAllPartiesToMap();
     });
   }
 
@@ -486,7 +516,7 @@ document.addEventListener("DOMContentLoaded", async () => {
             popupAnchor: [1, -34],
             shadowSize: [41, 41]
           })
-        }).addTo(currentUserLayer).bindPopup("Du bist hier (HTL Leonding)");
+        }).addTo(currentUserLayer).bindPopup(t("currentLocationPopup"));
         
         if (!centeredOnce) {
           map.setView([location.latitude, location.longitude], 15);
@@ -509,7 +539,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         popupAnchor: [1, -34],
         shadowSize: [41, 41]
       })
-    }).addTo(currentUserLayer).bindPopup("Du bist hier (HTL Leonding)");
+    }).addTo(currentUserLayer).bindPopup(t("currentLocationPopup"));
 
     if (accuracy) {
       L.circle([lat, lng], { radius: accuracy }).addTo(currentUserLayer);

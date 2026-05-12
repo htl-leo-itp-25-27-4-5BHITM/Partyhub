@@ -15,6 +15,10 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 });
 
+function t(text) {
+    return window.partyHubI18n?.t?.(text) ?? text;
+}
+
 async function loadAllParties() {
     const container = document.getElementById('partiesContainer');
 
@@ -27,13 +31,13 @@ async function loadAllParties() {
             headers: currentUserId ? { 'X-User-Id': String(currentUserId) } : {}
         });
         if (!response.ok) {
-            throw new Error('Partys konnten nicht geladen werden');
+            throw new Error(t('Partys konnten nicht geladen werden'));
         }
 
         const parties = await response.json();
 
         if (parties.length === 0) {
-            container.innerHTML = '<div class="loading">Keine Partys gefunden.</div>';
+            container.innerHTML = `<div class="loading">${t('Keine Partys gefunden.')}</div>`;
             return;
         }
 
@@ -46,7 +50,7 @@ async function loadAllParties() {
 
     } catch (error) {
         console.error('Error loading parties:', error);
-        container.innerHTML = '<div class="loading">Fehler beim Laden der Partys. Bitte versuche es erneut.</div>';
+        container.innerHTML = `<div class="loading">${t('Fehler beim Laden der Partys. Bitte versuche es erneut.')}</div>`;
     }
 }
 
@@ -60,12 +64,12 @@ function createPartyCard(party) {
     const partyDate = new Date(party.time_start);
     const formattedDate = formatPartyDateList(partyDate);
 
-    const location = 'Ort wird noch bekanntgegeben';
+    const location = t('Ort wird noch bekanntgegeben');
 
     card.innerHTML = `
         <header class="party-header-list">
             <h3 class="party-name-list">${party.title}</h3>
-            <span class="party-category">${party.category_id || 'Allgemein'}</span>
+            <span class="party-category">${party.category_id || t('Allgemein')}</span>
         </header>
 
         <div class="party-meta">
@@ -89,7 +93,7 @@ function createPartyCard(party) {
         </div>
 
         <div class="party-attendees">
-            <strong>${party.max_people || 'Unbegrenzt'}</strong> max. Teilnehmer
+            <strong>${party.max_people || t('Unbegrenzt')}</strong> ${t('max. Teilnehmer')}
         </div>
     `;
 
@@ -105,13 +109,14 @@ function formatPartyDateList(date) {
     const partyDate = new Date(date.getFullYear(), date.getMonth(), date.getDate());
 
     if (isSameDay(partyDate, today)) {
-        return 'Heute';
+        return t('Heute');
     } else if (isSameDay(partyDate, tomorrow)) {
-        return 'Morgen';
+        return t('Morgen');
     } else {
         // Show abbreviated day name and date
-        const dayName = date.toLocaleDateString('de-DE', { weekday: 'short' });
-        const dateStr = date.toLocaleDateString('de-DE', {
+        const locale = window.partyHubI18n?.language === 'en' ? 'en-US' : 'de-DE';
+        const dayName = date.toLocaleDateString(locale, { weekday: 'short' });
+        const dateStr = date.toLocaleDateString(locale, {
             day: '2-digit',
             month: '2-digit',
             year: 'numeric'

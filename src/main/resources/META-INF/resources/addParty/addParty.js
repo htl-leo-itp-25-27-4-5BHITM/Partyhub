@@ -18,6 +18,8 @@ document.addEventListener("DOMContentLoaded", () => {
   const visButtons = document.querySelectorAll(".vis-card");
 
   const steps = document.querySelectorAll(".step");
+  const wizardDots = document.querySelectorAll(".wizard-dot");
+  const t = (text) => window.partyHubI18n?.t?.(text) ?? text;
 
   let currentStep = 1;
   let visibility = "private";
@@ -41,10 +43,10 @@ document.addEventListener("DOMContentLoaded", () => {
     latitude: null,
     longitude: null,
     visibility: "private",
-    entry_costs: null,
-    theme: null,
+    entry_costs: 0,
+    theme: "Party",
     min_age: 18,
-    max_age: null,
+    max_age: 99,
     website: null,
   };
 
@@ -69,13 +71,14 @@ document.addEventListener("DOMContentLoaded", () => {
 
   async function init() {
     setupFlatpickr();
+    applyCreateDefaults();
     setupStepButtons();
     setupVisibilityButtons();
     setupAddressSearch();
     setupValidationListeners();
 
     if (isEditMode) {
-      continueBtn.textContent = "Weiter";
+      continueBtn.textContent = t("Weiter");
       await loadPartyForEdit(editPartyId);
     }
 
@@ -83,6 +86,39 @@ document.addEventListener("DOMContentLoaded", () => {
 
     showStep(1);
     updateContinueButtonState();
+  }
+
+  function applyCreateDefaults() {
+    if (isEditMode) {
+      return;
+    }
+
+    const startDate = getRoundedDefaultStartDate();
+    const endDate = new Date(startDate.getTime() + 4 * 60 * 60 * 1000);
+
+    state.time_start = startDate;
+    state.time_end = endDate;
+
+    if (fpStart) {
+      fpStart.setDate(startDate, true);
+    }
+
+    if (fpEnd) {
+      fpEnd.set("minDate", startDate);
+      fpEnd.setDate(endDate, true);
+    }
+
+    setInputValue("entry_costs", state.entry_costs);
+    setInputValue("theme", state.theme);
+    setInputValue("min_age", state.min_age);
+    setInputValue("max_age", state.max_age);
+  }
+
+  function getRoundedDefaultStartDate() {
+    const date = new Date();
+    date.setMinutes(0, 0, 0);
+    date.setHours(date.getHours() + 2);
+    return date;
   }
 
   function setupFlatpickr() {
@@ -346,8 +382,8 @@ document.addEventListener("DOMContentLoaded", () => {
 
       if (!users || users.length === 0) {
         userList.innerHTML = currentUserId
-          ? "<p>Keine gegenseitigen Follower gefunden.</p>"
-          : "<p>Keine User gefunden.</p>";
+          ? `<p>${t("Keine gegenseitigen Follower gefunden.")}</p>`
+          : `<p>${t("Keine User gefunden.")}</p>`;
         return;
       }
 
@@ -401,7 +437,7 @@ document.addEventListener("DOMContentLoaded", () => {
       });
     } catch (error) {
       console.error("Fehler beim Laden der User:", error);
-      userList.innerHTML = "<p>User konnten nicht geladen werden.</p>";
+      userList.innerHTML = `<p>${t("User konnten nicht geladen werden.")}</p>`;
     }
   }
 
@@ -499,7 +535,8 @@ document.addEventListener("DOMContentLoaded", () => {
     if (selectedUsers.length === 0) {
       selectedCountEl.innerHTML = "";
     } else {
-      selectedCountEl.innerHTML = `<span style="color: #4caf50; font-weight: 600;">✓ ${selectedUsers.length} Freund${selectedUsers.length === 1 ? "" : "e"} ausgewählt</span>`;
+      const label = selectedUsers.length === 1 ? t("Freund ausgewählt") : t("Freunde ausgewählt");
+      selectedCountEl.innerHTML = `<span style="color: #4caf50; font-weight: 600;">✓ ${selectedUsers.length} ${label}</span>`;
     }
   }
 
@@ -808,18 +845,28 @@ function parseBackendDate(value) {
       step.classList.toggle("active", number === stepNumber);
     });
 
+    updateWizardDots(stepNumber);
+
     if (stepTitle) {
-      stepTitle.textContent = stepTitles[stepNumber] || "";
+      stepTitle.textContent = t(stepTitles[stepNumber] || "");
     }
 
     if (stepNumber === 4) {
-      continueBtn.textContent = isEditMode ? "Änderungen speichern" : "Party erstellen";
+      continueBtn.textContent = isEditMode ? t("Änderungen speichern") : t("Party erstellen");
       showMapPreview();
     } else {
-      continueBtn.textContent = "Weiter";
+      continueBtn.textContent = t("Weiter");
     }
 
     updateContinueButtonState();
+  }
+
+  function updateWizardDots(stepNumber) {
+    wizardDots.forEach((dot) => {
+      const number = Number(dot.dataset.dotStep);
+      dot.classList.toggle("active", number === stepNumber);
+      dot.setAttribute("aria-current", number === stepNumber ? "step" : "false");
+    });
   }
 
   function validateStep(stepNumber) {
@@ -827,32 +874,32 @@ function parseBackendDate(value) {
 
     if (stepNumber === 1) {
       if (!state.title.trim()) {
-        alert("Bitte gib einen Namen für die Party ein.");
+        alert(t("Bitte gib einen Namen für die Party ein."));
         return false;
       }
 
       if (!state.description.trim()) {
-        alert("Bitte gib eine Beschreibung ein.");
+        alert(t("Bitte gib eine Beschreibung ein."));
         return false;
       }
 
       if (!state.time_start) {
-        alert("Bitte gib eine Startzeit ein.");
+        alert(t("Bitte gib eine Startzeit ein."));
         return false;
       }
 
       if (!state.time_end) {
-        alert("Bitte gib eine Endzeit ein.");
+        alert(t("Bitte gib eine Endzeit ein."));
         return false;
       }
 
       if (state.time_end <= state.time_start) {
-        alert("Die Endzeit muss nach der Startzeit liegen.");
+        alert(t("Die Endzeit muss nach der Startzeit liegen."));
         return false;
       }
 
       if (!state.location_address.trim()) {
-        alert("Bitte gib eine Adresse ein.");
+        alert(t("Bitte gib eine Adresse ein."));
         return false;
       }
 
@@ -862,7 +909,7 @@ function parseBackendDate(value) {
     if (stepNumber === 2) {
       if (visibility === "private" && selectedUsers.length === 0) {
         const confirmPrivateWithoutUsers = confirm(
-          "Du hast keine Personen ausgewählt. Willst du trotzdem fortfahren?"
+          t("Du hast keine Personen ausgewählt. Willst du trotzdem fortfahren?")
         );
 
         if (!confirmPrivateWithoutUsers) {
@@ -878,17 +925,17 @@ function parseBackendDate(value) {
       const maxAge = state.max_age;
 
       if (minAge !== null && minAge < 0) {
-        alert("Das Mindestalter darf nicht negativ sein.");
+        alert(t("Das Mindestalter darf nicht negativ sein."));
         return false;
       }
 
       if (maxAge !== null && maxAge < 0) {
-        alert("Das maximale Alter darf nicht negativ sein.");
+        alert(t("Das maximale Alter darf nicht negativ sein."));
         return false;
       }
 
       if (minAge !== null && maxAge !== null && maxAge < minAge) {
-        alert("Das maximale Alter darf nicht kleiner als das Mindestalter sein.");
+        alert(t("Das maximale Alter darf nicht kleiner als das Mindestalter sein."));
         return false;
       }
 
@@ -1031,7 +1078,7 @@ function parseBackendDate(value) {
       if (mapMessage) {
         mapMessage.style.display = "block";
         mapMessage.textContent =
-          "Adresse konnte nicht auf der Karte angezeigt werden.";
+          t("Adresse konnte nicht auf der Karte angezeigt werden.");
       }
 
       return;
@@ -1150,7 +1197,7 @@ function parseBackendDate(value) {
   const currentUserId = getCurrentUserIdSafe();
 
   if (!currentUserId) {
-    alert("Kein User angemeldet. Bitte neu einloggen.");
+    alert(t("Kein User angemeldet. Bitte neu einloggen."));
     return;
   }
 

@@ -8,12 +8,18 @@ body {
 .add-party-page {
   display: flex;
   justify-content: center;
+  min-height: 100dvh;
   padding: 32px 0;
+  box-sizing: border-box;
 }
 
 .party-card {
   width: 360px;
   padding: 24px;
+  min-height: calc(100dvh - 64px);
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
 }
 
 .card-top {
@@ -31,6 +37,12 @@ body {
 .step-title {
   font-size: 18px;
   font-weight: 600;
+}
+
+.party-form {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
 }
 
 .field {
@@ -71,6 +83,56 @@ body {
 
 .step.active {
   display: block;
+  flex: 1;
+}
+
+.wizard-dots {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 10px;
+  margin-top: auto;
+  padding-top: 26px;
+}
+
+.wizard-dot {
+  width: 9px;
+  height: 9px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.32);
+  box-shadow: 0 0 0 rgba(157, 133, 240, 0);
+  transform: scale(1);
+  transition:
+    background 0.25s ease,
+    box-shadow 0.25s ease,
+    transform 0.25s ease,
+    width 0.25s ease;
+}
+
+.wizard-dot.active {
+  width: 13px;
+  height: 13px;
+  background: #9d85f0;
+  box-shadow: 0 0 18px rgba(157, 133, 240, 0.85);
+  transform: scale(1.15);
+  animation: activeStepGlow 0.35s ease;
+}
+
+@keyframes activeStepGlow {
+  0% {
+    transform: scale(0.85);
+    box-shadow: 0 0 0 rgba(157, 133, 240, 0);
+  }
+
+  70% {
+    transform: scale(1.28);
+    box-shadow: 0 0 24px rgba(157, 133, 240, 0.95);
+  }
+
+  100% {
+    transform: scale(1.15);
+    box-shadow: 0 0 18px rgba(157, 133, 240, 0.85);
+  }
 }
 
 /* VISIBILITY */
@@ -214,7 +276,7 @@ body {
 /* BUTTON */
 .submit-btn {
   width: 100%;
-  margin-top: 32px;
+  margin-top: 22px;
   padding: 14px;
   border-radius: 18px;
   background: linear-gradient(135deg, #6b55c9, #4f3b9a);

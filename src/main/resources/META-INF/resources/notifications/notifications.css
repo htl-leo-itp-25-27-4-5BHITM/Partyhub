@@ -56,6 +56,8 @@
   border-radius: var(--border-radius-l);
   padding:10px;
   display:block;
+  max-width: 100%;
+  overflow: hidden;
   transition:opacity .18s ease, transform .18s ease;
   box-shadow: 0 2px 10px rgba(0,0,0,0.25), 0 0 0 1px rgba(255,255,255,0.02); /* Schatten + subtiler "Outline"-Effekt */
 }
@@ -64,6 +66,8 @@
   display:flex;
   align-items:center;
   gap:12px;
+  min-width: 0;
+  width: 100%;
 }
 
 /* Avatar box left */
@@ -93,7 +97,11 @@
 }
 
 /* ensure text area shrinks correctly beside avatar */
-.notif-text { flex:1 1 auto; min-width:0; }
+.notif-text {
+  flex:1 1 auto;
+  min-width:0;
+  max-width: 100%;
+}
 
 /* make actions align to right */
 .notif-actions { flex: 0 0 auto; }
@@ -201,6 +209,21 @@
 @media (max-width:420px) {
   .notif-panel { padding:10px; }
   .notif-card { padding:10px; }
+  .notif-row {
+    gap: 8px;
+    align-items: flex-start;
+  }
+  .notif-avatar {
+    flex-basis: 36px;
+    margin-right: 0;
+  }
+  .avatar-link {
+    width: 36px;
+    height: 36px;
+  }
+  .notif-actions {
+    gap: 5px;
+  }
   .notif-actions button { padding:6px; border-radius:6px; }
 }
 
@@ -214,15 +237,39 @@
   font-weight:700;
   font-size:0.84rem; /* leicht kleiner */
   white-space:normal;
+  overflow-wrap: anywhere;
+  word-break: normal;
+  line-height: 1.28;
   color:#fff;
   font-family: var(--font-body);
+}
+
+body[data-language="de"] .notif-message {
+  font-size: 0.84rem;
+  line-height: 1.28;
+  font-weight: 700;
 }
 
 .notif-time {
   font-size:0.72rem; /* verkleinert von 0.78rem */
   color:rgba(255,255,255,0.6);
   margin-top:4px;
+  overflow-wrap: anywhere;
   font-family: var(--font-body);
+}
+
+body[data-language="de"] .notif-time {
+  font-size: 0.72rem;
+}
+
+body[data-language="de"] .accepted-badge,
+body[data-language="de"] .rejected-badge {
+  font-size: 0.80rem;
+}
+
+body[data-language="de"] .notifications-page .page-title {
+  font-size: clamp(1.45rem, 7vw, 2.15rem);
+  line-height: 1;
 }
 
 .toast-container {
@@ -257,6 +304,8 @@
   align-items: center;
   gap: 10px;
   min-width: 240px;
+  max-width: min(420px, calc(100vw - 32px));
+  overflow-wrap: anywhere;
 }
 
 .toast-icon {

@@ -77,7 +77,7 @@
 
   --height-footer: 200px;
 
-  --nav-height: 88px;
+  --nav-height: 74px;
 }
 
 html,
@@ -210,6 +210,8 @@ a {
   font-size: clamp(1.8rem, 4.6vw, 2.6rem);
   line-height: 1.05;
   color: var(--text-primary);
+  max-width: 100%;
+  overflow-wrap: anywhere;
 }
 
 .page-subtitle {
@@ -219,6 +221,7 @@ a {
   line-height: 1.4;
   max-width: 560px;
   font-family: var(--font-body);
+  overflow-wrap: anywhere;
 }
 
 .card {
@@ -228,6 +231,8 @@ a {
   padding: 16px;
   backdrop-filter: blur(14px);
   box-shadow: var(--shadow-soft);
+  min-width: 0;
+  overflow-wrap: anywhere;
 }
 
 /* Gemeinsame Bottom Navigation */
@@ -240,8 +245,8 @@ a {
   display: flex;
   justify-content: space-around;
   align-items: center;
-  padding: 10px 12px;
-  border-radius: 28px;
+  padding: 8px 12px;
+  border-radius: 26px;
   background: rgba(19, 10, 38, 0.88);
   border: 1px solid rgba(255, 255, 255, 0.08);
   backdrop-filter: blur(18px);
@@ -250,15 +255,14 @@ a {
 }
 
 .nav-btn {
-  min-width: 64px;
-  height: 64px;
-  padding: 8px 10px;
-  border-radius: 20px;
+  min-width: 54px;
+  height: 52px;
+  padding: 8px;
+  border-radius: 18px;
   display: inline-flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 4px;
   color: rgba(255, 255, 255, 0.72);
   transition: transform 0.18s ease, background 0.18s ease, color 0.18s ease;
 }
@@ -279,22 +283,19 @@ a {
 }
 
 .nav-icon {
-  width: 24px;
-  height: 24px;
+  width: 26px;
+  height: 26px;
   display: block;
 }
 
 .nav-label {
-  font-size: 0.7rem;
-  font-weight: 600;
-  line-height: 1;
-  font-family: var(--font-body);
+  display: none;
 }
 
 /* Mobile */
 @media (max-width: 480px) {
   :root {
-    --nav-height: 82px;
+    --nav-height: 68px;
   }
 
   .page-container,
@@ -319,17 +320,13 @@ a {
   }
 
   .nav-btn {
-    min-width: 56px;
-    height: 58px;
-    padding: 6px 8px;
+    min-width: 50px;
+    height: 48px;
+    padding: 6px;
   }
 
   .nav-icon {
-    width: 22px;
-    height: 22px;
-  }
-
-  .nav-label {
-    font-size: 0.65rem;
+    width: 24px;
+    height: 24px;
   }
 }

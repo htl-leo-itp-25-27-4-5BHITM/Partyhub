@@ -103,11 +103,11 @@
           <div class="step" data-step="3">
             <div class="field">
               <div class="field-label">Eintritt (€)</div>
-              <input name="entry_costs" type="number" />
+              <input name="entry_costs" type="number" min="0" step="0.01" value="0" />
             </div>
             <div class="field">
               <div class="field-label">Motto</div>
-              <input name="theme" placeholder="90er, etc." />
+              <input name="theme" placeholder="90er, etc." value="Party" />
             </div>
             <div class="field">
               <div class="field-label">Mindestalter</div>
@@ -115,7 +115,7 @@
             </div>
             <div class="field">
               <div class="field-label">Max. Alter</div>
-              <input name="max_age" type="number" />
+              <input name="max_age" type="number" value="99" />
             </div>
             <div class="field">
               <div class="field-label">Website</div>
@@ -143,6 +143,13 @@
                 Party wird auf der Karte angezeigt
               </p>
             </div>
+          </div>
+
+          <div class="wizard-dots" aria-label="Fortschritt beim Party-Erstellen">
+            <span class="wizard-dot active" data-dot-step="1"></span>
+            <span class="wizard-dot" data-dot-step="2"></span>
+            <span class="wizard-dot" data-dot-step="3"></span>
+            <span class="wizard-dot" data-dot-step="4"></span>
           </div>
 
           <button type="button" class="submit-btn" id="continueBtn">

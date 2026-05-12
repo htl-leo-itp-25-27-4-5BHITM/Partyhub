@@ -3,6 +3,8 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   const list = document.getElementById("notifList");
   const tpl = document.getElementById("notifTpl");
+  const t = (text) => window.partyHubI18n?.t?.(text) ?? text;
+  const isEnglish = () => window.partyHubI18n?.language === "en";
 
   const currentUserId = window.getCurrentUserId();
   console.log("Current user:", currentUserId);
@@ -283,10 +285,15 @@ document.addEventListener("DOMContentLoaded", async () => {
         }
       }
 
+      const eventTitle = partyTitle ?? t("einem Event");
       const message =
         rid != null && String(rid) === String(currentUserId)
-          ? `${getUsername(sender, sid)} hat dich zu "${partyTitle ?? "einem Event"}" eingeladen`
-          : `${getUsername(sender, sid)} hat ${getUsername(null, rid)} zu "${partyTitle ?? "einem Event"}" eingeladen`;
+          ? isEnglish()
+            ? `${getUsername(sender, sid)} invited you to "${eventTitle}"`
+            : `${getUsername(sender, sid)} hat dich zu "${eventTitle}" eingeladen`
+          : isEnglish()
+            ? `${getUsername(sender, sid)} invited ${getUsername(null, rid)} to "${eventTitle}"`
+            : `${getUsername(sender, sid)} hat ${getUsername(null, rid)} zu "${eventTitle}" eingeladen`;
 
       data.push({
         id: `invite-${inv.id ?? inv.invitationId ?? `${sid}-${rid}-${partyId ?? "x"}`}`,
@@ -314,7 +321,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         id: `follow-${followerId}`,
         type: "follow",
         followerId: Number(followerId),
-        text: `${getUsername(sender, followerId)} möchte dir folgen`,
+        text: `${getUsername(sender, followerId)} ${t("möchte dir folgen")}`,
         actorAvatar: sender?.id
           ? `/api/users/${sender.id}/profile-picture`
           : "/images/default_profile-picture.svg",
@@ -337,7 +344,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     list.innerHTML = "";
 
     if (!data.length) {
-      list.innerHTML = "<p class='muted'>Keine Benachrichtigungen</p>";
+      list.innerHTML = `<p class='muted'>${t("Keine Benachrichtigungen")}</p>`;
       return;
     }
 
@@ -360,7 +367,7 @@ document.addEventListener("DOMContentLoaded", async () => {
       if (messageEl) messageEl.textContent = item.text;
 
       const timeEl = clone.querySelector(".notif-time");
-      if (timeEl) timeEl.textContent = "vor kurzem";
+      if (timeEl) timeEl.textContent = t("vor kurzem");
 
       const viewBtn = clone.querySelector(".btn-view-party");
       const acceptBtn = clone.querySelector(".btn-accept");
@@ -373,7 +380,7 @@ document.addEventListener("DOMContentLoaded", async () => {
             if (item.partyId) {
               window.location.href = `/advancedPartyInfos/advancedPartyInfos.html?id=${item.partyId}`;
             } else {
-              showToast("Keine Party-Information vorhanden", "error");
+              showToast(t("Keine Party-Information vorhanden"), "error");
             }
           });
         } else {
@@ -403,13 +410,13 @@ document.addEventListener("DOMContentLoaded", async () => {
             render();
             showToast(
               item.type === "follow"
-                ? "Follow-Anfrage akzeptiert ✓"
-                : "Einladung angenommen ✓",
+                ? t("Follow-Anfrage akzeptiert ✓")
+                : t("Einladung angenommen ✓"),
               "success"
             );
           } catch (err) {
             console.error("Accept failed", err);
-            showToast("Fehler beim Annehmen", "error");
+            showToast(t("Fehler beim Annehmen"), "error");
           }
         });
       }
@@ -437,20 +444,22 @@ document.addEventListener("DOMContentLoaded", async () => {
               render();
               showToast(
                 item.type === "follow"
-                  ? "Follow-Anfrage abgelehnt"
-                  : "Einladung abgelehnt",
+                  ? t("Follow-Anfrage abgelehnt")
+                  : t("Einladung abgelehnt"),
                 "success"
               );
             }
           } catch (err) {
             console.error("Reject failed", err);
-            showToast("Fehler beim Ablehnen: " + err.message, "error");
+            showToast(`${t("Fehler beim Ablehnen")}: ${err.message}`, "error");
           }
         });
       }
 
       list.prepend(clone);
     });
+
+    window.partyHubI18n?.apply?.(list);
   }
 
   render();
