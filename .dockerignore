@@ -2,6 +2,3 @@
 !target/
 !target/quarkus-app/
 !target/quarkus-app/**
-!src/main/resources/uploads/
-!src/main/resources/uploads/profiles/
-!src/main/resources/uploads/profiles/**
