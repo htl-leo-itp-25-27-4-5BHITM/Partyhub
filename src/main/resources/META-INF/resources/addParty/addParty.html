@@ -75,17 +75,28 @@
           </div>
 
           <div class="step" data-step="2">
-            <div class="visibility-options">
-              <button type="button" class="vis-card active" data-mode="private">
-                🔒 Privat
-              </button>
-              <button type="button" class="vis-card" data-mode="public">
-                🔓 Öffentlich
-              </button>
+            <div class="visibility-section">
+              <div class="field-label">Wer kann diese Party sehen?</div>
+              <div class="visibility-options">
+                <button type="button" class="vis-card active" data-mode="private">
+                  <div class="vis-icon">🔒</div>
+                  <div class="vis-label">Privat</div>
+                  <div class="vis-desc">Nur eingeladene Freunde</div>
+                </button>
+                <button type="button" class="vis-card" data-mode="public">
+                  <div class="vis-icon">🌍</div>
+                  <div class="vis-label">Öffentlich</div>
+                  <div class="vis-desc">Alle können sehen</div>
+                </button>
+              </div>
             </div>
-            <div class="user-list" id="userList"></div>
+            <div class="friends-section" id="friendsSection">
+              <div class="field-label">Freunde einladen</div>
+              <div class="user-list" id="userList"></div>
+              <div class="selected-count" id="selectedCount"></div>
+            </div>
             <p class="everyone-hint" id="everyoneHint" style="display: none">
-              Sichtbar für alle.
+              Diese Party ist für alle Nutzer sichtbar.
             </p>
           </div>
 

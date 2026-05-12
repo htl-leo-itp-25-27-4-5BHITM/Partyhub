@@ -1467,10 +1467,6 @@ document.addEventListener("DOMContentLoaded", function () {
           deleteBtn.onclick = async (event) => {
             event.stopPropagation();
 
-            if (!confirm("Löschen?")) {
-              return;
-            }
-
             const response = await fetch(`/api/parties/${encodeURIComponent(party.id)}`, {
               method: "DELETE",
             });

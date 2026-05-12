@@ -171,17 +171,21 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   function updateVisibilityUI() {
-    if (!userList || !everyoneHint) {
+    const friendsSection = document.getElementById("friendsSection");
+    if (!friendsSection || !everyoneHint) {
       return;
     }
 
     if (visibility === "public") {
-      userList.style.display = "none";
+      friendsSection.style.display = "none";
       everyoneHint.style.display = "block";
       selectedUsers = [];
+      const selectedCountEl = document.getElementById("selectedCount");
+      if (selectedCountEl) selectedCountEl.innerHTML = "";
     } else {
-      userList.style.display = "block";
+      friendsSection.style.display = "block";
       everyoneHint.style.display = "none";
+      updateSelectedCount();
     }
   }
 
@@ -366,14 +370,31 @@ document.addEventListener("DOMContentLoaded", () => {
         item.type = "button";
         item.className = "user-card";
         item.dataset.userId = id;
-        item.textContent = username.startsWith("@") ? username : `@${username}`;
 
-        if (selectedUsers.includes(String(id)) || selectedUsers.includes(Number(id))) {
+        const displayName = username.startsWith("@") ? username : `@${username}`;
+        const isSelected = selectedUsers.includes(String(id)) || selectedUsers.includes(Number(id));
+
+        item.innerHTML = `
+          <div class="user-card-content">
+            <div class="user-card-name">${displayName}</div>
+          </div>
+          <div class="user-card-icon">${isSelected ? "✓" : "○"}</div>
+        `;
+
+        if (isSelected) {
           item.classList.add("selected");
         }
 
-        item.addEventListener("click", () => {
+        item.addEventListener("click", (e) => {
+          e.preventDefault();
           toggleSelectedUser(id, item);
+          // Update icon
+          const icon = item.querySelector(".user-card-icon");
+          if (item.classList.contains("selected")) {
+            icon.textContent = "✓";
+          } else {
+            icon.textContent = "○";
+          }
         });
 
         userList.appendChild(item);
@@ -466,8 +487,20 @@ document.addEventListener("DOMContentLoaded", () => {
       item.classList.add("selected");
     }
 
+    updateSelectedCount();
     console.log("Ausgewählte User:", selectedUsers);
     updateContinueButtonState();
+  }
+
+  function updateSelectedCount() {
+    const selectedCountEl = document.getElementById("selectedCount");
+    if (!selectedCountEl) return;
+
+    if (selectedUsers.length === 0) {
+      selectedCountEl.innerHTML = "";
+    } else {
+      selectedCountEl.innerHTML = `<span style="color: #4caf50; font-weight: 600;">✓ ${selectedUsers.length} Freund${selectedUsers.length === 1 ? "" : "e"} ausgewählt</span>`;
+    }
   }
 
   function setupValidationListeners() {
@@ -522,7 +555,6 @@ document.addEventListener("DOMContentLoaded", () => {
     fillFormWithParty(party);
   } catch (error) {
     console.error("Fehler beim Laden der Party:", error);
-    alert("Party konnte nicht geladen werden.");
   }
 }
 
@@ -1190,12 +1222,9 @@ function parseBackendDate(value) {
 
     console.log("Gespeicherte Party:", savedParty);
 
-    alert(isEditMode ? "Party wurde gespeichert." : "Party wurde erstellt.");
-
     window.location.href = "../listPartys/listPartys.html";
   } catch (error) {
     console.error("Fehler beim Speichern:", error);
-    alert("Party konnte nicht gespeichert werden. Schau bitte in die Konsole.");
   }
 }
 
