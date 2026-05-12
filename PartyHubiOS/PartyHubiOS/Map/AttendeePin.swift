@@ -16,7 +16,7 @@ struct AttendeePin: View {
                 .fill(color)
                 .frame(width: 46, height: 46)
                 .shadow(color: color.opacity(0.5), radius: 8)
-            
+
             if let userId = userId {
                 UserProfileImageView(userId: userId, size: 40, showBorder: false)
             } else {
@@ -29,24 +29,43 @@ struct AttendeePin: View {
     }
 }
 
-import SwiftUI
 struct PartyPin: View {
     let isActive: Bool
     let isHostedByFriend: Bool
     let isInvited: Bool
-    
-    private var mainFillColor: Color {
+
+    private var accessibilitySummary: String {
+        var parts: [String] = []
+        if isInvited { parts.append("Eingeladen") }
+        if isHostedByFriend { parts.append("Von einem Freund") }
+        if isActive { parts.append("Aktiv") }
+        return parts.isEmpty ? "Party" : "Party, " + parts.joined(separator: ", ")
+    }
+
+    /// Nur für die aktuelle Party: klassisches farbiges Pin-Design (unverändert zur früheren Logik).
+    private var activePartyFillColor: Color {
         if isHostedByFriend {
             return Color("primary pink")
         }
-        return isActive ? .green : .blue
+        return .green
     }
-    
+
     private var invitedRingColor: Color {
         Color("primary yellow")
     }
-    
+
     var body: some View {
+        Group {
+            if isActive {
+                activePartyPin
+            } else {
+                neutralPartyPin
+            }
+        }
+        .accessibilityLabel(accessibilitySummary)
+    }
+
+    private var activePartyPin: some View {
         ZStack {
             if isInvited {
                 Circle()
@@ -59,19 +78,36 @@ struct PartyPin: View {
                     )
             } else {
                 Circle()
-                    .fill(mainFillColor.opacity(0.2))
+                    .fill(activePartyFillColor.opacity(0.2))
                     .frame(width: 52, height: 52)
             }
-            
+
             Circle()
-                .fill(mainFillColor)
+                .fill(activePartyFillColor)
                 .frame(width: 42, height: 42)
-                .shadow(color: mainFillColor.opacity(0.5), radius: 8)
-            
+                .shadow(color: activePartyFillColor.opacity(0.5), radius: 8)
+
             Image(systemName: "party.popper.fill")
                 .resizable()
                 .foregroundStyle(.white)
                 .frame(width: 22, height: 22)
+        }
+    }
+
+    private var neutralPartyPin: some View {
+        ZStack {
+            Circle()
+                .fill(Color(uiColor: .systemGray5))
+                .frame(width: 64, height: 64)
+
+            Circle()
+                .fill(Color(uiColor: .systemGray))
+                .frame(width: 50, height: 50)
+                .shadow(color: Color.black.opacity(0.22), radius: 6, y: 2)
+
+            Image(systemName: "party.popper.fill")
+                .font(.system(size: 20, weight: .semibold))
+                .foregroundStyle(.white)
         }
     }
 }
@@ -81,5 +117,52 @@ extension PartyPin {
         self.isActive = isActive
         self.isHostedByFriend = false
         self.isInvited = false
+    }
+}
+
+// MARK: - Attendee Cluster Pin (Teilnehmer-Karte)
+
+struct AttendeeClusterPin: View {
+    let count: Int
+
+    private var badgePink: Color {
+        Color("primary pink")
+    }
+
+    var body: some View {
+        ZStack {
+            Circle()
+                .fill(Color(uiColor: .systemGray5))
+                .frame(width: 64, height: 64)
+
+            Circle()
+                .fill(Color(uiColor: .systemGray))
+                .frame(width: 50, height: 50)
+                .shadow(color: Color.black.opacity(0.22), radius: 6, y: 2)
+
+            Image(systemName: "person.2.fill")
+                .font(.system(size: 20, weight: .semibold))
+                .foregroundStyle(.white)
+
+            VStack {
+                HStack {
+                    Spacer()
+
+                    Text("\(count)")
+                        .font(.system(size: 11, weight: .bold))
+                        .foregroundStyle(.white)
+                        .frame(minWidth: 22)
+                        .padding(.horizontal, 6)
+                        .padding(.vertical, 3)
+                        .background(badgePink)
+                        .clipShape(Capsule())
+                        .offset(x: 8, y: -8)
+                }
+
+                Spacer()
+            }
+            .frame(width: 50, height: 50)
+        }
+        .accessibilityLabel("\(count) Teilnehmer")
     }
 }
