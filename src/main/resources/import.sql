@@ -1,6 +1,3 @@
--- =========================
--- RESET
--- =========================
 TRUNCATE TABLE
     notification,
     invitation,
