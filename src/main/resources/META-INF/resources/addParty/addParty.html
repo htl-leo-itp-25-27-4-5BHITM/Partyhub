@@ -30,7 +30,7 @@
       crossorigin=""
       defer
     ></script>
-    <script src="./addParty.js?v=20260513-friends-wizard" defer></script>
+    <script src="./addParty.js?v=20260513-save-feedback" defer></script>
     <script>
       document.addEventListener("DOMContentLoaded", () => {
         window.requireAuth?.();
@@ -156,6 +156,13 @@
           <button type="button" class="submit-btn" id="continueBtn">
             Continue
           </button>
+          <div
+            class="party-feedback"
+            id="partyFeedback"
+            role="status"
+            aria-live="polite"
+            hidden
+          ></div>
         </form>
       </section>
     </main>
