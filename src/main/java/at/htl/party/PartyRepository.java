@@ -3,6 +3,7 @@ package at.htl.party;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -19,6 +20,8 @@ import at.htl.notification.Notification;
 import at.htl.notification.NotificationRepository;
 import at.htl.notification.OutOfAppNotificationService;
 import at.htl.follow.FollowRepository;
+import at.htl.websocket.WebSocketSessionManager;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import jakarta.persistence.EntityManager;
@@ -27,6 +30,8 @@ import jakarta.ws.rs.BadRequestException;
 import jakarta.ws.rs.QueryParam;
 import jakarta.ws.rs.core.Response;
 import jakarta.ws.rs.core.UriBuilder;
+
+import java.util.stream.Collectors;
 
 @ApplicationScoped
 @Transactional
@@ -46,6 +51,12 @@ public class PartyRepository {
 
     @Inject
     FollowRepository followRepository;
+
+    @Inject
+    WebSocketSessionManager webSocketSessionManager;
+
+    @Inject
+    ObjectMapper objectMapper;
 
     private static final DateTimeFormatter PARTY_DTF = DateTimeFormatter.ofPattern("dd.MM.yyyy HH:mm");
     private static final String INVITATION_PENDING = "PENDING";
@@ -109,6 +120,30 @@ public class PartyRepository {
         entityManager.persist(party);
 
         inviteSelectedUsersForPrivateParty(partyCreateDto, party, host, userId);
+
+        List<User> followers = followRepository.getFollowers(userId);
+        Set<Long> followerIds = followers.stream()
+                .map(User::getId)
+                .collect(Collectors.toSet());
+        if (!followerIds.isEmpty()) {
+            try {
+                var partyMap = new HashMap<String, Object>();
+                partyMap.put("id", party.getId());
+                partyMap.put("title", party.getTitle());
+                partyMap.put("theme", party.getTheme());
+                partyMap.put("time_start", party.getTime_start() != null ? party.getTime_start().toString() : "");
+                partyMap.put("time_end", party.getTime_end() != null ? party.getTime_end().toString() : "");
+                partyMap.put("visibility", party.getVisibility());
+                partyMap.put("creatorId", userId);
+                String payload = objectMapper.writeValueAsString(Map.of(
+                        "type", "PARTY_CREATED",
+                        "party", partyMap
+                ));
+                webSocketSessionManager.broadcastToUsers(followerIds, payload);
+            } catch (Exception e) {
+                io.quarkus.logging.Log.warn("WebSocket broadcast failed for PARTY_CREATED", e);
+            }
+        }
 
         return Response.created(
                 UriBuilder.fromResource(PartyResource.class)
@@ -185,6 +220,28 @@ public class PartyRepository {
 
         if (!Objects.equals(oldSignature, partyUpdateSignature(party))) {
             notifyPartyUpdated(party, host, userId, newlyInvitedUserIds);
+        }
+
+        Set<Long> memberIds = party.getUsers() != null
+                ? party.getUsers().stream().map(User::getId).collect(Collectors.toSet())
+                : new HashSet<>();
+        if (!memberIds.isEmpty()) {
+            try {
+                var partyMap = new HashMap<String, Object>();
+                partyMap.put("id", party.getId());
+                partyMap.put("title", party.getTitle());
+                partyMap.put("description", party.getDescription());
+                partyMap.put("time_start", party.getTime_start() != null ? party.getTime_start().toString() : "");
+                partyMap.put("time_end", party.getTime_end() != null ? party.getTime_end().toString() : "");
+                partyMap.put("visibility", party.getVisibility());
+                String payload = objectMapper.writeValueAsString(Map.of(
+                        "type", "PARTY_UPDATED",
+                        "party", partyMap
+                ));
+                webSocketSessionManager.broadcastToUsers(memberIds, payload);
+            } catch (Exception e) {
+                io.quarkus.logging.Log.warn("WebSocket broadcast failed for PARTY_UPDATED", e);
+            }
         }
 
         return Response.ok(party).build();
@@ -575,7 +632,7 @@ public class PartyRepository {
 
         Set<User> attendees = ensureUsers(party);
 
-        if (!attendees.contains(user)) {
+            if (!attendees.contains(user)) {
             Optional<Invitation> invitation = findInvitationForRecipient(party, user);
             attendees.add(user);
             if (invitation.isPresent()) {
@@ -586,6 +643,26 @@ public class PartyRepository {
                         : null;
                 notificationRepository.deleteInvitationNotifications(party.getId(), senderId, user.getId());
                 notifyHost(party, user, displayName(user) + " accepted your invitation to the party \"" + party.getTitle() + "\".");
+            }
+        }
+
+        Set<Long> otherMemberIds = attendees.stream()
+                .map(User::getId)
+                .filter(id -> !id.equals(userId))
+                .collect(Collectors.toSet());
+        if (!otherMemberIds.isEmpty()) {
+            try {
+                var userMap = new HashMap<String, Object>();
+                userMap.put("id", user.getId());
+                userMap.put("name", displayName(user));
+                String payload = objectMapper.writeValueAsString(Map.of(
+                        "type", "PARTY_MEMBER_JOINED",
+                        "partyId", party.getId(),
+                        "user", userMap
+                ));
+                webSocketSessionManager.broadcastToUsers(otherMemberIds, payload);
+            } catch (Exception e) {
+                io.quarkus.logging.Log.warn("WebSocket broadcast failed for PARTY_MEMBER_JOINED", e);
             }
         }
 
@@ -623,6 +700,23 @@ public class PartyRepository {
                 entityManager.merge(invitation.get());
             }
             notifyHost(party, user, displayName(user) + " left the party \"" + party.getTitle() + "\".");
+
+            Set<Long> remainingMemberIds = attendees.stream()
+                    .map(User::getId)
+                    .collect(Collectors.toSet());
+            if (!remainingMemberIds.isEmpty()) {
+                try {
+                    String payload = objectMapper.writeValueAsString(Map.of(
+                            "type", "PARTY_MEMBER_LEFT",
+                            "partyId", party.getId(),
+                            "userId", userId
+                    ));
+                    webSocketSessionManager.broadcastToUsers(remainingMemberIds, payload);
+                } catch (Exception e) {
+                    io.quarkus.logging.Log.warn("WebSocket broadcast failed for PARTY_MEMBER_LEFT", e);
+                }
+            }
+
             entityManager.merge(party);
             return Response.ok(party).build();
         }

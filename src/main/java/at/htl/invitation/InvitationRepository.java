@@ -2,11 +2,15 @@ package at.htl.invitation;
 
 import java.util.List;
 
+import java.util.Map;
+
 import at.htl.notification.Notification;
 import at.htl.notification.NotificationRepository;
 import at.htl.party.Party;
 import at.htl.party.PartyRepository;
 import at.htl.user.User;
+import at.htl.websocket.WebSocketSessionManager;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import jakarta.persistence.EntityManager;
@@ -20,6 +24,12 @@ public class InvitationRepository {
     PartyRepository partyRepository;
     @Inject
     NotificationRepository notificationRepository;
+
+    @Inject
+    WebSocketSessionManager webSocketSessionManager;
+
+    @Inject
+    ObjectMapper objectMapper;
 
     public Response invite(InvitationDto invitationDto, Long senderId) {
         if (senderId == null) {
@@ -59,6 +69,7 @@ public class InvitationRepository {
             existingInvitation.setStatus("PENDING");
             entityManager.merge(existingInvitation);
             sendInvitationNotification(recipient, sender, party);
+            broadcastInvitationCreated(recipient, sender, party);
             return Response.status(Response.Status.CREATED).build();
         }
 
@@ -74,6 +85,7 @@ public class InvitationRepository {
         }
 
         sendInvitationNotification(recipient, sender, party);
+        broadcastInvitationCreated(recipient, sender, party);
 
         return Response.status(Response.Status.CREATED).build();
     }
@@ -167,5 +179,23 @@ public class InvitationRepository {
         String hostName = sender.getDisplayName() != null ? sender.getDisplayName() : sender.getUsername();
         String message = hostName + " invited you to the party \"" + party.getTitle() + "\"";
         notificationRepository.createNotification(new Notification(recipient, sender, party, message));
+    }
+
+    private void broadcastInvitationCreated(User recipient, User sender, Party party) {
+        try {
+            String inviterName = sender.getDisplayName() != null ? sender.getDisplayName() : sender.getUsername();
+            var inviteMap = new java.util.HashMap<String, Object>();
+            inviteMap.put("partyId", party.getId());
+            inviteMap.put("partyName", party.getTitle());
+            inviteMap.put("inviterName", inviterName);
+            inviteMap.put("status", "PENDING");
+            String payload = objectMapper.writeValueAsString(Map.of(
+                    "type", "INVITATION_CREATED",
+                    "invitation", inviteMap
+            ));
+            webSocketSessionManager.broadcastToUser(recipient.getId(), payload);
+        } catch (Exception e) {
+            io.quarkus.logging.Log.warn("WebSocket broadcast failed for INVITATION_CREATED", e);
+        }
     }
 }

@@ -17,7 +17,8 @@
     <script src="../user-utils.js" defer></script>
     <script src="../nav.js" defer></script>
     <script src="../backend-functions.js?v=20260429-notifications" defer></script>
-    <script src="./notifications.js?v=20260511-notification-cleanup" defer></script>
+    <script src="./notifications.js?v=20260513-ws-fix" defer></script>
+    <script src="../websocket-service.js?v=20260513-ws" defer></script>
   </head>
 
   <body class="bg-light">
@@ -177,6 +178,7 @@
             />
           </svg>
           <span class="nav-label">Inbox</span>
+          <span class="nav-badge" id="notifBadge" style="display:none">0</span>
         </a>
 
         <a class="nav-btn" href="/profile/profile.html" aria-label="Profile">

@@ -365,30 +365,31 @@ document.addEventListener("DOMContentLoaded", async () => {
     setTimeout(() => toast.remove(), 2200);
   }
 
-  try {
-    const invitations = await getReceivedInvites();
-    const pendingFollowUsers = await getPendingFollowUsers();
-    const backendNotifications = await getBackendNotifications();
-    console.log("notifications: raw pending follow users ->", pendingFollowUsers);
-    console.log("notifications: raw backend notifications ->", backendNotifications);
-
+  async function refreshData() {
     try {
-      console.table(
-        invitations.map(inv => ({
-          id: inv.id ?? inv.invitationId ?? null,
-          senderId: readId(inv, "sender"),
-          recipientId: readId(inv, "recipient"),
-          partyId:
-            (inv.party && typeof inv.party === "object" ? inv.party.id : null) ??
-            inv.partyId ??
-            inv.party_id ??
-            null,
-          partyTitle: inv.party?.title ?? inv.party?.name ?? null
-        }))
-      );
-    } catch {}
+      const invitations = await getReceivedInvites();
+      const pendingFollowUsers = await getPendingFollowUsers();
+      const backendNotifications = await getBackendNotifications();
+      console.log("notifications: raw pending follow users ->", pendingFollowUsers);
+      console.log("notifications: raw backend notifications ->", backendNotifications);
 
-    let relevantInvites = invitations;
+      try {
+        console.table(
+          invitations.map(inv => ({
+            id: inv.id ?? inv.invitationId ?? null,
+            senderId: readId(inv, "sender"),
+            recipientId: readId(inv, "recipient"),
+            partyId:
+              (inv.party && typeof inv.party === "object" ? inv.party.id : null) ??
+              inv.partyId ??
+              inv.party_id ??
+              null,
+            partyTitle: inv.party?.title ?? inv.party?.name ?? null
+          }))
+        );
+      } catch {}
+
+      let relevantInvites = invitations;
 
     if (currentUserId != null) {
       const invitationsWithRecipientId = invitations.filter(inv => readId(inv, "recipient") != null);
@@ -618,9 +619,11 @@ document.addEventListener("DOMContentLoaded", async () => {
     });
 
     console.log("Final notification data:", data);
-  } catch (e) {
-    console.error("Load failed:", e);
-    data = [];
+    return data;
+    } catch (e) {
+      console.error("Load failed:", e);
+      return [];
+    }
   }
 
   function render() {
@@ -753,5 +756,23 @@ document.addEventListener("DOMContentLoaded", async () => {
     });
   }
 
+  async function handleNewNotification() {
+    try {
+      const newData = await refreshData();
+      if (newData && newData.length) {
+        data = newData;
+        render();
+      }
+    } catch (e) {
+      console.error("refresh on notification-created failed", e);
+    }
+  }
+
+  window.__onNotificationCreated = handleNewNotification;
+  window.__onInvitationCreated = handleNewNotification;
+  window.addEventListener("notification-created", handleNewNotification);
+  window.addEventListener("invitation-created", handleNewNotification);
+
+  data = await refreshData();
   render();
 });

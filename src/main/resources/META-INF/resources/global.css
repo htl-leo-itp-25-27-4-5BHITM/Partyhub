@@ -250,6 +250,7 @@ a {
 }
 
 .nav-btn {
+  position: relative;
   min-width: 64px;
   height: 64px;
   padding: 8px 10px;
@@ -261,6 +262,23 @@ a {
   gap: 4px;
   color: rgba(255, 255, 255, 0.72);
   transition: transform 0.18s ease, background 0.18s ease, color 0.18s ease;
+}
+
+.nav-badge {
+  position: absolute;
+  top: 4px;
+  right: 10px;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 5px;
+  border-radius: 999px;
+  background: var(--accent-color-pink);
+  color: #fff;
+  font-size: 10px;
+  font-weight: 700;
+  line-height: 18px;
+  text-align: center;
+  pointer-events: none;
 }
 
 .nav-btn:hover {

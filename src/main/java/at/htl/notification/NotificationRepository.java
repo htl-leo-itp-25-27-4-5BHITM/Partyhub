@@ -1,7 +1,12 @@
 package at.htl.notification;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
+import at.htl.websocket.WebSocketSessionManager;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import io.quarkus.logging.Log;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import jakarta.persistence.EntityManager;
@@ -17,6 +22,12 @@ public class NotificationRepository {
 
     @Inject
     OutOfAppNotificationService outOfAppNotificationService;
+
+    @Inject
+    WebSocketSessionManager webSocketSessionManager;
+
+    @Inject
+    ObjectMapper objectMapper;
 
     public List<Notification> getNotificationsByUser(Long userId) {
         if (userId == null) {
@@ -88,6 +99,25 @@ public class NotificationRepository {
     public void createNotification(Notification notification) {
         entityManager.persist(notification);
         outOfAppNotificationService.sendNotification(notification);
+        broadcastNotificationCreated(notification);
+    }
+
+    private void broadcastNotificationCreated(Notification notification) {
+        if (notification.getRecipient() == null || notification.getRecipient().getId() == null) return;
+        try {
+            var notifMap = new HashMap<String, Object>();
+            notifMap.put("id", notification.getId());
+            notifMap.put("message", notification.getMessage() != null ? notification.getMessage() : "");
+            notifMap.put("createdAt", notification.getCreated_at() != null ? notification.getCreated_at().toString() : "");
+
+            var payload = objectMapper.writeValueAsString(Map.of(
+                    "type", "NOTIFICATION_CREATED",
+                    "notification", notifMap
+            ));
+            webSocketSessionManager.broadcastToUser(notification.getRecipient().getId(), payload);
+        } catch (Exception e) {
+            Log.warn("WebSocket broadcast failed for notification", e);
+        }
     }
 
     public int deleteByPartyId(Long partyId) {

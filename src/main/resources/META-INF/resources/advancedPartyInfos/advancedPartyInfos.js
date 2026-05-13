@@ -20,6 +20,35 @@ document.addEventListener("DOMContentLoaded", function () {
   setupPhotosButton();
   setupBackButton();
   setupJoinPartyButton();
+
+  // WebSocket live event listeners
+  var wsToast = function (message) {
+    var container = document.getElementById("toastContainer");
+    if (!container) return;
+    var toast = document.createElement("div");
+    toast.className = "toast info";
+    toast.textContent = message;
+    container.appendChild(toast);
+    setTimeout(function () { toast.remove(); }, 3000);
+  };
+
+  window.addEventListener("party-updated", function () {
+    wsToast("This party has been updated \u2014 refresh to see changes");
+  });
+
+  window.addEventListener("party-member-joined", function (e) {
+    var user = (e.detail && e.detail.user) || {};
+    var name = user.name || "Someone";
+    if (e.detail && e.detail.partyId && Number(e.detail.partyId) === Number(partyId)) {
+      wsToast(name + " joined this party");
+    }
+  });
+
+  window.addEventListener("party-member-left", function (e) {
+    if (e.detail && e.detail.partyId && Number(e.detail.partyId) === Number(partyId)) {
+      wsToast("A member left this party");
+    }
+  });
 });
 
 let currentPartyIsPrivate = false;
