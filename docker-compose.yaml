@@ -1,0 +1,45 @@
+services:
+  postgres:
+    container_name: postgres
+    image: postgres:16-alpine
+    ports:
+      - 5432:5432
+    volumes:
+      - postgres:/var/lib/postgresql/data
+      - ./docker/postgres/init:/docker-entrypoint-initdb.d
+    environment:
+      - POSTGRES_PASSWORD=demo
+      - POSTGRES_USER=demo
+      - POSTGRES_DB=demo
+    networks:
+      - partyhub-network
+
+  keycloak:
+    container_name: keycloak
+    image: quay.io/keycloak/keycloak:26.5.0
+    command:
+      - start-dev
+      - --import-realm
+    ports:
+      - 8000:8080
+    volumes:
+      - ./keycloak/realm-export.json:/opt/keycloak/data/import/realm-export.json:ro
+    environment:
+      - KC_BOOTSTRAP_ADMIN_USERNAME=admin
+      - KC_BOOTSTRAP_ADMIN_PASSWORD=admin
+      - KC_DB=postgres
+      - KC_DB_URL_HOST=postgres
+      - KC_DB_URL_DATABASE=keycloak
+      - KC_DB_USERNAME=demo
+      - KC_DB_PASSWORD=demo
+    depends_on:
+      - postgres
+    networks:
+      - partyhub-network
+
+volumes:
+  postgres:
+
+networks:
+  partyhub-network:
+    driver: bridge
