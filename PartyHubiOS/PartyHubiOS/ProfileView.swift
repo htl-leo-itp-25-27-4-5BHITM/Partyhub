@@ -34,23 +34,23 @@ struct ProfileView: View {
             .task {
                 await restoreSession()
             }
-            .alert("Abmelden", isPresented: $showSignOutAlert) {
-                Button("Abmelden", role: .destructive) {
+            .alert("Log Out", isPresented: $showSignOutAlert) {
+                Button("Log Out", role: .destructive) {
                     signOut()
                 }
                 Button("Abbrechen", role: .cancel) {}
             } message: {
-                Text("Möchtest du dich wirklich abmelden?")
+                Text("‘Are you sure you want to unsubscribe?")
             }
-            .alert("Upload Fehler", isPresented: $showUploadError) {
+            .alert("Upload Error", isPresented: $showUploadError) {
                 Button("OK", role: .cancel) {}
             } message: {
                 Text(uploadErrorMessage)
             }
-            .alert("Login Fehler", isPresented: $testLoginError) {
+            .alert("Login Error", isPresented: $testLoginError) {
                 Button("OK", role: .cancel) {}
             } message: {
-                Text(testLoginErrorMessage.isEmpty ? "Ungültige Benutzer-ID oder Server nicht erreichbar." : testLoginErrorMessage)
+                Text(testLoginErrorMessage.isEmpty ? "Invalid user ID or server not available." : testLoginErrorMessage)
             }
             .fullScreenCover(isPresented: $showCamera) {
                 CameraView()
@@ -75,11 +75,11 @@ struct ProfileView: View {
                 .font(.system(size: 80))
                 .foregroundStyle(.gray)
 
-            Text("Nicht angemeldet")
+            Text("Not logged in")
                 .font(.headline)
                 .foregroundStyle(.gray)
 
-            Text("Scanne einen QR-Code, um dich anzumelden")
+            Text("Scan a QR code to log in")
                 .font(.subheadline)
                 .foregroundStyle(.gray)
                 .multilineTextAlignment(.center)
@@ -88,7 +88,7 @@ struct ProfileView: View {
             Button(action: { showCamera = true }) {
                 HStack(spacing: 8) {
                     Image(systemName: "qrcode.viewfinder")
-                    Text("QR-Code scannen")
+                    Text("scann QR-Code")
                 }
                 .fontWeight(.semibold)
                 .frame(width: 200, height: 45)
@@ -106,7 +106,7 @@ struct ProfileView: View {
                     .font(.headline)
                     .foregroundStyle(.secondary)
 
-                TextField("Benutzer-ID eingeben", text: $testLoginUserId)
+                TextField("Enter User-Id", text: $testLoginUserId)
                     .textFieldStyle(.roundedBorder)
                     .keyboardType(.numberPad)
                     .frame(maxWidth: 200)
@@ -120,7 +120,7 @@ struct ProfileView: View {
                     Button(action: {
                         Task { await performTestLogin() }
                     }) {
-                        Text("Anmelden")
+                        Text("Log in")
                             .fontWeight(.semibold)
                             .frame(width: 150, height: 40)
                             .background(Color.accentColor)
@@ -148,12 +148,12 @@ struct ProfileView: View {
                         .foregroundStyle(.gray)
                     Text(message)
                         .foregroundStyle(.secondary)
-                    Button("Erneut versuchen") {
+                    Button("Try agian") {
                         loadState = .loading
                         Task { await loadUserProfile(userId: userId) }
                     }
                     .buttonStyle(.borderedProminent)
-                    Button("Anderer Benutzer") {
+                    Button("Other User") {
                         signOut()
                     }
                     .foregroundStyle(.red)
@@ -228,7 +228,7 @@ struct ProfileView: View {
 
             HStack(spacing: 20) {
                 Button(action: {}) {
-                    Text("Folgen")
+                    Text("Follow")
                         .fontWeight(.semibold)
                         .frame(width: 150, height: 45)
                         .background(Color("primary dark blue"))
@@ -238,7 +238,7 @@ struct ProfileView: View {
                 }
 
                 Button(action: {}) {
-                    Text("Nachricht")
+                    Text("Message")
                         .fontWeight(.semibold)
                         .frame(width: 150, height: 45)
                         .background(Color.secondary.opacity(0.3))
@@ -252,7 +252,7 @@ struct ProfileView: View {
             Button(action: { showSignOutAlert = true }) {
                 HStack(spacing: 8) {
                     Image(systemName: "rectangle.portrait.and.arrow.right")
-                    Text("Abmelden")
+                    Text("Log out")
                 }
                 .fontWeight(.semibold)
                 .frame(maxWidth: .infinity)
@@ -309,7 +309,7 @@ struct ProfileView: View {
             loadState = .loaded(user)
             initialLoadComplete = true
         } catch {
-            print("❌ Failed to load profile: \(error)")
+            print("Failed to load profile: \(error)")
             let fallback = UserProfile(
                 id: userId, 
                 username: "User \(userId)", 
@@ -327,7 +327,7 @@ struct ProfileView: View {
     @MainActor
     private func performTestLogin() async {
         guard let userId = Int(testLoginUserId), userId > 0 else {
-            testLoginErrorMessage = "Bitte gib eine gültige Benutzer-ID ein."
+            testLoginErrorMessage = "Please enter a valid user ID."
             testLoginError = true
             return
         }
@@ -340,10 +340,10 @@ struct ProfileView: View {
             testLoginUserId = ""
             initialLoadComplete = false
             loadState = .loading
-            print("✅ Login successful for user \(userId)")
+            print("Login successful for user \(userId)")
         } catch {
-            print("❌ Login failed: \(error)")
-            testLoginErrorMessage = "Login fehlgeschlagen: \(error.localizedDescription)"
+            print("Login failed: \(error)")
+            testLoginErrorMessage = "Login failed: \(error.localizedDescription)"
             testLoginError = true
         }
     }
@@ -352,7 +352,7 @@ struct ProfileView: View {
         guard let item, let userId = authManager.userId else { return }
         
         guard let data = try? await item.loadTransferable(type: Data.self) else {
-            uploadErrorMessage = "Foto konnte nicht geladen werden."
+            uploadErrorMessage = "The photo could not be loaded."
             showUploadError = true
             return
         }
@@ -372,9 +372,9 @@ struct ProfileView: View {
                 profilePictureRefreshTrigger.toggle()
             }
             
-            print("✅ Profile picture uploaded successfully")
+            print("Profile picture uploaded successfully")
         } catch {
-            uploadErrorMessage = "Fehler beim Hochladen: \(error.localizedDescription)"
+            uploadErrorMessage = "Error during upload: \(error.localizedDescription)"
             showUploadError = true
         }
     }
@@ -414,18 +414,18 @@ struct CameraView: UIViewControllerRepresentable {
                   let components = URLComponents(url: url, resolvingAgainstBaseURL: false),
                   let userIdString = components.queryItems?.first(where: { $0.name == "userId" })?.value,
                   let userId = Int(userIdString) else {
-                print("Ungültiger QR-Code: \(code)")
+                print("Invalid QR-Code: \(code)")
                 return
             }
 
             Task { @MainActor in
                 do {
                     try await authManager.loginWithUserId(userId)
-                    print("✅ QR login succeeded for userId: \(userId)")
+                    print("QR login succeeded for userId: \(userId)")
                     NotificationCenter.default.post(name: .didLoginMobile, object: userId)
                     self.dismiss()
                 } catch {
-                    print("❌ QR login failed: \(error)")
+                    print("QR login failed: \(error)")
                 }
             }
         }
@@ -477,7 +477,7 @@ class ScannerViewController: UIViewController, AVCaptureMetadataOutputObjectsDel
 
     private func addCloseButton() {
         let button = UIButton(type: .system)
-        button.setTitle("Schließen", for: .normal)
+        button.setTitle("Close", for: .normal)
         button.setTitleColor(.white, for: .normal)
         button.titleLabel?.font = .systemFont(ofSize: 17, weight: .semibold)
         button.translatesAutoresizingMaskIntoConstraints = false

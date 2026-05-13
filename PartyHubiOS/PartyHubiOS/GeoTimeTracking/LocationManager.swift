@@ -46,7 +46,7 @@ class LocationManager: NSObject, CLLocationManagerDelegate {
             manager.startMonitoring(for: party.region)
             print("Geofence registriert: \(party.name) lat:\(party.latitude) lon:\(party.longitude) radius:\(party.radiusMeters)m")
         }
-        print("Gesamt monitored regions: \(manager.monitoredRegions.count)")
+        print("Total monitored regions: \(manager.monitoredRegions.count)")
     }
 
     func checkIfAlreadyInsideRegions() {
@@ -82,14 +82,14 @@ class LocationManager: NSObject, CLLocationManagerDelegate {
 
     func locationManager(_ manager: CLLocationManager, didDetermineState state: CLRegionState, for region: CLRegion) {
         guard let context = modelContext else { return }
-        print("State fuer Region: \(region.identifier)")
+        print("State for Region: \(region.identifier)")
         if state == .inside {
             handleRegionEvent(region: region, isEntry: true, context: context)
         }
     }
 
     func locationManager(_ manager: CLLocationManager, monitoringDidFailFor region: CLRegion?, withError error: Error) {
-        print("Geofencing Fehler: \(error.localizedDescription)")
+        print("Geofencing Error: \(error.localizedDescription)")
     }
 
     private func handleRegionEvent(region: CLRegion, isEntry: Bool, context: ModelContext) {
@@ -104,12 +104,12 @@ class LocationManager: NSObject, CLLocationManagerDelegate {
                 let entry = TimeEntry(locationIdentifier: party.name)
                 party.timeEntries.append(entry)
                 context.insert(entry)
-                self.lastEvent = "Betreten: \(party.name)"
+                self.lastEvent = "Enter: \(party.name)"
                 print("ENTRY: \(party.name)")
             } else {
                 if let active = party.activeEntry {
                     active.endTime = .now
-                    self.lastEvent = "Verlassen: \(party.name)"
+                    self.lastEvent = "Exit: \(party.name)"
                     print("EXIT: \(party.name)")
                 }
             }

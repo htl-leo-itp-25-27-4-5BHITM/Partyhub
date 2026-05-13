@@ -5,9 +5,9 @@ struct LocationSection: View {
     @Binding var resolvedAddress: String
 
     var body: some View {
-        Section("Ort") {
+        Section("Place") {
 
-            LabeledContent("Adresse") {
+            LabeledContent("Adress") {
                 Button {
                     let url = URL(string: "maps://maps.apple.com/?daddr=\(party.latitude),\(party.longitude)")!
                     UIApplication.shared.open(url)
@@ -17,7 +17,7 @@ struct LocationSection: View {
                 }
             }
 
-            LabeledContent("Koordinaten") {
+            LabeledContent("Coordinates") {
                 Text("\(party.latitude, specifier: "%.6f"), \(party.longitude, specifier: "%.6f")")
                     .font(.caption)
                     .foregroundStyle(.secondary)

@@ -199,7 +199,7 @@ struct PartyHubiOSApp: App {
                     website: p.website,
                     fee: p.fee,
                     categoryId: p.category?.id,
-                    hostDisplayName: p.hostUser?.displayName                )
+                    hostDisplayName: p.hostUser?.displayName)
                 context.insert(party)
             }
         }
@@ -215,7 +215,6 @@ struct PartyHubiOSApp: App {
     class AppDelegate: NSObject, UIApplicationDelegate {
         
         func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey : Any]? = nil) -> Bool {
-            // Berechtigung für Push anfragen
             UNUserNotificationCenter.current().requestAuthorization(options: [.alert, .badge, .sound]) { granted, _ in
                 if granted {
                     DispatchQueue.main.async {
@@ -226,24 +225,20 @@ struct PartyHubiOSApp: App {
             return true
         }
         
-        // Erfolg: Apple hat uns ein Token gegeben
         func application(_ application: UIApplication, didRegisterForRemoteNotificationsWithDeviceToken deviceToken: Data) {
             let tokenString = deviceToken.map { String(format: "%02.2hhx", $0) }.joined()
-            print("🚀 Mein echtes Apple Device Token: \(tokenString)")
+            print("My genuine Apple Device Token: \(tokenString)")
             
-            // Token an Quarkus senden
             sendTokenToQuarkus(token: tokenString)
         }
         
-        // Fehler: Registrierung fehlgeschlagen (z.B. im Simulator)
         func application(_ application: UIApplication, didFailToRegisterForRemoteNotificationsWithError error: Error) {
-            print("❌ Push Registrierung fehlgeschlagen: \(error.localizedDescription)")
+            print("Push registration failed: \(error.localizedDescription)")
         }
         
         private func sendTokenToQuarkus(token: String) {
-            // Wir holen die aktuelle User-ID vom AuthManager
             guard let userId = AuthManager.shared.userId else {
-                print("⚠️ Token-Upload abgebrochen: Kein User eingeloggt.")
+                print("Token upload cancelled: No user logged in.")
                 return
             }
             
@@ -256,9 +251,9 @@ struct PartyHubiOSApp: App {
             
             URLSession.shared.dataTask(with: request) { _, response, error in
                 if let error = error {
-                    print("❌ Server Fehler beim Token-Upload: \(error.localizedDescription)")
+                    print("Server error during token upload: \(error.localizedDescription)")
                 } else {
-                    print("✅ Token erfolgreich an Quarkus gesendet (User ID: \(userId))")
+                    print("Token successfully sent to Quarkus (User ID: \(userId))")
                 }
             }.resume()
         }

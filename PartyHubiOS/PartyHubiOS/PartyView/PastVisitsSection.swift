@@ -13,7 +13,7 @@ struct PastVisitsSection: View {
 
     var body: some View {
         if !entries.isEmpty {
-            Section("Vergangene Besuche") {
+            Section("Previous Visits") {
                 ForEach(entries) { entry in
                     HStack {
                         VStack(alignment: .leading) {

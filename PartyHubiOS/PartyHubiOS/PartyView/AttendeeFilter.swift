@@ -1,10 +1,10 @@
 enum AttendeeFilter: String, CaseIterable {
-    case all = "Alle"
-    case atParty = "Auf der Party"
-    case invited = "Eingeladen"
-    case accepted = "Zugesagt"
-    case pending = "Ausstehend"
-    case friends = "Freunde"
+    case all = "All"
+    case atParty = "At the Party"
+    case invited = "Invited"
+    case accepted = "Confirmed"
+    case pending = "Pending"
+    case friends = "Friends"
 
     var systemImage: String {
         switch self {

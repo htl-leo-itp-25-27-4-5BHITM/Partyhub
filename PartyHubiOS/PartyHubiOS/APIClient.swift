@@ -80,7 +80,7 @@ class APIClient {
             }
         }
         
-        print("📡 \(method.rawValue) \(url.absoluteString)")
+        print("\(method.rawValue) \(url.absoluteString)")
         
         do {
             let (data, response) = try await session.data(for: request)
@@ -89,7 +89,7 @@ class APIClient {
                 throw APIError.invalidResponse
             }
             
-            print("📊 HTTP Status: \(httpResponse.statusCode)")
+            print("HTTP Status: \(httpResponse.statusCode)")
             
             switch httpResponse.statusCode {
             case 200...299:
@@ -111,7 +111,7 @@ class APIClient {
             do {
                 return try jsonDecoder.decode(T.self, from: data)
             } catch {
-                print("❌ Decoding error: \(error)")
+                print("Decoding error: \(error)")
                 if let jsonString = String(data: data, encoding: .utf8) {
                     print("Raw response: \(jsonString)")
                 }
@@ -151,7 +151,7 @@ class APIClient {
         
         try addAuthHeaders(to: &request, type: authType)
         
-        print("📡 \(method.rawValue) \(url.absoluteString) [data]")
+        print("\(method.rawValue) \(url.absoluteString) [data]")
         
         do {
             let (data, response) = try await session.data(for: request)
@@ -160,7 +160,7 @@ class APIClient {
                 throw APIError.invalidResponse
             }
             
-            print("📊 HTTP Status: \(httpResponse.statusCode), Data: \(data.count) bytes")
+            print("HTTP Status: \(httpResponse.statusCode), Data: \(data.count) bytes")
             
             switch httpResponse.statusCode {
             case 200...299:
@@ -223,7 +223,7 @@ class APIClient {
         
         request.httpBody = body
         
-        print("📡 UPLOAD POST \(url.absoluteString) (\(data.count) bytes)")
+        print("UPLOAD POST \(url.absoluteString) (\(data.count) bytes)")
         
         do {
             let (responseData, response) = try await session.data(for: request)
@@ -232,7 +232,7 @@ class APIClient {
                 throw APIError.invalidResponse
             }
             
-            print("📊 HTTP Status: \(httpResponse.statusCode)")
+            print("HTTP Status: \(httpResponse.statusCode)")
             
             switch httpResponse.statusCode {
             case 200...299:
@@ -261,7 +261,7 @@ class APIClient {
             do {
                 return try jsonDecoder.decode(T.self, from: responseData)
             } catch {
-                print("❌ Decoding error: \(error)")
+                print("Decoding error: \(error)")
                 if let jsonString = String(data: responseData, encoding: .utf8) {
                     print("Raw response: \(jsonString)")
                 }
@@ -287,22 +287,22 @@ class APIClient {
                 throw APIError.noAuthToken
             }
             request.setValue("\(userId)", forHTTPHeaderField: "X-User-Id")
-            print("🔐 Added X-User-Id: \(userId)")
+            print("Added X-User-Id: \(userId)")
             
         case .bearerToken:
             guard let token = authManager.mobileToken else {
                 throw APIError.noAuthToken
             }
             request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
-            print("🔐 Added Bearer token")
+            print("Added Bearer token")
             
         case .either:
             if let userId = authManager.userId {
                 request.setValue("\(userId)", forHTTPHeaderField: "X-User-Id")
-                print("🔐 Added X-User-Id: \(userId)")
+                print("Added X-User-Id: \(userId)")
             } else if let token = authManager.mobileToken {
                 request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
-                print("🔐 Added Bearer token")
+                print("Added Bearer token")
             } else {
                 throw APIError.noAuthToken
             }

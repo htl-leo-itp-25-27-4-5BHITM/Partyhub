@@ -68,10 +68,8 @@ struct UserLocationListView: View {
     }
 
     private func currentUserLocationIfAtParty(_ party: Party) -> UserLocation? {
-        // Always show if host
-        let isHost = party.hostUserId == 1 // currentUserId is hardcoded as 1
+        let isHost = party.hostUserId == 1
         
-        // Get current location from GPS or party location as fallback
         let latitude: Double
         let longitude: Double
         
@@ -79,11 +77,10 @@ struct UserLocationListView: View {
             latitude = currentLocation.latitude
             longitude = currentLocation.longitude
         } else if isHost {
-            // Use party location as fallback for host
             latitude = party.latitude
             longitude = party.longitude
         } else if isCurrentUserAtParty(party) {
-            // GPS confirmed we're at party
+
             guard let currentLocation = locationManager.currentLocation else { return nil }
             latitude = currentLocation.latitude
             longitude = currentLocation.longitude
@@ -91,7 +88,6 @@ struct UserLocationListView: View {
             return nil
         }
         
-        // Only show if host or at party location
         if !isHost && !isCurrentUserAtParty(party) {
             return nil
         }
@@ -101,8 +97,8 @@ struct UserLocationListView: View {
             longitude: longitude,
             user: .init(
                 id: Int64(currentUserId),
-                displayName: "Du",
-                distinctName: "Du"
+                displayName: "You",
+                distinctName: "You"
             )
         )
     }
@@ -171,7 +167,7 @@ struct UserLocationListView: View {
                 }
 
                 guard let userId = location.user?.id else { return false }
-                // Invited but NOT friends - to avoid overlap
+
                 return invitedUserIds.contains(Int(userId)) && !friendUserIds.contains(Int(userId))
             }
 
@@ -318,7 +314,7 @@ struct UserLocationListView: View {
 
                     List {
 
-                        Section("Anzeigen") {
+                        Section("Show") {
 
                             ForEach(visibleFilters, id: \.self) { filter in
 
@@ -366,14 +362,14 @@ struct UserLocationListView: View {
                             }
                         }
                     }
-                    .navigationTitle("Filtern")
+                    .navigationTitle("filter")
                     .navigationBarTitleDisplayMode(.inline)
 
                     .toolbar {
 
                         ToolbarItem(placement: .cancellationAction) {
 
-                            Button("Abbrechen") {
+                            Button("Cancel") {
                                 showFilterSheet = false
                             }
                         }

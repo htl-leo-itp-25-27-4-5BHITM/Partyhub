@@ -4,12 +4,12 @@ struct PhotoView: View {
     var body: some View {
         NavigationStack {
             List {
-                NavigationLink("Bilder für Geburtstag hochladen") {
-                    PartyBilderView(partyName: "Geburtstag_2024")
+                NavigationLink("Photos for Birthady upload") {
+                    PartyBilderView(partyName: "Birthday_2026")
                 }
                 .frame(minHeight: 44)
             }
-            .navigationTitle("Meine Partys")
+            .navigationTitle("My Partys")
             .navigationBarTitleDisplayMode(.large)
         }
     }

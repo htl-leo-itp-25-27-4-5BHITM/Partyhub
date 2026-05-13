@@ -3,9 +3,9 @@ import MapKit
 import SwiftData
 
 enum MapFilter: String, CaseIterable {
-    case all = "Alle"
-    case invited = "Eingeladen"
-    case friends = "Freunde"
+    case all = "All"
+    case invited = "Invited"
+    case friends = "Friends"
 }
 
 private struct InvitationResponse: Decodable {
@@ -116,7 +116,7 @@ struct MapView: View {
                 .confirmationDialog("Filter", isPresented: $showFilterDialog) {
                     filterDialogButtons
                 } message: {
-                    Text("Zeige nur Partys aus einer Kategorie")
+                    Text("Show only parties from one category")
                 }
         }
     }
@@ -131,7 +131,7 @@ struct MapView: View {
     private var userLocationAnnotation: some MapContent {
         Group {
             if let coord = locationManager.currentLocation {
-                Annotation("Du", coordinate: coord) {
+                Annotation("You", coordinate: coord) {
                     AttendeePin(isAtParty: locationManager.isAtParty, isSelf: true, userId: currentUserId)
                 }
             }
@@ -179,10 +179,10 @@ struct MapView: View {
     
     private var filterDialogButtons: some View {
         Group {
-            Button("Alle") { setFilter(.all) }
-            Button("Eingeladen") { setFilter(.invited) }
-            Button("Freunde") { setFilter(.friends) }
-            Button("Abbrechen", role: .cancel) { }
+            Button("All ") { setFilter(.all) }
+            Button("Invited") { setFilter(.invited) }
+            Button("Friends") { setFilter(.friends) }
+            Button("Cancel", role: .cancel) { }
         }
     }
     
@@ -266,3 +266,5 @@ private extension MapView {
         }
     }
 }
+
+

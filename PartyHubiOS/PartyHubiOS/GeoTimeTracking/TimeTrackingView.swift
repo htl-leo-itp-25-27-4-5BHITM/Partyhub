@@ -12,7 +12,7 @@ struct TimeTrackingView: View {
         NavigationStack {
             VStack {
                 if entries.isEmpty {
-                    ContentUnavailableView("Keine Zeiteinträge", systemImage: "clock", description: Text("Deine Zeiten erscheinen hier automatisch."))
+                    ContentUnavailableView("No Time Entries", systemImage: "clock", description: Text("Your times will appear here automatically."))
                 } else {
                     List {
                         ForEach(entries) { entry in
@@ -20,14 +20,14 @@ struct TimeTrackingView: View {
                                 VStack(alignment: .leading) {
                                     Text(entry.locationIdentifier)
                                         .font(.headline)
-                                    Text("Seit \(entry.startTime.formatted(date: .omitted, time: .shortened)) Uhr")
+                                    Text("Since \(entry.startTime.formatted(date: .omitted, time: .shortened)) clock")
                                         .font(.caption)
                                         .foregroundStyle(.secondary)
                                 }
                                 Spacer()
                                 if let endTime = entry.endTime {
                                     VStack(alignment: .trailing) {
-                                        Text("\(entry.startTime.formatted(.dateTime.hour().minute())) bis \(endTime.formatted(.dateTime.hour().minute()))")
+                                        Text("\(entry.startTime.formatted(.dateTime.hour().minute())) till \(endTime.formatted(.dateTime.hour().minute()))")
                                             .font(.caption)
                                             .foregroundStyle(.secondary)
                                         Text(formatDuration(from: entry.startTime, to: endTime))
@@ -40,7 +40,7 @@ struct TimeTrackingView: View {
                                             .fontWeight(.bold)
                                             .foregroundStyle(Color("primary pink"))
                                             .monospacedDigit()
-                                        Text("aktiv")
+                                        Text("aktive")
                                             .font(.caption2)
                                             .foregroundStyle(Color("primary pink"))
                                     }

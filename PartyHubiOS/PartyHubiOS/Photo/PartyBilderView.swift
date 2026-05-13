@@ -38,7 +38,7 @@ struct PartyBilderView: View {
                                             bildZumTeilen = bild
                                             zeigeShareSheet = true
                                         } label: {
-                                            Label("Teilen", systemImage: "square.and.arrow.up")
+                                            Label("Share", systemImage: "square.and.arrow.up")
                                         }
                                     }
                             }
@@ -66,7 +66,7 @@ struct PartyBilderView: View {
 
                 if istImBearbeitungsModus && !ausgewaehlteBilderZumLoeschen.isEmpty {
                     Button(action: loescheAusgewaehlteBilder) {
-                        Label("\(ausgewaehlteBilderZumLoeschen.count) Bilder löschen", systemImage: "trash")
+                        Label("\(ausgewaehlteBilderZumLoeschen.count) Photos delete", systemImage: "trash")
                             .frame(maxWidth: .infinity)
                             .frame(height: 44)
                     }
@@ -77,7 +77,7 @@ struct PartyBilderView: View {
 
                 } else if !istImBearbeitungsModus {
                     PhotosPicker(selection: $selectedItems, matching: .images) {
-                        Label("Fotos hinzufügen", systemImage: "plus")
+                        Label("Photos add", systemImage: "plus")
                             .frame(maxWidth: .infinity)
                             .frame(height: 44)
                     }
@@ -96,7 +96,7 @@ struct PartyBilderView: View {
         .navigationBarTitleDisplayMode(.large)
         .toolbar {
             ToolbarItem(placement: .primaryAction) {
-                Button(istImBearbeitungsModus ? "Fertig" : "Bearbeiten") {
+                Button(istImBearbeitungsModus ? "Finish" : "Edit") {
                     istImBearbeitungsModus.toggle()
                     ausgewaehlteBilderZumLoeschen.removeAll()
                 }

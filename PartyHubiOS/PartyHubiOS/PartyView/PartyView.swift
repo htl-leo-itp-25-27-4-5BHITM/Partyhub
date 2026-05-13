@@ -12,7 +12,6 @@ struct PartyView: View {
 
     @State private var drivingDistances: [Int: Double] = [:]
     @State private var lastFetchLocation: CLLocation? = nil
-    // Läuft gerade ein Fetch?
     @State private var isFetching = false
 
     func sortedParties(userCoord: CLLocationCoordinate2D?) -> [Party] {
@@ -37,7 +36,7 @@ struct PartyView: View {
                 if sorted.isEmpty {
                     HStack(spacing: 12) {
                         ProgressView()
-                        Text("Keine Partys gefunden")
+                        Text("No Partys found")
                             .foregroundStyle(.secondary)
                     }
                     .frame(minHeight: 44)
@@ -57,7 +56,7 @@ struct PartyView: View {
             .toolbar {
                 ToolbarItem(placement: .primaryAction) {
                     Button(action: {}) {
-                        Label("Party erstellen", systemImage: "plus")
+                        Label("Party create", systemImage: "plus")
                     }
                 }
             }
@@ -69,7 +68,6 @@ struct PartyView: View {
             guard let newCoord else { return }
             let newLocation = CLLocation(latitude: newCoord.latitude, longitude: newCoord.longitude)
 
-            // ✅ Nur neu laden wenn sich der Nutzer mehr als 200m bewegt hat
             if let last = lastFetchLocation {
                 guard newLocation.distance(from: last) > 200 else { return }
             }
@@ -78,11 +76,9 @@ struct PartyView: View {
         }
     }
 
-    // ✅ Lädt Routen nur einmal pro Standort-Änderung >200m
     private func fetchIfNeeded(userCoord: CLLocationCoordinate2D?) {
         guard let userCoord, !isFetching else { return }
 
-        // Wenn noch kein Fetch gemacht wurde, oder Nutzer >200m bewegt hat
         let currentLocation = CLLocation(latitude: userCoord.latitude, longitude: userCoord.longitude)
         if let last = lastFetchLocation, currentLocation.distance(from: last) <= 200 {
             return
@@ -94,7 +90,6 @@ struct PartyView: View {
         let group = DispatchGroup()
 
         for party in parties {
-            // Bereits gecachte Distanz nicht neu laden
             if drivingDistances[party.backendId] != nil { continue }
 
             group.enter()
@@ -163,7 +158,7 @@ struct PartyView: View {
                             }
                         }
                         
-                        Text(party.hostDisplayName ?? "Unbekannter Host")
+                        Text(party.hostDisplayName ?? "Unknown Host")
                             .font(.caption)
                             .foregroundStyle(.secondary)
                     }

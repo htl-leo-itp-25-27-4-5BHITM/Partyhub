@@ -15,17 +15,17 @@ struct PartyDetailDebugSection: View {
     let isOwner: Bool
 
     var body: some View {
-        Section("🔧 Debug Tools") {
+        Section("Debug Tools") {
             VStack(alignment: .leading, spacing: 12) {
 
-                Text("Party betreten/verlassen:")
+                Text("Joining/leaving a party:")
                     .font(.caption)
                     .foregroundColor(.secondary)
 
                 Button {
                     simulateEnterParty()
                 } label: {
-                    Label("Party betreten (simulieren)", systemImage: "arrow.right.circle.fill")
+                    Label("Enter the party (simulate)", systemImage: "arrow.right.circle.fill")
                         .frame(maxWidth: .infinity)
                 }
                 .buttonStyle(.bordered)
@@ -34,7 +34,7 @@ struct PartyDetailDebugSection: View {
                 Button {
                     simulateLeaveParty()
                 } label: {
-                    Label("Party verlassen (simulieren)", systemImage: "arrow.left.circle.fill")
+                    Label("Leave the party (simulate)", systemImage: "arrow.left.circle.fill")
                         .frame(maxWidth: .infinity)
                 }
                 .buttonStyle(.bordered)
@@ -42,14 +42,14 @@ struct PartyDetailDebugSection: View {
 
                 Divider()
 
-                Text("Benachrichtigungen:")
+                Text("Notifications:")
                     .font(.caption)
                     .foregroundColor(.secondary)
 
                 Button {
                     simulatePartyUpdate()
                 } label: {
-                    Label("Beschreibung ändern (Push)", systemImage: "bell.badge.fill")
+                    Label("Change description (Push)", systemImage: "bell.badge.fill")
                         .frame(maxWidth: .infinity)
                 }
                 .buttonStyle(.bordered)
@@ -58,7 +58,7 @@ struct PartyDetailDebugSection: View {
                 Button {
                     testLocalNotification()
                 } label: {
-                    Label("Test Lokale Notification", systemImage: "bell.fill")
+                    Label("Test Local Notification", systemImage: "bell.fill")
                         .frame(maxWidth: .infinity)
                 }
                 .buttonStyle(.bordered)
@@ -73,7 +73,7 @@ struct PartyDetailDebugSection: View {
                 Button {
                     printDebugInfo()
                 } label: {
-                    Label("Debug Info (Konsole)", systemImage: "ladybug.fill")
+                    Label("Debug Info (Console)", systemImage: "ladybug.fill")
                         .frame(maxWidth: .infinity)
                 }
                 .buttonStyle(.bordered)
@@ -83,7 +83,7 @@ struct PartyDetailDebugSection: View {
                     Button {
                         becomeOwner()
                     } label: {
-                        Label("Als Owner einloggen", systemImage: "crown.fill")
+                        Label("Log in as Owner", systemImage: "crown.fill")
                             .frame(maxWidth: .infinity)
                     }
                     .buttonStyle(.bordered)

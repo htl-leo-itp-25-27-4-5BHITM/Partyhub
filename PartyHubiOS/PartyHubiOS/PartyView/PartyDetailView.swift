@@ -64,11 +64,11 @@ struct PartyDetailView: View {
                     HStack {
                         Image(systemName: "bell.badge.fill")
                             .foregroundColor(.red)
-                        Text("\(unreadUpdateCount) neue Update\(unreadUpdateCount == 1 ? "" : "s")")
+                        Text("\(unreadUpdateCount) new Update\(unreadUpdateCount == 1 ? "" : "s")")
                             .font(.subheadline)
                             .foregroundColor(.red)
                         Spacer()
-                        Text("Du siehst sie gerade")
+                        Text("You can see them right now")
                             .font(.caption)
                             .foregroundColor(.secondary)
                     }
@@ -82,7 +82,7 @@ struct PartyDetailView: View {
                     HStack {
                         Image(systemName: "crown.fill")
                             .foregroundColor(.yellow)
-                        Text("Du bist der Veranstalter")
+                        Text("You are the organiser")
                             .font(.subheadline)
                             .foregroundColor(.secondary)
                     }
@@ -92,7 +92,7 @@ struct PartyDetailView: View {
             
             Section {
                 LabeledContent("Status") {
-                    Text(party.isActive ? "Du bist gerade hier" : "Nicht anwesend")
+                    Text(party.isActive ? "You are currently here": "Not present")
                         .foregroundStyle(party.isActive ? .green : .gray)
                         .fontWeight(.semibold)
                 }
@@ -107,20 +107,20 @@ struct PartyDetailView: View {
                 resolvedAddress: $resolvedAddress
             )
 
-            Section("Teilnehmer") {
+            Section("Participants") {
                 NavigationLink {
                     PartyAttendeeMapView(
                         party: party,
                         locationManager: locationManager
                     )
                 } label: {
-                    Label("Teilnehmer auf Karte anzeigen", systemImage: "person.2.fill")
+                    Label("Show participants on map", systemImage: "person.2.fill")
                 }
                 
                 NavigationLink {
                     UserLocationListView(parties: [party])
                 } label: {
-                    Label("Teilnehmerliste", systemImage: "list.bullet")
+                    Label("List of participants", systemImage: "list.bullet")
                 }
             }
             
@@ -176,19 +176,19 @@ struct PartyDetailView: View {
                     Menu {
                         if let url = shareURL {
                             ShareLink(item: url, subject: Text(party.name), message: Text(partyText)) {
-                                Text("Maps-Link teilen")
+                                Text("Share the Maps link")
                             }
                         }
                         ShareLink(item: partyText) {
-                            Text("Als Text teilen")
+                            Text("Share as text")
                         }
                         if let deepLink = appDeepLink {
                             ShareLink(item: deepLink) {
-                                Label("App-Link teilen", systemImage: "antenna.radiowaves.left.and.right")
+                                Label("Share App Link", systemImage: "antenna.radiowaves.left.and.right")
                             }
                         }
                     } label: {
-                        Text("Teilen")
+                        Text("Share")
                     }
                 }
             }
@@ -214,19 +214,19 @@ struct PartyDetailView: View {
                     }
                 }
             }
-            .alert("Fehler", isPresented: $showError) {
+            .alert("Error", isPresented: $showError) {
                 Button("OK", role: .cancel) { }
             } message: {
                 Text(errorMessage)
             }
             .onAppear {
-                print("🔍 === PARTY DETAIL DEBUG ===")
-                print("🔍 Party Name: \(party.name)")
-                print("🔍 Party Backend ID: \(party.backendId)")
-                print("🔍 Party Host User ID: \(String(describing: party.hostUserId))")
-                print("🔍 Current User ID (UserDefaults): \(String(describing: currentUserId))")
-                print("🔍 Is Owner: \(isOwner)")
-                print("🔍 === END DEBUG ===\n")
+                print(" === PARTY DETAIL DEBUG ===")
+                print(" Party Name: \(party.name)")
+                print(" Party Backend ID: \(party.backendId)")
+                print(" Party Host User ID: \(String(describing: party.hostUserId))")
+                print(" Current User ID (UserDefaults): \(String(describing: currentUserId))")
+                print(" Is Owner: \(isOwner)")
+                print(" === END DEBUG ===\n")
                 
                 ladeBilderAusOrdner()
                 partyText = "\(party.name)\n \(party.location)\n https://maps.apple.com/?ll=\(party.latitude),\(party.longitude)"
@@ -251,9 +251,8 @@ struct PartyDetailView: View {
         // MARK: - Debug Functions
 #if DEBUG
         func simulateEnterParty() {
-            print("🟢 Simuliere: Party betreten")
+            print("Simulate: Party join")
             
-            // Erstelle neuen TimeEntry mit locationIdentifier
             let entry = TimeEntry(
                 locationIdentifier: party.name,
                 startTime: Date(),
@@ -261,35 +260,35 @@ struct PartyDetailView: View {
             party.timeEntries.append(entry)
             
             try? modelContext.save()
-            print("✅ TimeEntry erstellt: \(entry.startTime)")
+            print("TimeEntry created: \(entry.startTime)")
         }
         
         func simulateLeaveParty() {
-            print("🔴 Simuliere: Party verlassen")
+            print("Simulate: Party leave")
             
             guard let activeEntry = party.activeEntry else {
-                print("❌ Keine aktive Session vorhanden")
+                print("No active Session available")
                 return
             }
             
             activeEntry.endTime = Date()
             try? modelContext.save()
-            print("✅ TimeEntry beendet: \(activeEntry.durationInHours)h")
+            print("TimeEntry completet: \(activeEntry.durationInHours)h")
         }
         
         func simulatePartyUpdate() {
-            print("📢 Simuliere: Party-Update (Beschreibung ändern)")
+            print("Simulate: Party-Update (Description change)")
             
             Task {
                 do {
                     let baseURL = "https://it220274.cloud.htl-leonding.ac.at"
                     guard let currentUserId = currentUserId else {
-                        print("❌ Kein User eingeloggt")
+                        print("No User logedIn")
                         return
                     }
                     
                     guard let url = URL(string: "\(baseURL)/api/party/\(party.backendId)?user=\(currentUserId)") else {
-                        print("❌ Ungültige URL")
+                        print("Invalid URL")
                         return
                     }
                     
@@ -314,22 +313,22 @@ struct PartyDetailView: View {
                         await MainActor.run {
                             party.partyDescription = newDescription
                         }
-                        print("✅ Party erfolgreich aktualisiert - Push sollte gesendet werden!")
+                        print("Party updated successfully – a push notification should be sent!")
                     } else {
-                        print("❌ Update fehlgeschlagen")
+                        print("Update failed")
                     }
                 } catch {
-                    print("❌ Fehler: \(error)")
+                    print("Error: \(error)")
                 }
             }
         }
         
         func testLocalNotification() {
-            print("🔔 Sende Test-Notification")
+            print("Send Test-Notification")
             
             let content = UNMutableNotificationContent()
             content.title = "Test Notification"
-            content.body = "Party '\(party.name)' wurde aktualisiert!"
+            content.body = "Party '\(party.name)' has been updated!"
             content.sound = .default
             
             let trigger = UNTimeIntervalNotificationTrigger(timeInterval: 2, repeats: false)
@@ -337,15 +336,15 @@ struct PartyDetailView: View {
             
             UNUserNotificationCenter.current().add(request) { error in
                 if let error = error {
-                    print("❌ Notification Fehler: \(error)")
+                    print("Notification Error: \(error)")
                 } else {
-                    print("✅ Notification geplant (in 2 Sekunden)")
+                    print("Notification scheduled (in 2 seconds)")
                 }
             }
         }
         
         func printDebugInfo() {
-            print("\n🐛 === MANUAL DEBUG INFO ===")
+            print("\n === MANUAL DEBUG INFO ===")
             print("Party ID: \(party.backendId)")
             print("Party Name: \(party.name)")
             print("Host User ID: \(String(describing: party.hostUserId))")
@@ -358,21 +357,20 @@ struct PartyDetailView: View {
         }
         
         func becomeOwner() {
-            print("ℹ️ becomeOwner() is deprecated - user authentication is handled by AuthManager")
+            print("becomeOwner() is deprecated - user authentication is handled by AuthManager")
         }
 #endif
         
         // MARK: - Update Party on Backend (FIXED)
         func updatePartyOnBackend(_ updatedParty: PartyEditData) async {
             guard let currentUserId = currentUserId else {
-                errorMessage = "Du bist nicht angemeldet"
+                errorMessage = "You are not logged in"
                 showError = true
                 return
             }
             
-            // Berechtigungsprüfung
             guard isOwner else {
-                errorMessage = "Du hast keine Berechtigung (Owner-Check fehlgeschlagen)"
+                errorMessage = "You do not have permission (owner check failed)"
                 showError = true
                 return
             }
@@ -385,7 +383,6 @@ struct PartyDetailView: View {
                     throw URLError(.badURL)
                 }
                 
-                // 1. Der Formatter muss exakt dem @JsonFormat entsprechen
                 let dateFormatter = DateFormatter()
                 dateFormatter.dateFormat = "yyyy-MM-dd'T'HH:mm:ss"
                 
@@ -401,10 +398,10 @@ struct PartyDetailView: View {
                     "website": updatedParty.website ?? "",
                     "latitude": updatedParty.latitude,
                     "longitude": updatedParty.longitude,
-                    "location_address": updatedParty.location, // WICHTIG: Java Feldname ist location_address
-                    "theme": "Standard", // Pflichtfeld im Dto
-                    "visibility": "public", // Pflichtfeld im Dto
-                    "selectedUsers": [] // Pflichtfeld im Dto (leere Liste reicht)
+                    "location_address": updatedParty.location,
+                    "theme": "Standard",
+                    "visibility": "public",
+                    "selectedUsers": []
                 ]
                 var request = URLRequest(url: url)
                 request.httpMethod = "PUT"
@@ -416,15 +413,14 @@ struct PartyDetailView: View {
                 let (data, response) = try await URLSession.shared.data(for: request)
                 
                 if let httpResponse = response as? HTTPURLResponse {
-                    print("📡 Status Code: \(httpResponse.statusCode)")
+                    print("Status Code: \(httpResponse.statusCode)")
                     
                     if !(200...299).contains(httpResponse.statusCode) {
-                        // DEBUG: Was sagt der Server genau?
                         if let errorString = String(data: data, encoding: .utf8) {
-                            print("❌ SERVER FEHLERMELDUNG: \(errorString)")
-                            errorMessage = "Server sagt: \(errorString)"
+                            print("SERVER Error message: \(errorString)")
+                            errorMessage = "Server says: \(errorString)"
                         } else {
-                            errorMessage = "Fehler: Status \(httpResponse.statusCode)"
+                            errorMessage = "Error: Status \(httpResponse.statusCode)"
                         }
                         showError = true
                         isUpdating = false
@@ -432,7 +428,6 @@ struct PartyDetailView: View {
                     }
                 }
                 
-                // Lokale Daten aktualisieren auf dem Main-Thread
                 await MainActor.run {
                     party.name = updatedParty.title
                     party.partyDescription = updatedParty.description
@@ -448,15 +443,14 @@ struct PartyDetailView: View {
                     party.fee = updatedParty.fee
                     party.categoryId = updatedParty.categoryId
                     
-                    // SwiftData speichern
                     try? modelContext.save()
                 }
                 
-                print("✅ Party erfolgreich aktualisiert")
+                print("Party successfully updated")
                 
             } catch {
-                print("❌ Request Fehler: \(error)")
-                errorMessage = "Verbindungsfehler: \(error.localizedDescription)"
+                print("Request Error: \(error)")
+                errorMessage = "Connection Error: \(error.localizedDescription)"
                 showError = true
             }
             
@@ -589,52 +583,52 @@ struct PartyDetailView: View {
         var body: some View {
             NavigationView {
                 Form {
-                    Section("Allgemein") {
-                        TextField("Titel", text: $title)
-                        TextField("Beschreibung", text: $description, axis: .vertical)
+                    Section("Generel") {
+                        TextField("Title", text: $title)
+                        TextField("Description", text: $description, axis: .vertical)
                             .lineLimit(3...6)
                     }
                     
-                    Section("Ort") {
-                        TextField("Adresse", text: $location)
+                    Section("Place") {
+                        TextField("Adress", text: $location)
                     }
                     
-                    Section("Zeit") {
-                        DatePicker("Beginn", selection: $timeStart)
-                        DatePicker("Ende", selection: $timeEnd)
+                    Section("Time") {
+                        DatePicker("Start", selection: $timeStart)
+                        DatePicker("End", selection: $timeEnd)
                     }
                     
-                    Section("Teilnehmer") {
-                        TextField("Max. Teilnehmer", text: $maxPeople)
+                    Section("Participants") {
+                        TextField("max. Participants", text: $maxPeople)
                             .keyboardType(.numberPad)
                         HStack {
-                            TextField("Min. Alter", text: $minAge)
+                            TextField("min. Age", text: $minAge)
                                 .keyboardType(.numberPad)
                             Text("-")
-                            TextField("Max. Alter", text: $maxAge)
+                            TextField("max. Age", text: $maxAge)
                                 .keyboardType(.numberPad)
                         }
                     }
                     
-                    Section("Zusatzinfos") {
+                    Section("Further Information") {
                         TextField("Website", text: $website)
                             .keyboardType(.URL)
                             .textInputAutocapitalization(.never)
-                        TextField("Eintritt (€)", text: $fee)
+                        TextField("Admission (€)", text: $fee)
                             .keyboardType(.decimalPad)
                     }
                 }
-                .navigationTitle("Party bearbeiten")
+                .navigationTitle("Party attend")
                 .navigationBarTitleDisplayMode(.inline)
                 .toolbar {
                     ToolbarItem(placement: .cancellationAction) {
-                        Button("Abbrechen") {
+                        Button("Cancel") {
                             dismiss()
                         }
                     }
                     
                     ToolbarItem(placement: .confirmationAction) {
-                        Button("Speichern") {
+                        Button("Save") {
                             let editData = PartyEditData(
                                 title: title,
                                 description: description,

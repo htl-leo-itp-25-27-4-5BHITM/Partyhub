@@ -125,9 +125,7 @@ struct PartyAttendeeMapView: View {
     }
 
     private func currentUserLocationIfAtParty() -> UserLocation? {
-        // Get current location from GPS
         guard let currentLocation = locationManager.currentLocation else {
-            // Fallback to party location if host
             let isHost = party.hostUserId == 1
             if isHost {
                 return UserLocation(
@@ -135,22 +133,21 @@ struct PartyAttendeeMapView: View {
                     longitude: party.longitude,
                     user: .init(
                         id: Int64(currentUserId),
-                        displayName: "Du",
-                        distinctName: "Du"
+                        displayName: "You",
+                        distinctName: "You"
                     )
                 )
             }
             return nil
         }
         
-        // Always show current user with their GPS location if available
         return UserLocation(
             latitude: currentLocation.latitude,
             longitude: currentLocation.longitude,
             user: .init(
                 id: Int64(currentUserId),
-                displayName: "Du",
-                distinctName: "Du"
+                displayName: "You",
+                distinctName: "You"
             )
         )
     }
@@ -158,14 +155,12 @@ struct PartyAttendeeMapView: View {
     private func attendeeLocationsIncludingCurrentUserIfNeeded() -> [UserLocation] {
         var locations = viewModel.locations
 
-        // Remove current user from backend locations if present
         locations.removeAll { Int($0.user?.id ?? 0) == currentUserId }
 
         guard let currentUserLocation = currentUserAttendeeLocation else {
             return locations
         }
 
-        // Always add current user with their actual GPS location from device
         locations.append(currentUserLocation)
 
         return locations
@@ -230,18 +225,15 @@ struct PartyAttendeeMapView: View {
 
         var allLocations = attendeeLocationsIncludingCurrentUserIfNeeded()
         
-        // Ensure current user is always included if they should be shown
         if let currentUserLocation = currentUserAttendeeLocation,
            !allLocations.contains(where: { Int($0.user?.id ?? 0) == currentUserId }) {
             allLocations.append(currentUserLocation)
         }
 
-        // If "all" is selected, show all attendees
         if activeFilters.contains(.all) {
             return allLocations
         }
 
-        // Otherwise, combine results from all selected filters
         var filteredResults: [UserLocation] = []
 
         if activeFilters.contains(.atParty) {
@@ -267,7 +259,6 @@ struct PartyAttendeeMapView: View {
             filteredResults.append(contentsOf: friends)
         }
 
-        // Remove duplicates (same user might match multiple filters)
         var uniqueResults: [UserLocation] = []
         var seenIds: Set<Int64> = []
         for location in filteredResults {
@@ -423,7 +414,7 @@ struct PartyAttendeeMapView: View {
                     } else {
 
                         Annotation(
-                            "\(cluster.items.count) Teilnehmer",
+                            "\(cluster.items.count) Participants",
                             coordinate: cluster.coordinate
                         ) {
 
@@ -458,7 +449,7 @@ struct PartyAttendeeMapView: View {
                     Spacer()
                 }
             }
-            .navigationTitle("Teilnehmer-Karte")
+            .navigationTitle("Participant map")
             .navigationBarTitleDisplayMode(.inline)
 
             .toolbar {
@@ -577,7 +568,7 @@ struct PartyAttendeeMapView: View {
 
                     List {
 
-                        Section("Anzeigen") {
+                        Section("Show") {
 
                             ForEach(
                                 visibleFilters,
@@ -588,19 +579,15 @@ struct PartyAttendeeMapView: View {
 
                                     withAnimation {
                                         if filter == .all {
-                                            // "All" filter toggles off all other filters
                                             activeFilters = [.all]
                                         } else if activeFilters.contains(.all) {
-                                            // When selecting another filter, remove "all"
                                             activeFilters = [filter]
                                         } else if activeFilters.contains(filter) {
-                                            // Deselect the filter
                                             activeFilters.remove(filter)
                                             if activeFilters.isEmpty {
                                                 activeFilters = [.all]
                                             }
                                         } else {
-                                            // Add the filter
                                             activeFilters.insert(filter)
                                         }
                                     }
@@ -645,7 +632,7 @@ struct PartyAttendeeMapView: View {
                             }
                         }
                     }
-                    .navigationTitle("Filtern")
+                    .navigationTitle("filter")
                     .navigationBarTitleDisplayMode(.inline)
 
                     .toolbar {
@@ -654,7 +641,7 @@ struct PartyAttendeeMapView: View {
                             placement: .cancellationAction
                         ) {
 
-                            Button("Fertig") {
+                            Button("Done") {
                                 showFilterSheet = false
                             }
                         }

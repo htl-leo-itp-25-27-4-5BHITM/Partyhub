@@ -36,9 +36,9 @@ struct PartyPin: View {
 
     private var accessibilitySummary: String {
         var parts: [String] = []
-        if isInvited { parts.append("Eingeladen") }
-        if isHostedByFriend { parts.append("Von einem Freund") }
-        if isActive { parts.append("Aktiv") }
+        if isInvited { parts.append("Invited") }
+        if isHostedByFriend { parts.append("From a friend") }
+        if isActive { parts.append("active") }
         return parts.isEmpty ? "Party" : "Party, " + parts.joined(separator: ", ")
     }
 
@@ -163,6 +163,6 @@ struct AttendeeClusterPin: View {
             }
             .frame(width: 50, height: 50)
         }
-        .accessibilityLabel("\(count) Teilnehmer")
+        .accessibilityLabel("\(count) Participants")
     }
 }

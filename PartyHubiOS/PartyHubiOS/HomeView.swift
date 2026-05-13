@@ -9,21 +9,21 @@ struct HomeView: View {
             List {
                 Section {
                     if let loc = location {
-                        LabeledContent("Breitengrad") {
+                        LabeledContent("latitude") {
                             Text(loc.coordinate.latitude, format: .number.precision(.fractionLength(6)))
                                 .font(.system(.body, design: .monospaced))
                                 .foregroundStyle(.secondary)
                         }
                         .frame(minHeight: 44)
 
-                        LabeledContent("Längengrad") {
+                        LabeledContent("longitude") {
                             Text(loc.coordinate.longitude, format: .number.precision(.fractionLength(6)))
                                 .font(.system(.body, design: .monospaced))
                                 .foregroundStyle(.secondary)
                         }
                         .frame(minHeight: 44)
 
-                        LabeledContent("Genauigkeit") {
+                        LabeledContent("Accuracy") {
                             Text("\(Int(loc.horizontalAccuracy)) m")
                                 .foregroundStyle(.secondary)
                         }
@@ -32,13 +32,13 @@ struct HomeView: View {
                     } else {
                         HStack(spacing: 12) {
                             ProgressView()
-                            Text("Standort wird ermittelt …")
+                            Text("Locating your location …")
                                 .foregroundStyle(.secondary)
                         }
                         .frame(minHeight: 44)
                     }
                 } header: {
-                    Label("Mein Standort", systemImage: "location.fill")
+                    Label("My Location", systemImage: "location.fill")
                         .foregroundStyle(Color("primary pink"))
                 }
             }

@@ -44,17 +44,17 @@ class ApiService {
 
         if let httpResponse = response as? HTTPURLResponse {
             if httpResponse.statusCode != 200 {
-                print("❌ Server Fehler: \(httpResponse.statusCode)")
+                print("Server Fehler: \(httpResponse.statusCode)")
                 throw NSError(domain: "NSURLErrorDomain", code: -1011, userInfo: [NSLocalizedDescriptionKey: "Bad Request"])
             } else {
-                print("✅ Party erfolgreich aktualisiert!")
+                print("Party erfolgreich aktualisiert!")
             }
         }
     }
     
     func fetchProfilePicture(userId: Int) async throws -> UIImage {
         if let cachedImage = ApiService.profilePictureCache.object(forKey: NSNumber(value: userId)) {
-            print("📦 Profilbild für User \(userId) aus Cache geladen")
+            print("Profilbild für User \(userId) aus Cache geladen")
             return cachedImage
         }
 
@@ -67,7 +67,7 @@ class ApiService {
             throw URLError(.badURL)
         }
         
-        print("📡 Lade Profilbild von: \(url.absoluteString)")
+        print("Lade Profilbild von: \(url.absoluteString)")
         
         var request = URLRequest(url: url)
         request.httpMethod = "GET"
@@ -78,13 +78,13 @@ class ApiService {
         let (data, response) = try await URLSession.shared.data(for: request)
         
         if let httpResponse = response as? HTTPURLResponse {
-            print("📊 HTTP Status: \(httpResponse.statusCode)")
-            print("📊 Data size: \(data.count) bytes")
+            print("HTTP Status: \(httpResponse.statusCode)")
+            print("Data size: \(data.count) bytes")
             let mimeType = httpResponse.value(forHTTPHeaderField: "Content-Type")?.lowercased() ?? "unknown"
-            print("📊 Content-Type: \(mimeType)")
+            print("Content-Type: \(mimeType)")
             
             if httpResponse.statusCode == 404 {
-                print("⚠️ Profilbild nicht gefunden (404) für User \(userId)")
+                print("Profilbild nicht gefunden (404) für User \(userId)")
                 throw NSError(domain: "NotFound", code: 404, userInfo: [NSLocalizedDescriptionKey: "Profilbild nicht gefunden"])
             } else if httpResponse.statusCode != 200 {
                 throw NSError(domain: "HTTPError", code: httpResponse.statusCode, userInfo: [NSLocalizedDescriptionKey: "HTTP Error \(httpResponse.statusCode)"])
@@ -103,7 +103,7 @@ class ApiService {
             throw NSError(domain: "ImageError", code: -1, userInfo: [NSLocalizedDescriptionKey: "Konnte Bild nicht dekodieren"])
         }
         
-        print("✅ Profilbild erfolgreich dekodiert für User \(userId)")
+        print("Profilbild erfolgreich dekodiert für User \(userId)")
         
         ApiService.profilePictureCache.setObject(image, forKey: NSNumber(value: userId))
         

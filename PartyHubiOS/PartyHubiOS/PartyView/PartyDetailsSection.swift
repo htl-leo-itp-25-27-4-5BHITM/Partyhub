@@ -10,7 +10,7 @@ struct PartyDetailsSection: View {
                 HStack(spacing: 12) {
                     UserProfileImageView(userId: Int(hostUserId), size: 50, showBorder: false)
                     VStack(alignment: .leading, spacing: 2) {
-                        Text("Veranstalter")
+                        Text("Organiser")
                             .font(.caption)
                             .foregroundStyle(.secondary)
                         Text(hostName)
@@ -21,40 +21,40 @@ struct PartyDetailsSection: View {
                 }
                 .frame(minHeight: 60)
             } else if let hostName = party.hostDisplayName {
-                LabeledContent("Veranstalter") {
+                LabeledContent("Organiser") {
                     Text(hostName)
                         .foregroundStyle(.secondary)
                 }
             }
 
-            LabeledContent("Beschreibung") {
-                Text(party.partyDescription ?? "Keine Beschreibung")
+            LabeledContent("Description") {
+                Text(party.partyDescription ?? "No Description")
                     .foregroundStyle(.secondary)
             }
 
             if let timeStart = party.timeStart {
-                LabeledContent("Beginn") {
+                LabeledContent("Start") {
                     Text(timeStart, style: .date)
                     Text(timeStart, style: .time)
                 }
             }
 
             if let timeEnd = party.timeEnd {
-                LabeledContent("Ende") {
+                LabeledContent("End") {
                     Text(timeEnd, style: .date)
                     Text(timeEnd, style: .time)
                 }
             }
 
             if let maxPeople = party.maxPeople {
-                LabeledContent("Max. Teilnehmer") {
+                LabeledContent("Max. of participants") {
                     Text("\(maxPeople)")
                 }
             }
 
             if let minAge = party.minAge, let maxAge = party.maxAge {
-                LabeledContent("Alter") {
-                    Text("\(minAge) - \(maxAge) Jahre")
+                LabeledContent("Age") {
+                    Text("\(minAge) - \(maxAge) years")
                 }
             }
 
@@ -68,7 +68,7 @@ struct PartyDetailsSection: View {
             }
 
             if let fee = party.fee, fee > 0 {
-                LabeledContent("Eintritt") {
+                LabeledContent("Admission") {
                     Text("\(fee, specifier: "%.2f") €")
                 }
             }

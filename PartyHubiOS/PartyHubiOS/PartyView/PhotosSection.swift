@@ -10,8 +10,8 @@ struct PhotosSection: View {
     let onDelete: () -> Void
     
     var body: some View {
-        Section("Fotos") {
-            Text("Hier kommen deine Bilder rein")
+        Section("Photos") {
+            Text("This is where your photos go")
         }
     }
 }

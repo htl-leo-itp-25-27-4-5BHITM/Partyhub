@@ -75,7 +75,7 @@ struct Attendee: Codable {
 class PartyNotificationManager: ObservableObject {
     static let shared = PartyNotificationManager()
     
-    @Published var unreadPartyUpdates: [Int: Int] = [:] // PartyID -> Anzahl ungelesener Updates
+    @Published var unreadPartyUpdates: [Int: Int] = [:]
     @Published var totalBadgeCount: Int = 0
     
     private let userDefaults = UserDefaults.standard
@@ -108,9 +108,9 @@ class PartyNotificationManager: ObservableObject {
             do {
                 try await UNUserNotificationCenter.current()
                     .setBadgeCount(totalBadgeCount)
-                print("📛 App Badge gesetzt: \(totalBadgeCount)")
+                print("App Badge gesetzt: \(totalBadgeCount)")
             } catch {
-                print("❌ Fehler beim Setzen des Badge-Counts: \(error)")
+                print("Fehler beim Setzen des Badge-Counts: \(error)")
             }
         }
     }
@@ -150,12 +150,12 @@ class PartyNotificationManager: ObservableObject {
         ])
         
         if granted {
-            print("✅ Push-Benachrichtigungen ERLAUBT - Notifications erscheinen außerhalb der App!")
+            print("Push-Benachrichtigungen ERLAUBT - Notifications erscheinen außerhalb der App!")
             await MainActor.run {
                 UIApplication.shared.registerForRemoteNotifications()
             }
         } else {
-            print("❌ Push-Benachrichtigungen ABGELEHNT")
+            print("Push-Benachrichtigungen ABGELEHNT")
         }
     }
     
@@ -176,8 +176,6 @@ class PartyNotificationManager: ObservableObject {
         content.body = "\(partyName): \(changeDescription)"
         content.sound = .default
         
-        // Badge wird NICHT hier erhöht, sondern beim Empfangen!
-        // Zeige aktuellen Badge-Count in der Notification
         content.badge = NSNumber(value: totalBadgeCount + 1)
         
         content.userInfo = [
@@ -197,11 +195,10 @@ class PartyNotificationManager: ObservableObject {
         
         do {
             try await UNUserNotificationCenter.current().add(request)
-            // Erhöhe Badge SOFORT (für lokale Notifications)
             incrementBadge(for: partyId)
-            print("📬 System-Notification gesendet: \(partyName)")
+            print("System-Notification gesendet: \(partyName)")
         } catch {
-            print("❌ Fehler beim Senden der System-Benachrichtigung: \(error)")
+            print("Fehler beim Senden der System-Benachrichtigung: \(error)")
         }
     }
     
@@ -209,12 +206,10 @@ class PartyNotificationManager: ObservableObject {
     
     func handleRemoteNotification(userInfo: [AnyHashable: Any]) {
         guard let partyId = userInfo["partyId"] as? Int else {
-            print("⚠️ Keine PartyID in Remote Notification gefunden")
+            print("Keine PartyID in Remote Notification gefunden")
             return
         }
         
-        // Erhöhe Badge NUR wenn es eine REMOTE Notification ist
-        // (nicht unsere eigene lokale Notification)
         let isLocalNotification = userInfo["type"] as? String == "partyUpdate"
         if !isLocalNotification {
             incrementBadge(for: partyId)
@@ -225,13 +220,13 @@ class PartyNotificationManager: ObservableObject {
             object: partyId
         )
         
-        print("📩 Remote Notification verarbeitet für Party \(partyId)")
+        print("Remote Notification verarbeitet für Party \(partyId)")
     }
     
     func handleNotificationTap(userInfo: [AnyHashable: Any]) {
         guard let partyId = userInfo["partyId"] as? Int else { return }
         
-        print("👆 User hat auf Notification getappt: Party \(partyId)")
+        print("User hat auf Notification getappt: Party \(partyId)")
         
         NotificationCenter.default.post(
             name: .showPartyDetail,
@@ -262,7 +257,7 @@ class PartyNotificationManager: ObservableObject {
         )
         
         UNUserNotificationCenter.current().setNotificationCategories([category])
-        print("✅ Notification-Kategorien registriert")
+        print("Notification-Kategorien registriert")
     }
 }
 
@@ -317,14 +312,14 @@ class PartyUpdateService: ObservableObject {
             }
         }
         
-        print("Party-Update-Polling gestartet")
+        print("Party Update Poll Launched")
     }
     
     func stopPolling() {
         pollingTask?.cancel()
         pollingTask = nil
         isPolling = false
-        print("Party-Update-Polling gestoppt")
+        print("Party update polling suspended")
     }
     
     // MARK: - Update Checking
@@ -342,7 +337,7 @@ class PartyUpdateService: ObservableObject {
                 )
             }
         } catch {
-            print("Fehler beim Fetchen der lokalen Partys: \(error)")
+            print("Error retrieving local parties: \(error)")
         }
     }
     
@@ -395,22 +390,20 @@ class PartyUpdateService: ObservableObject {
         do {
             let (data, response) = try await URLSession.shared.data(for: request)
             
-            // Check HTTP status
             if let httpResponse = response as? HTTPURLResponse, httpResponse.statusCode != 200 {
-                print("⚠️ Attendees endpoint returned status \(httpResponse.statusCode)")
+                print("Attendees endpoint returned status \(httpResponse.statusCode)")
                 return false
             }
             
-            // Skip empty responses
             if data.isEmpty {
-                print("⚠️ Attendees endpoint returned empty data")
+                print("Attendees endpoint returned empty data")
                 return false
             }
             
             let attendees = try JSONDecoder().decode([Attendee].self, from: data)
             return attendees.contains { $0.userId == userId }
         } catch {
-            print("Fehler beim Prüfen der Einladung: \(error)")
+            print("Error checking the invitation: \(error)")
             return false
         }
     }
@@ -427,7 +420,7 @@ class PartyUpdateService: ObservableObject {
             let (data, _) = try await URLSession.shared.data(for: request)
             return try JSONDecoder().decode(ServerParty.self, from: data)
         } catch {
-            print("Fehler beim Laden der Party vom Server: \(error)")
+            print("Error loading the party from the server: \(error)")
             return nil
         }
     }
@@ -458,9 +451,9 @@ class PartyUpdateService: ObservableObject {
         
         do {
             try modelContext.save()
-            print("Lokale Party \(local.backendId) aktualisiert")
+            print("Local Party \(local.backendId) upadated")
         } catch {
-            print("Fehler beim Speichern der Party-Updates: \(error)")
+            print("Error saving the party updates: \(error)")
         }
     }
     
@@ -503,7 +496,7 @@ class AppDelegate: NSObject, UIApplicationDelegate, UNUserNotificationCenterDele
         didRegisterForRemoteNotificationsWithDeviceToken deviceToken: Data
     ) {
         let tokenString = deviceToken.map { String(format: "%02.2hhx", $0) }.joined()
-        print("📱 Device Token: \(tokenString)")
+        print("Device Token: \(tokenString)")
         
         Task {
             await sendDeviceTokenToServer(token: tokenString)
@@ -514,7 +507,7 @@ class AppDelegate: NSObject, UIApplicationDelegate, UNUserNotificationCenterDele
         _ application: UIApplication,
         didFailToRegisterForRemoteNotificationsWithError error: Error
     ) {
-        print("❌ Fehler bei Remote Notification Registration: \(error.localizedDescription)")
+        print("Error during remote notification registration: \(error.localizedDescription)")
     }
     
     // MARK: - Notification Handling
@@ -552,7 +545,7 @@ class AppDelegate: NSObject, UIApplicationDelegate, UNUserNotificationCenterDele
         didReceiveRemoteNotification userInfo: [AnyHashable : Any],
         fetchCompletionHandler completionHandler: @escaping (UIBackgroundFetchResult) -> Void
     ) {
-        print("📩 Remote Notification empfangen: \(userInfo)")
+        print("Receive remote notifications: \(userInfo)")
         
         Task { @MainActor in
             PartyNotificationManager.shared.handleRemoteNotification(userInfo: userInfo)
@@ -566,7 +559,7 @@ class AppDelegate: NSObject, UIApplicationDelegate, UNUserNotificationCenterDele
         guard let userId = AuthManager.shared.userId,
               let accessToken = AuthManager.shared.mobileToken,
               let url = URL(string: "\(Config.backendURL)/api/users/\(userId)/device-token") else {
-            print("⚠️ Kann Device Token nicht senden: Fehlende Authentifizierung")
+            print("Unable to send device token: Authentication missing")
             return
         }
         
@@ -586,12 +579,12 @@ class AppDelegate: NSObject, UIApplicationDelegate, UNUserNotificationCenterDele
             let (_, response) = try await URLSession.shared.data(for: request)
             
             if let httpResponse = response as? HTTPURLResponse, httpResponse.statusCode == 200 {
-                print("✅ Device Token erfolgreich an Server gesendet")
+                print("Device token successfully sent to the server")
             } else {
-                print("⚠️ Server hat Device Token abgelehnt")
+                print("The server has rejected the device token")
             }
         } catch {
-            print("❌ Fehler beim Senden des Device Tokens: \(error)")
+            print("Error sending the device token: \(error)")
         }
     }
 }

@@ -55,11 +55,11 @@ struct UserProfileImageView: View {
         profileImage = nil
         defer { isLoading = false }
         
-        print("🖼️ Lade Profilbild für User \(userId)...")
+        print("Upload profile picture for user \(userId)...")
         
         do {
             let image = try await ApiService.shared.fetchProfilePicture(userId: userId)
-            print("✅ Profilbild erfolgreich geladen für User \(userId)")
+            print("Profile picture successfully uploaded for user \(userId)")
             await MainActor.run {
                 self.profileImage = image
             }
@@ -70,10 +70,10 @@ struct UserProfileImageView: View {
         } catch let error as NSError where error.domain == "NotFound" && error.code == 404 {
             return
         } catch {
-            print("❌ Fehler beim Laden von Profilbild für User \(userId):")
-            print("   Error Domain: \((error as NSError).domain)")
-            print("   Error Code: \((error as NSError).code)")
-            print("   Error: \(error.localizedDescription)")
+            print("Error loading user profile picture \(userId):")
+            print("Error Domain: \((error as NSError).domain)")
+            print("Error Code: \((error as NSError).code)")
+            print("Error: \(error.localizedDescription)")
             await MainActor.run {
                 self.showError = true
             }
