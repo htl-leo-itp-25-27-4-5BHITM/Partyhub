@@ -46,6 +46,14 @@ document.addEventListener("DOMContentLoaded", async () => {
     return item?.createdAt ?? item?.created_at ?? item?.sentAt ?? item?.sent_at ?? item?.timestamp ?? null;
   }
 
+  function notificationTimestamp(item) {
+    const value = readCreatedAt(item);
+    if (!value) return 0;
+
+    const date = new Date(value);
+    return Number.isNaN(date.getTime()) ? 0 : date.getTime();
+  }
+
   function invitationStatus(invitation) {
     return String(invitation?.status ?? "PENDING").toUpperCase();
   }
@@ -647,6 +655,7 @@ document.addEventListener("DOMContentLoaded", async () => {
           type: "follow",
           followerId: Number(followerId),
           text: `${getUsername(sender, followerId)} wants to follow you`,
+          createdAt: readCreatedAt(user),
           actorAvatar: sender?.id
             ? `/api/users/${sender.id}/profile-picture`
             : "/images/default_profile-picture.svg",
@@ -656,6 +665,8 @@ document.addEventListener("DOMContentLoaded", async () => {
           _raw: user
         });
       });
+
+      nextData.sort((a, b) => notificationTimestamp(b) - notificationTimestamp(a));
 
       console.log("Final notification data:", nextData);
       return nextData;
@@ -814,7 +825,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         }
       }
 
-      list.prepend(clone);
+      list.appendChild(clone);
     });
   }
 

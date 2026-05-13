@@ -171,7 +171,29 @@ body {
   padding: 12px;
   border-radius: 16px;
   display: flex;
-  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  cursor: pointer;
+}
+
+.user-card.selected {
+  background: #efeaff;
+  box-shadow: inset 0 0 0 2px #6b55c9;
+}
+
+.user-card-checkbox {
+  width: 18px;
+  height: 18px;
+  accent-color: #6b55c9;
+  flex: 0 0 auto;
+}
+
+.user-card-name {
+  min-width: 0;
+  overflow: hidden;
+  font-weight: 600;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 /* BUTTON */
@@ -184,6 +206,32 @@ body {
   border: none;
   color: white;
   font-size: 18px;
+}
+
+.submit-btn:disabled {
+  cursor: wait;
+  opacity: 0.65;
+}
+
+.party-feedback {
+  margin-top: 14px;
+  padding: 12px 14px;
+  border-radius: 12px;
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 1.35;
+}
+
+.party-feedback.success {
+  background: rgba(72, 217, 132, 0.16);
+  color: #9ff0bd;
+  box-shadow: inset 0 0 0 1px rgba(72, 217, 132, 0.42);
+}
+
+.party-feedback.error {
+  background: rgba(255, 79, 143, 0.16);
+  color: #ffadc9;
+  box-shadow: inset 0 0 0 1px rgba(255, 79, 143, 0.42);
 }
 
 .everyone-hint {

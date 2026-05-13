@@ -5,6 +5,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const continueBtn = document.getElementById("continueBtn");
   const stepTitle = document.getElementById("stepTitle");
   const backArrow = document.querySelector(".back-arrow");
+  const partyFeedback = document.getElementById("partyFeedback");
 
   const addressInput = document.getElementById("location_address");
   const addressSuggestions = document.getElementById("addressSuggestions");
@@ -23,6 +24,7 @@ document.addEventListener("DOMContentLoaded", () => {
   let currentStep = 1;
   let visibility = "private";
   let selectedUsers = [];
+  let invitedUsersById = new Map();
 
   let addPartyMap = null;
   let addPartyMarker = null;
@@ -121,6 +123,8 @@ document.addEventListener("DOMContentLoaded", () => {
 
   function setupStepButtons() {
     continueBtn.addEventListener("click", async () => {
+      clearFeedback();
+
       if (currentStep < 4) {
         if (!validateStep(currentStep)) {
           return;
@@ -328,6 +332,7 @@ document.addEventListener("DOMContentLoaded", () => {
         users = normalizeUsers(await fetchUsers("/api/users"));
       }
 
+      users = mergeInvitedUsers(users);
       users = uniqueUsersById(users);
 
       if (!users || users.length === 0) {
@@ -352,20 +357,29 @@ document.addEventListener("DOMContentLoaded", () => {
           return;
         }
 
-        const item = document.createElement("button");
-        item.type = "button";
+        const isSelected = isSelectedUser(id);
+        const item = document.createElement("label");
         item.className = "user-card";
         item.dataset.userId = id;
-        item.textContent = username.startsWith("@") ? username : `@${username}`;
 
-        if (selectedUsers.includes(String(id)) || selectedUsers.includes(Number(id))) {
+        const checkbox = document.createElement("input");
+        checkbox.type = "checkbox";
+        checkbox.className = "user-card-checkbox";
+        checkbox.checked = isSelected;
+
+        const name = document.createElement("span");
+        name.className = "user-card-name";
+        name.textContent = username.startsWith("@") ? username : `@${username}`;
+
+        if (isSelected) {
           item.classList.add("selected");
         }
 
-        item.addEventListener("click", () => {
-          toggleSelectedUser(id, item);
+        checkbox.addEventListener("change", () => {
+          setSelectedUser(id, checkbox.checked, item);
         });
 
+        item.append(checkbox, name);
         userList.appendChild(item);
       });
     } catch (error) {
@@ -401,6 +415,28 @@ document.addEventListener("DOMContentLoaded", () => {
       seen.add(String(id));
       return true;
     });
+  }
+
+  function mergeInvitedUsers(users) {
+    if (!invitedUsersById.size) {
+      return users;
+    }
+
+    const merged = [...users];
+    const userIds = new Set(
+      merged
+        .map(getUserId)
+        .filter((id) => id != null)
+        .map(String)
+    );
+
+    invitedUsersById.forEach((user, id) => {
+      if (!userIds.has(String(id))) {
+        merged.push(user);
+      }
+    });
+
+    return merged;
   }
 
   function getMutualUsers(followers, following, currentUserId) {
@@ -445,15 +481,24 @@ document.addEventListener("DOMContentLoaded", () => {
       .filter(Boolean);
   }
 
-  function toggleSelectedUser(id, item) {
+  function isSelectedUser(id) {
+    const idAsString = String(id);
+    return selectedUsers.map(String).includes(idAsString);
+  }
+
+  function setSelectedUser(id, checked, item) {
     const idAsString = String(id);
 
-    if (selectedUsers.map(String).includes(idAsString)) {
-      selectedUsers = selectedUsers.filter((userId) => String(userId) !== idAsString);
-      item.classList.remove("selected");
-    } else {
+    if (checked && !isSelectedUser(id)) {
       selectedUsers.push(id);
-      item.classList.add("selected");
+    }
+
+    if (!checked) {
+      selectedUsers = selectedUsers.filter((userId) => String(userId) !== idAsString);
+    }
+
+    if (item) {
+      item.classList.toggle("selected", checked);
     }
 
     console.log("Selected users:", selectedUsers);
@@ -507,10 +552,83 @@ document.addEventListener("DOMContentLoaded", () => {
       console.log("Address location:", party.location);
 
       fillFormWithParty(party);
+      await loadExistingInvitesForEdit(id, currentUserId);
     } catch (error) {
       console.error("Error loading party:", error);
-      alert("Party could not be loaded.");
+      showFeedback("Party could not be loaded.", "error");
     }
+  }
+
+  async function loadExistingInvitesForEdit(partyId, currentUserId) {
+    if (!isEditMode || !partyId || !currentUserId) {
+      return;
+    }
+
+    invitedUsersById = new Map();
+
+    try {
+      const response = await fetch(
+        `/api/parties/${encodeURIComponent(partyId)}/invited-members?user=${encodeURIComponent(currentUserId)}`,
+        {
+          cache: "no-store",
+          headers: {
+            "X-User-Id": String(currentUserId),
+            "Cache-Control": "no-cache",
+          },
+        }
+      );
+
+      if (!response.ok) {
+        console.warn("Existing invitations could not be loaded:", response.status);
+        return;
+      }
+
+      const invitedMembers = await response.json();
+      const activeInvitedIds = [];
+
+      if (Array.isArray(invitedMembers)) {
+        invitedMembers.forEach((member) => {
+          const userId = getUserId(member);
+
+          if (userId == null) {
+            return;
+          }
+
+          invitedUsersById.set(String(userId), member);
+
+          if (isActiveInvitationStatus(member.status)) {
+            activeInvitedIds.push(userId);
+          }
+        });
+      }
+
+      selectedUsers = uniqueIds(activeInvitedIds);
+    } catch (error) {
+      console.warn("Existing invitations could not be loaded:", error);
+    }
+  }
+
+  function isActiveInvitationStatus(status) {
+    const normalized = String(status ?? "PENDING").toUpperCase();
+    return normalized !== "DECLINED" &&
+      normalized !== "REJECTED" &&
+      normalized !== "CANCELLED" &&
+      normalized !== "CANCELED";
+  }
+
+  function uniqueIds(ids) {
+    const seen = new Set();
+
+    return ids.filter((id) => {
+      const key = String(id);
+
+      if (seen.has(key)) {
+        return false;
+      }
+
+      seen.add(key);
+      return true;
+    });
   }
 
   function fillFormWithParty(party) {
@@ -798,32 +916,32 @@ function parseBackendDate(value) {
 
     if (stepNumber === 1) {
       if (!state.title.trim()) {
-        alert("Please enter a name for the party.");
+        showFeedback("Please enter a name for the party.", "error");
         return false;
       }
 
       if (!state.description.trim()) {
-        alert("Please enter a description.");
+        showFeedback("Please enter a description.", "error");
         return false;
       }
 
       if (!state.time_start) {
-        alert("Please enter a start time.");
+        showFeedback("Please enter a start time.", "error");
         return false;
       }
 
       if (!state.time_end) {
-        alert("Please enter an end time.");
+        showFeedback("Please enter an end time.", "error");
         return false;
       }
 
       if (state.time_end <= state.time_start) {
-        alert("The end time must be after the start time.");
+        showFeedback("The end time must be after the start time.", "error");
         return false;
       }
 
       if (!state.location_address.trim()) {
-        alert("Please enter an address.");
+        showFeedback("Please enter an address.", "error");
         return false;
       }
 
@@ -849,17 +967,17 @@ function parseBackendDate(value) {
       const maxAge = state.max_age;
 
       if (minAge !== null && minAge < 0) {
-        alert("The minimum age cannot be negative.");
+        showFeedback("The minimum age cannot be negative.", "error");
         return false;
       }
 
       if (maxAge !== null && maxAge < 0) {
-        alert("The maximum age cannot be negative.");
+        showFeedback("The maximum age cannot be negative.", "error");
         return false;
       }
 
       if (minAge !== null && maxAge !== null && maxAge < minAge) {
-        alert("The maximum age cannot be lower than the minimum age.");
+        showFeedback("The maximum age cannot be lower than the minimum age.", "error");
         return false;
       }
 
@@ -1064,7 +1182,7 @@ function parseBackendDate(value) {
   const currentUserId = getCurrentUserIdSafe();
 
   if (!currentUserId) {
-    alert("No user is logged in. Please log in again.");
+    showFeedback("No user is logged in. Please log in again.", "error");
     return;
   }
 
@@ -1096,6 +1214,8 @@ function parseBackendDate(value) {
   console.log("PAYLOAD:", payload);
 
   try {
+    setSavingState(true);
+
     const url = isEditMode
   ? `/api/parties/${encodeURIComponent(editPartyId)}?user=${encodeURIComponent(currentUserId)}`
   : `/api/parties?user=${encodeURIComponent(currentUserId)}`;
@@ -1136,14 +1256,50 @@ function parseBackendDate(value) {
 
     console.log("Saved party:", savedParty);
 
-    alert(isEditMode ? "Party was saved." : "Party was created.");
+    showFeedback(isEditMode ? "Party was saved." : "Party was created.", "success");
 
-    window.location.href = "../listPartys/listPartys.html";
+    window.setTimeout(() => {
+      window.location.href = "../listPartys/listPartys.html";
+    }, 900);
   } catch (error) {
     console.error("Error while saving:", error);
-    alert("Party could not be saved. Please check the console.");
+    showFeedback("Party could not be saved. Please try again.", "error");
+    setSavingState(false);
   }
 }
+
+  function showFeedback(message, type = "success") {
+    if (!partyFeedback) {
+      return;
+    }
+
+    partyFeedback.hidden = false;
+    partyFeedback.textContent = message;
+    partyFeedback.className = `party-feedback ${type}`;
+  }
+
+  function clearFeedback() {
+    if (!partyFeedback) {
+      return;
+    }
+
+    partyFeedback.hidden = true;
+    partyFeedback.textContent = "";
+    partyFeedback.className = "party-feedback";
+  }
+
+  function setSavingState(isSaving) {
+    if (!continueBtn) {
+      return;
+    }
+
+    continueBtn.disabled = isSaving;
+    continueBtn.textContent = isSaving
+      ? "Saving..."
+      : currentStep === 4
+        ? isEditMode ? "Save changes" : "Create party"
+        : "Continue";
+  }
 
   function toBackendDate(date) {
     if (!date) {
