@@ -2,6 +2,8 @@ package at.htl.follow;
 
 import java.util.List;
 
+import at.htl.notification.Notification;
+import at.htl.notification.NotificationRepository;
 import at.htl.user.User;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
@@ -14,6 +16,9 @@ public class FollowRepository {
 
     @Inject
     EntityManager entityManager;
+
+    @Inject
+    NotificationRepository notificationRepository;
 
     public long getFollowerCount(long userId) {
         return entityManager.createQuery(
@@ -117,9 +122,40 @@ public class FollowRepository {
         FollowStatus acceptedStatus = entityManager.find(FollowStatus.class, 2L);
         follow.setStatus(acceptedStatus);
         entityManager.merge(follow);
+        notifyFollowAccepted(user1Id, user2Id);
 
         return Response.ok().entity("{\"message\": \"Follow request accepted\"}").build();
     }
+
+private void notifyFollowAccepted(long followerId, long acceptedById) {
+    User follower = entityManager.find(User.class, followerId);
+    User acceptedBy = entityManager.find(User.class, acceptedById);
+
+    if (follower == null || acceptedBy == null) {
+        return;
+    }
+
+    String acceptedMessage = displayName(acceptedBy) + " accepted your follow request.";
+    String followsNowMessage = displayName(follower) + " follows you now.";
+    notificationRepository.createNotification(new Notification(follower, acceptedBy, null, acceptedMessage));
+    notificationRepository.createNotification(new Notification(acceptedBy, follower, null, followsNowMessage));
+}
+
+private String displayName(User user) {
+    if (user == null) {
+        return "Someone";
+    }
+    if (user.getDisplayName() != null && !user.getDisplayName().isBlank()) {
+        return user.getDisplayName();
+    }
+    if (user.getUsername() != null && !user.getUsername().isBlank()) {
+        return user.getUsername();
+    }
+    if (user.getDistinctName() != null && !user.getDistinctName().isBlank()) {
+        return user.getDistinctName();
+    }
+    return "Someone";
+}
 
 @Transactional
 public Response removeFollow(long user1Id, long user2Id) {

@@ -3,6 +3,7 @@ package at.htl.repository;
 import at.htl.follow.Follow;
 import at.htl.follow.FollowRepository;
 import at.htl.follow.FollowStatus;
+import at.htl.notification.Notification;
 import at.htl.user.User;
 import io.quarkus.test.junit.QuarkusTest;
 import jakarta.inject.Inject;
@@ -247,6 +248,17 @@ public class FollowRepositoryTest {
         assertEquals(200, response.getStatus());
 
         assertTrue(followRepository.isFollowing(user1.getId(), user2.getId()));
+
+        List<Notification> notifications = entityManager
+                .createQuery("SELECT n FROM Notification n", Notification.class)
+                .getResultList();
+        assertEquals(2, notifications.size());
+        assertTrue(notifications.stream().anyMatch(notification ->
+                notification.getRecipient().getId().equals(user1.getId()) &&
+                        notification.getMessage().contains("accepted your follow request")));
+        assertTrue(notifications.stream().anyMatch(notification ->
+                notification.getRecipient().getId().equals(user2.getId()) &&
+                        notification.getMessage().contains("follows you now")));
     }
 
     @Test

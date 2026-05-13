@@ -205,6 +205,27 @@ public class NotificationRepositoryTest {
     }
 
     @Test
+    void testDeleteNotification_protectedFollowAcceptedNotification() {
+        User sender = createUser("sender-follow-accepted");
+        User recipient = createUser("recipient-follow-accepted");
+
+        Notification notification = new Notification(
+                recipient,
+                sender,
+                null,
+                "Sender accepted your follow request."
+        );
+        entityManager.persist(notification);
+        entityManager.flush();
+
+        Response response = notificationRepository.deleteNotification(notification.getId(), recipient.getId());
+        assertEquals(403, response.getStatus());
+
+        Notification stillThere = entityManager.find(Notification.class, notification.getId());
+        assertNotNull(stillThere);
+    }
+
+    @Test
     void testDeleteByPartyId() {
         User host = createUser("host");
         Party party = createParty(host);

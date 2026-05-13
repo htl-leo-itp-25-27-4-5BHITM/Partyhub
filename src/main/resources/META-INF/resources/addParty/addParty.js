@@ -18,6 +18,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const visButtons = document.querySelectorAll(".vis-card");
 
   const steps = document.querySelectorAll(".step");
+  const wizardSteps = document.querySelectorAll(".wizard-step");
 
   let currentStep = 1;
   let visibility = "private";
@@ -318,7 +319,7 @@ document.addEventListener("DOMContentLoaded", () => {
           fetchUsers(`/api/users/${encodeURIComponent(currentUserId)}/following`),
         ]);
 
-        users = getConnectedUsers(
+        users = getMutualUsers(
           normalizeUsers(followersRaw),
           normalizeUsers(followingRaw),
           currentUserId
@@ -331,7 +332,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
       if (!users || users.length === 0) {
         userList.innerHTML = currentUserId
-          ? "<p>No connected users found.</p>"
+          ? "<p>No friends found.</p>"
           : "<p>No users found.</p>";
         return;
       }
@@ -402,10 +403,21 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
-  function getConnectedUsers(followers, following, currentUserId) {
-    return [...followers, ...following].filter((user) => {
+  function getMutualUsers(followers, following, currentUserId) {
+    const followingIds = new Set(
+      following
+        .map(getUserId)
+        .filter((id) => id != null)
+        .map(String)
+    );
+
+    return followers.filter((user) => {
       const id = getUserId(user);
-      return id != null && String(id) !== String(currentUserId);
+      return (
+        id != null &&
+        String(id) !== String(currentUserId) &&
+        followingIds.has(String(id))
+      );
     });
   }
 
@@ -755,12 +767,30 @@ function parseBackendDate(value) {
       stepTitle.textContent = stepTitles[stepNumber] || "";
     }
 
+    updateWizard(stepNumber);
+
     if (stepNumber === 4) {
       continueBtn.textContent = isEditMode ? "Save changes" : "Create party";
       showMapPreview();
     } else {
       continueBtn.textContent = "Continue";
     }
+  }
+
+  function updateWizard(stepNumber) {
+    wizardSteps.forEach((step) => {
+      const number = Number(step.dataset.stepIndicator);
+      const isActive = number === stepNumber;
+
+      step.classList.toggle("active", isActive);
+      step.classList.toggle("done", number < stepNumber);
+
+      if (isActive) {
+        step.setAttribute("aria-current", "step");
+      } else {
+        step.removeAttribute("aria-current");
+      }
+    });
   }
 
   function validateStep(stepNumber) {

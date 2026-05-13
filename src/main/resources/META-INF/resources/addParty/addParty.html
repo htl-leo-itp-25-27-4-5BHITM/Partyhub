@@ -30,7 +30,7 @@
       crossorigin=""
       defer
     ></script>
-    <script src="./addParty.js?v=20260511-connected-invites" defer></script>
+    <script src="./addParty.js?v=20260513-friends-wizard" defer></script>
     <script>
       document.addEventListener("DOMContentLoaded", () => {
         window.requireAuth?.();
@@ -44,6 +44,25 @@
           <span class="back-arrow">‹</span>
           <span class="step-title" id="stepTitle">Add new Party</span>
         </div>
+
+        <ol class="wizard-progress" aria-label="Party creation progress">
+          <li class="wizard-step active" data-step-indicator="1" aria-current="step">
+            <span class="wizard-number">1</span>
+            <span class="wizard-label">Basics</span>
+          </li>
+          <li class="wizard-step" data-step-indicator="2">
+            <span class="wizard-number">2</span>
+            <span class="wizard-label">Guests</span>
+          </li>
+          <li class="wizard-step" data-step-indicator="3">
+            <span class="wizard-number">3</span>
+            <span class="wizard-label">Details</span>
+          </li>
+          <li class="wizard-step" data-step-indicator="4">
+            <span class="wizard-number">4</span>
+            <span class="wizard-label">Map</span>
+          </li>
+        </ol>
 
         <form class="party-form">
           <div class="step active" data-step="1">

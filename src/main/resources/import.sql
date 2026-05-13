@@ -28,7 +28,7 @@ INSERT INTO follow_status (id, name) VALUES
 -- USERS
 -- =========================
 INSERT INTO users (id, username, display_name, distinct_name, email, phone_number, biography, device_token) VALUES
-    (1, 'viki_dji', 'Victoria Vejmelek', 'viki_vejmelek', 'v.vejmelek@students.htl-leonding.ac.at', '+436641234001', 'Mag Afterwork, Konzerte und Rooftop-Abende in Linz.', 'MANUAL_TEST_TOKEN_ANNA'),
+    (1, 'viki_dji', 'Victoria Vejmelek', 'viki_vejmelek', 'v.vejmelek@students.htl-leonding.ac.at', '+4367762662103', 'Mag Afterwork, Konzerte und Rooftop-Abende in Linz.', 'MANUAL_TEST_TOKEN_ANNA'),
     (4, 'michael_wagner', 'Michael Wagner', 'michael_wagner', 'michael.wagner@partyhub.at', '+436641234002', 'Techno, Startups und spontane Wochenendplaene.', NULL),
     (3, 'katrin_bauer', 'Katrin Bauer', 'katrin_bauer', 'katrin.bauer@partyhub.at', '+436641234003', 'Liebt Tanzflaechen, Sommerfeste und gute Cocktails.', NULL),
     (2, 'carla_dimmler', 'Carla Dimmler', 'carla_dimmler', 'c.dimmler@students.htl-leonding.ac.at', '+436602045422', 'Organisiert gerne Events in Linz und Urfahr.', NULL),

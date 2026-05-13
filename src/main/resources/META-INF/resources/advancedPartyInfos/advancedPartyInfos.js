@@ -426,17 +426,13 @@ function renderInvitedMembers(invitedMembers) {
     const item = document.createElement("li");
     item.className = `invited-item ${normalizedStatus.className}`;
 
-    const name = document.createElement("span");
-    name.className = "invited-name";
-    name.textContent = getInvitedMemberName(member);
-
     const status = document.createElement("span");
     status.className = `status ${normalizedStatus.className}`;
     status.title = normalizedStatus.label;
     status.setAttribute("aria-label", normalizedStatus.label);
     status.innerHTML = normalizedStatus.icon;
 
-    item.appendChild(name);
+    item.appendChild(createMemberProfileLink(member));
     item.appendChild(status);
     list.appendChild(item);
   });
@@ -468,13 +464,47 @@ function renderJoinedMembers(joinedMembers) {
     const item = document.createElement("li");
     item.className = "invited-item joined";
 
-    const name = document.createElement("span");
-    name.className = "invited-name";
-    name.textContent = getInvitedMemberName(member);
-
-    item.appendChild(name);
+    item.appendChild(createMemberProfileLink(member));
     list.appendChild(item);
   });
+}
+
+function createMemberProfileLink(member) {
+  const link = document.createElement("a");
+  link.className = "invited-profile";
+  link.href = getInvitedMemberProfileUrl(member);
+
+  const avatar = document.createElement("img");
+  avatar.className = "invited-avatar";
+  avatar.src = member.userId
+    ? `/api/users/${encodeURIComponent(member.userId)}/profile-picture`
+    : "/images/default_profile-picture.svg";
+  avatar.alt = "";
+  avatar.loading = "lazy";
+  avatar.onerror = function () {
+    this.onerror = null;
+    this.src = "/images/default_profile-picture.svg";
+  };
+
+  const name = document.createElement("span");
+  name.className = "invited-name";
+  name.textContent = getInvitedMemberName(member);
+
+  link.appendChild(avatar);
+  link.appendChild(name);
+  return link;
+}
+
+function getInvitedMemberProfileUrl(member) {
+  if (member.distinctName) {
+    return `/profile/profile.html?handle=${encodeURIComponent(member.distinctName)}`;
+  }
+
+  if (member.userId) {
+    return `/profile/profile.html?id=${encodeURIComponent(member.userId)}`;
+  }
+
+  return "#";
 }
 
 function getInvitedMemberName(member) {

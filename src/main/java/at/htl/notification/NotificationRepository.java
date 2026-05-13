@@ -81,6 +81,12 @@ public class NotificationRepository {
             return Response.status(Response.Status.FORBIDDEN).build();
         }
 
+        if (isProtectedNotification(notification)) {
+            return Response.status(Response.Status.FORBIDDEN)
+                    .entity("{\"error\": \"This notification cannot be deleted\"}")
+                    .build();
+        }
+
         entityManager.remove(notification);
         return Response.noContent().build();
     }
@@ -119,5 +125,16 @@ public class NotificationRepository {
                 .setParameter("englishInvite", "%invited you to the party%")
                 .setParameter("legacyInvite", "%eingeladen%")
                 .executeUpdate();
+    }
+
+    public boolean isProtectedNotification(Notification notification) {
+        if (notification == null || notification.getMessage() == null) {
+            return false;
+        }
+
+        String message = notification.getMessage().toLowerCase();
+        return message.contains("accepted your follow request") ||
+                message.contains("just followed you") ||
+                message.contains("follows you now");
     }
 }

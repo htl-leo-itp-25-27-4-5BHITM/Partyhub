@@ -42,6 +42,10 @@ document.addEventListener("DOMContentLoaded", async () => {
     return notification?.id ?? notification?.notificationId ?? notification?.notification_id ?? null;
   }
 
+  function readCreatedAt(item) {
+    return item?.createdAt ?? item?.created_at ?? item?.sentAt ?? item?.sent_at ?? item?.timestamp ?? null;
+  }
+
   function invitationStatus(invitation) {
     return String(invitation?.status ?? "PENDING").toUpperCase();
   }
@@ -63,17 +67,47 @@ document.addEventListener("DOMContentLoaded", async () => {
     );
   }
 
+  function isProtectedNotificationMessage(message) {
+    const normalized = normalizeLegacyNotificationMessage(String(message ?? "")).toLowerCase();
+
+    return (
+      normalized.includes("accepted your follow request") ||
+      normalized.includes("just followed you") ||
+      normalized.includes("follows you now")
+    );
+  }
+
   function formatNotificationTime(value) {
     if (!value) return "just now";
 
     const date = new Date(value);
     if (Number.isNaN(date.getTime())) return "just now";
 
-    return date.toLocaleString("en-GB", {
+    const diffMs = Date.now() - date.getTime();
+
+    if (diffMs < 0) return "just now";
+
+    const diffSeconds = Math.floor(diffMs / 1000);
+    if (diffSeconds < 45) return "just now";
+
+    const diffMinutes = Math.floor(diffSeconds / 60);
+    if (diffMinutes < 60) {
+      return diffMinutes === 1 ? "1 min ago" : `${diffMinutes} min ago`;
+    }
+
+    const diffHours = Math.floor(diffMinutes / 60);
+    if (diffHours < 24) {
+      return diffHours === 1 ? "1 hour ago" : `${diffHours} hours ago`;
+    }
+
+    const diffDays = Math.floor(diffHours / 24);
+    if (diffDays === 1) return "yesterday";
+    if (diffDays < 7) return `${diffDays} days ago`;
+
+    return date.toLocaleDateString("en-GB", {
       day: "2-digit",
-      month: "2-digit",
-      hour: "2-digit",
-      minute: "2-digit"
+      month: "short",
+      year: "numeric"
     });
   }
 
@@ -365,262 +399,292 @@ document.addEventListener("DOMContentLoaded", async () => {
     setTimeout(() => toast.remove(), 2200);
   }
 
-  try {
-    const invitations = await getReceivedInvites();
-    const pendingFollowUsers = await getPendingFollowUsers();
-    const backendNotifications = await getBackendNotifications();
-    console.log("notifications: raw pending follow users ->", pendingFollowUsers);
-    console.log("notifications: raw backend notifications ->", backendNotifications);
-
+  async function loadNotificationData({ quiet = false } = {}) {
     try {
-      console.table(
-        invitations.map(inv => ({
-          id: inv.id ?? inv.invitationId ?? null,
-          senderId: readId(inv, "sender"),
-          recipientId: readId(inv, "recipient"),
-          partyId:
-            (inv.party && typeof inv.party === "object" ? inv.party.id : null) ??
-            inv.partyId ??
-            inv.party_id ??
-            null,
-          partyTitle: inv.party?.title ?? inv.party?.name ?? null
-        }))
-      );
-    } catch {}
+      const invitations = await getReceivedInvites();
+      const pendingFollowUsers = await getPendingFollowUsers();
+      const backendNotifications = await getBackendNotifications();
+      console.log("notifications: raw pending follow users ->", pendingFollowUsers);
+      console.log("notifications: raw backend notifications ->", backendNotifications);
 
-    let relevantInvites = invitations;
+      try {
+        console.table(
+          invitations.map(inv => ({
+            id: inv.id ?? inv.invitationId ?? null,
+            senderId: readId(inv, "sender"),
+            recipientId: readId(inv, "recipient"),
+            partyId:
+              (inv.party && typeof inv.party === "object" ? inv.party.id : null) ??
+              inv.partyId ??
+              inv.party_id ??
+              null,
+            partyTitle: inv.party?.title ?? inv.party?.name ?? null
+          }))
+        );
+      } catch {}
 
-    if (currentUserId != null) {
-      const invitationsWithRecipientId = invitations.filter(inv => readId(inv, "recipient") != null);
+      let relevantInvites = invitations;
 
-      if (invitationsWithRecipientId.length > 0) {
-        relevantInvites = invitations.filter(inv => {
-          const rid = readId(inv, "recipient");
-          return rid != null && Number(rid) === Number(currentUserId);
-        });
-      } else if (invitations.length > 0) {
-        console.warn("Invitations did not contain recipient ids; falling back to backend list");
-      }
-    }
+      if (currentUserId != null) {
+        const invitationsWithRecipientId = invitations.filter(inv => readId(inv, "recipient") != null);
 
-    let filteredInvites = relevantInvites.filter(isPendingInvitation);
-
-    const ids = new Set();
-
-    filteredInvites.forEach(inv => {
-      const sid = readId(inv, "sender");
-      const rid = readId(inv, "recipient");
-
-      if (sid != null) ids.add(String(sid));
-      if (rid != null) ids.add(String(rid));
-    });
-
-    backendNotifications.forEach(notification => {
-      const sid = readId(notification, "sender");
-      const rid = readId(notification, "recipient");
-
-      if (sid != null) ids.add(String(sid));
-      if (rid != null) ids.add(String(rid));
-    });
-
-    pendingFollowUsers.forEach(user => {
-      const uid = user?.id ?? user?.userId ?? user?.user_id ?? null;
-      if (uid != null) ids.add(String(uid));
-    });
-
-    const userMap = {};
-
-    if (typeof getUserById === "function") {
-      await Promise.all(
-        [...ids].map(async (id) => {
-          try {
-            userMap[id] = (await getUserById(id)) ?? null;
-          } catch {
-            userMap[id] = null;
-          }
-        })
-      );
-    } else {
-      console.warn("getUserById() is missing; usernames will be shown as User#id");
-    }
-
-    console.log("notifications: userMap ->", userMap);
-
-    const partyIds = new Set();
-
-    filteredInvites.forEach(inv => {
-      const pid = readPartyId(inv);
-
-      if (pid != null) partyIds.add(String(pid));
-    });
-
-    backendNotifications.forEach(notification => {
-      const pid = readPartyId(notification);
-      if (pid != null) partyIds.add(String(pid));
-    });
-
-    const partyMap = {};
-
-    await Promise.all(
-      [...partyIds].map(async (id) => {
-        partyMap[id] = await fetchPartyForNotification(id);
-      })
-    );
-
-    data = [];
-
-    const invitationNotificationKeys = new Set();
-    const invitationStatusByKey = new Map();
-    const backendInviteNotificationsByKey = new Map();
-
-    relevantInvites.forEach(inv => {
-      const key = notificationKey(readId(inv, "sender"), readId(inv, "recipient"), readPartyId(inv));
-      if (key) {
-        invitationStatusByKey.set(key, invitationStatus(inv));
-      }
-    });
-
-    backendNotifications.forEach(notification => {
-      const key = notificationKey(readId(notification, "sender"), readId(notification, "recipient"), readPartyId(notification));
-
-      if (key && isInvitationNotification(notification)) {
-        const existing = backendInviteNotificationsByKey.get(key) ?? [];
-        existing.push(notification);
-        backendInviteNotificationsByKey.set(key, existing);
-      }
-    });
-
-    filteredInvites.forEach(inv => {
-      const key = notificationKey(readId(inv, "sender"), readId(inv, "recipient"), readPartyId(inv));
-      if (key) {
-        invitationNotificationKeys.add(key);
-      }
-    });
-
-    filteredInvites.forEach(inv => {
-      const sid = readId(inv, "sender");
-      const rid = readId(inv, "recipient");
-      const sender = sid != null ? userMap[String(sid)] : null;
-
-      const partyId = readPartyId(inv);
-
-      let partyTitle =
-        inv.party?.title ??
-        inv.party?.name ??
-        inv.partyTitle ??
-        inv.party_name ??
-        null;
-
-      if (!partyTitle && partyId != null) {
-        const p = partyMap[String(partyId)];
-        if (p) {
-          partyTitle = p.title ?? p.name ?? null;
+        if (invitationsWithRecipientId.length > 0) {
+          relevantInvites = invitations.filter(inv => {
+            const rid = readId(inv, "recipient");
+            return rid != null && Number(rid) === Number(currentUserId);
+          });
+        } else if (invitations.length > 0) {
+          console.warn("Invitations did not contain recipient ids; falling back to backend list");
         }
       }
 
-      const inviteKey = notificationKey(sid, rid, partyId);
-      const matchingBackendNotifications = inviteKey
-        ? backendInviteNotificationsByKey.get(inviteKey) ?? []
-        : [];
-      const backendNotificationIds = matchingBackendNotifications
-        .map(readNotificationId)
-        .filter(id => id != null);
+      let filteredInvites = relevantInvites.filter(isPendingInvitation);
 
-      const message =
-        rid != null && String(rid) === String(currentUserId)
-          ? `${getUsername(sender, sid)} invited you to "${partyTitle ?? "an event"}"`
-          : `${getUsername(sender, sid)} sent ${getUsername(null, rid)} an invitation${partyTitle ? ` to ${partyTitle}` : ""}`;
+      const ids = new Set();
 
-      data.push({
-        id: `invite-${inv.id ?? inv.invitationId ?? `${sid}-${rid}-${partyId ?? "x"}`}`,
-        type: "invite",
-        invitationId: inv.id ?? inv.invitationId ?? null,
-        notificationId: backendNotificationIds.length ? Number(backendNotificationIds[0]) : null,
-        notificationIds: backendNotificationIds.map(id => Number(id)),
-        partyId: partyId != null ? Number(partyId) : null,
-        text: message,
-        actorAvatar: sender?.id
-          ? `/api/users/${sender.id}/profile-picture`
-          : "/images/default_profile-picture.svg",
-        actorProfile: sender?.distinctName
-          ? `/profile/profile.html?handle=${sender.distinctName}`
-          : "#",
-        _raw: inv
+      filteredInvites.forEach(inv => {
+        const sid = readId(inv, "sender");
+        const rid = readId(inv, "recipient");
+
+        if (sid != null) ids.add(String(sid));
+        if (rid != null) ids.add(String(rid));
       });
-    });
 
-    backendNotifications.forEach(notification => {
-      const notificationId = readNotificationId(notification);
-      const sid = readId(notification, "sender");
-      const rid = readId(notification, "recipient");
-      const partyId = readPartyId(notification);
-      const rawMessage = notification.message ?? notification.text ?? "New notification";
-      const message = normalizeLegacyNotificationMessage(rawMessage);
-      const duplicateInviteKey = notificationKey(sid, rid, partyId);
-      const invitationState = duplicateInviteKey
-        ? invitationStatusByKey.get(duplicateInviteKey)
-        : null;
-      const isBackendInvite = isInvitationNotification(notification);
-      const isInviteDuplicate =
-        partyId != null &&
-        duplicateInviteKey != null &&
-        invitationNotificationKeys.has(duplicateInviteKey) &&
-        isBackendInvite;
-      const isStaleInviteNotification =
-        partyId != null &&
-        duplicateInviteKey != null &&
-        invitationState != null &&
-        invitationState !== "PENDING" &&
-        isBackendInvite;
+      backendNotifications.forEach(notification => {
+        const sid = readId(notification, "sender");
+        const rid = readId(notification, "recipient");
 
-      if (isInviteDuplicate || isStaleInviteNotification) {
-        return;
+        if (sid != null) ids.add(String(sid));
+        if (rid != null) ids.add(String(rid));
+      });
+
+      pendingFollowUsers.forEach(user => {
+        const uid = user?.id ?? user?.userId ?? user?.user_id ?? null;
+        if (uid != null) ids.add(String(uid));
+      });
+
+      const userMap = {};
+
+      if (typeof getUserById === "function") {
+        await Promise.all(
+          [...ids].map(async (id) => {
+            try {
+              userMap[id] = (await getUserById(id)) ?? null;
+            } catch {
+              userMap[id] = null;
+            }
+          })
+        );
+      } else {
+        console.warn("getUserById() is missing; usernames will be shown as User#id");
       }
 
-      const sender = sid != null ? userMap[String(sid)] : null;
+      console.log("notifications: userMap ->", userMap);
 
-      data.push({
-        id: `notification-${notificationId ?? `${sid ?? "x"}-${rid ?? "x"}-${partyId ?? "x"}`}`,
-        type: "notification",
-        notificationId: notificationId != null ? Number(notificationId) : null,
-        partyId: partyId != null ? Number(partyId) : null,
-        text: message,
-        createdAt: notification.created_at ?? notification.createdAt ?? null,
-        actorAvatar: sender?.id
-          ? `/api/users/${sender.id}/profile-picture`
-          : "/images/default_profile-picture.svg",
-        actorProfile: sender?.distinctName
-          ? `/profile/profile.html?handle=${sender.distinctName}`
-          : "#",
-        _raw: notification
+      const partyIds = new Set();
+
+      filteredInvites.forEach(inv => {
+        const pid = readPartyId(inv);
+
+        if (pid != null) partyIds.add(String(pid));
       });
+
+      backendNotifications.forEach(notification => {
+        const pid = readPartyId(notification);
+        if (pid != null) partyIds.add(String(pid));
+      });
+
+      const partyMap = {};
+
+      await Promise.all(
+        [...partyIds].map(async (id) => {
+          partyMap[id] = await fetchPartyForNotification(id);
+        })
+      );
+
+      const nextData = [];
+
+      const invitationNotificationKeys = new Set();
+      const invitationStatusByKey = new Map();
+      const backendInviteNotificationsByKey = new Map();
+
+      relevantInvites.forEach(inv => {
+        const key = notificationKey(readId(inv, "sender"), readId(inv, "recipient"), readPartyId(inv));
+        if (key) {
+          invitationStatusByKey.set(key, invitationStatus(inv));
+        }
+      });
+
+      backendNotifications.forEach(notification => {
+        const key = notificationKey(readId(notification, "sender"), readId(notification, "recipient"), readPartyId(notification));
+
+        if (key && isInvitationNotification(notification)) {
+          const existing = backendInviteNotificationsByKey.get(key) ?? [];
+          existing.push(notification);
+          backendInviteNotificationsByKey.set(key, existing);
+        }
+      });
+
+      filteredInvites.forEach(inv => {
+        const key = notificationKey(readId(inv, "sender"), readId(inv, "recipient"), readPartyId(inv));
+        if (key) {
+          invitationNotificationKeys.add(key);
+        }
+      });
+
+      filteredInvites.forEach(inv => {
+        const sid = readId(inv, "sender");
+        const rid = readId(inv, "recipient");
+        const sender = sid != null ? userMap[String(sid)] : null;
+
+        const partyId = readPartyId(inv);
+
+        let partyTitle =
+          inv.party?.title ??
+          inv.party?.name ??
+          inv.partyTitle ??
+          inv.party_name ??
+          null;
+
+        if (!partyTitle && partyId != null) {
+          const p = partyMap[String(partyId)];
+          if (p) {
+            partyTitle = p.title ?? p.name ?? null;
+          }
+        }
+
+        const inviteKey = notificationKey(sid, rid, partyId);
+        const matchingBackendNotifications = inviteKey
+          ? backendInviteNotificationsByKey.get(inviteKey) ?? []
+          : [];
+        const backendNotificationIds = matchingBackendNotifications
+          .map(readNotificationId)
+          .filter(id => id != null);
+        const createdAt =
+          matchingBackendNotifications.map(readCreatedAt).find(Boolean) ??
+          readCreatedAt(inv);
+
+        const message =
+          rid != null && String(rid) === String(currentUserId)
+            ? `${getUsername(sender, sid)} invited you to "${partyTitle ?? "an event"}"`
+            : `${getUsername(sender, sid)} sent ${getUsername(null, rid)} an invitation${partyTitle ? ` to ${partyTitle}` : ""}`;
+
+        nextData.push({
+          id: `invite-${inv.id ?? inv.invitationId ?? `${sid}-${rid}-${partyId ?? "x"}`}`,
+          type: "invite",
+          invitationId: inv.id ?? inv.invitationId ?? null,
+          notificationId: backendNotificationIds.length ? Number(backendNotificationIds[0]) : null,
+          notificationIds: backendNotificationIds.map(id => Number(id)),
+          partyId: partyId != null ? Number(partyId) : null,
+          text: message,
+          createdAt,
+          actorAvatar: sender?.id
+            ? `/api/users/${sender.id}/profile-picture`
+            : "/images/default_profile-picture.svg",
+          actorProfile: sender?.distinctName
+            ? `/profile/profile.html?handle=${sender.distinctName}`
+            : "#",
+          _raw: inv
+        });
+      });
+
+      backendNotifications.forEach(notification => {
+        const notificationId = readNotificationId(notification);
+        const sid = readId(notification, "sender");
+        const rid = readId(notification, "recipient");
+        const partyId = readPartyId(notification);
+        const rawMessage = notification.message ?? notification.text ?? "New notification";
+        const message = normalizeLegacyNotificationMessage(rawMessage);
+        const duplicateInviteKey = notificationKey(sid, rid, partyId);
+        const invitationState = duplicateInviteKey
+          ? invitationStatusByKey.get(duplicateInviteKey)
+          : null;
+        const isBackendInvite = isInvitationNotification(notification);
+        const isInviteDuplicate =
+          partyId != null &&
+          duplicateInviteKey != null &&
+          invitationNotificationKeys.has(duplicateInviteKey) &&
+          isBackendInvite;
+        const isStaleInviteNotification =
+          partyId != null &&
+          duplicateInviteKey != null &&
+          invitationState != null &&
+          invitationState !== "PENDING" &&
+          isBackendInvite;
+
+        if (isInviteDuplicate || isStaleInviteNotification) {
+          return;
+        }
+
+        const sender = sid != null ? userMap[String(sid)] : null;
+
+        nextData.push({
+          id: `notification-${notificationId ?? `${sid ?? "x"}-${rid ?? "x"}-${partyId ?? "x"}`}`,
+          type: "notification",
+          notificationId: notificationId != null ? Number(notificationId) : null,
+          partyId: partyId != null ? Number(partyId) : null,
+          text: message,
+          createdAt: readCreatedAt(notification),
+          locked: isProtectedNotificationMessage(message),
+          actorAvatar: sender?.id
+            ? `/api/users/${sender.id}/profile-picture`
+            : "/images/default_profile-picture.svg",
+          actorProfile: sender?.distinctName
+            ? `/profile/profile.html?handle=${sender.distinctName}`
+            : "#",
+          _raw: notification
+        });
+      });
+
+      pendingFollowUsers.forEach(user => {
+        const followerId = user?.id ?? user?.userId ?? user?.user_id ?? null;
+        if (followerId == null) return;
+
+        const sender = userMap[String(followerId)] ?? user;
+
+        nextData.push({
+          id: `follow-${followerId}`,
+          type: "follow",
+          followerId: Number(followerId),
+          text: `${getUsername(sender, followerId)} wants to follow you`,
+          actorAvatar: sender?.id
+            ? `/api/users/${sender.id}/profile-picture`
+            : "/images/default_profile-picture.svg",
+          actorProfile: sender?.distinctName
+            ? `/profile/profile.html?handle=${sender.distinctName}`
+            : "#",
+          _raw: user
+        });
+      });
+
+      console.log("Final notification data:", nextData);
+      return nextData;
+    } catch (e) {
+      if (quiet) {
+        console.warn("Silent notification refresh failed:", e);
+      } else {
+        console.error("Load failed:", e);
+      }
+      return data;
+    }
+  }
+
+  let refreshInFlight = null;
+
+  async function refreshNotifications({ quiet = false, force = false } = {}) {
+    if (refreshInFlight) {
+      if (!force) return refreshInFlight;
+      await refreshInFlight.catch(() => {});
+    }
+
+    refreshInFlight = (async () => {
+      data = await loadNotificationData({ quiet });
+      render();
+    })().finally(() => {
+      refreshInFlight = null;
     });
 
-    pendingFollowUsers.forEach(user => {
-      const followerId = user?.id ?? user?.userId ?? user?.user_id ?? null;
-      if (followerId == null) return;
-
-      const sender = userMap[String(followerId)] ?? user;
-
-      data.push({
-        id: `follow-${followerId}`,
-        type: "follow",
-        followerId: Number(followerId),
-        text: `${getUsername(sender, followerId)} wants to follow you`,
-        actorAvatar: sender?.id
-          ? `/api/users/${sender.id}/profile-picture`
-          : "/images/default_profile-picture.svg",
-        actorProfile: sender?.distinctName
-          ? `/profile/profile.html?handle=${sender.distinctName}`
-          : "#",
-        _raw: user
-      });
-    });
-
-    console.log("Final notification data:", data);
-  } catch (e) {
-    console.error("Load failed:", e);
-    data = [];
+    return refreshInFlight;
   }
 
   function render() {
@@ -693,10 +757,7 @@ document.addEventListener("DOMContentLoaded", async () => {
                 }
               }
 
-              const idx = data.findIndex(d => d.id === item.id);
-              if (idx > -1) data.splice(idx, 1);
-
-              render();
+              await refreshNotifications({ quiet: true, force: true });
               showToast(
                 item.type === "follow"
                   ? "Follow request accepted ✓"
@@ -712,46 +773,66 @@ document.addEventListener("DOMContentLoaded", async () => {
       }
 
       if (dismissBtn) {
-        dismissBtn.addEventListener("click", async () => {
-          try {
-            let deleted = false;
-            if (item.type === "invite") {
-              deleted = await declineInvite(item);
-            } else if (item.type === "follow") {
-              if (item.followerId != null && currentUserId != null) {
-                await removeFollowRequest(currentUserId, item.followerId);
-                deleted = true;
+        if (item.locked) {
+          dismissBtn.style.display = "none";
+          dismissBtn.disabled = true;
+          dismissBtn.setAttribute("aria-hidden", "true");
+        } else {
+          dismissBtn.addEventListener("click", async () => {
+            try {
+              let deleted = false;
+              if (item.type === "invite") {
+                deleted = await declineInvite(item);
+              } else if (item.type === "follow") {
+                if (item.followerId != null && currentUserId != null) {
+                  await removeFollowRequest(currentUserId, item.followerId);
+                  deleted = true;
+                }
+              } else if (item.type === "notification") {
+                if (item.notificationId != null) {
+                  await deleteBackendNotification(item.notificationId);
+                  deleted = true;
+                }
               }
-            } else if (item.type === "notification") {
-              if (item.notificationId != null) {
-                await deleteBackendNotification(item.notificationId);
-                deleted = true;
-              }
-            }
 
-            if (deleted) {
-              const idx = data.findIndex(d => d.id === item.id);
-              if (idx > -1) data.splice(idx, 1);
-              render();
-              showToast(
-                item.type === "follow"
-                  ? "Follow request declined"
-                  : item.type === "notification"
-                    ? "Notification deleted"
-                  : "Invitation declined",
-                "success"
-              );
+              if (deleted) {
+                await refreshNotifications({ quiet: true, force: true });
+                showToast(
+                  item.type === "follow"
+                    ? "Follow request declined"
+                    : item.type === "notification"
+                      ? "Notification deleted"
+                    : "Invitation declined",
+                  "success"
+                );
+              }
+            } catch (err) {
+              console.error("Reject failed", err);
+              showToast("Error while declining: " + err.message, "error");
             }
-          } catch (err) {
-            console.error("Reject failed", err);
-            showToast("Error while declining: " + err.message, "error");
-          }
-        });
+          });
+        }
       }
 
       list.prepend(clone);
     });
   }
 
-  render();
+  await refreshNotifications();
+
+  window.addEventListener("focus", () => {
+    refreshNotifications({ quiet: true });
+  });
+
+  document.addEventListener("visibilitychange", () => {
+    if (!document.hidden) {
+      refreshNotifications({ quiet: true });
+    }
+  });
+
+  window.setInterval(() => {
+    if (!document.hidden) {
+      refreshNotifications({ quiet: true });
+    }
+  }, 5000);
 });
