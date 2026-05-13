@@ -49,15 +49,5 @@
 		<string>push-to-talk</string>
 		<string>remote-notification</string>
 	</array>
-	<key>UIBackgroundModes - 2</key>
-	<array>
-		<string>remote-notification</string>
-		<string>location</string>
-	</array>
-	<key>UIBackgroundModes - 3</key>
-	<array>
-		<string>remote-notification</string>
-		<string>location</string>
-	</array>
 </dict>
 </plist>
