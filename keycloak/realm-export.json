@@ -1,24 +1,40 @@
 {
-  "realm": "party-realm",
+  "realm": "partyhub",
   "enabled": true,
+  "roles": {
+    "realm": [
+      {
+        "name": "admin"
+      }
+    ]
+  },
   "clients": [
     {
-      "clientId": "party-client",
-      "secret": "secret123",
+      "clientId": "frontend",
       "enabled": true,
       "protocol": "openid-connect",
-      "publicClient": false,
+      "publicClient": true,
       "directAccessGrantsEnabled": true,
       "standardFlowEnabled": true,
-      "redirectUris": ["*"]
+      "redirectUris": [
+        "http://localhost:8000/*"
+      ]
     }
   ],
   "users": [
     {
-      "username": "alice",
+      "username": "admin",
       "enabled": true,
-      "credentials": [{ "type": "password", "value": "alicepwd" }],
-      "email": "alice@example.com"
+      "credentials": [
+        {
+          "type": "password",
+          "value": "password",
+          "temporary": false
+        }
+      ],
+      "realmRoles": [
+        "admin"
+      ]
     }
   ]
 }
