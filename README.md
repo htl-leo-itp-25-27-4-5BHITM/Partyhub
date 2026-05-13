@@ -40,11 +40,6 @@ cd Partyhub
 # sichere Variante (Standard)
 ./deploy.sh
 
-# DB wird gelöscht + neu aufgebaut
-./deploy.sh drop
-
-# explizit update
-./deploy.sh update
 ```
 ### 3. Sync import.sql to Local and Server DB
 
@@ -144,3 +139,6 @@ The application provides a comprehensive REST API with the following endpoints:
 8.  Sprint: 11.02.2026
 9.  Sprint: 04.03.2026
 10. Sprint: 18.03.2026
+11. Sprint: 08.04.2026
+12. Sprint: 29.04.2026
+13. Sprint: 13.05.2026
