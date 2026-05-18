@@ -52,7 +52,7 @@ X-User-Id: {{michael}}
 ###########################################
 ### Search by title/description
 ###########################################
-GET {{baseUrl}}?q=Hauptplatz
+GET {{baseUrl}}?q=Afterwork
 X-User-Id: {{anna}}
 
 ?? status == 200

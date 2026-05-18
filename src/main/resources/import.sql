@@ -17,24 +17,24 @@ RESTART IDENTITY CASCADE;
 -- FOLLOW STATUS
 -- =========================
 INSERT INTO follow_status (id, name) VALUES
-    (1, 'ausstehend'),
-    (2, 'akzeptiert'),
-    (3, 'blockiert');
+    (1, 'pending'),
+    (2, 'accepted'),
+    (3, 'blocked');
 
 -- =========================
 -- USERS
 -- =========================
 INSERT INTO users (id, username, display_name, distinct_name, email, phone_number, biography, device_token) VALUES
-    (1, 'viki_dji', 'Victoria Vejmelek', 'viki_vejmelek', 'v.vejmelek@students.htl-leonding.ac.at', '+4367762662103', 'Mag Afterwork, Konzerte und Rooftop-Abende in Linz.', 'MANUAL_TEST_TOKEN_ANNA'),
-    (4, 'michael_wagner', 'Michael Wagner', 'michael_wagner', 'michael.wagner@partyhub.at', '+436641234002', 'Techno, Startups und spontane Wochenendplaene.', NULL),
-    (3, 'katrin_bauer', 'Katrin Bauer', 'katrin_bauer', 'katrin.bauer@partyhub.at', '+436641234003', 'Liebt Tanzflaechen, Sommerfeste und gute Cocktails.', NULL),
-    (2, 'carla_dimmler', 'Carla Dimmler', 'carla_dimmler', 'c.dimmler@students.htl-leonding.ac.at', '+436602045422', 'Organisiert gerne Events in Linz und Urfahr.', NULL),
-    (5, 'sabine_weber', 'Sabine Weber', 'sabine_weber', 'sabine.weber@partyhub.at', '+436641234005', 'Zwischen Kultur, Networking und langen Naechten unterwegs.', NULL),
-    (6, 'lukas_gruber', 'Lukas Gruber', 'lukas_gruber', 'lukas.gruber@partyhub.at', '+436641234006', 'Outdoor untertags, Club nachts.', NULL),
-    (7, 'mia_steiner', 'Mia Steiner', 'mia_steiner', 'mia.steiner@partyhub.at', '+436641234007', 'Food, Kunst und entspannte Bars an der Donau.', NULL),
-    (8, 'david_koenig', 'David Koenig', 'david_koenig', 'david.koenig@partyhub.at', '+436641234008', 'Meetups, DJs und alles rund um Tabakfabrik.', NULL),
-    (9, 'nina_fischer', 'Nina Fischer', 'nina_fischer', 'nina.fischer@partyhub.at', '+436641234009', 'Mag kleinere private Runden und stilvolle Lounges.', NULL),
-    (10, 'elias_berger', 'Elias Berger', 'elias_berger', 'elias.berger@partyhub.at', '+436641234010', 'Fotografiert Events und haengt oft im Hafenviertel ab.', NULL);
+    (1, 'viki_dji', 'Victoria Vejmelek', 'viki_vejmelek', 'v.vejmelek@students.htl-leonding.ac.at', '+4367762662103', 'Enjoys afterwork events, concerts and rooftop evenings in Linz.', 'MANUAL_TEST_TOKEN_ANNA'),
+    (4, 'michael_wagner', 'Michael Wagner', 'michael_wagner', 'michael.wagner@partyhub.at', '+436641234002', 'Techno, startups and spontaneous weekend plans.', NULL),
+    (3, 'katrin_bauer', 'Katrin Bauer', 'katrin_bauer', 'katrin.bauer@partyhub.at', '+436641234003', 'Loves dance floors, summer festivals and great cocktails.', NULL),
+    (2, 'carla_dimmler', 'Carla Dimmler', 'carla_dimmler', 'c.dimmler@students.htl-leonding.ac.at', '+436602045422', 'Enjoys organizing events in Linz and Urfahr.', NULL),
+    (5, 'sabine_weber', 'Sabine Weber', 'sabine_weber', 'sabine.weber@partyhub.at', '+436641234005', 'Between culture, networking and long nights out.', NULL),
+    (6, 'lukas_gruber', 'Lukas Gruber', 'lukas_gruber', 'lukas.gruber@partyhub.at', '+436641234006', 'Outdoor by day, club by night.', NULL),
+    (7, 'mia_steiner', 'Mia Steiner', 'mia_steiner', 'mia.steiner@partyhub.at', '+436641234007', 'Food, art and relaxed bars on the Danube.', NULL),
+    (8, 'david_koenig', 'David Koenig', 'david_koenig', 'david.koenig@partyhub.at', '+436641234008', 'Meetups, DJs and everything around Tabakfabrik.', NULL),
+    (9, 'nina_fischer', 'Nina Fischer', 'nina_fischer', 'nina.fischer@partyhub.at', '+436641234009', 'Enjoys smaller private gatherings and stylish lounges.', NULL),
+    (10, 'elias_berger', 'Elias Berger', 'elias_berger', 'elias.berger@partyhub.at', '+436641234010', 'Photographs events and often hangs out in the port district.', NULL);
 
 -- =========================
 -- PROFILE PICTURE
@@ -67,7 +67,6 @@ INSERT INTO user_location (id, user_id, longitude, latitude) VALUES
     (10, 10, 14.2476, 48.3009);
 
 -- =========================
--- LOCATIONS (Linz und Umgebung)
 -- =========================
 INSERT INTO location (id, longitude, latitude, address) VALUES
     (1, 14.2850, 48.3065, 'Hauptplatz Linz'),
@@ -108,18 +107,18 @@ INSERT INTO party (
     created_at,
     visibility
 ) VALUES
-    (1, 1, 1, 'Afterwork am Hauptplatz', 'Afterwork', '2026-05-22 18:30:00', '2026-05-02 23:30:00', 80, 18, 45, 'https://partyhub.local/afterwork-hauptplatz', 'Locker starten, Leute treffen und danach gemeinsam weiterziehen.', 0.00, '2026-04-25 16:00:00', 'PUBLIC'),
-    (2, 2, 4, 'Tabakfabrik Techno Session', 'Techno', '2026-05-23 22:00:00', '2026-05-04 04:30:00', 180, 18, 40, 'https://partyhub.local/tabakfabrik-techno', 'Nacht mit schnellem Sound, Nebel und Warehouse-Vibe.', 14.00, '2026-04-26 11:20:00', 'PUBLIC'),
-    (3, 3, 11, 'Sunset Beats an der Donaulaende', 'Open-Air', '2026-05-24 17:00:00', '2026-05-04 23:00:00', 150, 18, 38, 'https://partyhub.local/donau-sunset', 'Open-Air-Set direkt an der Donau mit Drinks und Streetfood.', 6.00, '2026-04-26 18:40:00', 'PUBLIC'),
-    (4, 4, 7, 'Private Birthday in Leonding', 'Birthday', '2026-05-25 19:00:00', '2026-05-06 01:00:00', 35, 18, 40, NULL, 'Geburtstagsrunde im kleinen Kreis mit Playlist und BBQ.', 0.00, '2026-04-27 09:00:00', 'PRIVATE'),
-    (5, 5, 12, 'Cocktail Night beim Musiktheater', 'Cocktails', '2026-05-26 20:00:00', '2026-05-07 01:30:00', 70, 21, 50, 'https://partyhub.local/musiktheater-cocktails', 'Schick anziehen, gute Drinks und entspannte Lounge-Musik.', 12.00, '2026-04-27 14:15:00', 'PUBLIC'),
-    (6, 6, 8, 'Student Night PlusCity', 'Student', '2026-05-27 20:30:00', '2026-05-08 02:00:00', 120, 18, 30, 'https://partyhub.local/student-pluscity', 'Guenstige Drinks, viel Bewegung und ein junges Publikum.', 5.00, '2026-04-27 19:30:00', 'PUBLIC'),
-    (7, 7, 6, 'Poestlingberg Sundowner', 'Chill', '2026-05-14 18:00:00', '2026-05-08 23:00:00', 60, 18, 45, NULL, 'Sonnenuntergang, Picknickdecken und ruhiger House-Sound.', 0.00, '2026-04-28 08:10:00', 'PUBLIC'),
-    (8, 8, 15, 'Hafenviertel Indie Night', 'Indie', '2026-05-17 21:00:00', '2026-05-09 02:30:00', 90, 18, 39, 'https://partyhub.local/hafen-indie', 'Kleine Bühne, Live-Acts und danach DJ-Set bis spät.', 9.00, '2026-04-28 09:45:00', 'PUBLIC'),
-    (9, 9, 10, 'Private Dinner Party in Steyregg', 'Dinner', '2026-05-19 18:30:00', '2026-05-09 23:30:00', 20, 20, 45, NULL, 'Einladung only, gutes Essen und danach Wohnzimmer-Dancefloor.', 0.00, '2026-04-28 10:10:00', 'PRIVATE'),
-    (10, 10, 13, 'JKU Semester Kickoff', 'Campus', '2026-05-16 19:00:00', '2026-05-11 01:00:00', 200, 18, 32, 'https://partyhub.local/jku-kickoff', 'Semesterstart mit DJ, Fotoecke und vielen neuen Gesichtern.', 4.00, '2026-04-28 11:00:00', 'PUBLIC'),
-    (11, 1, 16, 'Graduation Gala', 'School Party', '2026-06-18 18:00:00', '2026-06-14 23:30:00', 120, 16, 28, 'https://www.htl-leonding.at', 'Vom Klassenzimmer auf den roten Teppich. Wir feiern unseren Abschluss mit Stil, Glanz und Gloria. Dress to impress!', 7.50, '2026-04-28 19:59:00', 'PUBLIC'),
-    (12, 2, 17, 'Carlas 18.Geburtstag', 'Birthday Party','2026-06-14 18:00:00', '2026-06-14 23:30:00', 18, 17,20,'https://partyhub.local/carlaparty','Carlas Birthday Party', 0.00,'2026-04-25 16:00:00', 'PUBLIC');
+    (1, 1, 1, 'Afterwork at Main Square', 'Afterwork', '2026-05-22 18:30:00', '2026-05-02 23:30:00', 80, 18, 45, 'https://partyhub.local/afterwork-hauptplatz', 'Start casual, meet people and continue together afterwards.', 0.00, '2026-04-25 16:00:00', 'PUBLIC'),
+    (2, 2, 4, 'Tabakfabrik Techno Session', 'Techno', '2026-05-23 22:00:00', '2026-05-04 04:30:00', 180, 18, 40, 'https://partyhub.local/tabakfabrik-techno', 'Night with fast sound, fog and warehouse vibes.', 14.00, '2026-04-26 11:20:00', 'PUBLIC'),
+    (3, 3, 11, 'Sunset Beats at Danube Waterfront', 'Open-Air', '2026-05-24 17:00:00', '2026-05-04 23:00:00', 150, 18, 38, 'https://partyhub.local/donau-sunset', 'Open-air set right at the Danube with drinks and street food.', 6.00, '2026-04-26 18:40:00', 'PUBLIC'),
+    (4, 4, 7, 'Private Birthday in Leonding', 'Birthday', '2026-05-25 19:00:00', '2026-05-06 01:00:00', 35, 18, 40, NULL, 'Birthday celebration in a small circle with playlist and BBQ.', 0.00, '2026-04-27 09:00:00', 'PRIVATE'),
+    (5, 5, 12, 'Cocktail Night at the Theater', 'Cocktails', '2026-05-26 20:00:00', '2026-05-07 01:30:00', 70, 21, 50, 'https://partyhub.local/musiktheater-cocktails', 'Dress up, great drinks and relaxed lounge music.', 12.00, '2026-04-27 14:15:00', 'PUBLIC'),
+    (6, 6, 8, 'Student Night PlusCity', 'Student', '2026-05-27 20:30:00', '2026-05-08 02:00:00', 120, 18, 30, 'https://partyhub.local/student-pluscity', 'Cheap drinks, lots of movement and a young crowd.', 5.00, '2026-04-27 19:30:00', 'PUBLIC'),
+    (7, 7, 6, 'Postlingberg Sundowner', 'Chill', '2026-05-14 18:00:00', '2026-05-08 23:00:00', 60, 18, 45, NULL, 'Sunset, picnic blankets and calm house sound.', 0.00, '2026-04-28 08:10:00', 'PUBLIC'),
+    (8, 8, 15, 'Port District Indie Night', 'Indie', '2026-05-17 21:00:00', '2026-05-09 02:30:00', 90, 18, 39, 'https://partyhub.local/hafen-indie', 'Small stage, live acts and DJ set afterwards until late.', 9.00, '2026-04-28 09:45:00', 'PUBLIC'),
+    (9, 9, 10, 'Private Dinner Party in Steyregg', 'Dinner', '2026-05-19 18:30:00', '2026-05-09 23:30:00', 20, 20, 45, NULL, 'Invitation only, good food and living room dance floor afterwards.', 0.00, '2026-04-28 10:10:00', 'PRIVATE'),
+    (10, 10, 13, 'JKU Semester Kickoff', 'Campus', '2026-05-16 19:00:00', '2026-05-11 01:00:00', 200, 18, 32, 'https://partyhub.local/jku-kickoff', 'Semester start with DJ, photo booth and lots of new faces.', 4.00, '2026-04-28 11:00:00', 'PUBLIC'),
+    (11, 1, 16, 'Graduation Gala', 'School Party', '2026-06-18 18:00:00', '2026-06-14 23:30:00', 120, 16, 28, 'https://www.htl-leonding.at', 'From classroom to red carpet. We celebrate our graduation with style, glamour and glory. Dress to impress!', 7.50, '2026-04-28 19:59:00', 'PUBLIC'),
+    (12, 2, 17, 'Carla''s 18th Birthday', 'Birthday Party','2026-06-14 18:00:00', '2026-06-14 23:30:00', 18, 17,20,'https://partyhub.local/carlaparty','Carla''s Birthday Party', 0.00,'2026-04-25 16:00:00', 'PUBLIC');
 
 -- =========================
 -- PARTY ATTENDEES
@@ -167,14 +166,14 @@ INSERT INTO invitation (id, sender_id, recipient_id, party_id, status) VALUES
 -- NOTIFICATIONS
 -- =========================
 INSERT INTO notification (id, recipient_id, sender_id, party_id, status, created_at, message) VALUES
-    (1, 2, 4, 4, 'UNREAD', '2026-04-27 09:05:00', 'Thomas Schneider hat dich zu der Party "Private Birthday in Leonding" eingeladen'),
-    (2, 8, 4, 4, 'READ', '2026-04-27 09:06:00', 'Thomas Schneider hat dich zu der Party "Private Birthday in Leonding" eingeladen'),
-    (3, 1, 9, 9, 'UNREAD', '2026-04-28 10:15:00', 'Nina Fischer hat dich zu der Party "Private Dinner Party in Steyregg" eingeladen'),
-    (4, 3, 9, 9, 'UNREAD', '2026-04-28 10:16:00', 'Nina Fischer hat dich zu der Party "Private Dinner Party in Steyregg" eingeladen'),
-    (5, 7, 5, 5, 'READ', '2026-04-28 12:00:00', '"Cocktail Night beim Musiktheater" wurde aktualisiert: Schick anziehen, gute Drinks und entspannte Lounge-Musik.'),
-    (6, 4, 1, 11, 'READ', '2026-04-28 19:59:00', 'Victoria Vejmelek hat dich zu der Party "Graduation Gala" eingeladen'),
-    (7, 5, 1, 11, 'READ', '2026-04-28 19:59:00', 'Victoria Vejmelek hat dich zu der Party "Graduation Gala" eingeladen'),
-    (8, 6, 1, 11, 'READ', '2026-04-28 19:59:00', 'Victoria Vejmelek hat dich zu der Party "Graduation Gala" eingeladen');
+    (1, 2, 4, 4, 'UNREAD', '2026-04-27 09:05:00', 'Michael Wagner invited you to the party "Private Birthday in Leonding"'),
+    (2, 8, 4, 4, 'READ', '2026-04-27 09:06:00', 'Michael Wagner invited you to the party "Private Birthday in Leonding"'),
+    (3, 1, 9, 9, 'UNREAD', '2026-04-28 10:15:00', 'Nina Fischer invited you to the party "Private Dinner Party in Steyregg"'),
+    (4, 3, 9, 9, 'UNREAD', '2026-04-28 10:16:00', 'Nina Fischer invited you to the party "Private Dinner Party in Steyregg"'),
+    (5, 7, 5, 5, 'READ', '2026-04-28 12:00:00', '"Cocktail Night at the Theater" was updated: Dress up, great drinks and relaxed lounge music.'),
+    (6, 4, 1, 11, 'READ', '2026-04-28 19:59:00', 'Victoria Vejmelek invited you to the party "Graduation Gala"'),
+    (7, 5, 1, 11, 'READ', '2026-04-28 19:59:00', 'Victoria Vejmelek invited you to the party "Graduation Gala"'),
+    (8, 6, 1, 11, 'READ', '2026-04-28 19:59:00', 'Victoria Vejmelek invited you to the party "Graduation Gala"');
 
 -- =========================
 -- FOLLOWS
