@@ -32,40 +32,19 @@ class UserLocationViewModel {
     var isLoading = false
     var errorMessage: String?
     var coordinateProvider: (() -> CLLocationCoordinate2D?)?
-    private var pollingTimer: Timer?
-    private var uploadTimer: Timer?
+    private var cachedLocation: CLLocationCoordinate2D?
 
-    func startPolling(partyId: Int64?) {
-        guard let partyId = partyId else { return }
-        fetchLocations(partyId: partyId)
-        pollingTimer = Timer.scheduledTimer(withTimeInterval: 15, repeats: true) { [weak self] _ in
-            self?.fetchLocations(partyId: partyId)
-        }
-    }
-
-    func startUploading(userId: Int64) {
-        uploadUserLocation(userId: userId)
-        uploadTimer = Timer.scheduledTimer(withTimeInterval: 30, repeats: true) { [weak self] _ in
-            self?.uploadUserLocation(userId: userId)
-        }
-    }
-
-    func stopPolling() {
-        pollingTimer?.invalidate()
-        pollingTimer = nil
-    }
-
-    func stopUploading() {
-        uploadTimer?.invalidate()
-        uploadTimer = nil
-    }
+    private var lastFetchedPartyId: Int64?
 
     func fetchLocations(partyId: Int64?) {
         guard let partyId = partyId else { return }
+        guard partyId != lastFetchedPartyId || locations.isEmpty else { return }
+        lastFetchedPartyId = partyId
+
         guard let url = URL(string: "\(Config.backendURL)/api/parties/\(partyId)/locations") else { return }
 
         isLoading = true
-        URLSession.shared.dataTask(with: url) { [weak self] data, response, error in
+        URLSession.shared.dataTask(with: url) { [weak self] data, _, error in
             DispatchQueue.main.async {
                 self?.isLoading = false
                 if let error = error {
@@ -100,8 +79,6 @@ class UserLocationViewModel {
 
         URLSession.shared.dataTask(with: request) { _, _, _ in }.resume()
     }
-
-    private var cachedLocation: CLLocationCoordinate2D?
 
     private func getCurrentDeviceLocation() -> CLLocationCoordinate2D? {
         if let providedLocation = coordinateProvider?() {

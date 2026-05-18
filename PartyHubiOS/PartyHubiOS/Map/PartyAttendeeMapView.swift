@@ -55,6 +55,13 @@ struct PartyAttendeeMapView: View {
     private let currentUserId: Int = 1
     private let clusteringEngine = MapClusteringEngine()
 
+    @State private var clusterVersion: Int = 0
+    @State private var refreshTrigger: Int = 0
+
+    private func triggerRefresh() {
+        refreshTrigger += 1
+    }
+
     init(
         party: Party,
         locationManager: LocationManager
@@ -99,10 +106,12 @@ struct PartyAttendeeMapView: View {
         loadInvitations()
         loadFriends()
         refreshCurrentUserAttendeeLocation()
+        triggerRefresh()
     }
 
     private func refreshCurrentUserAttendeeLocation() {
         currentUserAttendeeLocation = currentUserLocationIfAtParty()
+        triggerRefresh()
     }
 
     private func isCurrentUserAtParty() -> Bool {
@@ -167,56 +176,47 @@ struct PartyAttendeeMapView: View {
     }
 
     private func loadInvitations() {
-
-        guard let url = URL(
-            string: "\(Config.backendURL)/api/parties/\(party.backendId)/invited-members"
-        ) else { return }
+        guard let url = URL(string: "\(Config.backendURL)/api/parties/\(party.backendId)/invited-members") else { return }
 
         struct InvitationResponse: Decodable {
-
             let userId: Int?
         }
 
-        URLSession.shared.dataTask(with: url) { data, _, _ in
-
-            guard let data = data else { return }
-
-            if let invitations = try? JSONDecoder().decode([InvitationResponse].self, from: data) {
-
-                DispatchQueue.main.async {
-
-                    invitedUserIds = Set(
-                        invitations.compactMap { $0.userId }
-                    )
+        Task {
+            do {
+                let (data, _) = try await URLSession.shared.data(from: url)
+                if let invitations = try? JSONDecoder().decode([InvitationResponse].self, from: data) {
+                    await MainActor.run {
+                        invitedUserIds = Set(invitations.compactMap { $0.userId })
+                        triggerRefresh()
+                    }
                 }
+            } catch {
+                print("Failed to load invitations: \(error)")
             }
-
-        }.resume()
+        }
     }
 
     private func loadFriends() {
-
-        guard let url = URL(
-            string: "\(Config.backendURL)/api/users/\(currentUserId)/following"
-        ) else { return }
+        guard let url = URL(string: "\(Config.backendURL)/api/users/\(currentUserId)/following") else { return }
 
         struct FollowResponse: Decodable {
             let id: Int
         }
 
-        URLSession.shared.dataTask(with: url) { data, _, _ in
-
-            guard let data = data else { return }
-
-            if let users = try? JSONDecoder().decode([FollowResponse].self, from: data) {
-
-                DispatchQueue.main.async {
-
-                    friendUserIds = Set(users.map { $0.id })
+        Task {
+            do {
+                let (data, _) = try await URLSession.shared.data(from: url)
+                if let users = try? JSONDecoder().decode([FollowResponse].self, from: data) {
+                    await MainActor.run {
+                        friendUserIds = Set(users.map { $0.id })
+                        triggerRefresh()
+                    }
                 }
+            } catch {
+                print("Failed to load friends: \(error)")
             }
-
-        }.resume()
+        }
     }
 
     // MARK: - Filter Logic
@@ -449,6 +449,16 @@ struct PartyAttendeeMapView: View {
                     Spacer()
                 }
             }
+            .onChange(of: geo.size) { _, newSize in
+                mapViewSize = newSize
+            }
+            .onChange(of: currentRegion) { _, _ in
+                recomputeAttendeeClusters()
+            }
+            .onMapCameraChange(frequency: .onEnd) { context in
+                currentRegion = context.region
+                shouldPreserveUserCamera = true
+            }
             .navigationTitle("Participant map")
             .navigationBarTitleDisplayMode(.inline)
 
@@ -489,77 +499,24 @@ struct PartyAttendeeMapView: View {
             }
 
             .onAppear {
-
                 mapViewSize = geo.size
-
                 locationManager.requestPermission()
                 locationManager.ensureLocationUpdates()
+                viewModel.coordinateProvider = { locationManager.currentLocation }
 
-                viewModel.coordinateProvider = {
-                    locationManager.currentLocation
+                if let userId = UserDefaults.standard.object(forKey: "currentUserId") as? Int64 {
+                    viewModel.uploadUserLocation(userId: userId)
                 }
-
-                viewModel.startPolling(
-                    partyId: Int64(party.backendId)
-                )
-
-                if let userId = UserDefaults.standard.object(
-                    forKey: "currentUserId"
-                ) as? Int64 {
-
-                    viewModel.startUploading(
-                        userId: userId
-                    )
-                }
-
                 loadData()
             }
 
-            .onChange(of: geo.size) { _, newSize in
-                mapViewSize = newSize
+            .onChange(of: refreshTrigger) { _, _ in
+                viewModel.fetchLocations(partyId: Int64(party.backendId))
+                clusterVersion += 1
             }
 
-            .onMapCameraChange(frequency: .onEnd) { context in
-
-                currentRegion = context.region
-                shouldPreserveUserCamera = true
-            }
-
-            .onChange(of: currentRegion) { _, _ in
+            .onChange(of: clusterVersion) { _, _ in
                 recomputeAttendeeClusters()
-            }
-
-            .onChange(of: activeFilters) { _, _ in
-                recomputeAttendeeClusters()
-            }
-
-            .onChange(of: invitedUserIds) { _, _ in
-                recomputeAttendeeClusters()
-            }
-
-            .onChange(of: friendUserIds) { _, _ in
-                recomputeAttendeeClusters()
-            }
-
-            .onChange(of: locationManager.currentLocation) { _, _ in
-
-                viewModel.coordinateProvider = {
-                    locationManager.currentLocation
-                }
-
-                refreshCurrentUserAttendeeLocation()
-
-                recomputeAttendeeClusters()
-            }
-
-            .onChange(of: viewModel.locations.count) { _, _ in
-                recomputeAttendeeClusters()
-            }
-
-            .onDisappear {
-
-                viewModel.stopPolling()
-                viewModel.stopUploading()
             }
 
             .sheet(isPresented: $showFilterSheet) {
@@ -590,6 +547,7 @@ struct PartyAttendeeMapView: View {
                                         } else {
                                             activeFilters.insert(filter)
                                         }
+                                        triggerRefresh()
                                     }
 
                                 } label: {
