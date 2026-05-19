@@ -51,6 +51,7 @@ final class CalendarService {
         event.structuredLocation = structuredLocation
 
         event.calendar = store.defaultCalendarForNewEvents
+        event.url = URL(string: "partyhub://party?id=\(party.backendId)")
 
         do {
             try store.save(event, span: .thisEvent)
