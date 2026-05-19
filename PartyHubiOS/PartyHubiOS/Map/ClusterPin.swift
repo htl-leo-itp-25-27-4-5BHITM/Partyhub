@@ -48,22 +48,17 @@ struct MapBadge: View {
         return ZStack {
             if isInvited {
                 Circle()
-                    .stroke(invitedRingColor, lineWidth: 3)
-                    .background(Circle().fill(invitedRingColor.opacity(0.12)))
-                    .frame(width: 54, height: 54)
-            } else {
-                Circle()
-                    .fill(fillColor.opacity(0.15))
-                    .frame(width: 50, height: 50)
+                    .stroke(invitedRingColor, lineWidth: 2)
+                    .frame(width: 48, height: 48)
             }
 
             Circle()
                 .fill(fillColor)
                 .frame(width: 40, height: 40)
-                .shadow(color: Color.black.opacity(0.15), radius: 4, y: 2)
+                .shadow(color: Color.black.opacity(0.2), radius: 3, y: 1)
 
             Image(systemName: "party.popper.fill")
-                .font(.system(size: 18, weight: .medium))
+                .font(.system(size: 16, weight: .medium))
                 .foregroundStyle(.white)
         }
     }
@@ -71,13 +66,9 @@ struct MapBadge: View {
     private var neutralPartyBadge: some View {
         ZStack {
             Circle()
-                .fill(Color(.systemGray6))
-                .frame(width: 48, height: 48)
-                .shadow(color: Color.black.opacity(0.1), radius: 3, y: 1)
-
-            Circle()
-                .fill(Color(.systemGray2))
-                .frame(width: 38, height: 38)
+                .fill(Color(.systemGray4))
+                .frame(width: 40, height: 40)
+                .shadow(color: Color.black.opacity(0.2), radius: 3, y: 1)
 
             Image(systemName: "party.popper.fill")
                 .font(.system(size: 16, weight: .medium))
@@ -90,20 +81,16 @@ struct MapBadge: View {
 
         return ZStack {
             Circle()
-                .fill(pinColor.opacity(0.15))
-                .frame(width: 54, height: 54)
-
-            Circle()
                 .fill(pinColor)
-                .frame(width: 44, height: 44)
-                .shadow(color: Color.black.opacity(0.15), radius: 4, y: 2)
+                .frame(width: 40, height: 40)
+                .shadow(color: Color.black.opacity(0.2), radius: 3, y: 1)
 
             if let userId = userId {
-                UserProfileImageView(userId: userId, size: 38, showBorder: false)
+                UserProfileImageView(userId: userId, size: 36, showBorder: false)
                     .clipShape(Circle())
             } else {
                 Image(systemName: isSelf ? "person.circle.fill" : "person.fill")
-                    .font(.system(size: isSelf ? 24 : 18))
+                    .font(.system(size: isSelf ? 20 : 16))
                     .foregroundStyle(.white)
             }
         }
@@ -132,27 +119,23 @@ struct MapClusterBadge: View {
     private func partyClusterBadge(count: Int) -> some View {
         ZStack {
             Circle()
-                .fill(Color(uiColor: .systemGray5))
-                .frame(width: 64, height: 64)
-
-            Circle()
-                .fill(Color(uiColor: .systemGray))
-                .frame(width: 50, height: 50)
-                .shadow(color: Color.black.opacity(0.22), radius: 6, y: 2)
+                .fill(Color(.systemGray4))
+                .frame(width: 48, height: 48)
+                .shadow(color: Color.black.opacity(0.2), radius: 3, y: 1)
 
             Image(systemName: "party.popper.fill")
-                .font(.system(size: 20, weight: .semibold))
+                .font(.system(size: 18, weight: .semibold))
                 .foregroundStyle(.white)
 
             VStack {
                 HStack {
                     Spacer()
                     countBadge(count: count)
-                        .offset(x: 8, y: -8)
+                        .offset(x: 6, y: -6)
                 }
                 Spacer()
             }
-            .frame(width: 50, height: 50)
+            .frame(width: 48, height: 48)
         }
         .accessibilityLabel("\(count) Partys")
     }
@@ -160,13 +143,9 @@ struct MapClusterBadge: View {
     private func attendeeClusterBadge(count: Int) -> some View {
         ZStack {
             Circle()
-                .fill(Color(.systemGray6))
+                .fill(Color(.systemGray4))
                 .frame(width: 48, height: 48)
-                .shadow(color: Color.black.opacity(0.12), radius: 4, y: 2)
-
-            Circle()
-                .fill(Color(.systemGray))
-                .frame(width: 38, height: 38)
+                .shadow(color: Color.black.opacity(0.2), radius: 3, y: 1)
 
             Image(systemName: "person.2.fill")
                 .font(.system(size: 16, weight: .semibold))
@@ -174,21 +153,20 @@ struct MapClusterBadge: View {
         }
         .overlay(alignment: .topTrailing) {
             countBadge(count: count)
-                .offset(x: 8, y: -6)
+                .offset(x: 6, y: -6)
         }
         .accessibilityLabel("\(count) Participants")
     }
 
     private func countBadge(count: Int) -> some View {
         Text("\(count)")
-            .font(.footnote)
-            .bold()
+            .font(.system(size: 12, weight: .bold))
             .foregroundStyle(.white)
-            .padding(.horizontal, 6)
+            .padding(.horizontal, 5)
             .padding(.vertical, 2)
             .background(badgePink)
             .clipShape(Capsule())
-            .shadow(color: Color.black.opacity(0.15), radius: 2, y: 1)
+            .shadow(color: Color.black.opacity(0.2), radius: 2, y: 1)
     }
 }
 
