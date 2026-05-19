@@ -36,11 +36,11 @@
 		</dict>
 	</dict>
 	<key>NSLocationAlwaysAndWhenInUseUsageDescription - 2</key>
-	<string>Wir benötigen deinen Standort, um automatisch zu erkennen, wann du eine Party betrittst oder verlässt.</string>
+	<string>We need your location to automatically detect when you enter or leave a party.</string>
 	<key>NSLocationWhenInUseUsageDescription - 2</key>
-	<string>Wir benötigen deinen Standort, um dir Partys in deiner Nähe anzuzeigen.</string>
+	<string>We need your location to show you parties nearby.</string>
 	<key>NSUserNotificationsUsageDescription</key>
-	<string>Wir senden dir Benachrichtigungen über Updates zu deinen Partys.</string>
+	<string>We will send you notifications about updates to your parties.</string>
 	<key>UIBackgroundModes</key>
 	<array>
 		<string>location</string>

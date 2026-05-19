@@ -31,7 +31,7 @@ struct PartyHubiOSApp: App {
             
         } catch {
             print("SwiftData Error: \(error)")
-            fatalError("ModelContainer Fehler: \(error)")
+            fatalError("ModelContainer error: \(error)")
         }
     }
     

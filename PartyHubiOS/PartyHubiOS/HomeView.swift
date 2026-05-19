@@ -9,14 +9,14 @@ struct HomeView: View {
             List {
                 Section {
                     if let loc = location {
-                        LabeledContent("latitude") {
+                        LabeledContent("Latitude") {
                             Text(loc.coordinate.latitude, format: .number.precision(.fractionLength(6)))
                                 .font(.system(.body, design: .monospaced))
                                 .foregroundStyle(.secondary)
                         }
                         .frame(minHeight: 44)
 
-                        LabeledContent("longitude") {
+                        LabeledContent("Longitude") {
                             Text(loc.coordinate.longitude, format: .number.precision(.fractionLength(6)))
                                 .font(.system(.body, design: .monospaced))
                                 .foregroundStyle(.secondary)

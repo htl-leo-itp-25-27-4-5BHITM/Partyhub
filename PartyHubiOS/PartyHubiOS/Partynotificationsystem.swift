@@ -23,15 +23,15 @@ extension Notification.Name {
 // MARK: - Party Change Types
 
 enum PartyChangeType: String, Codable {
-    case nameChanged = "Name wurde geändert"
-    case descriptionChanged = "Beschreibung wurde aktualisiert"
-    case locationChanged = "Location wurde geändert"
-    case timeChanged = "Zeit wurde geändert"
-    case imageAdded = "Neues Foto wurde hinzugefügt"
-    case imageRemoved = "Foto wurde entfernt"
-    case attendeeAdded = "Jemand nimmt teil"
-    case attendeeRemoved = "Jemand hat abgesagt"
-    case detailsChanged = "Details wurden aktualisiert"
+    case nameChanged = "Name changed"
+    case descriptionChanged = "Description updated"
+    case locationChanged = "Location changed"
+    case timeChanged = "Time changed"
+    case imageAdded = "New photo added"
+    case imageRemoved = "Photo removed"
+    case attendeeAdded = "Someone joined"
+    case attendeeRemoved = "Someone cancelled"
+    case detailsChanged = "Details updated"
 }
 
 // MARK: - Server Models
@@ -108,9 +108,9 @@ class PartyNotificationManager: ObservableObject {
             do {
                 try await UNUserNotificationCenter.current()
                     .setBadgeCount(totalBadgeCount)
-                print("App Badge gesetzt: \(totalBadgeCount)")
+                print("App badge set: \(totalBadgeCount)")
             } catch {
-                print("Fehler beim Setzen des Badge-Counts: \(error)")
+                print("Error setting badge count: \(error)")
             }
         }
     }
@@ -150,12 +150,12 @@ class PartyNotificationManager: ObservableObject {
         ])
         
         if granted {
-            print("Push-Benachrichtigungen ERLAUBT - Notifications erscheinen außerhalb der App!")
+            print("Push notifications ALLOWED - notifications appear outside the app!")
             await MainActor.run {
                 UIApplication.shared.registerForRemoteNotifications()
             }
         } else {
-            print("Push-Benachrichtigungen ABGELEHNT")
+            print("Push notifications DENIED")
         }
     }
     
@@ -193,20 +193,20 @@ class PartyNotificationManager: ObservableObject {
             trigger: trigger
         )
         
-        do {
-            try await UNUserNotificationCenter.current().add(request)
-            incrementBadge(for: partyId)
-            print("System-Notification gesendet: \(partyName)")
-        } catch {
-            print("Fehler beim Senden der System-Benachrichtigung: \(error)")
-        }
+            do {
+                try await UNUserNotificationCenter.current().add(request)
+                incrementBadge(for: partyId)
+                print("System notification sent: \(partyName)")
+            } catch {
+                print("Error sending system notification: \(error)")
+            }
     }
     
     // MARK: - Remote Notification Handling
     
     func handleRemoteNotification(userInfo: [AnyHashable: Any]) {
         guard let partyId = userInfo["partyId"] as? Int else {
-            print("Keine PartyID in Remote Notification gefunden")
+            print("No partyId found in remote notification")
             return
         }
         
@@ -220,13 +220,13 @@ class PartyNotificationManager: ObservableObject {
             object: partyId
         )
         
-        print("Remote Notification verarbeitet für Party \(partyId)")
+        print("Processed remote notification for party \(partyId)")
     }
     
     func handleNotificationTap(userInfo: [AnyHashable: Any]) {
         guard let partyId = userInfo["partyId"] as? Int else { return }
         
-        print("User hat auf Notification getappt: Party \(partyId)")
+        print("User tapped notification: party \(partyId)")
         
         NotificationCenter.default.post(
             name: .showPartyDetail,
@@ -239,13 +239,13 @@ class PartyNotificationManager: ObservableObject {
     func setupNotificationCategories() {
         let openAction = UNNotificationAction(
             identifier: "OPEN_PARTY",
-            title: "Öffnen",
+            title: "Open",
             options: .foreground
         )
         
         let dismissAction = UNNotificationAction(
             identifier: "DISMISS",
-            title: "Verwerfen",
+            title: "Dismiss",
             options: .destructive
         )
         
@@ -257,7 +257,7 @@ class PartyNotificationManager: ObservableObject {
         )
         
         UNUserNotificationCenter.current().setNotificationCategories([category])
-        print("Notification-Kategorien registriert")
+        print("Notification categories registered")
     }
 }
 

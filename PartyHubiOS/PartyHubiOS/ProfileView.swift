@@ -38,9 +38,9 @@ struct ProfileView: View {
                 Button("Log Out", role: .destructive) {
                     signOut()
                 }
-                Button("Abbrechen", role: .cancel) {}
+                Button("Cancel", role: .cancel) {}
             } message: {
-                Text("‘Are you sure you want to unsubscribe?")
+                Text("Are you sure you want to log out?")
             }
             .alert("Upload Error", isPresented: $showUploadError) {
                 Button("OK", role: .cancel) {}
@@ -88,7 +88,7 @@ struct ProfileView: View {
             Button(action: { showCamera = true }) {
                 HStack(spacing: 8) {
                     Image(systemName: "qrcode.viewfinder")
-                    Text("scann QR-Code")
+                    Text("Scan QR code")
                 }
                 .fontWeight(.semibold)
                 .frame(width: 200, height: 45)
@@ -148,7 +148,7 @@ struct ProfileView: View {
                         .foregroundStyle(.gray)
                     Text(message)
                         .foregroundStyle(.secondary)
-                    Button("Try agian") {
+                    Button("Try again") {
                         loadState = .loading
                         Task { await loadUserProfile(userId: userId) }
                     }
@@ -414,7 +414,7 @@ struct CameraView: UIViewControllerRepresentable {
                   let components = URLComponents(url: url, resolvingAgainstBaseURL: false),
                   let userIdString = components.queryItems?.first(where: { $0.name == "userId" })?.value,
                   let userId = Int(userIdString) else {
-                print("Invalid QR-Code: \(code)")
+                print("Invalid QR code: \(code)")
                 return
             }
 
