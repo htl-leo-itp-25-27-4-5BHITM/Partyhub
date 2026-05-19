@@ -40,16 +40,16 @@ INSERT INTO users (id, username, display_name, distinct_name, email, phone_numbe
 -- PROFILE PICTURE
 -- =========================
 INSERT INTO profile_picture (id, picture_name, user_id) VALUES
-    (1, 'pp_1.jpg', 1),
-    (2, 'pp_2.jpg', 2),
-    (3, 'pp_3.jpg', 3),
-    (4, 'pp_4.png', 4),
-    (5, 'pp_5.jpg', 5),
-    (6, 'pp_6.jpg', 6),
-    (7, 'pp_7.png', 7),
-    (8, 'pp_8.jpg', 8),
-    (9, 'pp_9.jpg', 9),
-    (10, 'pp_10.jpg', 10);
+    (1, 'profile_1.jpg', 1),
+    (2, 'profile_2.jpg', 2),
+    (3, 'profile_3.jpg', 3),
+    (4, 'profile_4.png', 4),
+    (5, 'profile_5.jpg', 5),
+    (6, 'profile_6.jpg', 6),
+    (7, 'profile_7.png', 7),
+    (8, 'profile_8.jpg', 8),
+    (9, 'profile_9.jpg', 9),
+    (10, 'profile_10.jpg', 10);
 
 -- =========================
 -- USER LOCATION

@@ -5,7 +5,7 @@ import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.time.Instant;
+
 import java.util.List;
 
 import org.jboss.logging.Logger;
@@ -279,7 +279,7 @@ public class UserResource {
         Path uploadPath = Paths.get(uploadDir);
         Files.createDirectories(uploadPath);
         String fileExtension = getFileExtension(fileUpload.fileName());
-        String newFilename = "profile_" + id + "_" + Instant.now().toEpochMilli() + fileExtension;
+        String newFilename = "profile_" + id + fileExtension;
         Path targetLocation = uploadPath.resolve(newFilename);
         Files.move(fileUpload.uploadedFile(), targetLocation);
         
