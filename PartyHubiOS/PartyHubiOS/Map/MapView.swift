@@ -25,15 +25,19 @@ struct MapView: View {
 
     @State private var position: MapCameraPosition = .userLocation(fallback: .automatic)
     @State private var selectedFilter: MapFilter = .all
+    @State private var activePartyFilters: Set<PartyMapFilter> = [.all]
     @State private var invitedPartyIds: Set<Int> = []
     @State private var followingUserIds: Set<Int64> = []
     @State private var showFilterDialog = false
+    @State private var showPartyFilterSheet = false
     @State private var currentRegion: MKCoordinateRegion = MKCoordinateRegion(
         center: CLLocationCoordinate2D(latitude: 48.2082, longitude: 16.3738),
         span: MKCoordinateSpan(latitudeDelta: 0.1, longitudeDelta: 0.1)
     )
     @State private var mapViewSize: CGSize = .zero
     @State private var partyClusters: [Cluster<Party>] = []
+    @State private var userAge: Int? = nil
+    @State private var userLocation: CLLocationCoordinate2D? = nil
 
     @Query var parties: [Party]
     private let highlightedPartyId: Int?
@@ -50,11 +54,11 @@ struct MapView: View {
     }
     
     private var isFilterActive: Bool {
-        selectedFilter != .all
+        selectedFilter != .all || !activePartyFilters.contains(.all)
     }
 
     private var filteredParties: [Party] {
-        parties.filter { party in
+        var result = parties.filter { party in
             switch selectedFilter {
             case .all:
                 return true
@@ -65,6 +69,32 @@ struct MapView: View {
                 return followingUserIds.contains(hostId)
             }
         }
+        
+        // Apply party discovery filters
+        if !activePartyFilters.contains(.all) {
+            if activePartyFilters.contains(.freeOnly) {
+                result = result.filter { $0.fee == nil || $0.fee == 0 }
+            }
+            if activePartyFilters.contains(.paidOnly) {
+                result = result.filter { $0.fee != nil && $0.fee! > 0 }
+            }
+            if activePartyFilters.contains(.myAge), let age = userAge {
+                result = result.filter { party in
+                    let minMatch = party.minAge == nil || party.minAge! <= age
+                    let maxMatch = party.maxAge == nil || party.maxAge! >= age
+                    return minMatch && maxMatch
+                }
+            }
+            if activePartyFilters.contains(.nearMe), let location = userLocation {
+                result = result.filter { party in
+                    let distance = CLLocation(latitude: location.latitude, longitude: location.longitude)
+                        .distance(from: CLLocation(latitude: party.latitude, longitude: party.longitude))
+                    return distance <= 5000 // 5km in meters
+                }
+            }
+        }
+        
+        return result
     }
 
     init(locationManager: LocationManager, highlightedPartyId: Int? = nil) {
@@ -88,6 +118,7 @@ struct MapView: View {
                     locationManager.requestPermission()
                     focusMap(on: displayedParty)
                     loadFilterData()
+                    loadUserProfile()
                 }
                 .onChange(of: geo.size) { _, newSize in
                     mapViewSize = newSize
@@ -110,6 +141,12 @@ struct MapView: View {
                 .onChange(of: invitedPartyIds) { _, _ in
                     triggerRecomputeClusters()
                 }
+                .onChange(of: activePartyFilters) { _, _ in
+                    triggerRecomputeClusters()
+                }
+                .onChange(of: userLocation) { _, _ in
+                    triggerRecomputeClusters()
+                }
                 .navigationTitle(displayedParty?.name ?? "Map")
                 .navigationBarTitleDisplayMode(.inline)
                 .toolbar { filterToolbarButton }
@@ -117,6 +154,9 @@ struct MapView: View {
                     filterDialogButtons
                 } message: {
                     Text("Show only parties from one category")
+                }
+                .sheet(isPresented: $showPartyFilterSheet) {
+                    partyFilterSheet
                 }
         }
     }
@@ -167,14 +207,88 @@ struct MapView: View {
     
     private var filterToolbarButton: some ToolbarContent {
         ToolbarItem(placement: .navigationBarTrailing) {
-            Button {
-                showFilterDialog = true
-            } label: {
-                Image(systemName: isFilterActive ? "line.3.horizontal.decrease.circle.fill" : "line.3.horizontal.decrease.circle")
-                    .font(.title2)
-                    .foregroundStyle(isFilterActive ? Color("primary pink") : .primary)
+            HStack(spacing: 12) {
+                Button {
+                    showPartyFilterSheet = true
+                } label: {
+                    Image(systemName: !activePartyFilters.contains(.all) ? "star.fill" : "star")
+                        .font(.title2)
+                        .foregroundStyle(!activePartyFilters.contains(.all) ? Color("primary pink") : .primary)
+                }
+                
+                Button {
+                    showFilterDialog = true
+                } label: {
+                    Image(systemName: isFilterActive && selectedFilter != .all ? "line.3.horizontal.decrease.circle.fill" : "line.3.horizontal.decrease.circle")
+                        .font(.title2)
+                        .foregroundStyle(isFilterActive && selectedFilter != .all ? Color("primary pink") : .primary)
+                }
             }
         }
+    }
+    
+    private var partyFilterSheet: some View {
+        NavigationStack {
+            List {
+                Section("Party Discovery Filters") {
+                    ForEach(PartyMapFilter.allCases, id: \.self) { filter in
+                        Button {
+                            withAnimation {
+                                if filter == .all {
+                                    activePartyFilters = [.all]
+                                } else if activePartyFilters.contains(.all) {
+                                    activePartyFilters = [filter]
+                                } else if activePartyFilters.contains(filter) {
+                                    activePartyFilters.remove(filter)
+                                    if activePartyFilters.isEmpty {
+                                        activePartyFilters = [.all]
+                                    }
+                                } else {
+                                    activePartyFilters.insert(filter)
+                                }
+                            }
+                        } label: {
+                            HStack(spacing: 12) {
+                                Image(systemName: filter.systemImage)
+                                    .frame(width: 28)
+                                    .foregroundStyle(
+                                        activePartyFilters.contains(filter)
+                                            ? Color("primary pink")
+                                            : .primary
+                                    )
+                                
+                                VStack(alignment: .leading, spacing: 2) {
+                                    Text(filter.rawValue)
+                                        .foregroundStyle(.primary)
+                                    Text(filter.description)
+                                        .font(.caption)
+                                        .foregroundStyle(.secondary)
+                                }
+                                
+                                Spacer()
+                                
+                                if activePartyFilters.contains(filter) {
+                                    Image(systemName: "checkmark")
+                                        .foregroundStyle(Color("primary pink"))
+                                        .fontWeight(.semibold)
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            .navigationTitle("Discovery Filters")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .cancellationAction) {
+                    Button("Done") {
+                        showPartyFilterSheet = false
+                    }
+                }
+            }
+        }
+        .presentationDetents([.medium])
+        .presentationDragIndicator(.visible)
     }
     
     private var filterDialogButtons: some View {
@@ -234,6 +348,19 @@ private extension MapView {
             await withTaskGroup(of: Void.self) { group in
                 group.addTask { await fetchInvitations(userId: userId) }
                 group.addTask { await fetchFollowing(userId: userId) }
+            }
+        }
+    }
+    
+    func loadUserProfile() {
+        guard let userId = currentUserId else { return }
+        
+        Task {
+            // Get user location for distance filtering
+            if let location = locationManager.currentLocation {
+                await MainActor.run {
+                    userLocation = location
+                }
             }
         }
     }
