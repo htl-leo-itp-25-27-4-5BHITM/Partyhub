@@ -1,34 +1,40 @@
 import SwiftUI
 
+// MARK: - Attendee Pin
 struct AttendeePin: View {
     let isAtParty: Bool
     let isSelf: Bool
     let userId: Int?
 
-    private var color: Color { isAtParty ? .green : .gray }
+    private var pinColor: Color { isAtParty ? .green : .secondary }
 
     var body: some View {
         ZStack {
+            // Äußerer Glow / Ring im Apple-Stil
             Circle()
-                .fill(color.opacity(0.25))
-                .frame(width: 56, height: 56)
+                .fill(pinColor.opacity(0.15))
+                .frame(width: 54, height: 54)
+            
+            // Haupt-Pin
             Circle()
-                .fill(color)
-                .frame(width: 46, height: 46)
-                .shadow(color: color.opacity(0.5), radius: 8)
+                .fill(pinColor)
+                .frame(width: 44, height: 44)
+                .shadow(color: Color.black.opacity(0.15), radius: 4, y: 2)
 
+            // Inhalt
             if let userId = userId {
-                UserProfileImageView(userId: userId, size: 40, showBorder: false)
+                UserProfileImageView(userId: userId, size: 38, showBorder: false)
+                    .clipShape(Circle())
             } else {
                 Image(systemName: isSelf ? "person.circle.fill" : "person.fill")
-                    .resizable()
+                    .font(.system(size: isSelf ? 24 : 18))
                     .foregroundStyle(.white)
-                    .frame(width: isSelf ? 36 : 26, height: isSelf ? 36 : 26)
             }
         }
     }
 }
 
+// MARK: - Party Pin
 struct PartyPin: View {
     let isActive: Bool
     let isHostedByFriend: Bool
@@ -42,12 +48,8 @@ struct PartyPin: View {
         return parts.isEmpty ? "Party" : "Party, " + parts.joined(separator: ", ")
     }
 
-    /// Nur für die aktuelle Party: klassisches farbiges Pin-Design (unverändert zur früheren Logik).
     private var activePartyFillColor: Color {
-        if isHostedByFriend {
-            return Color("primary pink")
-        }
-        return .green
+        isHostedByFriend ? Color("primary pink") : .green
     }
 
     private var invitedRingColor: Color {
@@ -69,44 +71,40 @@ struct PartyPin: View {
         ZStack {
             if isInvited {
                 Circle()
-                    .fill(invitedRingColor.opacity(0.15))
-                    .frame(width: 56, height: 56)
-                    .overlay(
-                        Circle()
-                            .stroke(invitedRingColor, lineWidth: 3)
-                            .frame(width: 54, height: 54)
-                    )
+                    .stroke(invitedRingColor, lineWidth: 3)
+                    .background(Circle().fill(invitedRingColor.opacity(0.12)))
+                    .frame(width: 54, height: 54)
             } else {
                 Circle()
-                    .fill(activePartyFillColor.opacity(0.2))
-                    .frame(width: 52, height: 52)
+                    .fill(activePartyFillColor.opacity(0.15))
+                    .frame(width: 50, height: 50)
             }
 
             Circle()
                 .fill(activePartyFillColor)
-                .frame(width: 42, height: 42)
-                .shadow(color: activePartyFillColor.opacity(0.5), radius: 8)
+                .frame(width: 40, height: 40)
+                .shadow(color: Color.black.opacity(0.15), radius: 4, y: 2)
 
             Image(systemName: "party.popper.fill")
-                .resizable()
+                .font(.system(size: 18, weight: .medium))
                 .foregroundStyle(.white)
-                .frame(width: 22, height: 22)
         }
     }
 
     private var neutralPartyPin: some View {
         ZStack {
+            // Apple nutzt für inaktive/neutrale Orte oft System-Grautöne mit feinem Kontrast
             Circle()
-                .fill(Color(uiColor: .systemGray5))
-                .frame(width: 64, height: 64)
+                .fill(Color(.systemGray6))
+                .frame(width: 48, height: 48)
+                .shadow(color: Color.black.opacity(0.1), radius: 3, y: 1)
 
             Circle()
-                .fill(Color(uiColor: .systemGray))
-                .frame(width: 50, height: 50)
-                .shadow(color: Color.black.opacity(0.22), radius: 6, y: 2)
+                .fill(Color(.systemGray2))
+                .frame(width: 38, height: 38)
 
             Image(systemName: "party.popper.fill")
-                .font(.system(size: 20, weight: .semibold))
+                .font(.system(size: 16, weight: .medium))
                 .foregroundStyle(.white)
         }
     }
@@ -120,8 +118,7 @@ extension PartyPin {
     }
 }
 
-// MARK: - Attendee Cluster Pin (Teilnehmer-Karte)
-
+// MARK: - Attendee Cluster Pin
 struct AttendeeClusterPin: View {
     let count: Int
 
@@ -131,37 +128,33 @@ struct AttendeeClusterPin: View {
 
     var body: some View {
         ZStack {
+            // Basis-Kreis (Analog zu Apples System-Cluster-Visualisierung)
             Circle()
-                .fill(Color(uiColor: .systemGray5))
-                .frame(width: 64, height: 64)
+                .fill(Color(.systemGray6))
+                .frame(width: 48, height: 48)
+                .shadow(color: Color.black.opacity(0.12), radius: 4, y: 2)
 
             Circle()
-                .fill(Color(uiColor: .systemGray))
-                .frame(width: 50, height: 50)
-                .shadow(color: Color.black.opacity(0.22), radius: 6, y: 2)
+                .fill(Color(.systemGray))
+                .frame(width: 38, height: 38)
 
             Image(systemName: "person.2.fill")
-                .font(.system(size: 20, weight: .semibold))
+                .font(.system(size: 16, weight: .semibold))
                 .foregroundStyle(.white)
-
-            VStack {
-                HStack {
-                    Spacer()
-
-                    Text("\(count)")
-                        .font(.system(size: 11, weight: .bold))
-                        .foregroundStyle(.white)
-                        .frame(minWidth: 22)
-                        .padding(.horizontal, 6)
-                        .padding(.vertical, 3)
-                        .background(badgePink)
-                        .clipShape(Capsule())
-                        .offset(x: 8, y: -8)
-                }
-
-                Spacer()
-            }
-            .frame(width: 50, height: 50)
+        }
+        // Native Apple-Methode für Badges: .overlay mit Alignment
+        .overlay(alignment: .topTrailing) {
+            Text("\(count)")
+                .font(.footnote) // Dynamic Type konform
+                .bold()
+                .foregroundStyle(.white)
+                .padding(.horizontal, 6)
+                .padding(.vertical, 2)
+                .background(badgePink)
+                .clipShape(Capsule())
+                .shadow(color: Color.black.opacity(0.15), radius: 2, y: 1)
+                // Schiebt das Badge elegant leicht nach rechts oben über den Rand
+                .offset(x: 8, y: -6)
         }
         .accessibilityLabel("\(count) Participants")
     }
