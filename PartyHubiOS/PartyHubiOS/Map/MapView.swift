@@ -132,7 +132,7 @@ struct MapView: View {
         Group {
             if let coord = locationManager.currentLocation {
                 Annotation("You", coordinate: coord) {
-                    AttendeePin(isAtParty: locationManager.isAtParty, isSelf: true, userId: currentUserId)
+                    MapBadge(type: .attendee(isAtParty: locationManager.isAtParty, isSelf: true, userId: currentUserId))
                 }
             }
         }
@@ -153,14 +153,14 @@ struct MapView: View {
         let isInvited = invitedPartyIds.contains(party.backendId)
         
         return Annotation(party.name, coordinate: coordinate) {
-            PartyPin(isActive: party.isActive, isHostedByFriend: isHostedByFriend, isInvited: isInvited)
+            MapBadge(type: .party(isActive: party.isActive, isHostedByFriend: isHostedByFriend, isInvited: isInvited))
                 .onTapGesture { focusMap(on: party) }
         }
     }
     
     private func partyClusterAnnotation(for cluster: Cluster<Party>) -> some MapContent {
         Annotation("\(cluster.items.count) Partys", coordinate: cluster.coordinate) {
-            PartyClusterPin(parties: cluster.items, followingUserIds: followingUserIds, invitedPartyIds: invitedPartyIds)
+            MapClusterBadge(type: .parties(count: cluster.items.count))
                 .onTapGesture { zoomToFit(cluster: cluster) }
         }
     }

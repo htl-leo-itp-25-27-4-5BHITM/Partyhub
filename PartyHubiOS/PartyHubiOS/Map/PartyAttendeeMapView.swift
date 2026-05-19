@@ -377,7 +377,7 @@ struct PartyAttendeeMapView: View {
                     coordinate: party.coordinate
                 ) {
 
-                    PartyPin(isActive: party.isActive)
+                    MapBadge(type: .party(isActive: party.isActive, isHostedByFriend: false, isInvited: false))
                 }
 
                 ForEach(attendeeClusters, id: \.id) { cluster in
@@ -390,13 +390,7 @@ struct PartyAttendeeMapView: View {
                             coordinate: cluster.coordinate
                         ) {
 
-                            AttendeePin(
-                                isAtParty: item.isAtParty,
-                                isSelf: item.isSelf,
-                                userId: item.userId != nil
-                                    ? Int(item.userId!)
-                                    : nil
-                            )
+                            MapBadge(type: .attendee(isAtParty: item.isAtParty, isSelf: item.isSelf, userId: item.userId != nil ? Int(item.userId!) : nil))
                         }
 
                     } else {
@@ -406,9 +400,7 @@ struct PartyAttendeeMapView: View {
                             coordinate: cluster.coordinate
                         ) {
 
-                            AttendeeClusterPin(
-                                count: cluster.items.count
-                            )
+                            MapClusterBadge(type: .attendees(count: cluster.items.count))
                             .onTapGesture {
                                 zoomToFit(cluster: cluster)
                             }
