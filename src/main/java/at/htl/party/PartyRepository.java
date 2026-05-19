@@ -765,4 +765,92 @@ public class PartyRepository {
         }
         return "Someone";
     }
+
+    public List<Party> findWithFilters(FilterParams filters, Long userId) {
+        LocalDateTime now = LocalDateTime.now();
+        LocalDateTime twoWeeksLater = now.plusDays(14);
+
+        StringBuilder jpql = new StringBuilder(
+            "SELECT DISTINCT p FROM Party p " +
+            "LEFT JOIN p.invitations i " +
+            "LEFT JOIN p.users pu " +
+            "WHERE (p.visibility = 'PUBLIC' " +
+            "   OR p.host_user.id = :userId " +
+            "   OR i.recipient.id = :userId " +
+            "   OR pu.id = :userId) " +
+            "AND p.time_start BETWEEN :now AND :twoWeeksLater"
+        );
+
+        if (filters.hasTextSearch()) {
+            String searchTerm = "%" + filters.query().trim().toLowerCase() + "%";
+            jpql.append(" AND (LOWER(p.title) LIKE :query ")
+                .append("    OR LOWER(p.description) LIKE :query ")
+                .append("    OR LOWER(p.theme) LIKE :query)");
+        }
+
+        if (filters.hasThemeFilter()) {
+            String themeTerm = "%" + filters.theme().trim().toLowerCase() + "%";
+            jpql.append(" AND LOWER(p.theme) LIKE :theme");
+        }
+
+        if (filters.hasAgeFilter()) {
+            jpql.append(" AND (p.min_age IS NULL OR p.min_age <= :userAge) ")
+                .append("AND (p.max_age IS NULL OR p.max_age >= :userAge)");
+        }
+
+        if (filters.hasFeeFilter()) {
+            jpql.append(" AND (p.fee = 0 OR p.fee IS NULL)");
+        }
+
+        jpql.append(" ORDER BY p.time_start DESC");
+
+        var query = entityManager.createQuery(jpql.toString(), Party.class);
+        query.setParameter("userId", userId != null ? userId : -1L);
+        query.setParameter("now", now);
+        query.setParameter("twoWeeksLater", twoWeeksLater);
+
+        if (filters.hasTextSearch()) {
+            query.setParameter("query", "%" + filters.query().trim().toLowerCase() + "%");
+        }
+
+        if (filters.hasThemeFilter()) {
+            query.setParameter("theme", "%" + filters.theme().trim().toLowerCase() + "%");
+        }
+
+        if (filters.hasAgeFilter()) {
+            query.setParameter("userAge", filters.userAge());
+        }
+
+        List<Party> results = query.getResultList();
+
+        if (filters.hasLocationFilter()) {
+            results = filterByDistance(results, filters.userLatitude(), filters.userLongitude(), filters.distanceKm());
+        }
+
+        int limit = filters.limit() != null ? filters.limit() : 50;
+        int offset = filters.offset() != null ? filters.offset() : 0;
+
+        int start = Math.min(offset, results.size());
+        int end = Math.min(start + limit, results.size());
+
+        return results.subList(start, end);
+    }
+
+    private List<Party> filterByDistance(List<Party> parties, double userLat, double userLon, int radiusKm) {
+        return parties.stream()
+            .filter(p -> p.getLocation() != null && 
+                   calculateDistance(userLat, userLon, p.getLocation().getLatitude(), p.getLocation().getLongitude()) <= radiusKm)
+            .toList();
+    }
+
+    private double calculateDistance(double lat1, double lon1, double lat2, double lon2) {
+        final int EARTH_RADIUS_KM = 6371;
+        double dLat = Math.toRadians(lat2 - lat1);
+        double dLon = Math.toRadians(lon2 - lon1);
+        double a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+                   Math.cos(Math.toRadians(lat1)) * Math.cos(Math.toRadians(lat2)) *
+                   Math.sin(dLon / 2) * Math.sin(dLon / 2);
+        double c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+        return EARTH_RADIUS_KM * c;
+    }
 }

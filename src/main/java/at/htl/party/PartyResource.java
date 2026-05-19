@@ -51,14 +51,37 @@ public class PartyResource {
             @QueryParam("date_to") String dateTo,
             @QueryParam("sort") String sort,
             @QueryParam("user") Long userId,
+            @QueryParam("user_age") Integer userAge,
+            @QueryParam("free_only") Boolean freeOnly,
+            @QueryParam("user_latitude") Double userLatitude,
+            @QueryParam("user_longitude") Double userLongitude,
+            @QueryParam("distance") Integer distanceKm,
+            @QueryParam("limit") Integer limit,
+            @QueryParam("offset") Integer offset,
             @HeaderParam("X-User-Id") Long headerUserId) {
         
-        boolean hasFilters = (q != null && !q.isBlank()) ||
-                           (theme != null && !theme.isBlank()) ||
-                           (dateFrom != null && !dateFrom.isBlank()) ||
-                           (dateTo != null && !dateTo.isBlank());
+        Long actualUserId = userId != null ? userId : headerUserId;
+
+        boolean hasNewFilters = (userAge != null) ||
+                               (freeOnly != null && freeOnly) ||
+                               (userLatitude != null && userLongitude != null);
+
+        if (hasNewFilters) {
+            try {
+                FilterParams filters = new FilterParams(q, theme, userAge, freeOnly, userLatitude, userLongitude, distanceKm, limit, offset);
+                List<Party> result = partyRepository.findWithFilters(filters, actualUserId);
+                return Response.ok(result).build();
+            } catch (IllegalArgumentException e) {
+                return Response.status(400).entity("{\"error\": \"" + e.getMessage() + "\"}").build();
+            }
+        }
+
+        boolean hasLegacyFilters = (q != null && !q.isBlank()) ||
+                                  (theme != null && !theme.isBlank()) ||
+                                  (dateFrom != null && !dateFrom.isBlank()) ||
+                                  (dateTo != null && !dateTo.isBlank());
         
-        if (hasFilters) {
+        if (hasLegacyFilters) {
             List<Party> result = null;
             if (q != null && !q.isBlank()) {
                 result = partyRepository.findByTitleOrDescription(q);
@@ -78,7 +101,6 @@ public class PartyResource {
             return partyRepository.sortParty(sort);
         }
         
-        Long actualUserId = userId != null ? userId : headerUserId;
         return Response.ok().entity(partyRepository.getPartiesByUser(actualUserId)).build();
     }
 

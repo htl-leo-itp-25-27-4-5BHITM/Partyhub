@@ -18,12 +18,12 @@ paths:
           in: query
           schema:
             type: string
-          description: Search query (searches title and description)
+          description: Text search in title, description, and theme
         - name: theme
           in: query
           schema:
             type: string
-          description: Filter by theme
+          description: Filter by party theme (Jazz, Techno, House, etc.)
         - name: date_from
           in: query
           schema:
@@ -39,6 +39,50 @@ paths:
           schema:
             type: string
           description: Sort field (asc or desc)
+        - name: user_age
+          in: query
+          schema:
+            type: integer
+            minimum: 0
+            maximum: 150
+          description: Filter by user age - parties will match min_age and max_age constraints
+        - name: free_only
+          in: query
+          schema:
+            type: boolean
+          description: Filter to show only free parties (fee = 0)
+        - name: user_latitude
+          in: query
+          schema:
+            type: number
+            format: double
+          description: User's latitude for distance-based filtering (required with user_longitude and distance)
+        - name: user_longitude
+          in: query
+          schema:
+            type: number
+            format: double
+          description: User's longitude for distance-based filtering (required with user_latitude and distance)
+        - name: distance
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+          description: Search radius in kilometers for distance-based filtering
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            default: 50
+          description: Maximum number of results to return
+        - name: offset
+          in: query
+          schema:
+            type: integer
+            minimum: 0
+            default: 0
+          description: Number of results to skip (for pagination)
         - name: X-User-Id
           in: header
           schema:
@@ -47,13 +91,31 @@ paths:
           description: User ID for authentication
       responses:
         '200':
-          description: List of parties
+          description: List of parties matching the filters
           content:
             application/json:
               schema:
                 type: array
                 items:
                   $ref: '#/components/schemas/Party'
+        '400':
+          description: Invalid filter parameters
+      examples:
+        - summary: Filter by age (within 2 weeks automatic)
+          value:
+            GET /api/parties?user_age=25
+        - summary: Free parties only
+          value:
+            GET /api/parties?free_only=true
+        - summary: Techno parties within 2 weeks
+          value:
+            GET /api/parties?theme=Techno
+        - summary: Combined filters - age 20, free, House theme, within 5km
+          value:
+            GET /api/parties?user_age=20&free_only=true&theme=House&user_latitude=48.3065&user_longitude=14.2850&distance=5
+        - summary: Text search for Jazz parties
+          value:
+            GET /api/parties?q=Jazz
     post:
       summary: Create a new party
       parameters:

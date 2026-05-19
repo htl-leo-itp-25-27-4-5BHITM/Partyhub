@@ -83,3 +83,133 @@ GET {{baseUrl}}?sort=asc
 X-User-Id: {{anna}}
 
 ?? status == 200
+
+
+###########################################
+### Filter: Within 2 weeks from now
+###########################################
+GET {{baseUrl}}?user_age=25
+X-User-Id: {{anna}}
+
+?? status == 200
+
+
+###########################################
+### Filter: Free parties within 2 weeks
+###########################################
+GET {{baseUrl}}?free_only=true
+X-User-Id: {{anna}}
+
+?? status == 200
+
+
+###########################################
+### Filter: Techno theme
+###########################################
+GET {{baseUrl}}?theme=Techno
+X-User-Id: {{anna}}
+
+?? status == 200
+
+
+###########################################
+### Filter: Age 25, Free parties, Techno theme
+###########################################
+GET {{baseUrl}}?user_age=25&free_only=true&theme=Techno
+X-User-Id: {{anna}}
+
+?? status == 200
+
+
+###########################################
+### Filter: Age restricted 30+ parties
+###########################################
+GET {{baseUrl}}?user_age=35
+X-User-Id: {{anna}}
+
+?? status == 200
+
+
+###########################################
+### Filter: Teen parties (13-19 age range)
+###########################################
+GET {{baseUrl}}?user_age=16
+X-User-Id: {{anna}}
+
+?? status == 200
+
+
+###########################################
+### Filter: Text search for "Jazz"
+###########################################
+GET {{baseUrl}}?q=Jazz
+X-User-Id: {{anna}}
+
+?? status == 200
+
+
+###########################################
+### Filter: Text search for "Electronic"
+###########################################
+GET {{baseUrl}}?q=Electronic
+X-User-Id: {{anna}}
+
+?? status == 200
+
+
+###########################################
+### Filter: Text search + free parties
+###########################################
+GET {{baseUrl}}?q=Festival&free_only=true
+X-User-Id: {{anna}}
+
+?? status == 200
+
+
+###########################################
+### Filter: Distance based (5km from user location)
+### User 1 location: 14.251920, 48.268335 (Leonding)
+###########################################
+GET {{baseUrl}}?user_latitude=14.251920&user_longitude=48.268335&distance=5
+X-User-Id: {{anna}}
+
+?? status == 200
+
+
+###########################################
+### Filter: Distance 10km from main square
+### Hauptplatz: 14.2850, 48.3065
+###########################################
+GET {{baseUrl}}?user_latitude=14.2850&user_longitude=48.3065&distance=10
+X-User-Id: {{anna}}
+
+?? status == 200
+
+
+###########################################
+### Filter: All 6 filters combined
+### Age 20, free, House theme, within 5km from Hauptplatz
+###########################################
+GET {{baseUrl}}?user_age=20&free_only=true&theme=House&user_latitude=14.2850&user_longitude=48.3065&distance=5
+X-User-Id: {{anna}}
+
+?? status == 200
+
+
+###########################################
+### Filter: Invalid - missing longitude
+###########################################
+GET {{baseUrl}}?user_latitude=14.2850
+X-User-Id: {{anna}}
+
+?? status == 400
+
+
+###########################################
+### Filter: Invalid - negative distance
+###########################################
+GET {{baseUrl}}?user_latitude=14.2850&user_longitude=48.3065&distance=-5
+X-User-Id: {{anna}}
+
+?? status == 400
+

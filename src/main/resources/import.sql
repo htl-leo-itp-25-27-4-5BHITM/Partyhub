@@ -118,7 +118,21 @@ INSERT INTO party (
     (9, 9, 10, 'Private Dinner Party in Steyregg', 'Dinner', '2026-05-19 18:30:00', '2026-05-09 23:30:00', 20, 20, 45, NULL, 'Invitation only, good food and living room dance floor afterwards.', 0.00, '2026-04-28 10:10:00', 'PRIVATE'),
     (10, 10, 13, 'JKU Semester Kickoff', 'Campus', '2026-05-16 19:00:00', '2026-05-11 01:00:00', 200, 18, 32, 'https://partyhub.local/jku-kickoff', 'Semester start with DJ, photo booth and lots of new faces.', 4.00, '2026-04-28 11:00:00', 'PUBLIC'),
     (11, 1, 16, 'Graduation Gala', 'School Party', '2026-06-18 18:00:00', '2026-06-14 23:30:00', 120, 16, 28, 'https://www.htl-leonding.at', 'From classroom to red carpet. We celebrate our graduation with style, glamour and glory. Dress to impress!', 7.50, '2026-04-28 19:59:00', 'PUBLIC'),
-    (12, 2, 17, 'Carla''s 18th Birthday', 'Birthday Party','2026-06-14 18:00:00', '2026-06-14 23:30:00', 18, 17,20,'https://partyhub.local/carlaparty','Carla''s Birthday Party', 0.00,'2026-04-25 16:00:00', 'PUBLIC');
+    (12, 2, 17, 'Carla''s 18th Birthday', 'Birthday Party','2026-06-14 18:00:00', '2026-06-14 23:30:00', 18, 17,20,'https://partyhub.local/carlaparty','Carla''s Birthday Party', 0.00,'2026-04-25 16:00:00', 'PUBLIC'),
+    -- Filter test data: Within 2 weeks (from 2026-05-19)
+    (13, 1, 2, 'Jazz Night Next Week', 'Jazz', '2026-05-25 20:00:00', '2026-05-25 23:00:00', 100, NULL, NULL, 'https://partyhub.local/jazz', 'Smooth jazz evening with local artists.', 0.00, '2026-04-28 10:00:00', 'PUBLIC'),
+    (14, 3, 3, 'Spring Party May Weekend', 'Festival', '2026-05-24 15:00:00', '2026-05-24 23:00:00', 300, 16, 40, 'https://partyhub.local/spring', 'All-day festival at the Danube with music, food and fun.', 0.00, '2026-04-27 10:00:00', 'PUBLIC'),
+    -- Filter test data: Free parties
+    (15, 5, 4, 'Free House Music Session', 'House', '2026-05-22 22:00:00', '2026-05-23 04:00:00', 200, 18, 50, 'https://partyhub.local/free-house', 'Free entry, fun beats and great people.', 0.00, '2026-04-27 10:00:00', 'PUBLIC'),
+    -- Filter test data: Age restricted parties
+    (16, 6, 5, 'Over 30s Cocktail Lounge', 'Cocktails', '2026-05-28 20:00:00', '2026-05-29 01:00:00', 80, 30, NULL, 'https://partyhub.local/over30', 'Sophisticated cocktails for the mature crowd.', 15.00, '2026-04-28 10:00:00', 'PUBLIC'),
+    (17, 7, 7, 'Teen Movie Night', 'Movie', '2026-05-21 19:00:00', '2026-05-21 21:30:00', 50, 13, 19, 'https://partyhub.local/teen', 'Movie screening for teenagers with snacks.', 0.00, '2026-04-28 10:00:00', 'PUBLIC'),
+    -- Filter test data: Distance filtering (various locations)
+    (18, 8, 1, 'Hauptplatz Techno Rave', 'Techno', '2026-05-23 23:00:00', '2026-05-24 05:00:00', 250, 18, 40, 'https://partyhub.local/rave', 'Electric beats at the main square.', 12.00, '2026-04-28 10:00:00', 'PUBLIC'),
+    (19, 9, 8, 'PlusCity Spring Shopping Party', 'Shopping', '2026-05-26 14:00:00', '2026-05-26 20:00:00', 150, 16, 45, 'https://partyhub.local/pluscity', 'Shop, eat, party at the mall.', 0.00, '2026-04-28 10:00:00', 'PUBLIC'),
+    -- Filter test data: Text search matches
+    (20, 10, 9, 'Electronic Music Festival Weekend', 'Electronic', '2026-05-31 16:00:00', '2026-06-01 04:00:00', 400, 16, 60, 'https://partyhub.local/festival', 'Two-day electronic music festival with world-class DJs. Search for electronic or festival!', 25.00, '2026-04-28 10:00:00', 'PUBLIC'),
+    (21, 2, 11, 'Wellness & Yoga Party', 'Wellness', '2026-05-20 09:00:00', '2026-05-20 13:00:00', 60, 18, NULL, 'https://partyhub.local/yoga', 'Morning yoga session followed by healthy breakfast and smoothies. Search for wellness or yoga!', 8.00, '2026-04-28 10:00:00', 'PUBLIC');
 
 -- =========================
 -- PARTY ATTENDEES
@@ -135,7 +149,17 @@ INSERT INTO party_user (party_id, user_id) VALUES
     (9, 5), (9, 7),
     (10, 1), (10, 2), (10, 4), (10, 6),
     (11, 2), (11, 3), (11, 4), (11, 5), (11, 6),
-    (12, 1), (12, 3);
+    (12, 1), (12, 3),
+    -- Test data attendees
+    (13, 1), (13, 4),
+    (14, 2), (14, 5), (14, 8),
+    (15, 3), (15, 6),
+    (16, 7), (16, 9),
+    (17, 1), (17, 10),
+    (18, 2), (18, 4), (18, 8),
+    (19, 3), (19, 5), (19, 7),
+    (20, 1), (20, 6), (20, 9),
+    (21, 2), (21, 10);
 
 -- =========================
 -- MEDIA
