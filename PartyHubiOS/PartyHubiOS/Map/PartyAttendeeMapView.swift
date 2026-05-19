@@ -97,7 +97,7 @@ struct PartyAttendeeMapView: View {
             .sorted { $0.rawValue < $1.rawValue }
             .map { $0.rawValue.lowercased() }
         let text = filterNames.joined(separator: ", ")
-        return "\(text)       \(count)"
+        return "\(text)       (\(count))"
     }
 
     // MARK: - Load Data
