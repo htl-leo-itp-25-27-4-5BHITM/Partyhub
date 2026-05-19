@@ -39,6 +39,8 @@
 	<string>We need your location to automatically detect when you enter or leave a party.</string>
 	<key>NSLocationWhenInUseUsageDescription - 2</key>
 	<string>We need your location to show you parties nearby.</string>
+	<key>NSCalendarsFullAccessUsageDescription</key>
+	<string>PartyHub needs calendar access to let you add parties to your calendar.</string>
 	<key>NSUserNotificationsUsageDescription</key>
 	<string>We will send you notifications about updates to your parties.</string>
 	<key>UIBackgroundModes</key>

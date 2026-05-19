@@ -3,6 +3,7 @@ import SwiftData
 import PhotosUI
 import Combine
 import CoreLocation
+import EventKit
 
 struct PartyDetailView: View {
     @Bindable var party: Party
@@ -28,6 +29,14 @@ struct PartyDetailView: View {
     // MARK: - Notification System
     @StateObject private var notificationManager = PartyNotificationManager.shared
     @State private var hasCheckedUpdates = false
+    
+    @State private var calendarService = CalendarService()
+    @State private var calendarState: CalendarButtonState = .idle
+    @State private var showCalendarRemoveSheet = false
+    
+    enum CalendarButtonState {
+        case idle, loading, success, alreadyAdded
+    }
     
     private var shareURL: URL? {
         URL(string: "https://maps.apple.com/?ll=\(party.latitude),\(party.longitude)&q=\(party.name.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? "")")
@@ -159,6 +168,15 @@ struct PartyDetailView: View {
             .navigationTitle(party.name)
             .navigationBarTitleDisplayMode(.large)
             .toolbar {
+                ToolbarItem(placement: .navigationBarTrailing) {
+                    Button {
+                        Task { await handleCalendarTap() }
+                    } label: {
+                        calendarButtonLabel
+                    }
+                    .disabled(calendarState == .loading)
+                }
+                
                 // MARK: - Edit Button (NEU - nur für Owner)
                 if isOwner {
                     ToolbarItem(placement: .navigationBarTrailing) {
@@ -219,6 +237,14 @@ struct PartyDetailView: View {
             } message: {
                 Text(errorMessage)
             }
+            .confirmationDialog("Remove from Calendar?", isPresented: $showCalendarRemoveSheet) {
+                Button("Remove from Calendar", role: .destructive) {
+                    Task { await removeFromCalendar() }
+                }
+                Button("Cancel", role: .cancel) { }
+            } message: {
+                Text("This will remove the \"\(party.name)\" event from your calendar.")
+            }
             .onAppear {
                 print(" === PARTY DETAIL DEBUG ===")
                 print(" Party Name: \(party.name)")
@@ -243,6 +269,10 @@ struct PartyDetailView: View {
                         let parts: [String?] = [p.thoroughfare, p.subThoroughfare, p.postalCode, p.locality]
                         resolvedAddress = parts.compactMap { $0 }.joined(separator: " ")
                     }
+                }
+                
+                if calendarService.hasEvent(for: party) {
+                    calendarState = .alreadyAdded
                 }
             }
             .onReceive(timer) { now = $0 }
@@ -528,6 +558,50 @@ struct PartyDetailView: View {
                 return "\(minutes)m"
             }
         }
+        
+        // MARK: - Calendar Functions
+        @ViewBuilder
+        private var calendarButtonLabel: some View {
+            switch calendarState {
+            case .idle:
+                Image(systemName: "calendar.badge.plus")
+            case .loading:
+                ProgressView()
+                    .scaleEffect(0.8)
+            case .success, .alreadyAdded:
+                Image(systemName: "checkmark.circle.fill")
+                    .foregroundColor(.green)
+            }
+        }
+        
+        private func handleCalendarTap() async {
+            if calendarState == .alreadyAdded {
+                showCalendarRemoveSheet = true
+                return
+            }
+            
+            if !calendarService.isAuthorized {
+                let granted = await calendarService.requestAccess()
+                if !granted { return }
+            }
+            
+            calendarState = .loading
+            let result = await calendarService.addParty(party)
+            
+            switch result {
+            case .success:
+                calendarState = .alreadyAdded
+            case .failure:
+                calendarState = .idle
+            }
+        }
+        
+        private func removeFromCalendar() async {
+            let result = await calendarService.removeParty(party)
+            if case .success = result {
+                calendarState = .idle
+            }
+        }
     }
     
     // MARK: - Party Edit Data Model (NEU)
@@ -581,7 +655,7 @@ struct PartyDetailView: View {
         }
         
         var body: some View {
-            NavigationView {
+            NavigationStack {
                 Form {
                     Section("Generel") {
                         TextField("Title", text: $title)
