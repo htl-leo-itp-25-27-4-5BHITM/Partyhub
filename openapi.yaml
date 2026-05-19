@@ -46,11 +46,11 @@ paths:
             minimum: 0
             maximum: 150
           description: Filter by user age - parties will match min_age and max_age constraints
-        - name: free_only
+        - name: free
           in: query
           schema:
             type: boolean
-          description: Filter to show only free parties (fee = 0)
+          description: Filter by fee status (true=free, false=paid) 
         - name: user_latitude
           in: query
           schema:

@@ -52,7 +52,7 @@ public class PartyResource {
             @QueryParam("sort") String sort,
             @QueryParam("user") Long userId,
             @QueryParam("user_age") Integer userAge,
-            @QueryParam("free_only") Boolean freeOnly,
+            @QueryParam("free") Boolean free,
             @QueryParam("user_latitude") Double userLatitude,
             @QueryParam("user_longitude") Double userLongitude,
             @QueryParam("distance") Integer distanceKm,
@@ -63,12 +63,12 @@ public class PartyResource {
         Long actualUserId = userId != null ? userId : headerUserId;
 
         boolean hasNewFilters = (userAge != null) ||
-                               (freeOnly != null && freeOnly) ||
+                               (free != null) ||
                                (userLatitude != null && userLongitude != null);
 
         if (hasNewFilters) {
             try {
-                FilterParams filters = new FilterParams(q, theme, userAge, freeOnly, userLatitude, userLongitude, distanceKm, limit, offset);
+                FilterParams filters = new FilterParams(q, theme, userAge, free, userLatitude, userLongitude, distanceKm, limit, offset);
                 List<Party> result = partyRepository.findWithFilters(filters, actualUserId);
                 return Response.ok(result).build();
             } catch (IllegalArgumentException e) {

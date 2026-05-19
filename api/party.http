@@ -97,7 +97,7 @@ X-User-Id: {{anna}}
 ###########################################
 ### Filter: Free parties within 2 weeks
 ###########################################
-GET {{baseUrl}}?free_only=true
+GET {{baseUrl}}?free=true
 X-User-Id: {{anna}}
 
 ?? status == 200
@@ -115,7 +115,7 @@ X-User-Id: {{anna}}
 ###########################################
 ### Filter: Age 25, Free parties, Techno theme
 ###########################################
-GET {{baseUrl}}?user_age=25&free_only=true&theme=Techno
+GET {{baseUrl}}?user_age=25&free=true&theme=Techno
 X-User-Id: {{anna}}
 
 ?? status == 200
@@ -160,7 +160,7 @@ X-User-Id: {{anna}}
 ###########################################
 ### Filter: Text search + free parties
 ###########################################
-GET {{baseUrl}}?q=Festival&free_only=true
+GET {{baseUrl}}?q=Festival&free=true
 X-User-Id: {{anna}}
 
 ?? status == 200
@@ -190,7 +190,7 @@ X-User-Id: {{anna}}
 ### Filter: All 6 filters combined
 ### Age 20, free, House theme, within 5km from Hauptplatz
 ###########################################
-GET {{baseUrl}}?user_age=20&free_only=true&theme=House&user_latitude=14.2850&user_longitude=48.3065&distance=5
+GET {{baseUrl}}?user_age=20&free=true&theme=House&user_latitude=14.2850&user_longitude=48.3065&distance=5
 X-User-Id: {{anna}}
 
 ?? status == 200

@@ -7,7 +7,7 @@ public record FilterParams(
     String query,
     String theme,
     Integer userAge,
-    Boolean freeOnly,
+    Boolean free,
     Double userLatitude,
     Double userLongitude,
     Integer distanceKm,
@@ -49,6 +49,14 @@ public record FilterParams(
     }
 
     public boolean hasFeeFilter() {
-        return freeOnly != null && freeOnly;
+        return free != null;
+    }
+
+    public boolean isFreeOnly() {
+        return free != null && free;
+    }
+
+    public boolean isPaidOnly() {
+        return free != null && !free;
     }
 }

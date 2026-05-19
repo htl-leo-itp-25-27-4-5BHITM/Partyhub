@@ -799,7 +799,11 @@ public class PartyRepository {
         }
 
         if (filters.hasFeeFilter()) {
-            jpql.append(" AND (p.fee = 0 OR p.fee IS NULL)");
+            if (filters.isFreeOnly()) {
+                jpql.append(" AND (p.fee = 0 OR p.fee IS NULL)");
+            } else {
+                jpql.append(" AND p.fee > 0");
+            }
         }
 
         jpql.append(" ORDER BY p.time_start DESC");
