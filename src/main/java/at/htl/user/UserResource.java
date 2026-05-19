@@ -5,6 +5,7 @@ import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.nio.file.StandardCopyOption;
 
 import java.util.List;
 
@@ -267,29 +268,42 @@ public class UserResource {
     @Consumes(MediaType.MULTIPART_FORM_DATA)
     @Produces(MediaType.APPLICATION_JSON)
     @Transactional
-    public Response uploadProfilePicture(@PathParam("id") long id, @FormParam("file") FileUpload fileUpload) throws Exception {
+    public Response uploadProfilePicture(@PathParam("id") long id, @FormParam("file") FileUpload fileUpload) {
         logger.info("uploadProfilePicture called for user: " + id);
 
-        em.createQuery("DELETE FROM ProfilePicture p WHERE p.user.id = :userId")
-          .setParameter("userId", id)
-          .executeUpdate();
+        try {
+            em.createQuery("DELETE FROM ProfilePicture p WHERE p.user.id = :userId")
+              .setParameter("userId", id)
+              .executeUpdate();
 
-        User user = em.find(User.class, id);
-        
-        Path uploadPath = Paths.get(uploadDir);
-        Files.createDirectories(uploadPath);
-        String fileExtension = getFileExtension(fileUpload.fileName());
-        String newFilename = "profile_" + id + fileExtension;
-        Path targetLocation = uploadPath.resolve(newFilename);
-        Files.move(fileUpload.uploadedFile(), targetLocation);
-        
-        ProfilePicture profilePicture = new ProfilePicture(newFilename, user);
-        em.persist(profilePicture);
-        
-        user.setProfilePicture(profilePicture);
-        em.merge(user);
-        
-        return Response.ok().entity("{\"filename\": \"" + newFilename + "\"}").build();
+            User user = em.find(User.class, id);
+            if (user == null) {
+                return Response.status(Response.Status.NOT_FOUND)
+                    .entity("{\"error\": \"User not found\"}").build();
+            }
+            
+            Path uploadPath = Paths.get(uploadDir);
+            Files.createDirectories(uploadPath);
+            String fileExtension = getFileExtension(fileUpload.fileName());
+            String newFilename = "profile_" + id + fileExtension;
+            Path targetLocation = uploadPath.resolve(newFilename);
+            
+            logger.info("Moving file to: " + targetLocation);
+            Files.move(fileUpload.uploadedFile(), targetLocation, StandardCopyOption.REPLACE_EXISTING);
+            
+            ProfilePicture profilePicture = new ProfilePicture(newFilename, user);
+            em.persist(profilePicture);
+            
+            user.setProfilePicture(profilePicture);
+            em.merge(user);
+            
+            return Response.ok().entity("{\"filename\": \"" + newFilename + "\"}").build();
+        } catch (Exception e) {
+            logger.error("Failed to upload profile picture: " + e.getMessage(), e);
+            return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
+                .entity("{\"error\": \"Failed to upload profile picture: " + e.getMessage() + "\"}")
+                .build();
+        }
     }
 
     @GET
