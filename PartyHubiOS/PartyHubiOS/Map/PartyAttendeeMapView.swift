@@ -234,42 +234,30 @@ struct PartyAttendeeMapView: View {
             return allLocations
         }
 
-        var filteredResults: [UserLocation] = []
+        var filteredResults = allLocations
 
         if activeFilters.contains(.atParty) {
-            filteredResults.append(contentsOf: allLocations.filter { $0.isInsideParty(party) })
+            filteredResults = filteredResults.filter { $0.isInsideParty(party) }
         }
 
         if activeFilters.contains(.invited) {
-            let invited = allLocations.filter { location in
+            filteredResults = filteredResults.filter { location in
                 if Int(location.user?.id ?? 0) == currentUserId {
                     return currentUserAttendeeLocation != nil
                 }
                 guard let userId = location.user?.id else { return false }
                 return invitedUserIds.contains(Int(userId)) && !friendUserIds.contains(Int(userId))
             }
-            filteredResults.append(contentsOf: invited)
         }
 
         if activeFilters.contains(.friends) {
-            let friends = allLocations.filter { location in
+            filteredResults = filteredResults.filter { location in
                 guard let userId = location.user?.id else { return false }
                 return friendUserIds.contains(Int(userId))
             }
-            filteredResults.append(contentsOf: friends)
         }
 
-        var uniqueResults: [UserLocation] = []
-        var seenIds: Set<Int64> = []
-        for location in filteredResults {
-            let id = location.user?.id ?? 0
-            if !seenIds.contains(id) {
-                uniqueResults.append(location)
-                seenIds.insert(id)
-            }
-        }
-
-        return uniqueResults
+        return filteredResults
     }
 
     private func countFor(_ filter: AttendeeFilter) -> Int {
