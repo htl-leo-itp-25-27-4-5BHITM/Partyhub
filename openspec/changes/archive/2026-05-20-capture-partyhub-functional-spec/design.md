@@ -58,20 +58,24 @@ The package codifies the following resolved rules without reinterpretation:
 - Keycloak is the planned future auth target,
 - follow requests are the intended social model,
 - invitation acceptance happens through joining/attending the party,
-- private invites are limited to mutual contacts,
-- gallery UI upload is target behavior unless implemented later.
+- leaving an accepted invited party marks the invitation declined,
+- private invites are limited to mutual contacts and must be enforced by the backend,
+- accepted follow requests create one-way follow relationships,
+- mutual contacts require accepted follow relationships in both directions,
+- profile party lists expose public parties and private parties the viewing user was invited to,
+- gallery UI upload is target behavior, is available at any time, and is allowed for users who can view the party.
 
 Alternative considered:
 
 - Normalize these into more generic social or auth language. Rejected because the clarified semantics are the most valuable part of this package.
 
-### 4. Leave unresolved items as explicit open questions
+### 4. Capture resolved product decisions explicitly
 
-Questions such as post-party upload enforcement, next-14-days filtering as product rule versus implementation detail, and compatibility strategy during Keycloak migration stay open in design rather than being silently embedded in requirements.
+The team resolved the original open questions before the package was archived. The specs capture those decisions directly so future changes do not need to infer them from the narrative docs.
 
 Alternative considered:
 
-- Guess likely answers from code. Rejected because the user explicitly asked not to make assumptions.
+- Leave the questions open in the archived baseline. Rejected because the team has now answered them and the long-lived specs should be decisive.
 
 ## Risks / Trade-offs
 
@@ -90,9 +94,14 @@ Rollback strategy:
 
 - Remove the change directory if the package structure or wording is not accepted.
 
-## Open Questions
+## Resolved Product Decisions
 
-1. Should gallery upload be allowed only after the party end time, or is “after the party” purely a UX expectation?
-2. Is the current next-14-days filter on the home map a real product requirement or only a current implementation choice?
-3. Should attendee and live user location remain supported as optional extensions, or be explicitly excluded from the default experience?
-4. During Keycloak adoption, should `X-User-Id` compatibility remain temporarily for brownfield clients?
+1. The current next-14-days home-map filter is an implementation detail, not a product requirement.
+2. Live attendee and live current-user location features are excluded from the core product specification.
+3. Party gallery photos may be uploaded at any time.
+4. Any user who can view a party may upload photos to that party's gallery.
+5. Mutual-contact restrictions for private-party invitations must be enforced by the backend.
+6. Accepted follow requests create one-way follow relationships; mutual contact status requires accepted follow relationships in both directions.
+7. Profile party lists show public parties and private parties to which the viewing user was invited.
+8. Legacy `X-User-Id` or query-parameter identity compatibility is not required during Keycloak adoption unless a future change explicitly keeps it.
+9. Local Keycloak development redirect URI handling should remain broad for now.

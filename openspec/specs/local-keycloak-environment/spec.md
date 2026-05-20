@@ -1,7 +1,8 @@
 # local-keycloak-environment Specification
 
 ## Purpose
-TBD - created by archiving change add-keycloak-compose. Update Purpose after archive.
+Defines the local Docker Compose Keycloak environment used for PartyHub development, including the shared Postgres setup, imported PartyHub realm, frontend client, and bootstrap admin user.
+
 ## Requirements
 ### Requirement: Docker Compose provides local Keycloak
 The local Docker Compose environment SHALL provide a Keycloak service using the official Keycloak image.
@@ -60,7 +61,7 @@ The `partyhub` realm SHALL include a client named `frontend` configured as a pub
 
 #### Scenario: Frontend redirect URI is configured
 - **WHEN** the `frontend` client is inspected
-- **THEN** it allows redirect URI `http://localhost:8000/*`
+- **THEN** it allows broad local-development redirect URIs, including wildcard-style redirect handling for now
 
 ### Requirement: Realm import provisions admin role and user
 The `partyhub` realm SHALL include an `admin` role and an enabled user named `admin` with password `password` assigned to that role.
@@ -80,4 +81,3 @@ The `partyhub` realm SHALL include an `admin` role and an enabled user named `ad
 #### Scenario: Admin user has admin role
 - **WHEN** the `admin` user role mappings are inspected
 - **THEN** the user has the realm role `admin`
-

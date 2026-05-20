@@ -1,5 +1,9 @@
-## ADDED Requirements
+# user-auth-and-identity Specification
 
+## Purpose
+Defines PartyHub's current browser-based acting-user model and the planned direction toward Keycloak-backed authentication without assuming legacy user-context compatibility unless a future change explicitly keeps it.
+
+## Requirements
 ### Requirement: Browser-based user identity is the current active authentication context
 The system SHALL support the current browser-based identity model in which the active PartyHub user is represented by a client-stored user identifier used by frontend flows and backend calls.
 
@@ -20,3 +24,7 @@ The specification baseline SHALL treat Keycloak-based authentication as planned 
 #### Scenario: Future auth work is proposed
 - **WHEN** a change proposal addresses login or identity modernization
 - **THEN** it SHALL treat Keycloak as the target authentication direction and SHALL NOT claim that a Keycloak browser flow already exists in the current system
+
+#### Scenario: Legacy user-context compatibility is considered
+- **WHEN** Keycloak-based authentication is introduced in a future change
+- **THEN** the specification SHALL NOT require legacy `X-User-Id` or query-parameter identity compatibility unless that future change explicitly chooses to retain it

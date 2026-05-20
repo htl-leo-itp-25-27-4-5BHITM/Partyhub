@@ -1,5 +1,9 @@
-## ADDED Requirements
+# party-media-gallery Specification
 
+## Purpose
+Defines PartyHub's party gallery behavior, including viewing stored media, empty-gallery states, and the target rule that any user who can view a party may upload photos at any time.
+
+## Requirements
 ### Requirement: Party galleries support media viewing in the current brownfield system
 The system SHALL allow users with access to a party to open that party’s gallery and view the media already stored for the party.
 
@@ -17,3 +21,14 @@ The target product behavior SHALL include UI-based photo upload for party galler
 #### Scenario: Gallery upload capability is described for future work
 - **WHEN** future gallery work is planned or implemented
 - **THEN** the specification SHALL treat UI-based photo upload as target behavior and SHALL distinguish it from the currently verified read-only gallery UI
+
+### Requirement: Party gallery uploads are available to party viewers
+The system SHALL allow users who can view a party to upload photos to that party's gallery at any time.
+
+#### Scenario: Party viewer uploads a photo
+- **WHEN** a user who can view a party uploads a valid photo to that party's gallery
+- **THEN** the system SHALL accept the upload without requiring the party end time to have passed
+
+#### Scenario: User without party access uploads a photo
+- **WHEN** a user who cannot view a party attempts to upload a photo to that party's gallery
+- **THEN** the system SHALL reject the upload
