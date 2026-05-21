@@ -40,11 +40,10 @@ Relevant files:
 
 ### 4. Workflow and Prompt Assets
 
-- Added prompt and continuation support files related to the Keycloak branch workflow
+- Added prompt support files related to the Keycloak branch workflow
 
 Relevant files:
 
-- `continuations/add-keycloak-compose-implementation.md`
 - `prompts/answers.md`
 - `prompts/prompts.md`
 
