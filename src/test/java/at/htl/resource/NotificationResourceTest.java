@@ -2,7 +2,7 @@ package at.htl.resource;
 
 import at.htl.TestBase;
 import io.quarkus.test.junit.QuarkusTest;
-import io.restassured.http.ContentType;
+import io.quarkus.test.security.TestSecurity;
 import org.junit.jupiter.api.Test;
 
 import static io.restassured.RestAssured.given;
@@ -16,14 +16,13 @@ public class NotificationResourceTest extends TestBase {
         given()
             .when().get("/api/notifications")
             .then()
-            .statusCode(200)
-            .body("$", is(notNullValue()));
+            .statusCode(401);
     }
 
     @Test
+    @TestSecurity(user = "test-sub")
     void testGetNotifications_withUserId() {
         given()
-            .queryParam("user", 1)
             .when().get("/api/notifications")
             .then()
             .statusCode(200)
@@ -36,8 +35,7 @@ public class NotificationResourceTest extends TestBase {
             .header("X-User-Id", "1")
             .when().get("/api/notifications")
             .then()
-            .statusCode(200)
-            .body("$", is(notNullValue()));
+            .statusCode(401);
     }
 
     @Test
@@ -45,14 +43,13 @@ public class NotificationResourceTest extends TestBase {
         given()
             .when().get("/api/notifications/unread")
             .then()
-            .statusCode(200)
-            .body("$", is(notNullValue()));
+            .statusCode(401);
     }
 
     @Test
+    @TestSecurity(user = "test-sub")
     void testGetUnreadNotifications_withUserId() {
         given()
-            .queryParam("user", 1)
             .when().get("/api/notifications/unread")
             .then()
             .statusCode(200)
@@ -60,9 +57,9 @@ public class NotificationResourceTest extends TestBase {
     }
 
     @Test
+    @TestSecurity(user = "test-sub")
     void testMarkAsRead_notFound() {
         given()
-            .header("X-User-Id", "1")
             .when().post("/api/notifications/999/read")
             .then()
             .statusCode(404);
@@ -73,13 +70,13 @@ public class NotificationResourceTest extends TestBase {
         given()
             .when().post("/api/notifications/999/read")
             .then()
-            .statusCode(400);
+            .statusCode(401);
     }
 
     @Test
+    @TestSecurity(user = "test-sub")
     void testDeleteNotification_notFound() {
         given()
-            .header("X-User-Id", "1")
             .when().delete("/api/notifications/999")
             .then()
             .statusCode(404);
@@ -90,6 +87,6 @@ public class NotificationResourceTest extends TestBase {
         given()
             .when().delete("/api/notifications/999")
             .then()
-            .statusCode(400);
+            .statusCode(401);
     }
 }

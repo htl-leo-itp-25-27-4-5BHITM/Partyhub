@@ -34,11 +34,7 @@ function getCurrentUserIdSafe() {
       }
     }
 
-    return (
-      sessionStorage.getItem("loggedInUserId") ||
-      localStorage.getItem("loggedInUserId") ||
-      null
-    );
+    return window.authService?.getCurrentUserId?.() ?? null;
   } catch (error) {
     console.warn("Current User ID could not be read:", error);
     return null;
@@ -118,21 +114,11 @@ function setupJoinPartyButton() {
 }
 
 async function loadPartyDetails(partyId) {
-  const userId = getCurrentUserIdSafe();
-
   try {
-    const url = userId
-      ? `/api/parties/${encodeURIComponent(partyId)}?user=${encodeURIComponent(userId)}`
-      : `/api/parties/${encodeURIComponent(partyId)}`;
-
-    const response = await fetch(url, {
+    const response = await (window.authService?.apiCall || fetch)(`/api/parties/${encodeURIComponent(partyId)}`, {
+      authRequired: false,
       cache: "no-store",
-      headers: userId
-        ? {
-            "X-User-Id": String(userId),
-            "Cache-Control": "no-cache",
-          }
-        : { "Cache-Control": "no-cache" },
+      headers: { "Cache-Control": "no-cache" },
     });
 
     if (!response.ok) {
@@ -181,13 +167,8 @@ async function checkAttendanceStatus(partyId) {
   }
 
   try {
-    const response = await fetch(
-      `/api/parties/${encodeURIComponent(partyId)}/join/status`,
-      {
-        headers: {
-          "X-User-Id": String(userId),
-        },
-      }
+    const response = await window.authService.apiCall(
+      `/api/parties/${encodeURIComponent(partyId)}/join/status`
     );
 
     if (!response.ok) {
@@ -271,10 +252,9 @@ async function handleJoinParty(partyId) {
     return;
   }
 
-  const userId = getCurrentUserIdSafe();
-
-  if (!userId) {
+  if (!window.authService?.isLoggedIn?.()) {
     alert("Please log in");
+    await window.authService?.login?.({ redirectTo: window.location.pathname + window.location.search });
     return;
   }
 
@@ -284,13 +264,12 @@ async function handleJoinParty(partyId) {
   joinBtn.disabled = true;
 
   try {
-    const response = await fetch(
+    const response = await window.authService.apiCall(
       `/api/parties/${encodeURIComponent(partyId)}/join`,
       {
         method: method,
         headers: {
-          "Content-Type": "application/json",
-          "X-User-Id": String(userId),
+          "Content-Type": "application/json"
         },
       }
     );
@@ -342,17 +321,10 @@ async function loadInvitedMembers(partyId) {
     return;
   }
 
-  const userId = getCurrentUserIdSafe();
-  const url = userId
-    ? `/api/parties/${encodeURIComponent(partyId)}/invited-members?user=${encodeURIComponent(userId)}`
-    : `/api/parties/${encodeURIComponent(partyId)}/invited-members`;
-
   try {
-    const response = await fetch(url, {
+    const response = await window.authService.apiCall(`/api/parties/${encodeURIComponent(partyId)}/invited-members`, {
       cache: "no-store",
-      headers: userId
-        ? { "X-User-Id": String(userId), "Cache-Control": "no-cache" }
-        : { "Cache-Control": "no-cache" },
+      headers: { "Cache-Control": "no-cache" },
     });
 
     if (!response.ok) {
@@ -374,17 +346,10 @@ async function loadJoinedMembers(partyId) {
     return;
   }
 
-  const userId = getCurrentUserIdSafe();
-  const url = userId
-    ? `/api/parties/${encodeURIComponent(partyId)}/joined-members?user=${encodeURIComponent(userId)}`
-    : `/api/parties/${encodeURIComponent(partyId)}/joined-members`;
-
   try {
-    const response = await fetch(url, {
+    const response = await window.authService.apiCall(`/api/parties/${encodeURIComponent(partyId)}/joined-members`, {
       cache: "no-store",
-      headers: userId
-        ? { "X-User-Id": String(userId), "Cache-Control": "no-cache" }
-        : { "Cache-Control": "no-cache" },
+      headers: { "Cache-Control": "no-cache" },
     });
 
     if (!response.ok) {

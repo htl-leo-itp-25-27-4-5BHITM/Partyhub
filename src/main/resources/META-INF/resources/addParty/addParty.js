@@ -1,6 +1,10 @@
 /* addParty.js */
 
-document.addEventListener("DOMContentLoaded", () => {
+document.addEventListener("DOMContentLoaded", async () => {
+  if (window.requireAuth && !(await window.requireAuth())) {
+    return;
+  }
+
   const form = document.querySelector(".party-form");
   const continueBtn = document.getElementById("continueBtn");
   const stepTitle = document.getElementById("stepTitle");
@@ -508,27 +512,20 @@ document.addEventListener("DOMContentLoaded", () => {
     try {
       let party = null;
       const currentUserId = getCurrentUserIdSafe();
-      const hasUser =
-        currentUserId !== null &&
-        currentUserId !== undefined &&
-        String(currentUserId) !== "";
-      const headers = hasUser
-        ? { "X-User-Id": String(currentUserId), "Cache-Control": "no-cache" }
-        : { "Cache-Control": "no-cache" };
-      const partyUrl = hasUser
-        ? `/api/parties/${encodeURIComponent(id)}?user=${encodeURIComponent(currentUserId)}`
-        : `/api/parties/${encodeURIComponent(id)}`;
+      const headers = { "Cache-Control": "no-cache" };
+      const partyUrl = `/api/parties/${encodeURIComponent(id)}`;
 
-      let response = await fetch(partyUrl, { cache: "no-store", headers });
+      let response = await window.authService.apiCall(partyUrl, { authRequired: false, cache: "no-store", headers });
 
       if (response.ok) {
         party = await response.json();
       } else {
         console.warn(`${partyUrl} failed, trying the backend party list ...`);
-        const listUrl = hasUser
-          ? `/api/parties?user=${encodeURIComponent(currentUserId)}`
-          : "/api/parties";
-        const listResponse = await fetch(listUrl, { cache: "no-store", headers });
+        const listResponse = await window.authService.apiCall("/api/parties", {
+          authRequired: false,
+          cache: "no-store",
+          headers
+        });
 
         if (!listResponse.ok) {
           throw new Error(
@@ -567,13 +564,12 @@ document.addEventListener("DOMContentLoaded", () => {
     invitedUsersById = new Map();
 
     try {
-      const response = await fetch(
-        `/api/parties/${encodeURIComponent(partyId)}/invited-members?user=${encodeURIComponent(currentUserId)}`,
+      const response = await window.authService.apiCall(
+        `/api/parties/${encodeURIComponent(partyId)}/invited-members`,
         {
           cache: "no-store",
           headers: {
-            "X-User-Id": String(currentUserId),
-            "Cache-Control": "no-cache",
+            "Cache-Control": "no-cache"
           },
         }
       );
@@ -1207,8 +1203,6 @@ function parseBackendDate(value) {
     max_age: state.max_age,
     website: state.website,
 
-    host_user_id: Number(currentUserId),
-    hostUserId: Number(currentUserId),
   };
 
   console.log("PAYLOAD:", payload);
@@ -1217,19 +1211,18 @@ function parseBackendDate(value) {
     setSavingState(true);
 
     const url = isEditMode
-  ? `/api/parties/${encodeURIComponent(editPartyId)}?user=${encodeURIComponent(currentUserId)}`
-  : `/api/parties?user=${encodeURIComponent(currentUserId)}`;
+  ? `/api/parties/${encodeURIComponent(editPartyId)}`
+  : "/api/parties";
 
     const method = isEditMode ? "PUT" : "POST";
 
     console.log("SAVE URL:", url);
     console.log("SAVE METHOD:", method);
 
-    const response = await fetch(url, {
+    const response = await window.authService.apiCall(url, {
       method: method,
       headers: {
-        "Content-Type": "application/json",
-        "X-User-Id": String(currentUserId),
+        "Content-Type": "application/json"
       },
       body: JSON.stringify(payload),
     });
@@ -1350,11 +1343,7 @@ function parseBackendDate(value) {
         }
       }
 
-      return (
-        localStorage.getItem("loggedInUserId") ||
-        sessionStorage.getItem("loggedInUserId") ||
-        null
-      );
+      return window.authService?.getCurrentUserId?.() ?? sessionStorage.getItem("loggedInUserId") ?? null;
     } catch (error) {
       console.warn("Current User ID could not be read:", error);
       return null;

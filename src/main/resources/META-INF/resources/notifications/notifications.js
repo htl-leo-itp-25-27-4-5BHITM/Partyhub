@@ -4,7 +4,8 @@ document.addEventListener("DOMContentLoaded", async () => {
   const list = document.getElementById("notifList");
   const tpl = document.getElementById("notifTpl");
 
-  const currentUserId = window.getCurrentUserId();
+  await window.authService?.init?.({ requireLogin: true, redirectTo: window.location.pathname });
+  const currentUserId = window.authService?.getCurrentUserId?.() ?? window.getCurrentUserId?.();
   console.log("Current user:", currentUserId);
 
   if (!currentUserId) {
@@ -188,15 +189,11 @@ document.addEventListener("DOMContentLoaded", async () => {
   async function fetchPartyForNotification(partyId) {
     if (partyId == null) return null;
 
-    const userId = currentUserId ?? window.getCurrentUserId?.() ?? null;
-    const hasUser = userId !== null && userId !== undefined && String(userId) !== "";
-    const url = hasUser
-      ? `/api/parties/${encodeURIComponent(partyId)}?user=${encodeURIComponent(userId)}`
-      : `/api/parties/${encodeURIComponent(partyId)}`;
+    const url = `/api/parties/${encodeURIComponent(partyId)}`;
 
     try {
-      const res = await fetch(url, {
-        headers: hasUser ? { "X-User-Id": String(userId) } : {}
+      const res = await (window.authService?.apiCall || fetch)(url, {
+        authRequired: false
       });
 
       if (!res.ok) {
@@ -216,7 +213,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     for (const req of requests) {
       try {
-        const res = await fetch(req.url, req.options);
+        const res = await (window.authService?.apiCall || fetch)(req.url, req.options || {});
         if (res.ok) {
           console.log("Request success:", req.url, res.status);
           return res;
@@ -240,10 +237,8 @@ document.addEventListener("DOMContentLoaded", async () => {
       return [];
     }
 
-    const json = await fetchJsonWithFallback([
-      `/api/invitations?user=${userId}&direction=received`,
-      `/invitations?user=${userId}&direction=received`
-    ]);
+    const response = await window.authService.apiCall("/api/invitations?direction=received");
+    const json = await response.json();
 
     if (Array.isArray(json)) return json;
     if (Array.isArray(json?.items)) return json.items;
@@ -283,9 +278,8 @@ document.addEventListener("DOMContentLoaded", async () => {
     }
 
     try {
-      const json = await fetchJsonWithFallback([
-        `/api/notifications?user=${userId}`
-      ]);
+      const response = await window.authService.apiCall("/api/notifications");
+      const json = await response.json();
 
       if (Array.isArray(json)) return json;
       if (Array.isArray(json?.items)) return json.items;
@@ -328,10 +322,8 @@ document.addEventListener("DOMContentLoaded", async () => {
     const userId = window.getCurrentUserId();
     if (!userId || !notificationId) return null;
 
-    const url = `/api/notifications/${encodeURIComponent(notificationId)}?user=${encodeURIComponent(userId)}`;
-    const response = await fetch(url, {
-      method: "DELETE",
-      headers: { "X-User-Id": String(userId) }
+    const response = await window.authService.apiCall(`/api/notifications/${encodeURIComponent(notificationId)}`, {
+      method: "DELETE"
     });
 
     if (response.ok || response.status === 404) {

@@ -24,17 +24,17 @@ INSERT INTO follow_status (id, name) VALUES
 -- =========================
 -- USERS
 -- =========================
-INSERT INTO users (id, username, display_name, distinct_name, email, phone_number, biography, device_token) VALUES
-    (1, 'viki_dji', 'Victoria Vejmelek', 'viki_vejmelek', 'v.vejmelek@students.htl-leonding.ac.at', '+4367762662103', 'Enjoys afterwork events, concerts and rooftop evenings in Linz.', 'MANUAL_TEST_TOKEN_ANNA'),
-    (4, 'michael_wagner', 'Michael Wagner', 'michael_wagner', 'michael.wagner@partyhub.at', '+436641234002', 'Techno, startups and spontaneous weekend plans.', NULL),
-    (3, 'katrin_bauer', 'Katrin Bauer', 'katrin_bauer', 'katrin.bauer@partyhub.at', '+436641234003', 'Loves dance floors, summer festivals and great cocktails.', NULL),
-    (2, 'carla_dimmler', 'Carla Dimmler', 'carla_dimmler', 'c.dimmler@students.htl-leonding.ac.at', '+436602045422', 'Enjoys organizing events in Linz and Urfahr.', NULL),
-    (5, 'sabine_weber', 'Sabine Weber', 'sabine_weber', 'sabine.weber@partyhub.at', '+436641234005', 'Between culture, networking and long nights out.', NULL),
-    (6, 'lukas_gruber', 'Lukas Gruber', 'lukas_gruber', 'lukas.gruber@partyhub.at', '+436641234006', 'Outdoor by day, club by night.', NULL),
-    (7, 'mia_steiner', 'Mia Steiner', 'mia_steiner', 'mia.steiner@partyhub.at', '+436641234007', 'Food, art and relaxed bars on the Danube.', NULL),
-    (8, 'david_koenig', 'David Koenig', 'david_koenig', 'david.koenig@partyhub.at', '+436641234008', 'Meetups, DJs and everything around Tabakfabrik.', NULL),
-    (9, 'nina_fischer', 'Nina Fischer', 'nina_fischer', 'nina.fischer@partyhub.at', '+436641234009', 'Enjoys smaller private gatherings and stylish lounges.', NULL),
-    (10, 'elias_berger', 'Elias Berger', 'elias_berger', 'elias.berger@partyhub.at', '+436641234010', 'Photographs events and often hangs out in the port district.', NULL);
+INSERT INTO users (id, username, keycloak_id, display_name, distinct_name, email, phone_number, biography, device_token) VALUES
+    (1, 'viki_dji', NULL, 'Victoria Vejmelek', 'viki_vejmelek', 'v.vejmelek@students.htl-leonding.ac.at', '+4367762662103', 'Enjoys afterwork events, concerts and rooftop evenings in Linz.', 'MANUAL_TEST_TOKEN_ANNA'),
+    (4, 'michael_wagner', NULL, 'Michael Wagner', 'michael_wagner', 'michael.wagner@partyhub.at', '+436641234002', 'Techno, startups and spontaneous weekend plans.', NULL),
+    (3, 'katrin_bauer', NULL, 'Katrin Bauer', 'katrin_bauer', 'katrin.bauer@partyhub.at', '+436641234003', 'Loves dance floors, summer festivals and great cocktails.', NULL),
+    (2, 'carla_dimmler', NULL, 'Carla Dimmler', 'carla_dimmler', 'c.dimmler@students.htl-leonding.ac.at', '+436602045422', 'Enjoys organizing events in Linz and Urfahr.', NULL),
+    (5, 'sabine_weber', NULL, 'Sabine Weber', 'sabine_weber', 'sabine.weber@partyhub.at', '+436641234005', 'Between culture, networking and long nights out.', NULL),
+    (6, 'lukas_gruber', NULL, 'Lukas Gruber', 'lukas_gruber', 'lukas.gruber@partyhub.at', '+436641234006', 'Outdoor by day, club by night.', NULL),
+    (7, 'mia_steiner', NULL, 'Mia Steiner', 'mia_steiner', 'mia.steiner@partyhub.at', '+436641234007', 'Food, art and relaxed bars on the Danube.', NULL),
+    (8, 'david_koenig', NULL, 'David Koenig', 'david_koenig', 'david.koenig@partyhub.at', '+436641234008', 'Meetups, DJs and everything around Tabakfabrik.', NULL),
+    (9, 'nina_fischer', NULL, 'Nina Fischer', 'nina_fischer', 'nina.fischer@partyhub.at', '+436641234009', 'Enjoys smaller private gatherings and stylish lounges.', NULL),
+    (10, 'elias_berger', NULL, 'Elias Berger', 'elias_berger', 'elias.berger@partyhub.at', '+436641234010', 'Photographs events and often hangs out in the port district.', NULL);
 
 -- =========================
 -- PROFILE PICTURE

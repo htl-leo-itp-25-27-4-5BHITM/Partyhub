@@ -73,6 +73,24 @@ Requirements:
 
 **API Documentation**: http://localhost:8080/q/swagger-ui/
 
+### 5. Local Keycloak login
+
+Keycloak runs at http://localhost:8000 and imports the `partyhub` realm from
+`keycloak/realm-export.json`.
+
+Local browser demo user:
+
+```text
+Username: viki_dji
+Password: partyhub
+```
+
+This user matches the seeded PartyHub user `viki_dji` and is linked on first
+login. If the `frontend` client or demo users do not appear in Keycloak after
+changing the realm export, recreate the local Postgres volume or delete and
+re-import the `partyhub` realm because Keycloak only imports the mounted realm
+file on first startup.
+
 ## Production
 
 **Website**: https://it220274.cloud.htl-leonding.ac.at

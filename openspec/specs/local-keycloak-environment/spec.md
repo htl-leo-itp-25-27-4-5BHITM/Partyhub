@@ -2,7 +2,6 @@
 
 ## Purpose
 Defines the local Docker Compose Keycloak environment used for PartyHub development, including the shared Postgres setup, imported PartyHub realm, frontend client, and bootstrap admin user.
-
 ## Requirements
 ### Requirement: Docker Compose provides local Keycloak
 The local Docker Compose environment SHALL provide a Keycloak service using the official Keycloak image.
@@ -49,7 +48,7 @@ The local Keycloak setup SHALL import a realm named `partyhub`.
 - **THEN** the `partyhub` realm exists
 
 ### Requirement: Realm import provisions frontend client
-The `partyhub` realm SHALL include a client named `frontend` configured as a public client without a client secret.
+The `partyhub` realm SHALL include a client named `frontend` configured as a public browser client for PartyHub's plain JavaScript Authorization Code with PKCE login flow.
 
 #### Scenario: Frontend client exists
 - **WHEN** the `partyhub` realm is inspected
@@ -59,9 +58,25 @@ The `partyhub` realm SHALL include a client named `frontend` configured as a pub
 - **WHEN** the `frontend` client is inspected
 - **THEN** it is configured as a public client
 
-#### Scenario: Frontend redirect URI is configured
+#### Scenario: Frontend client supports standard flow
 - **WHEN** the `frontend` client is inspected
-- **THEN** it allows broad local-development redirect URIs, including wildcard-style redirect handling for now
+- **THEN** standard authorization code flow is enabled
+
+#### Scenario: Frontend client disables direct access grants
+- **WHEN** the `frontend` client is inspected
+- **THEN** direct access grants are disabled for browser login
+
+#### Scenario: Frontend redirect URI matches PartyHub app origin
+- **WHEN** the `frontend` client is inspected
+- **THEN** it allows redirect URIs for `http://localhost:8080/*`
+
+#### Scenario: Frontend web origin matches PartyHub app origin
+- **WHEN** the `frontend` client is inspected
+- **THEN** it allows web origin `http://localhost:8080`
+
+#### Scenario: Frontend client accepts PKCE
+- **WHEN** the `frontend` client is used by the PartyHub browser login flow
+- **THEN** it accepts authorization requests that include a PKCE code challenge
 
 ### Requirement: Realm import provisions admin role and user
 The `partyhub` realm SHALL include an `admin` role and an enabled user named `admin` with password `password` assigned to that role.
@@ -81,3 +96,18 @@ The `partyhub` realm SHALL include an `admin` role and an enabled user named `ad
 #### Scenario: Admin user has admin role
 - **WHEN** the `admin` user role mappings are inspected
 - **THEN** the user has the realm role `admin`
+
+### Requirement: Realm import provisions local PartyHub demo users
+The local `partyhub` realm SHALL include enabled non-admin demo users that can authenticate through Keycloak and link to seeded PartyHub user records.
+
+#### Scenario: Demo user exists
+- **WHEN** the `partyhub` realm is inspected
+- **THEN** at least one enabled non-admin user exists with username or email matching a seeded PartyHub `users` record
+
+#### Scenario: Demo user can authenticate
+- **WHEN** a local developer authenticates as a provisioned demo user with the documented local password
+- **THEN** authentication succeeds for the `partyhub` realm
+
+#### Scenario: Demo user can link to PartyHub user
+- **WHEN** the demo user completes browser login and calls the PartyHub backend
+- **THEN** the backend can link the Keycloak subject to the matching PartyHub user record

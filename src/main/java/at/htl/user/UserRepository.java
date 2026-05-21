@@ -66,11 +66,41 @@ public class UserRepository {
     }
 
     public Optional<User> findByKeycloakId(String keycloakId) {
+        if (keycloakId == null || keycloakId.isBlank()) {
+            return Optional.empty();
+        }
         List<User> res = em.createQuery("SELECT u FROM User u WHERE u.keycloakId = :keycloakId", User.class)
                 .setParameter("keycloakId", keycloakId)
                 .setMaxResults(1)
                 .getResultList();
         return res.isEmpty() ? Optional.empty() : Optional.of(res.get(0));
+    }
+
+    public Optional<User> findUnlinkedByUsernameOrEmail(String username, String email) {
+        if ((username == null || username.isBlank()) && (email == null || email.isBlank())) {
+            return Optional.empty();
+        }
+
+        String normalizedUsername = username != null ? username.trim().toLowerCase() : null;
+        String normalizedEmail = email != null ? email.trim().toLowerCase() : null;
+
+        List<User> res = em.createQuery(
+                        "SELECT u FROM User u " +
+                                "WHERE u.keycloakId IS NULL " +
+                                "AND ((:username IS NOT NULL AND LOWER(u.username) = :username) " +
+                                "OR (:username IS NOT NULL AND LOWER(u.distinctName) = :username) " +
+                                "OR (:email IS NOT NULL AND LOWER(u.email) = :email))",
+                        User.class)
+                .setParameter("username", normalizedUsername)
+                .setParameter("email", normalizedEmail)
+                .setMaxResults(1)
+                .getResultList();
+        return res.isEmpty() ? Optional.empty() : Optional.of(res.get(0));
+    }
+
+    public User linkKeycloakId(User user, String keycloakId) {
+        user.setKeycloakId(keycloakId);
+        return em.merge(user);
     }
 
     public void persist(User user) {

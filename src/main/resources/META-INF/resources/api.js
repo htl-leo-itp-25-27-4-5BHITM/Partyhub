@@ -44,7 +44,7 @@
   async function attendStatus(partyId) {
     if (!partyId) throw new Error('partyId is required');
     try {
-      const res = await fetch(`/api/parties/${partyId}/join/status`);
+      const res = await window.makeAuthenticatedCall(`/api/parties/${partyId}/join/status`);
       if (!res.ok) {
         const text = await res.text();
         throw new Error(`Status fetch failed: ${res.status} ${text}`);
@@ -73,4 +73,3 @@
     toggleAttend
   };
 })();
-

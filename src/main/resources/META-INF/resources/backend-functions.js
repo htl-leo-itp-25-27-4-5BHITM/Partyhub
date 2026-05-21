@@ -1,20 +1,25 @@
 function getUserIdFromStorage() {
-  return (
-    window.getCurrentUserId?.() ??
-    window.authService?.getCurrentUserId?.() ??
-    null
-  );
+  return window.authService?.getCurrentUserId?.() ?? window.getCurrentUserId?.() ?? null;
+}
+
+async function apiRequest(url, options = {}) {
+  if (window.authService?.apiCall) {
+    return window.authService.apiCall(url, options);
+  }
+  return fetch(url, options);
+}
+
+async function publicRequest(url, options = {}) {
+  if (window.authService?.apiCall) {
+    return window.authService.apiCall(url, { ...options, authRequired: false });
+  }
+  return fetch(url, options);
 }
 
 // Party-functions
 async function createParty(payload) {
-  const userId = getUserIdFromStorage();
-  if (!userId) {
-    return { ok: false, error: "User not logged in" };
-  }
-
   try {
-    const response = await fetch(`/api/parties?user=${userId}`, {
+    const response = await apiRequest("/api/parties", {
       method: "POST",
       headers: {
         "Content-Type": "application/json"
@@ -42,15 +47,9 @@ async function createParty(payload) {
 
 async function getAllParties() {
   try {
-    const userId = getUserIdFromStorage();
-    const url = userId
-      ? `/api/parties?user=${encodeURIComponent(userId)}`
-      : "/api/parties";
-    const response = await fetch(url, {
+    const response = await publicRequest("/api/parties", {
       cache: "no-store",
-      headers: userId
-        ? { "X-User-Id": String(userId), "Cache-Control": "no-cache" }
-        : { "Cache-Control": "no-cache" }
+      headers: { "Cache-Control": "no-cache" }
     });
     if (!response.ok) throw new Error("Network response was not ok");
     return await response.json();
@@ -62,7 +61,7 @@ async function getAllParties() {
 
 async function sortParties(sortKey) {
   try {
-    const response = await fetch(`/api/parties?sort=${sortKey}`, {
+    const response = await publicRequest(`/api/parties?sort=${sortKey}`, {
       cache: "no-store",
       headers: { "Cache-Control": "no-cache" }
     });
@@ -77,7 +76,7 @@ async function sortParties(sortKey) {
 async function filterParties(content) {
   const filterPayload = { value: content };
   try {
-    const response = await fetch("/api/parties?q=" + encodeURIComponent(content), {
+    const response = await publicRequest("/api/parties?q=" + encodeURIComponent(content), {
       cache: "no-store",
       method: "POST",
       headers: {
@@ -96,15 +95,9 @@ async function filterParties(content) {
 
 async function getPartyById(partyId, userId = getUserIdFromStorage()) {
   try {
-    const hasUser = userId !== null && userId !== undefined && String(userId) !== "";
-    const url = hasUser
-      ? `/api/parties/${encodeURIComponent(partyId)}?user=${encodeURIComponent(userId)}`
-      : `/api/parties/${encodeURIComponent(partyId)}`;
-    const response = await fetch(url, {
+    const response = await publicRequest(`/api/parties/${encodeURIComponent(partyId)}`, {
       cache: "no-store",
-      headers: hasUser
-        ? { "X-User-Id": String(userId), "Cache-Control": "no-cache" }
-        : { "Cache-Control": "no-cache" }
+      headers: { "Cache-Control": "no-cache" }
     });
     if (!response.ok) throw new Error("Network response was not ok");
     return await response.json();
@@ -131,7 +124,7 @@ async function updateParty(partyId, payload) {
 
 async function deleteParty(partyId) {
   try {
-    const response = await fetch(`/api/parties/${partyId}`, { method: "DELETE" });
+    const response = await apiRequest(`/api/parties/${partyId}`, { method: "DELETE" });
     if (!response.ok) throw new Error("Network response was not ok");
     return { ok: true };
   } catch (error) {
@@ -141,13 +134,8 @@ async function deleteParty(partyId) {
 }
 
 async function attendParty(partyId) {
-  const userId = getUserIdFromStorage();
-  if (!userId) {
-    console.error("User not logged in");
-    return false;
-  }
   try {
-    const response = await fetch(`/api/parties/${partyId}/join?user=${userId}`, {
+    const response = await apiRequest(`/api/parties/${partyId}/join`, {
       method: "POST"
     });
     return response.ok;
@@ -158,13 +146,8 @@ async function attendParty(partyId) {
 }
 
 async function leaveParty(partyId) {
-  const userId = getUserIdFromStorage();
-  if (!userId) {
-    console.error("User not logged in");
-    return false;
-  }
   try {
-    const response = await fetch(`/api/parties/${partyId}/join?user=${userId}`, {
+    const response = await apiRequest(`/api/parties/${partyId}/join`, {
       method: "DELETE"
     });
     return response.ok;
@@ -176,7 +159,7 @@ async function leaveParty(partyId) {
 
 async function getMediaForParty(partyId) {
   try {
-    const response = await fetch(`/api/parties/${partyId}/media`);
+    const response = await publicRequest(`/api/parties/${partyId}/media`);
     if (!response.ok) throw new Error("Network response was not ok");
     return await response.json();
   } catch (error) {
@@ -188,7 +171,7 @@ async function getMediaForParty(partyId) {
 // User-functions
 async function getAllUsers() {
   try {
-    const response = await fetch("/api/users/");
+    const response = await publicRequest("/api/users/");
     if (!response.ok) throw new Error("Network response was not ok");
     return await response.json();
   } catch (error) {
@@ -199,7 +182,7 @@ async function getAllUsers() {
 
 async function getUserById(id) {
   try {
-    const response = await fetch("/api/users/" + id);
+    const response = await publicRequest("/api/users/" + id);
     if (!response.ok) throw new Error("Network response was not ok");
     return await response.json();
   } catch (error) {
@@ -217,15 +200,10 @@ async function getProfilePicture(id) {
 }
 
 async function invite(recipient, partyId) {
-  const userId = getUserIdFromStorage();
-  if (!userId) {
-    return { ok: false, error: "User not logged in" };
-  }
-
   const invitationPayload = { recipient, partyId };
 
   try {
-    const response = await fetch(`/api/invitations?user=${userId}`, {
+    const response = await apiRequest("/api/invitations", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(invitationPayload)
@@ -239,14 +217,8 @@ async function invite(recipient, partyId) {
 }
 
 async function getReceivedInvites() {
-  const userId = getUserIdFromStorage();
-  if (!userId) {
-    console.error("User not logged in");
-    return [];
-  }
-
   try {
-    const response = await fetch(`/api/invitations?user=${userId}&direction=received`);
+    const response = await apiRequest("/api/invitations?direction=received");
     if (!response.ok) throw new Error("Network response was not ok");
     return await response.json();
   } catch (error) {
@@ -256,14 +228,8 @@ async function getReceivedInvites() {
 }
 
 async function getSentInvites() {
-  const userId = getUserIdFromStorage();
-  if (!userId) {
-    console.error("User not logged in");
-    return [];
-  }
-
   try {
-    const response = await fetch(`/api/invitations?user=${userId}&direction=sent`);
+    const response = await apiRequest("/api/invitations?direction=sent");
     if (!response.ok) throw new Error("Network response was not ok");
     return await response.json();
   } catch (error) {
@@ -273,13 +239,8 @@ async function getSentInvites() {
 }
 
 async function deleteInvite(invitationId) {
-  const userId = getUserIdFromStorage();
-  if (!userId) {
-    throw new Error("User not logged in");
-  }
-
   try {
-    const response = await fetch(`/api/invitations/${invitationId}?user=${userId}`, {
+    const response = await apiRequest(`/api/invitations/${invitationId}`, {
       method: "DELETE",
       headers: {
         "Content-Type": "application/json"
@@ -408,15 +369,15 @@ async function isFollowing(userA, userB) {
 
 async function followUser(targetUserId) {
   const userId = getUserIdFromStorage();
-  if (!userId) return { ok: false, error: "Not logged in" };
 
   try {
-    const alreadyFollowing = await isFollowing(userId, targetUserId);
+    const alreadyFollowing = userId ? await isFollowing(userId, targetUserId) : false;
     if (alreadyFollowing) {
       return { ok: true, status: 200, alreadyFollowing: true };
     }
 
-    const res = await fetch(`/api/users/${encodeURIComponent(userId)}/follow?targetUserId=${encodeURIComponent(targetUserId)}`, {
+    const actorPath = userId ?? "me";
+    const res = await apiRequest(`/api/users/${encodeURIComponent(actorPath)}/follow?targetUserId=${encodeURIComponent(targetUserId)}`, {
       method: "POST"
     });
 
@@ -437,15 +398,15 @@ async function followUser(targetUserId) {
 
 async function unfollowUser(targetUserId) {
   const userId = getUserIdFromStorage();
-  if (!userId) return { ok: false, error: "Not logged in" };
 
   try {
-    const currentlyFollowing = await isFollowing(userId, targetUserId);
+    const currentlyFollowing = userId ? await isFollowing(userId, targetUserId) : true;
     if (!currentlyFollowing) {
       return { ok: true, status: 200, alreadyNotFollowing: true };
     }
 
-    const res = await fetch(`/api/users/${encodeURIComponent(targetUserId)}/followers/${encodeURIComponent(userId)}`, {
+    const followerPath = userId ?? "me";
+    const res = await apiRequest(`/api/users/${encodeURIComponent(targetUserId)}/followers/${encodeURIComponent(followerPath)}`, {
       method: "DELETE"
     });
 

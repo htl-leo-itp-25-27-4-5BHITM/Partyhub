@@ -25,15 +25,10 @@ document.addEventListener("DOMContentLoaded", function () {
 async function loadGallery(partyId) {
   try {
     // Load party details for the title
-    const userId = window.getCurrentUserId?.() ?? window.authService?.getCurrentUserId?.() ?? null;
-    const partyUrl = userId
-      ? `/api/parties/${encodeURIComponent(partyId)}?user=${encodeURIComponent(userId)}`
-      : `/api/parties/${encodeURIComponent(partyId)}`;
-    const partyResponse = await fetch(partyUrl, {
+    const partyResponse = await (window.authService?.apiCall || fetch)(`/api/parties/${encodeURIComponent(partyId)}`, {
+      authRequired: false,
       cache: 'no-store',
-      headers: userId
-        ? { 'X-User-Id': String(userId), 'Cache-Control': 'no-cache' }
-        : { 'Cache-Control': 'no-cache' }
+      headers: { 'Cache-Control': 'no-cache' }
     });
     if (!partyResponse.ok) {
       throw new Error('Failed to fetch party details');
@@ -47,7 +42,9 @@ async function loadGallery(partyId) {
     }
 
     // Load media for this party
-    const mediaResponse = await fetch(`/api/parties/${partyId}/media`);
+    const mediaResponse = await (window.authService?.apiCall || fetch)(`/api/parties/${partyId}/media`, {
+      authRequired: false
+    });
     if (!mediaResponse.ok) {
       throw new Error('Failed to fetch media');
     }

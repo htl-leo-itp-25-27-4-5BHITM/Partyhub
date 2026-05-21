@@ -13,7 +13,6 @@ document.addEventListener("DOMContentLoaded", function () {
   let activeFollowMenu = null;
 
   const STORAGE_KEY = "loggedInUserId";
-  const AUTH_STORAGE_KEY = "partyhub_user_id";
 
   // -----------------------------
   // Helpers
@@ -95,6 +94,11 @@ document.addEventListener("DOMContentLoaded", function () {
 
   function getStoredUserId() {
     try {
+      const authUserId = window.authService?.getCurrentUserId?.();
+      if (authUserId != null) {
+        return parseFiniteNumber(authUserId);
+      }
+
       const sessionValue = sessionStorage.getItem(STORAGE_KEY);
       const sessionNumber =
         sessionValue != null ? parseFiniteNumber(sessionValue) : null;
@@ -103,16 +107,7 @@ document.addEventListener("DOMContentLoaded", function () {
         return sessionNumber;
       }
 
-      const localValue = localStorage.getItem(STORAGE_KEY);
-      const localNumber =
-        localValue != null ? parseFiniteNumber(localValue) : null;
-
-      if (localNumber != null) {
-        return localNumber;
-      }
-
-      const authValue = localStorage.getItem(AUTH_STORAGE_KEY);
-      return authValue != null ? parseFiniteNumber(authValue) : null;
+      return null;
     } catch {
       return null;
     }
@@ -122,14 +117,10 @@ document.addEventListener("DOMContentLoaded", function () {
     try {
       if (id == null) {
         sessionStorage.removeItem(STORAGE_KEY);
-        localStorage.removeItem(STORAGE_KEY);
-        localStorage.removeItem(AUTH_STORAGE_KEY);
         return;
       }
 
       sessionStorage.setItem(STORAGE_KEY, String(id));
-      localStorage.setItem(STORAGE_KEY, String(id));
-      localStorage.setItem(AUTH_STORAGE_KEY, String(id));
     } catch {
       // ignore
     }
@@ -248,7 +239,7 @@ document.addEventListener("DOMContentLoaded", function () {
           return { ok: false, status: 400 };
         }
 
-        const response = await fetch(
+        const response = await window.authService.apiCall(
           `/api/users/${encodeURIComponent(currentUserId)}/follow?targetUserId=${encodeURIComponent(targetUserId)}`,
           {
             method: "POST",
@@ -274,7 +265,7 @@ document.addEventListener("DOMContentLoaded", function () {
           return { ok: false, status: 400 };
         }
 
-        return fetch(
+        return window.authService.apiCall(
           `/api/users/${encodeURIComponent(targetUserId)}/followers/${encodeURIComponent(currentUserId)}`,
           {
             method: "DELETE",
@@ -283,11 +274,11 @@ document.addEventListener("DOMContentLoaded", function () {
       },
 
       async getPartiesByUser(userId) {
-        const response = await fetch(`/api/parties?user=${encodeURIComponent(userId)}`, {
+        const response = await (window.authService?.apiCall || fetch)("/api/parties", {
+          authRequired: false,
           cache: "no-store",
           headers: {
-            "Cache-Control": "no-cache",
-            "X-User-Id": String(userId),
+            "Cache-Control": "no-cache"
           },
         });
 

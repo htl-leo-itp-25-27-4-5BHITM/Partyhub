@@ -4,15 +4,20 @@ document.addEventListener("DOMContentLoaded", function () {
   initializeEditPage();
 });
 
-function initializeEditPage() {
-  const userId = window.getCurrentUserId();
+async function initializeEditPage() {
+  if (window.requireAuth && !(await window.requireAuth())) {
+    return;
+  }
+
+  const user = await window.authService.getCurrentUser();
+  const userId = user?.id;
 
   if (!userId) {
     showError("User not logged in");
     return;
   }
 
-  loadUserData(userId);
+  populateForm(user);
   setupFormValidation();
   setupProfilePictureUpload();
 }
@@ -199,7 +204,7 @@ async function checkUsernameAvailability(username) {
     if (response.ok) {
       // Username exists and belongs to someone else
       const existingUser = await response.json();
-      const currentUserId = window.getCurrentUserId();
+      const currentUserId = window.authService?.getCurrentUserId?.() ?? window.getCurrentUserId();
 
       if (existingUser.id !== currentUserId) {
         showFieldError("distinctName", "This username is already taken");
@@ -213,7 +218,7 @@ async function checkUsernameAvailability(username) {
 }
 
 async function submitForm() {
-  const userId = window.getCurrentUserId();
+  const userId = window.authService?.getCurrentUserId?.() ?? window.getCurrentUserId();
   console.log("submitForm called, userId:", userId);
 
   if (!userId) {
@@ -238,7 +243,7 @@ async function submitForm() {
 
     console.log("Sending PUT request to /api/users/" + userId, formData);
     
-    const response = await fetch(`/api/users/${userId}`, {
+    const response = await window.authService.apiCall(`/api/users/${userId}`, {
       method: "PUT",
       headers: {
         "Content-Type": "application/json",
@@ -281,7 +286,7 @@ async function uploadProfilePicture(userId) {
 
   console.log("Fetching /api/users/" + userId + "/upload-profile-picture");
   
-  const response = await fetch(`/api/users/${userId}/upload-profile-picture`, {
+  const response = await window.authService.apiCall(`/api/users/${userId}/upload-profile-picture`, {
     method: "POST",
     body: formData,
   });
@@ -302,7 +307,7 @@ async function uploadProfilePicture(userId) {
 }
 
 async function getProfilePictureFilename() {
-  const userId = window.getCurrentUserId();
+  const userId = window.authService?.getCurrentUserId?.() ?? window.getCurrentUserId();
   if (!userId) return "/images/default_profile-picture.svg";
   try {
     const response = await fetch(
@@ -330,7 +335,7 @@ function setupProfilePictureUpload() {
 
 function handleFileSelect(event) {
   const file = event.target.files[0];
-  const userId = window.getCurrentUserId();
+  const userId = window.authService?.getCurrentUserId?.() ?? window.getCurrentUserId();
   
   console.log("handleFileSelect called, userId:", userId, "file:", file);
 
@@ -414,4 +419,3 @@ function showError(message) {
   // You might want to implement a more sophisticated error display
   alert(message);
 }
-

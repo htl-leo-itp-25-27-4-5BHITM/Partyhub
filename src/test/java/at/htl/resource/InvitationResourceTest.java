@@ -2,6 +2,7 @@ package at.htl.resource;
 
 import at.htl.TestBase;
 import io.quarkus.test.junit.QuarkusTest;
+import io.quarkus.test.security.TestSecurity;
 import org.junit.jupiter.api.Test;
 
 import static io.restassured.RestAssured.given;
@@ -11,9 +12,9 @@ import static org.hamcrest.Matchers.*;
 public class InvitationResourceTest extends TestBase {
 
     @Test
+    @TestSecurity(user = "test-sub")
     void testGetReceivedInvites() {
         given()
-            .queryParam("user", 1)
             .when().get("/api/invitations")
             .then()
             .statusCode(200)
@@ -21,9 +22,9 @@ public class InvitationResourceTest extends TestBase {
     }
 
     @Test
+    @TestSecurity(user = "test-sub")
     void testGetSentInvites() {
         given()
-            .queryParam("user", 1)
             .queryParam("direction", "sent")
             .when().get("/api/invitations")
             .then()
@@ -32,9 +33,9 @@ public class InvitationResourceTest extends TestBase {
     }
 
     @Test
+    @TestSecurity(user = "test-sub")
     void testDeleteInvite_notFound() {
         given()
-            .queryParam("user", 1)
             .when().delete("/api/invitations/999")
             .then()
             .statusCode(404);
@@ -45,7 +46,7 @@ public class InvitationResourceTest extends TestBase {
         given()
             .when().get("/api/invitations")
             .then()
-            .statusCode(400);
+            .statusCode(401);
     }
 
     @Test
@@ -54,6 +55,6 @@ public class InvitationResourceTest extends TestBase {
             .queryParam("direction", "sent")
             .when().get("/api/invitations")
             .then()
-            .statusCode(400);
+            .statusCode(401);
     }
 }

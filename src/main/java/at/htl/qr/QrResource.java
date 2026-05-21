@@ -1,7 +1,9 @@
 package at.htl.qr;
 
+import at.htl.auth.CurrentUserResolver;
 import at.htl.user.User;
 import at.htl.user.UserRepository;
+import io.quarkus.security.Authenticated;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.Consumes;
 import jakarta.ws.rs.GET;
@@ -34,19 +36,15 @@ public class QrResource {
     @Inject
     UserRepository userRepository;
 
+    @Inject
+    CurrentUserResolver currentUserResolver;
+
     @GET
     @Path("/generate")
-    public Response generate(@QueryParam("userId") Long userId) {
+    @Authenticated
+    public Response generate() {
         try {
-            if (userId == null) {
-                return Response.status(400).entity(java.util.Map.of("error", "userId required")).build();
-            }
-            
-            var optUser = userRepository.findById(userId);
-            if (optUser.isEmpty()) {
-                return Response.status(404).entity(java.util.Map.of("error", "User not found")).build();
-            }
-            User user = optUser.get();
+            User user = currentUserResolver.requireCurrentUser();
 
             String payload = "partyhub://login?userId=" + user.getId();
 

@@ -2,6 +2,7 @@ package at.htl.resource;
 
 import at.htl.TestBase;
 import io.quarkus.test.junit.QuarkusTest;
+import io.quarkus.test.security.TestSecurity;
 import io.restassured.http.ContentType;
 import org.junit.jupiter.api.Test;
 
@@ -49,22 +50,21 @@ public class UserResourceTest extends TestBase {
         given()
             .when().get("/api/users/me")
             .then()
-            .statusCode(400);
+            .statusCode(401);
     }
 
     @Test
+    @TestSecurity(user = "test-sub")
     void testGetCurrentUser_notFound() {
         given()
-            .queryParam("userId", 999)
             .when().get("/api/users/me")
             .then()
-            .statusCode(404);
+            .statusCode(200);
     }
 
     @Test
     void testGetFollowersCount_notFound() {
         given()
-            .header("X-User-Id", "1")
             .when().get("/api/users/999/followers/count")
             .then()
             .statusCode(404);
@@ -73,7 +73,6 @@ public class UserResourceTest extends TestBase {
     @Test
     void testGetFollowingCount_notFound() {
         given()
-            .header("X-User-Id", "1")
             .when().get("/api/users/999/following/count")
             .then()
             .statusCode(404);
@@ -82,7 +81,6 @@ public class UserResourceTest extends TestBase {
     @Test
     void testGetFollowers_notFound() {
         given()
-            .header("X-User-Id", "1")
             .when().get("/api/users/999/followers")
             .then()
             .statusCode(200);
@@ -91,7 +89,6 @@ public class UserResourceTest extends TestBase {
     @Test
     void testGetFollowing_notFound() {
         given()
-            .header("X-User-Id", "1")
             .when().get("/api/users/999/following")
             .then()
             .statusCode(200);
@@ -100,7 +97,6 @@ public class UserResourceTest extends TestBase {
     @Test
     void testGetFollowRequests_notFound() {
         given()
-            .header("X-User-Id", "1")
             .when().get("/api/users/999/follow-requests")
             .then()
             .statusCode(200);
@@ -109,7 +105,6 @@ public class UserResourceTest extends TestBase {
     @Test
     void testGetFollowStatus_notFound() {
         given()
-            .header("X-User-Id", "1")
             .when().get("/api/users/1/followers/999/status")
             .then()
             .statusCode(200);
@@ -120,7 +115,7 @@ public class UserResourceTest extends TestBase {
         given()
             .when().post("/api/users/1/follow")
             .then()
-            .statusCode(400);
+            .statusCode(401);
     }
 
     @Test
@@ -128,7 +123,7 @@ public class UserResourceTest extends TestBase {
         given()
             .when().put("/api/users/999/followers/1")
             .then()
-            .statusCode(404);
+            .statusCode(401);
     }
 
     @Test
@@ -136,7 +131,7 @@ public class UserResourceTest extends TestBase {
         given()
             .when().delete("/api/users/999/followers/1")
             .then()
-            .statusCode(404);
+            .statusCode(401);
     }
 
     @Test
@@ -150,7 +145,6 @@ public class UserResourceTest extends TestBase {
     @Test
     void testGetUserMedia_notFound() {
         given()
-            .header("X-User-Id", "1")
             .when().get("/api/users/999/media")
             .then()
             .statusCode(200);
@@ -162,13 +156,13 @@ public class UserResourceTest extends TestBase {
             .queryParam("token", "test-token")
             .when().put("/api/users/device-token")
             .then()
-            .statusCode(400);
+            .statusCode(401);
     }
 
     @Test
+    @TestSecurity(user = "test-sub")
     void testUpdateDeviceToken_noToken() {
         given()
-            .header("X-User-Id", "1")
             .when().put("/api/users/device-token")
             .then()
             .statusCode(400);

@@ -4,8 +4,10 @@ import java.util.List;
 import java.util.Map;
 
 import at.htl.FilterDto;
+import at.htl.auth.CurrentUserResolver;
 import at.htl.media.MediaRepository;
 import at.htl.user_location.UserLocationRepository;
+import io.quarkus.security.Authenticated;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import jakarta.validation.Valid;
@@ -14,7 +16,6 @@ import jakarta.transaction.Transactional;
 import jakarta.ws.rs.Consumes;
 import jakarta.ws.rs.DELETE;
 import jakarta.ws.rs.GET;
-import jakarta.ws.rs.HeaderParam;
 import jakarta.ws.rs.POST;
 import jakarta.ws.rs.PUT;
 import jakarta.ws.rs.Path;
@@ -38,6 +39,9 @@ public class PartyResource {
     UserLocationRepository userLocationRepository;
 
     @Inject
+    CurrentUserResolver currentUserResolver;
+
+    @Inject
     EntityManager em;
 
     @GET
@@ -50,17 +54,15 @@ public class PartyResource {
             @QueryParam("date_from") String dateFrom,
             @QueryParam("date_to") String dateTo,
             @QueryParam("sort") String sort,
-            @QueryParam("user") Long userId,
             @QueryParam("user_age") Integer userAge,
             @QueryParam("free") Boolean free,
             @QueryParam("user_latitude") Double userLatitude,
             @QueryParam("user_longitude") Double userLongitude,
             @QueryParam("distance") Integer distanceKm,
             @QueryParam("limit") Integer limit,
-            @QueryParam("offset") Integer offset,
-            @HeaderParam("X-User-Id") Long headerUserId) {
+            @QueryParam("offset") Integer offset) {
         
-        Long actualUserId = userId != null ? userId : headerUserId;
+        Long actualUserId = currentUserResolver.currentUserIdIfAuthenticated().orElse(null);
 
         boolean hasNewFilters = (userAge != null) ||
                                (free != null) ||
@@ -109,10 +111,9 @@ public class PartyResource {
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     @Path("")
-    public Response createParty(@Valid PartyCreateDto partyCreateDto,
-                               @QueryParam("user") Long userId,
-                               @HeaderParam("X-User-Id") Long headerUserId) {
-        Long actualUserId = userId != null ? userId : headerUserId;
+    @Authenticated
+    public Response createParty(@Valid PartyCreateDto partyCreateDto) {
+        Long actualUserId = currentUserResolver.requireCurrentUserId();
         return partyRepository.addParty(partyCreateDto, actualUserId);
     }
 
@@ -121,10 +122,8 @@ public class PartyResource {
     @Produces(MediaType.APPLICATION_JSON)
     @Path("/{id}")
     public Response getParty(
-            @PathParam("id") Long id,
-            @QueryParam("user") Long userId,
-            @HeaderParam("X-User-Id") Long headerUserId) {
-        Long actualUserId = userId != null ? userId : headerUserId;
+            @PathParam("id") Long id) {
+        Long actualUserId = currentUserResolver.currentUserIdIfAuthenticated().orElse(null);
         Party party = partyRepository.getPartyByIdIfVisible(id, actualUserId);
 
         if (party == null) {
@@ -146,25 +145,25 @@ public class PartyResource {
     @Consumes(MediaType.APPLICATION_JSON)
     @Transactional
     @Path("/{id}")
+    @Authenticated
     public Response updatePartyPut(@PathParam("id") Long id,
-                                   @Valid PartyCreateDto partyCreateDto,
-                                   @QueryParam("user") Long userId,
-                                   @HeaderParam("X-User-Id") Long headerUserId) {
+                                   @Valid PartyCreateDto partyCreateDto) {
         if (partyCreateDto == null) {
             return Response.status(Response.Status.BAD_REQUEST)
                     .entity("{\"error\": \"Payload missing\"}")
                     .build();
         }
         
-        Long actualUserId = userId != null ? userId : headerUserId;
+        Long actualUserId = currentUserResolver.requireCurrentUserId();
         return partyRepository.updateParty(id, partyCreateDto, actualUserId);
     }
 
     @PUT
     @Path("/device-token")
     @Transactional
-    public Response updateToken(@QueryParam("token") String token, 
-                                @HeaderParam("X-User-Id") Long userId) {
+    @Authenticated
+    public Response updateToken(@QueryParam("token") String token) {
+        Long userId = currentUserResolver.requireCurrentUserId();
         if (userId == null || token == null) {
             return Response.status(400).entity("User ID or Token missing").build();
         }
@@ -180,10 +179,9 @@ public class PartyResource {
     @POST
     @Produces(MediaType.APPLICATION_JSON)
     @Path("/{id}/join")
-    public Response joinParty(@PathParam("id") Long partyId,
-                              @QueryParam("user") Long userId,
-                              @HeaderParam("X-User-Id") Long headerUserId) {
-        Long actualUserId = userId != null ? userId : headerUserId;
+    @Authenticated
+    public Response joinParty(@PathParam("id") Long partyId) {
+        Long actualUserId = currentUserResolver.requireCurrentUserId();
         return partyRepository.attendParty(partyId, actualUserId);
     }
 
@@ -191,40 +189,36 @@ public class PartyResource {
     @Produces(MediaType.APPLICATION_JSON)
     @Transactional
     @Path("/{id}/join")
-    public Response leaveParty(@PathParam("id") Long partyId,
-                                @QueryParam("user") Long userId,
-                                @HeaderParam("X-User-Id") Long headerUserId) {
-        Long actualUserId = userId != null ? userId : headerUserId;
+    @Authenticated
+    public Response leaveParty(@PathParam("id") Long partyId) {
+        Long actualUserId = currentUserResolver.requireCurrentUserId();
         return partyRepository.leaveParty(partyId, actualUserId);
     }
     
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     @Path("/{id}/join/status")
-    public Response joinStatus(@PathParam("id") Long partyId,
-                               @QueryParam("user") Long userId,
-                               @HeaderParam("X-User-Id") Long headerUserId) {
-        Long actualUserId = userId != null ? userId : headerUserId;
+    @Authenticated
+    public Response joinStatus(@PathParam("id") Long partyId) {
+        Long actualUserId = currentUserResolver.requireCurrentUserId();
         return partyRepository.attendStatus(partyId, actualUserId);
     }
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     @Path("/{id}/invited-members")
-    public Response invitedMembers(@PathParam("id") Long partyId,
-                                   @QueryParam("user") Long userId,
-                                   @HeaderParam("X-User-Id") Long headerUserId) {
-        Long actualUserId = userId != null ? userId : headerUserId;
+    @Authenticated
+    public Response invitedMembers(@PathParam("id") Long partyId) {
+        Long actualUserId = currentUserResolver.requireCurrentUserId();
         return partyRepository.getInvitedMembers(partyId, actualUserId);
     }
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     @Path("/{id}/joined-members")
-    public Response joinedMembers(@PathParam("id") Long partyId,
-                                  @QueryParam("user") Long userId,
-                                  @HeaderParam("X-User-Id") Long headerUserId) {
-        Long actualUserId = userId != null ? userId : headerUserId;
+    @Authenticated
+    public Response joinedMembers(@PathParam("id") Long partyId) {
+        Long actualUserId = currentUserResolver.requireCurrentUserId();
         return partyRepository.getJoinedMembers(partyId, actualUserId);
     }
 
@@ -233,11 +227,10 @@ public class PartyResource {
     @Consumes(MediaType.MULTIPART_FORM_DATA)
     @Produces(MediaType.APPLICATION_JSON)
     @Transactional
+    @Authenticated
     public Response upload(MediaRepository.FileUploadInput input,
-                           @PathParam("partyId") long partyId,
-                           @QueryParam("user") Long userId,
-                           @HeaderParam("X-User-Id") Long headerUserId) {
-        Long actualUserId = userId != null ? userId : headerUserId;
+                           @PathParam("partyId") long partyId) {
+        Long actualUserId = currentUserResolver.requireCurrentUserId();
 
         if (actualUserId == null) {
             return Response.status(Response.Status.BAD_REQUEST)
@@ -250,10 +243,9 @@ public class PartyResource {
     @GET
     @Path("/{id}/can-edit")
     @Produces(MediaType.APPLICATION_JSON)
-    public Response canEditParty(@PathParam("id") Long partyId,
-                                 @QueryParam("user") Long userId,
-                                 @HeaderParam("X-User-Id") Long headerUserId) {
-        Long actualUserId = userId != null ? userId : headerUserId;
+    @Authenticated
+    public Response canEditParty(@PathParam("id") Long partyId) {
+        Long actualUserId = currentUserResolver.requireCurrentUserId();
 
         if (actualUserId == null) {
             return Response.status(Response.Status.BAD_REQUEST)

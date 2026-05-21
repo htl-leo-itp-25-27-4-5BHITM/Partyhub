@@ -30,7 +30,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     const userId = window.getCurrentUserId?.() ?? window.authService?.getCurrentUserId?.() ?? null;
     return {
       userId,
-      headers: userId ? { "X-User-Id": String(userId) } : {}
+      headers: {}
     };
   }
 
@@ -40,15 +40,10 @@ document.addEventListener("DOMContentLoaded", async () => {
     if (!select) return;
     
     try {
-      const { userId, headers } = currentUserRequest();
-      const url = userId
-        ? `/api/parties?user=${encodeURIComponent(userId)}`
-        : "/api/parties";
-      const response = await fetch(url, {
+      const response = await (window.authService?.apiCall || fetch)("/api/parties", {
+        authRequired: false,
         cache: "no-store",
-        headers: userId
-          ? { ...headers, "Cache-Control": "no-cache" }
-          : { "Cache-Control": "no-cache" }
+        headers: { "Cache-Control": "no-cache" }
       });
       if (!response.ok) throw new Error("Failed to fetch parties");
       const parties = await response.json();
@@ -499,12 +494,8 @@ document.addEventListener("DOMContentLoaded", async () => {
 
 async function getAllParties() {
   try {
-    const userId = window.getCurrentUserId?.() ?? window.authService?.getCurrentUserId?.() ?? null;
-    const url = userId
-      ? `/api/parties?user=${encodeURIComponent(userId)}`
-      : "/api/parties";
-    const response = await fetch(url, {
-      headers: userId ? { "X-User-Id": String(userId) } : {}
+    const response = await (window.authService?.apiCall || fetch)("/api/parties", {
+      authRequired: false
     });
     if (!response.ok) throw new Error("Network response was not ok");
     const data = await response.json();

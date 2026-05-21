@@ -163,48 +163,22 @@
         <div class="login-card">
             <div class="login-header">
                 <h1>PartyHub</h1>
-                <p>Welcome back! Please login</p>
+                <p>Welcome back</p>
             </div>
 
             <div class="error-message" id="errorMessage"></div>
             <div class="success-message" id="successMessage"></div>
 
             <form id="loginForm">
-                <div class="form-group">
-                    <label for="username">Username</label>
-                    <input 
-                        type="text" 
-                        id="username" 
-                        name="username" 
-                        placeholder="Enter your username"
-                        required
-                        autocomplete="username"
-                    >
-                </div>
-
-                <div class="form-group">
-                    <label for="password">Password</label>
-                    <input 
-                        type="password" 
-                        id="password" 
-                        name="password" 
-                        placeholder="Enter your password"
-                        required
-                        autocomplete="current-password"
-                    >
-                </div>
-
                 <button type="submit" class="btn-login" id="loginBtn">
-                    Login
+                    Continue with Keycloak
                 </button>
             </form>
 
             <div class="demo-credentials">
-                <h3>Demo Credentials:</h3>
-                <p><strong>Username:</strong> alice</p>
-                <p><strong>Password:</strong> alicepwd</p>
-                <hr style="margin: 10px 0; border: none; border-top: 1px solid #ddd;">
-                <p><strong>Other users:</strong> bob (bobpwd), carol (carolpwd)</p>
+                <h3>Local Demo Credentials:</h3>
+                <p><strong>Username:</strong> viki_dji</p>
+                <p><strong>Password:</strong> partyhub</p>
             </div>
 
             <div class="divider">or</div>
@@ -235,44 +209,19 @@
             form.addEventListener('submit', async function(e) {
                 e.preventDefault();
 
-                const username = document.getElementById('username').value.trim();
-                const password = document.getElementById('password').value;
-
-                if (!username || !password) {
-                    showError('Please enter both username and password');
-                    return;
-                }
-
                 loginBtn.disabled = true;
-                loginBtn.textContent = 'Logging in...';
+                loginBtn.textContent = 'Redirecting...';
                 errorMsg.style.display = 'none';
                 successMsg.style.display = 'none';
 
                 try {
-                    const userInfo = await window.authService.login(username, password);
-                    
-                    if (userInfo) {
-                        showSuccess('Login successful! Redirecting...');
-                        
-                        // Get full user from API
-                        const currentUser = await window.authService.getCurrentUser();
-                        if (currentUser) {
-                            window.setCurrentUserId(currentUser.id);
-                        }
-
-                        setTimeout(() => {
-                            window.location.href = '/index.html';
-                        }, 1000);
-                    } else {
-                        showError('Login failed: Invalid credentials');
-                    }
+                    await window.authService.login({ redirectTo: '/index.html' });
                 } catch (err) {
                     console.error('Login error:', err);
                     const message = err.message || 'Login failed. Please try again.';
                     showError(message);
-                } finally {
                     loginBtn.disabled = false;
-                    loginBtn.textContent = 'Login';
+                    loginBtn.textContent = 'Continue with Keycloak';
                 }
             });
 

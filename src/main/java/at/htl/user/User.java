@@ -27,6 +27,9 @@ public void setDeviceToken(String deviceToken) { this.deviceToken = deviceToken;
     @Column(name = "username", unique = true, nullable = true)
     private String username;
 
+    @Column(name = "keycloak_id", unique = true, nullable = true)
+    private String keycloakId;
+
     @Column(name = "display_name")
     private String displayName;
 
@@ -63,6 +66,14 @@ public void setDeviceToken(String deviceToken) { this.deviceToken = deviceToken;
 
     public void setUsername(String username) {
         this.username = username;
+    }
+
+    public String getKeycloakId() {
+        return keycloakId;
+    }
+
+    public void setKeycloakId(String keycloakId) {
+        this.keycloakId = keycloakId;
     }
 
     public String getDisplayName() {

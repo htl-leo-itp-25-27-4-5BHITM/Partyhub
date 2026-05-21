@@ -1,155 +1,375 @@
 (function () {
-  const TOKEN_KEY = "partyhub_user_id";
-  const USER_INFO_KEY = "partyhub_user_info";
+  const config = {
+    realm: "partyhub",
+    clientId: "frontend",
+    issuer: "http://localhost:8000/realms/partyhub",
+    redirectUri: `${window.location.origin}/auth/callback.html`,
+    postLogoutRedirectUri: `${window.location.origin}/register_login/start.html`,
+  };
 
-  /**
-   * Store user info
-   */
-  function storeUser(userId, userInfo) {
-    try {
-      localStorage.setItem(TOKEN_KEY, userId);
-      localStorage.setItem(USER_INFO_KEY, JSON.stringify(userInfo));
-      window.setCurrentUserId && window.setCurrentUserId(userId);
-      console.log("User stored successfully, userId:", userId);
-    } catch (e) {
-      console.error("storeUser error:", e);
-    }
-  }
+  config.authorizationEndpoint = `${config.issuer}/protocol/openid-connect/auth`;
+  config.tokenEndpoint = `${config.issuer}/protocol/openid-connect/token`;
+  config.logoutEndpoint = `${config.issuer}/protocol/openid-connect/logout`;
 
-  /**
-   * Get stored user info
-   */
-  function getUserInfo() {
+  const TOKEN_SESSION_KEY = "partyhub_keycloak_session";
+  const LOGIN_TRANSACTION_KEY = "partyhub_oidc_transaction";
+  const CURRENT_USER_KEY = "partyhub_current_user";
+
+  let tokenSession = readJson(TOKEN_SESSION_KEY);
+  let currentUser = readJson(CURRENT_USER_KEY);
+  let initPromise = null;
+
+  function readJson(key) {
     try {
-      const info = localStorage.getItem(USER_INFO_KEY);
-      return info ? JSON.parse(info) : null;
-    } catch (e) {
-      console.error("getUserInfo error:", e);
+      const raw = sessionStorage.getItem(key);
+      return raw ? JSON.parse(raw) : null;
+    } catch (error) {
+      console.warn(`Could not read ${key}`, error);
       return null;
     }
   }
 
-  /**
-   * Check if user is logged in
-   */
-  function isLoggedIn() {
-    return getCurrentUserId() !== null;
+  function writeJson(key, value) {
+    sessionStorage.setItem(key, JSON.stringify(value));
   }
 
-  /**
-   * Login by userId - fetch user from API and store
-   */
-  async function login(userId) {
+  function removeLegacyLocalAuth() {
     try {
-      const response = await fetch(`/api/users/${userId}`);
-      if (!response.ok) {
-        throw new Error("User not found");
-      }
-      const user = await response.json();
-      storeUser(userId, user);
-      return user;
-    } catch (e) {
-      console.error("login error:", e);
-      throw e;
+      localStorage.removeItem("partyhub_user_id");
+      localStorage.removeItem("partyhub_user_info");
+      localStorage.removeItem("loggedInUserId");
+    } catch (error) {
+      console.warn("Could not clear legacy auth storage", error);
     }
   }
 
-  /**
-   * Logout - clear stored data
-   */
-  function logout() {
+  function clearAuthState() {
+    tokenSession = null;
+    currentUser = null;
+    initPromise = null;
+    sessionStorage.removeItem(TOKEN_SESSION_KEY);
+    sessionStorage.removeItem(LOGIN_TRANSACTION_KEY);
+    sessionStorage.removeItem(CURRENT_USER_KEY);
+    sessionStorage.removeItem("loggedInUserId");
+    removeLegacyLocalAuth();
+  }
+
+  function base64UrlEncode(bytes) {
+    const binary = String.fromCharCode(...new Uint8Array(bytes));
+    return btoa(binary)
+      .replace(/\+/g, "-")
+      .replace(/\//g, "_")
+      .replace(/=+$/, "");
+  }
+
+  function randomBase64Url(byteLength = 32) {
+    const bytes = new Uint8Array(byteLength);
+    crypto.getRandomValues(bytes);
+    return base64UrlEncode(bytes);
+  }
+
+  async function sha256Base64Url(value) {
+    const bytes = new TextEncoder().encode(value);
+    const digest = await crypto.subtle.digest("SHA-256", bytes);
+    return base64UrlEncode(digest);
+  }
+
+  function decodeJwtPayload(token) {
+    if (!token || !token.includes(".")) {
+      return null;
+    }
+
+    const payload = token.split(".")[1].replace(/-/g, "+").replace(/_/g, "/");
+    const padded = payload.padEnd(payload.length + ((4 - payload.length % 4) % 4), "=");
     try {
-      localStorage.removeItem(TOKEN_KEY);
-      localStorage.removeItem(USER_INFO_KEY);
-      window.clearCurrentUserId && window.clearCurrentUserId();
-      window.location.href = "/register_login/start.html";
-    } catch (e) {
-      console.error("logout error:", e);
+      return JSON.parse(atob(padded));
+    } catch (error) {
+      console.warn("Could not decode JWT payload", error);
+      return null;
     }
   }
 
-  /**
-   * Get current user ID
-   */
-  function getCurrentUserId() {
-    return (
-      localStorage.getItem(TOKEN_KEY) ||
-      localStorage.getItem("loggedInUserId") ||
-      sessionStorage.getItem("loggedInUserId")
+  function storeTokenResponse(tokenResponse) {
+    const now = Math.floor(Date.now() / 1000);
+    const nextSession = {
+      accessToken: tokenResponse.access_token,
+      refreshToken: tokenResponse.refresh_token || null,
+      idToken: tokenResponse.id_token || null,
+      tokenType: tokenResponse.token_type || "Bearer",
+      expiresAt: now + Number(tokenResponse.expires_in || 0),
+      refreshExpiresAt: tokenResponse.refresh_expires_in
+        ? now + Number(tokenResponse.refresh_expires_in)
+        : null,
+    };
+
+    tokenSession = nextSession;
+    writeJson(TOKEN_SESSION_KEY, nextSession);
+    removeLegacyLocalAuth();
+  }
+
+  function getIntendedPath() {
+    return `${window.location.pathname}${window.location.search}${window.location.hash}`;
+  }
+
+  async function login(options = {}) {
+    const codeVerifier = randomBase64Url(64);
+    const codeChallenge = await sha256Base64Url(codeVerifier);
+    const state = randomBase64Url(32);
+    const nonce = randomBase64Url(32);
+    const redirectTo = options.redirectTo || getIntendedPath() || "/index.html";
+
+    writeJson(LOGIN_TRANSACTION_KEY, {
+      state,
+      nonce,
+      codeVerifier,
+      redirectTo,
+      createdAt: Date.now(),
+    });
+
+    const params = new URLSearchParams({
+      client_id: config.clientId,
+      response_type: "code",
+      scope: "openid profile email",
+      redirect_uri: config.redirectUri,
+      state,
+      nonce,
+      code_challenge: codeChallenge,
+      code_challenge_method: "S256",
+    });
+
+    window.location.assign(`${config.authorizationEndpoint}?${params.toString()}`);
+  }
+
+  async function handleCallback() {
+    const params = new URLSearchParams(window.location.search);
+    const error = params.get("error");
+    if (error) {
+      clearAuthState();
+      throw new Error(params.get("error_description") || error);
+    }
+
+    const code = params.get("code");
+    const state = params.get("state");
+    const transaction = readJson(LOGIN_TRANSACTION_KEY);
+
+    if (!code || !state || !transaction || transaction.state !== state) {
+      clearAuthState();
+      throw new Error("Invalid Keycloak login callback state");
+    }
+
+    const body = new URLSearchParams({
+      grant_type: "authorization_code",
+      client_id: config.clientId,
+      code,
+      redirect_uri: config.redirectUri,
+      code_verifier: transaction.codeVerifier,
+    });
+
+    const response = await fetch(config.tokenEndpoint, {
+      method: "POST",
+      headers: { "Content-Type": "application/x-www-form-urlencoded" },
+      body,
+    });
+
+    if (!response.ok) {
+      clearAuthState();
+      throw new Error(`Token exchange failed: ${response.status}`);
+    }
+
+    const tokenResponse = await response.json();
+    const idClaims = decodeJwtPayload(tokenResponse.id_token);
+    if (idClaims?.nonce && idClaims.nonce !== transaction.nonce) {
+      clearAuthState();
+      throw new Error("Invalid Keycloak login callback nonce");
+    }
+
+    storeTokenResponse(tokenResponse);
+    sessionStorage.removeItem(LOGIN_TRANSACTION_KEY);
+    await loadCurrentUser();
+    window.location.replace(transaction.redirectTo || "/index.html");
+  }
+
+  function hasUsableAccessToken(minValiditySeconds = 0) {
+    return Boolean(
+      tokenSession?.accessToken &&
+      tokenSession.expiresAt &&
+      tokenSession.expiresAt - Math.floor(Date.now() / 1000) > minValiditySeconds
     );
   }
 
-  /**
-   * Make API call (no auth headers needed - API is public)
-   */
-  async function apiCall(url, options = {}) {
-    const userId = getCurrentUserId();
-    const headers = {
-      ...options.headers,
-      "Content-Type": "application/json",
-    };
-
-    if (userId && !headers["X-User-Id"]) {
-      headers["X-User-Id"] = String(userId);
+  async function updateToken(minValiditySeconds = 30) {
+    if (hasUsableAccessToken(minValiditySeconds)) {
+      return true;
     }
 
-    const response = await fetch(url, {
-      ...options,
-      headers,
+    if (!tokenSession?.refreshToken) {
+      clearAuthState();
+      return false;
+    }
+
+    const body = new URLSearchParams({
+      grant_type: "refresh_token",
+      client_id: config.clientId,
+      refresh_token: tokenSession.refreshToken,
     });
 
-    return response;
+    const response = await fetch(config.tokenEndpoint, {
+      method: "POST",
+      headers: { "Content-Type": "application/x-www-form-urlencoded" },
+      body,
+    });
+
+    if (!response.ok) {
+      clearAuthState();
+      return false;
+    }
+
+    storeTokenResponse(await response.json());
+    return true;
   }
 
-  /**
-   * Get current user from API
-   */
-  async function getCurrentUser() {
-    try {
-      const userId = getCurrentUserId();
-      if (!userId) return null;
+  async function init(options = {}) {
+    if (!initPromise) {
+      initPromise = (async () => {
+        removeLegacyLocalAuth();
+        tokenSession = readJson(TOKEN_SESSION_KEY);
+        currentUser = readJson(CURRENT_USER_KEY);
 
-      const response = await apiCall(`/api/users/${userId}`);
-      if (!response.ok) return null;
-      return await response.json();
-    } catch (e) {
-      console.error("getCurrentUser error:", e);
-      return null;
+        if (tokenSession && !(await updateToken(10))) {
+          return false;
+        }
+
+        if (tokenSession && !currentUser) {
+          await loadCurrentUser();
+        }
+
+        return isLoggedIn();
+      })();
     }
+
+    await initPromise;
+    if (options.requireLogin && !isLoggedIn()) {
+      await login({ redirectTo: options.redirectTo });
+      return false;
+    }
+
+    return isLoggedIn();
+  }
+
+  function isLoggedIn() {
+    return hasUsableAccessToken(0);
   }
 
   function getAccessToken() {
-    return getCurrentUserId();
+    return tokenSession?.accessToken || null;
   }
 
-  // Export to window
+  function getUserInfo() {
+    return currentUser;
+  }
+
+  function getCurrentUserId() {
+    return currentUser?.id ?? null;
+  }
+
+  async function loadCurrentUser() {
+    if (!tokenSession?.accessToken) {
+      currentUser = null;
+      sessionStorage.removeItem(CURRENT_USER_KEY);
+      return null;
+    }
+
+    const response = await apiCall("/api/users/me", { authRequired: true });
+    if (!response.ok) {
+      if (response.status === 401 || response.status === 403) {
+        clearAuthState();
+      }
+      return null;
+    }
+
+    currentUser = await response.json();
+    writeJson(CURRENT_USER_KEY, currentUser);
+    sessionStorage.setItem("loggedInUserId", String(currentUser.id));
+    return currentUser;
+  }
+
+  async function getCurrentUser() {
+    if (currentUser) {
+      return currentUser;
+    }
+    return loadCurrentUser();
+  }
+
+  async function apiCall(url, options = {}) {
+    const { authRequired = true, headers: optionHeaders, ...fetchOptions } = options;
+    const headers = { ...(optionHeaders || {}) };
+
+    if (!(fetchOptions.body instanceof FormData) && !headers["Content-Type"] && !headers["content-type"]) {
+      headers["Content-Type"] = "application/json";
+    }
+
+    if (tokenSession?.accessToken) {
+      const refreshed = await updateToken(30);
+      if (refreshed && tokenSession?.accessToken) {
+        headers.Authorization = `Bearer ${tokenSession.accessToken}`;
+      }
+    } else if (authRequired) {
+      await login({ redirectTo: getIntendedPath() });
+      return new Response(null, { status: 401 });
+    }
+
+    if (authRequired && !headers.Authorization) {
+      await login({ redirectTo: getIntendedPath() });
+      return new Response(null, { status: 401 });
+    }
+
+    return fetch(url, {
+      ...fetchOptions,
+      headers,
+    });
+  }
+
+  function logout() {
+    const idToken = tokenSession?.idToken;
+    clearAuthState();
+
+    const params = new URLSearchParams({
+      client_id: config.clientId,
+      post_logout_redirect_uri: config.postLogoutRedirectUri,
+    });
+    if (idToken) {
+      params.set("id_token_hint", idToken);
+    }
+
+    window.location.assign(`${config.logoutEndpoint}?${params.toString()}`);
+  }
+
+  function storeUser(_userId, userInfo) {
+    currentUser = userInfo || null;
+    if (currentUser) {
+      writeJson(CURRENT_USER_KEY, currentUser);
+      sessionStorage.setItem("loggedInUserId", String(currentUser.id));
+    }
+  }
+
   window.authService = {
+    config,
+    init,
     login,
+    handleCallback,
     logout,
     isLoggedIn,
     getAccessToken,
     getUserInfo,
     getCurrentUser,
     getCurrentUserId,
+    updateToken,
     apiCall,
     storeUser,
-    clearAuth: logout,
+    clearAuth: clearAuthState,
   };
 
-  // Auto-login from URL if userId param present
-  (function () {
-    const params = new URLSearchParams(window.location.search);
-    const userId = params.get("userId");
-    if (userId && !isLoggedIn()) {
-      login(userId)
-        .then(() => {
-          window.location.href = "/index.html";
-        })
-        .catch((e) => {
-          console.error("Auto-login failed:", e);
-        });
-    }
-  })();
-
-  console.log("Auth service initialized (no Keycloak)");
+  init({ requireLogin: false }).catch((error) => {
+    console.error("Auth initialization failed", error);
+  });
 })();

@@ -12,10 +12,11 @@ import java.util.List;
 import org.jboss.logging.Logger;
 import org.jboss.resteasy.reactive.multipart.FileUpload;
 
+import at.htl.auth.CurrentUserResolver;
 import at.htl.follow.FollowRepository;
 import at.htl.media.MediaRepository;
 import at.htl.profile_picture.ProfilePicture;
-import jakarta.annotation.security.PermitAll;
+import io.quarkus.security.Authenticated;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import jakarta.persistence.EntityManager;
@@ -44,6 +45,8 @@ public class UserResource {
     FollowRepository followRepository;
     @Inject
     MediaRepository mediaRepository;
+    @Inject
+    CurrentUserResolver currentUserResolver;
     @Inject
     EntityManager em;
     @Inject
@@ -116,18 +119,10 @@ public class UserResource {
     }
 
     @GET
-    @PermitAll
     @jakarta.ws.rs.Path("/me")
-    public Response getCurrentUser(@QueryParam("userId") Long userId) {
-        if (userId == null) {
-            return Response.status(Response.Status.BAD_REQUEST)
-                .entity("{\"error\": \"userId parameter required\"}").build();
-        }
-        var user = userRepository.findById(userId);
-        if (user.isEmpty()) {
-            return Response.status(Response.Status.NOT_FOUND).build();
-        }
-        return Response.ok(user.get()).build();
+    @Authenticated
+    public Response getCurrentUser() {
+        return Response.ok(currentUserResolver.requireCurrentUser()).build();
     }
 
     @GET
@@ -159,9 +154,13 @@ public class UserResource {
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     @Transactional
-    @PermitAll
+    @Authenticated
     public Response updateUser(@PathParam("id") long id, @Valid UserCreateDto userCreateDto) {
         logger.info("updateUser called with id: " + id);
+        User currentUser = currentUserResolver.requireCurrentUser();
+        if (!currentUser.getId().equals(id)) {
+            return Response.status(Response.Status.FORBIDDEN).build();
+        }
         
         User user = em.find(User.class, id);
         if (user == null) {
@@ -268,8 +267,15 @@ public class UserResource {
     @Consumes(MediaType.MULTIPART_FORM_DATA)
     @Produces(MediaType.APPLICATION_JSON)
     @Transactional
+    @Authenticated
     public Response uploadProfilePicture(@PathParam("id") long id, @FormParam("file") FileUpload fileUpload) {
         logger.info("uploadProfilePicture called for user: " + id);
+        User currentUser = currentUserResolver.requireCurrentUser();
+        if (!currentUser.getId().equals(id)) {
+            return Response.status(Response.Status.FORBIDDEN)
+                    .entity("{\"error\": \"Cannot upload a profile picture for another user\"}")
+                    .build();
+        }
 
         try {
             em.createQuery("DELETE FROM ProfilePicture p WHERE p.user.id = :userId")
@@ -342,28 +348,31 @@ public class UserResource {
     @POST
     @jakarta.ws.rs.Path("/{id}/follow")
     @Produces(MediaType.APPLICATION_JSON)
+    @Authenticated
     public Response followUser(@PathParam("id") long id,
                                @QueryParam("targetUserId") Long targetUserId) {
         if (targetUserId == null) {
             return Response.status(Response.Status.BAD_REQUEST).build();
         }
-        return followRepository.createFollowRequest(id, targetUserId);
+        return followRepository.createFollowRequest(currentUserResolver.requireCurrentUserId(), targetUserId);
     }
 
     @PUT
     @jakarta.ws.rs.Path("/{id}/followers/{followerId}")
     @Produces(MediaType.APPLICATION_JSON)
+    @Authenticated
     public Response acceptFollow(@PathParam("id") long id,
                                 @PathParam("followerId") long followerId) {
-        return followRepository.acceptFollowRequest(followerId, id);
+        return followRepository.acceptFollowRequest(followerId, currentUserResolver.requireCurrentUserId());
     }
 
     @DELETE
     @jakarta.ws.rs.Path("/{id}/followers/{followerId}")
     @Produces(MediaType.APPLICATION_JSON)
+    @Authenticated
     public Response unfollowUser(@PathParam("id") long id,
                                 @PathParam("followerId") long followerId) {
-        return followRepository.removeFollow(followerId, id);
+        return followRepository.removeFollow(currentUserResolver.requireCurrentUserId(), id);
     }
 
     @GET
@@ -382,8 +391,9 @@ public class UserResource {
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     @Transactional
-    public Response updateUserLocation(@HeaderParam("X-User-Id") Long userId,
-                                       @Valid at.htl.user_location.UserLocationUpdateDto dto) {
+    @Authenticated
+    public Response updateUserLocation(@Valid at.htl.user_location.UserLocationUpdateDto dto) {
+        Long userId = currentUserResolver.requireCurrentUserId();
         if (userId == null) {
             return Response.status(Response.Status.BAD_REQUEST).build();
         }
@@ -427,8 +437,9 @@ public class UserResource {
     @PUT
 @jakarta.ws.rs.Path("/device-token")
 @Transactional
-public Response updateDeviceToken(@QueryParam("token") String token, 
-                                  @HeaderParam("X-User-Id") Long userId) {
+@Authenticated
+public Response updateDeviceToken(@QueryParam("token") String token) {
+    Long userId = currentUserResolver.requireCurrentUserId();
     if (userId == null || token == null) return Response.status(400).build();
     
     em.createNativeQuery("UPDATE users SET device_token = :token WHERE id = :id")

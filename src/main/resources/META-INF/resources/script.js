@@ -88,17 +88,11 @@ async function fetchParties() {
 }
 
 async function attendParty(partyId) {
-    const userId = window.getCurrentUserId() || document.getElementById('currentUserId')?.value;
-    if (!userId) {
-        alert('Please log in');
-        return;
-    }
     try {
-        const res = await fetch(`/api/parties/${partyId}/join`, {
+        const res = await window.authService.apiCall(`/api/parties/${partyId}/join`, {
             method: 'POST',
             headers: {
-                'Content-Type': 'application/json',
-                'X-User-Id': userId
+                'Content-Type': 'application/json'
             }
         });
         if (!res.ok) {
@@ -114,17 +108,9 @@ async function attendParty(partyId) {
 }
 
 async function unattendParty(partyId) {
-    const userId = window.getCurrentUserId() || document.getElementById('currentUserId')?.value;
-    if (!userId) {
-        alert('Please log in');
-        return;
-    }
     try {
-        const res = await fetch(`/api/parties/${partyId}/join`, {
-            method: 'DELETE',
-            headers: {
-                'X-User-Id': userId
-            }
+        const res = await window.authService.apiCall(`/api/parties/${partyId}/join`, {
+            method: 'DELETE'
         });
         if (!res.ok) {
             console.error('Unattend failed', res.status);

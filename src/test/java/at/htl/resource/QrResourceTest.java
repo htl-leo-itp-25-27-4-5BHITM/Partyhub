@@ -3,6 +3,7 @@ package at.htl.resource;
 import at.htl.TestBase;
 import at.htl.user.User;
 import io.quarkus.test.junit.QuarkusTest;
+import io.quarkus.test.security.TestSecurity;
 import io.restassured.http.ContentType;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -32,6 +33,7 @@ public class QrResourceTest extends TestBase {
         user.setDisplayName("Test User");
         user.setDistinctName("testuser");
         user.setEmail("test@example.com");
+        user.setKeycloakId("test-sub");
         entityManager.persist(user);
         entityManager.flush();
     }
@@ -41,7 +43,7 @@ public class QrResourceTest extends TestBase {
         given()
             .when().get("/api/qr/generate")
             .then()
-            .statusCode(400);
+            .statusCode(401);
     }
 
     @Test
@@ -50,14 +52,14 @@ public class QrResourceTest extends TestBase {
             .queryParam("userId", 999)
             .when().get("/api/qr/generate")
             .then()
-            .statusCode(404);
+            .statusCode(401);
     }
 
     @Test
+    @TestSecurity(user = "test-sub")
     void testGenerate_success() {
         User user = entityManager.createQuery("SELECT u FROM User u", User.class).getSingleResult();
         given()
-            .queryParam("userId", user.getId())
             .when().get("/api/qr/generate")
             .then()
             .statusCode(200)

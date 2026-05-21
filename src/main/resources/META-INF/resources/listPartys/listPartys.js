@@ -19,15 +19,10 @@ async function loadAllParties() {
     const container = document.getElementById('partiesContainer');
 
     try {
-        const currentUserId = window.getCurrentUserId?.() ?? window.authService?.getCurrentUserId?.() ?? null;
-        const url = currentUserId
-            ? `/api/parties?user=${encodeURIComponent(currentUserId)}`
-            : '/api/parties';
-        const response = await fetch(url, {
+        const response = await (window.authService?.apiCall || fetch)('/api/parties', {
+            authRequired: false,
             cache: 'no-store',
-            headers: currentUserId
-                ? { 'X-User-Id': String(currentUserId), 'Cache-Control': 'no-cache' }
-                : { 'Cache-Control': 'no-cache' }
+            headers: { 'Cache-Control': 'no-cache' }
         });
         if (!response.ok) {
             throw new Error('Failed to fetch parties');

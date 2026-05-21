@@ -1,39 +1,37 @@
-(function() {
-  const STORAGE_KEY = "loggedInUserId";
-  const AUTH_STORAGE_KEY = "partyhub_user_id";
+(function () {
+  const CURRENT_USER_KEY = "partyhub_current_user";
 
-  function readStoredId(storage, key) {
-    const value = storage.getItem(key);
-    return value ? Number(value) : null;
+  function readCurrentUser() {
+    try {
+      if (window.authService?.getUserInfo) {
+        const user = window.authService.getUserInfo();
+        if (user) return user;
+      }
+
+      const raw = sessionStorage.getItem(CURRENT_USER_KEY);
+      return raw ? JSON.parse(raw) : null;
+    } catch (error) {
+      console.warn("getCurrentUserId: Error reading current user", error);
+      return null;
+    }
   }
 
-  window.getCurrentUserId = function() {
-    try {
-      return (
-        readStoredId(sessionStorage, STORAGE_KEY) ??
-        readStoredId(localStorage, STORAGE_KEY) ??
-        readStoredId(localStorage, AUTH_STORAGE_KEY) ??
-        null
-      );
-    } catch (e) {
-      console.warn("getCurrentUserId: Error reading storage", e);
-    }
-    return null;
-  };
-  window.setCurrentUserId = function(id) {
-    sessionStorage.setItem(STORAGE_KEY, String(id));
-    localStorage.setItem(STORAGE_KEY, String(id));
-    localStorage.setItem(AUTH_STORAGE_KEY, String(id));
-  };
-  window.clearCurrentUserId = function() {
-    sessionStorage.removeItem(STORAGE_KEY);
-    localStorage.removeItem(STORAGE_KEY);
-    localStorage.removeItem(AUTH_STORAGE_KEY);
+  window.getCurrentUserId = function () {
+    return readCurrentUser()?.id ?? null;
   };
 
-  window.isUserLoggedIn = function() {
-    return window.getCurrentUserId() !== null;
+  window.setCurrentUserId = function (id) {
+    const user = readCurrentUser() || {};
+    sessionStorage.setItem(CURRENT_USER_KEY, JSON.stringify({ ...user, id }));
+    sessionStorage.setItem("loggedInUserId", String(id));
   };
 
-  window.getCurrentUserId();
+  window.clearCurrentUserId = function () {
+    sessionStorage.removeItem(CURRENT_USER_KEY);
+    sessionStorage.removeItem("loggedInUserId");
+  };
+
+  window.isUserLoggedIn = function () {
+    return window.authService?.isLoggedIn?.() === true;
+  };
 })();

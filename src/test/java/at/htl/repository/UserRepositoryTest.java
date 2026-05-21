@@ -219,6 +219,53 @@ public class UserRepositoryTest {
     }
 
     @Test
+    void testFindByKeycloakId_found() {
+        User user = new User();
+        user.setDisplayName("Keycloak User");
+        user.setDistinctName("keycloakuser");
+        user.setEmail("keycloak@example.com");
+        user.setKeycloakId("kc-subject-1");
+        entityManager.persist(user);
+        entityManager.flush();
+
+        var found = userRepository.findByKeycloakId("kc-subject-1");
+        assertTrue(found.isPresent());
+        assertEquals("keycloakuser", found.get().getDistinctName());
+    }
+
+    @Test
+    void testFindUnlinkedByUsernameOrEmail_matchesUsername() {
+        User user = new User();
+        user.setUsername("viki_dji");
+        user.setDisplayName("Victoria Vejmelek");
+        user.setDistinctName("viki_vejmelek");
+        user.setEmail("v.vejmelek@students.htl-leonding.ac.at");
+        entityManager.persist(user);
+        entityManager.flush();
+
+        var found = userRepository.findUnlinkedByUsernameOrEmail("viki_dji", null);
+        assertTrue(found.isPresent());
+        assertEquals("viki_vejmelek", found.get().getDistinctName());
+    }
+
+    @Test
+    void testLinkKeycloakId_updatesUser() {
+        User user = new User();
+        user.setUsername("link_me");
+        user.setDisplayName("Link Me");
+        user.setDistinctName("link_me");
+        user.setEmail("link@example.com");
+        entityManager.persist(user);
+        entityManager.flush();
+
+        User linked = userRepository.linkKeycloakId(user, "kc-linked");
+        entityManager.flush();
+
+        assertEquals("kc-linked", linked.getKeycloakId());
+        assertTrue(userRepository.findByKeycloakId("kc-linked").isPresent());
+    }
+
+    @Test
     void testFindByUsername_notFound() {
         var found = userRepository.findByUsername("nonexistent");
         assertTrue(found.isEmpty());

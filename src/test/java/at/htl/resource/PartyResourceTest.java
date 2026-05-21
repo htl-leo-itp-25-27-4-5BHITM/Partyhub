@@ -4,6 +4,7 @@ import at.htl.TestBase;
 import at.htl.location.Location;
 import at.htl.user.User;
 import io.quarkus.test.junit.QuarkusTest;
+import io.quarkus.test.security.TestSecurity;
 import io.restassured.http.ContentType;
 import jakarta.inject.Inject;
 import jakarta.persistence.EntityManager;
@@ -41,6 +42,7 @@ public class PartyResourceTest extends TestBase {
         user.setDisplayName("Test User");
         user.setDistinctName("testuser");
         user.setEmail("test@example.com");
+        user.setKeycloakId("test-sub");
         entityManager.persist(user);
 
         entityManager.flush();
@@ -72,6 +74,7 @@ public class PartyResourceTest extends TestBase {
     }
 
     @Test
+    @TestSecurity(user = "test-sub")
     void testUpdateParty_notFound() {
         String requestBody = """
             {
@@ -84,7 +87,6 @@ public class PartyResourceTest extends TestBase {
         given()
             .contentType(ContentType.JSON)
             .body(requestBody)
-            .header("X-User-Id", "1")
             .when().put("/api/parties/999")
             .then()
             .statusCode(404);
@@ -111,27 +113,27 @@ public class PartyResourceTest extends TestBase {
     }
 
     @Test
+    @TestSecurity(user = "test-sub")
     void testJoinParty_notFound() {
         given()
-            .header("X-User-Id", "1")
             .when().post("/api/parties/999/join")
             .then()
             .statusCode(404);
     }
 
     @Test
+    @TestSecurity(user = "test-sub")
     void testLeaveParty_notFound() {
         given()
-            .header("X-User-Id", "1")
             .when().delete("/api/parties/999/join")
             .then()
             .statusCode(404);
     }
 
     @Test
+    @TestSecurity(user = "test-sub")
     void testJoinStatus_notFound() {
         given()
-            .header("X-User-Id", "1")
             .when().get("/api/parties/999/join/status")
             .then()
             .statusCode(404);
@@ -142,7 +144,7 @@ public class PartyResourceTest extends TestBase {
         given()
             .when().post("/api/parties/999/join")
             .then()
-            .statusCode(400);
+            .statusCode(401);
     }
 
     @Test
@@ -150,7 +152,7 @@ public class PartyResourceTest extends TestBase {
         given()
             .when().delete("/api/parties/999/join")
             .then()
-            .statusCode(400);
+            .statusCode(401);
     }
 
     @Test
@@ -158,7 +160,7 @@ public class PartyResourceTest extends TestBase {
         given()
             .when().get("/api/parties/999/join/status")
             .then()
-            .statusCode(400);
+            .statusCode(401);
     }
 
     @Test
@@ -187,7 +189,7 @@ public class PartyResourceTest extends TestBase {
             .body(requestBody)
             .when().post("/api/parties")
             .then()
-            .statusCode(400);
+            .statusCode(401);
     }
 
     @Test
@@ -211,13 +213,13 @@ public class PartyResourceTest extends TestBase {
             .body(requestBody)
             .when().put("/api/parties/999")
             .then()
-            .statusCode(400);
+            .statusCode(401);
     }
 
     @Test
+    @TestSecurity(user = "test-sub")
     void testCanEditParty_notFound() {
         given()
-            .header("X-User-Id", "1")
             .when().get("/api/parties/999/can-edit")
             .then()
             .statusCode(404);
@@ -228,7 +230,7 @@ public class PartyResourceTest extends TestBase {
         given()
             .when().get("/api/parties/999/can-edit")
             .then()
-            .statusCode(400);
+            .statusCode(401);
     }
 
     @Test
@@ -242,16 +244,15 @@ public class PartyResourceTest extends TestBase {
     @Test
     void testGetPartyMedia_notFound() {
         given()
-            .header("X-User-Id", "1")
             .when().get("/api/parties/999/media")
             .then()
             .statusCode(404);
     }
 
     @Test
+    @TestSecurity(user = "test-sub")
     void testInvitedMembers_notFound() {
         given()
-            .header("X-User-Id", "1")
             .when().get("/api/parties/999/invited-members")
             .then()
             .statusCode(404);
@@ -262,7 +263,7 @@ public class PartyResourceTest extends TestBase {
         given()
             .when().get("/api/parties/999/invited-members")
             .then()
-            .statusCode(404);
+            .statusCode(401);
     }
 
     @Test
@@ -271,13 +272,13 @@ public class PartyResourceTest extends TestBase {
             .queryParam("token", "test-token")
             .when().put("/api/parties/device-token")
             .then()
-            .statusCode(400);
+            .statusCode(401);
     }
 
     @Test
+    @TestSecurity(user = "test-sub")
     void testUpdateDeviceToken_noToken() {
         given()
-            .header("X-User-Id", "1")
             .when().put("/api/parties/device-token")
             .then()
             .statusCode(400);
