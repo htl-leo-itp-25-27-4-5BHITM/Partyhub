@@ -26,6 +26,9 @@ struct PartyDetailView: View {
     @State private var showError = false
     @State private var errorMessage = ""
     
+    // MARK: - Invite Users
+    @State private var showInviteSheet = false
+
     // MARK: - Notification System
     @StateObject private var notificationManager = PartyNotificationManager.shared
     @State private var hasCheckedUpdates = false
@@ -205,17 +208,23 @@ struct PartyDetailView: View {
                                 Label("Share App Link", systemImage: "antenna.radiowaves.left.and.right")
                             }
                         }
+                        Button {
+                            showInviteSheet = true
+                        } label: {
+                            Label("Invite Friends", systemImage: "person.badge.plus")
+                        }
                     } label: {
                         Text("Share")
                     }
                 }
             }
             .sheet(isPresented: $showEditSheet) {
-                PartyEditView(party: party) { updatedParty in
-                    Task {
-                        await updatePartyOnBackend(updatedParty)
-                    }
+                PartyFormView(mode: .edit(party)) { updatedParty in
+                    await updatePartyOnBackend(updatedParty)
                 }
+            }
+            .sheet(isPresented: $showInviteSheet) {
+                InviteUsersView(party: party)
             }
             .overlay {
                 if isUpdating {
@@ -604,127 +613,4 @@ struct PartyDetailView: View {
         }
     }
     
-    // MARK: - Party Edit Data Model (NEU)
-    struct PartyEditData {
-        var title: String
-        var description: String
-        var location: String
-        var latitude: Double
-        var longitude: Double
-        var timeStart: Date?
-        var timeEnd: Date?
-        var maxPeople: Int?
-        var minAge: Int?
-        var maxAge: Int?
-        var website: String?
-        var fee: Double?
-        var categoryId: Int?
-    }
-    
-    // MARK: - Party Edit View (NEU)
-    struct PartyEditView: View {
-        @Environment(\.dismiss) private var dismiss
-        let party: Party
-        let onSave: (PartyEditData) -> Void
-        
-        @State private var title: String
-        @State private var description: String
-        @State private var location: String
-        @State private var timeStart: Date
-        @State private var timeEnd: Date
-        @State private var maxPeople: String
-        @State private var minAge: String
-        @State private var maxAge: String
-        @State private var website: String
-        @State private var fee: String
-        
-        init(party: Party, onSave: @escaping (PartyEditData) -> Void) {
-            self.party = party
-            self.onSave = onSave
-            
-            _title = State(initialValue: party.name)
-            _description = State(initialValue: party.partyDescription ?? "")
-            _location = State(initialValue: party.location)
-            _timeStart = State(initialValue: party.timeStart ?? Date())
-            _timeEnd = State(initialValue: party.timeEnd ?? Date())
-            _maxPeople = State(initialValue: party.maxPeople.map { "\($0)" } ?? "")
-            _minAge = State(initialValue: party.minAge.map { "\($0)" } ?? "18")
-            _maxAge = State(initialValue: party.maxAge.map { "\($0)" } ?? "99")
-            _website = State(initialValue: party.website ?? "")
-            _fee = State(initialValue: party.fee.map { String(format: "%.2f", $0) } ?? "0.00")
-        }
-        
-        var body: some View {
-            NavigationStack {
-                Form {
-                    Section("Generel") {
-                        TextField("Title", text: $title)
-                        TextField("Description", text: $description, axis: .vertical)
-                            .lineLimit(3...6)
-                    }
-                    
-                    Section("Place") {
-                        TextField("Adress", text: $location)
-                    }
-                    
-                    Section("Time") {
-                        DatePicker("Start", selection: $timeStart)
-                        DatePicker("End", selection: $timeEnd)
-                    }
-                    
-                    Section("Participants") {
-                        TextField("max. Participants", text: $maxPeople)
-                            .keyboardType(.numberPad)
-                        HStack {
-                            TextField("min. Age", text: $minAge)
-                                .keyboardType(.numberPad)
-                            Text("-")
-                            TextField("max. Age", text: $maxAge)
-                                .keyboardType(.numberPad)
-                        }
-                    }
-                    
-                    Section("Further Information") {
-                        TextField("Website", text: $website)
-                            .keyboardType(.URL)
-                            .textInputAutocapitalization(.never)
-                        TextField("Admission (€)", text: $fee)
-                            .keyboardType(.decimalPad)
-                    }
-                }
-                .navigationTitle("Party attend")
-                .navigationBarTitleDisplayMode(.inline)
-                .toolbar {
-                    ToolbarItem(placement: .cancellationAction) {
-                        Button("Cancel") {
-                            dismiss()
-                        }
-                    }
-                    
-                    ToolbarItem(placement: .confirmationAction) {
-                        Button("Save") {
-                            let editData = PartyEditData(
-                                title: title,
-                                description: description,
-                                location: location,
-                                latitude: party.latitude,
-                                longitude: party.longitude,
-                                timeStart: timeStart,
-                                timeEnd: timeEnd,
-                                maxPeople: Int(maxPeople),
-                                minAge: Int(minAge),
-                                maxAge: Int(maxAge),
-                                website: website.isEmpty ? nil : website,
-                                fee: Double(fee.replacingOccurrences(of: ",", with: ".")),
-                                categoryId: party.categoryId
-                            )
-                            onSave(editData)
-                            dismiss()
-                        }
-                        .fontWeight(.semibold)
-                        .disabled(title.isEmpty || location.isEmpty)
-                    }
-                }
-            }
-        }
-    }
+

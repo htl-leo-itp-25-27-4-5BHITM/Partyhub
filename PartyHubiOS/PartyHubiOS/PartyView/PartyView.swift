@@ -13,6 +13,9 @@ struct PartyView: View {
     @State private var drivingDistances: [Int: Double] = [:]
     @State private var lastFetchLocation: CLLocation? = nil
     @State private var isFetching = false
+    @State private var showCreateSheet = false
+    @State private var isCreating = false
+    @State private var createError: String? = nil
 
     func sortedParties(userCoord: CLLocationCoordinate2D?) -> [Party] {
         guard let userCoord else { return parties }
@@ -55,10 +58,24 @@ struct PartyView: View {
             .navigationBarTitleDisplayMode(.large)
             .toolbar {
                 ToolbarItem(placement: .primaryAction) {
-                    Button(action: {}) {
+                    Button(action: { showCreateSheet = true }) {
                         Label("Party create", systemImage: "plus")
                     }
+                    .disabled(isCreating)
                 }
+            }
+            .sheet(isPresented: $showCreateSheet) {
+                PartyFormView(mode: .create) { data in
+                    await createParty(data)
+                }
+            }
+            .alert("Error", isPresented: .init(
+                get: { createError != nil },
+                set: { if !$0 { createError = nil } }
+            )) {
+                Button("OK", role: .cancel) { }
+            } message: {
+                Text(createError ?? "")
             }
         }
         .onAppear {
@@ -110,6 +127,51 @@ struct PartyView: View {
 
         group.notify(queue: .main) {
             isFetching = false
+        }
+    }
+
+    private func createParty(_ data: PartyEditData) async {
+        isCreating = true
+        defer { isCreating = false }
+
+        let dateFormatter = DateFormatter()
+        dateFormatter.dateFormat = "yyyy-MM-dd'T'HH:mm:ss"
+
+        let payload = PartyCreatePayload(
+            title: data.title,
+            description: data.description,
+            fee: data.fee ?? 0,
+            timeStart: dateFormatter.string(from: data.timeStart ?? Date()),
+            timeEnd: data.timeEnd.map { dateFormatter.string(from: $0) },
+            maxPeople: data.maxPeople,
+            minAge: data.minAge,
+            maxAge: data.maxAge,
+            website: data.website ?? "",
+            latitude: data.latitude,
+            longitude: data.longitude,
+            locationAddress: data.location,
+            theme: "Standard",
+            visibility: "public",
+            selectedUsers: []
+        )
+
+        do {
+            let _: EmptyResponse = try await APIClient.shared.request(
+                method: .POST,
+                path: "/api/parties",
+                body: payload,
+                authType: .userIdHeader
+            )
+
+            await MainActor.run {
+                showCreateSheet = false
+            }
+
+            NotificationCenter.default.post(name: .partyDidUpdate, object: nil)
+        } catch {
+            await MainActor.run {
+                createError = "Failed to create party: \(error.localizedDescription)"
+            }
         }
     }
 
@@ -207,5 +269,34 @@ struct PartyView: View {
                 ? String(format: "%dh %02dm %02ds", h, m, s)
                 : String(format: "%dm %02ds", m, s)
         }
+    }
+}
+
+private struct PartyCreatePayload: Encodable {
+    let title: String
+    let description: String
+    let fee: Double
+    let timeStart: String
+    let timeEnd: String?
+    let maxPeople: Int?
+    let minAge: Int?
+    let maxAge: Int?
+    let website: String
+    let latitude: Double
+    let longitude: Double
+    let locationAddress: String
+    let theme: String
+    let visibility: String
+    let selectedUsers: [String]
+
+    enum CodingKeys: String, CodingKey {
+        case title, description, fee, website, theme, visibility, latitude, longitude
+        case timeStart = "time_start"
+        case timeEnd = "time_end"
+        case maxPeople = "max_people"
+        case minAge = "min_age"
+        case maxAge = "max_age"
+        case locationAddress = "location_address"
+        case selectedUsers = "selected_users"
     }
 }

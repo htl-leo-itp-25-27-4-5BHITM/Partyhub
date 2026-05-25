@@ -12,29 +12,34 @@ struct ContentView: View {
                 .tabItem {
                     Label("Home", systemImage: "location")
                 }
-            
+
             PartyView()
                 .tabItem {
                     Label("Party", systemImage: "party.popper")
                 }
-            
+
+            InvitationsView()
+                .tabItem {
+                    Label("Invites", systemImage: "envelope.badge")
+                }
+
             TimeTrackingView()
                 .tabItem {
                     Label("Time", systemImage: "timer")
                 }
-              
+
             MapView(locationManager: locationManager)
                 .tabItem {
                     Label("Map", systemImage: "map")
                 }
-              
+
             ProfileView()
                 .tabItem {
                     Label("Profile", systemImage: "person")
                 }
-             
         }
         .tint(Color("primary pink"))
+        .tabBarMinimizeBehavior(.onScrollDown)
         .onReceive(NotificationCenter.default.publisher(for: .showPartyDetail)) { notification in
             if let partyId = notification.object as? Int {
                 selectedParty = parties.first(where: { $0.backendId == partyId })

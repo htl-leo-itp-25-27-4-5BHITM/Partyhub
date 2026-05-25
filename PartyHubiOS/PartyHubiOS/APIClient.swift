@@ -342,4 +342,11 @@ struct UserProfile: Codable, Identifiable {
     let email: String?
     let biography: String?
     let phoneNumber: String?
+
+    enum CodingKeys: String, CodingKey {
+        case id, username, email, biography
+        case displayName
+        case distinctName
+        case phoneNumber
+    }
 }

@@ -286,25 +286,25 @@ struct ProfileView: View {
         loadState = .loading
 
         do {
-            async let profile: UserProfile = APIClient.shared.request(
+            let profile: UserProfile = try await APIClient.shared.request(
                 method: .GET,
                 path: "/api/users/\(userId)",
                 authType: .none
             )
-            async let followerCountResp: CountResponse = APIClient.shared.request(
+            let followerCountResp: CountResponse = try await APIClient.shared.request(
                 method: .GET,
                 path: "/api/users/\(userId)/followers/count",
                 authType: .none
             )
-            async let followingCountResp: CountResponse = APIClient.shared.request(
+            let followingCountResp: CountResponse = try await APIClient.shared.request(
                 method: .GET,
                 path: "/api/users/\(userId)/following/count",
                 authType: .none
             )
 
-            let user = try await profile
-            followerCount = try await followerCountResp.count
-            followingCount = try await followingCountResp.count
+            let user = profile
+            followerCount = followerCountResp.count
+            followingCount = followingCountResp.count
 
             loadState = .loaded(user)
             initialLoadComplete = true

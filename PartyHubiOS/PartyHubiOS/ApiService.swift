@@ -40,7 +40,7 @@ class ApiService {
         
         request.httpBody = try? JSONSerialization.data(withJSONObject: body)
 
-        let (data, response) = try await URLSession.shared.data(for: request)
+        let (_, response) = try await URLSession.shared.data(for: request)
 
         if let httpResponse = response as? HTTPURLResponse {
             if httpResponse.statusCode != 200 {
