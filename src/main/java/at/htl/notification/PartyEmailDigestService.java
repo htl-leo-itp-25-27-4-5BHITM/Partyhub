@@ -32,11 +32,11 @@ public class PartyEmailDigestService {
     UserNotificationSettingsRepository settingsRepository;
 
     @ConfigProperty(name = "partyhub.notifications.email.from", defaultValue = "noreply@partyhub.at")
+    String emailFrom;
+    
     @ConfigProperty(name = "partyhub.notifications.email.enabled", defaultValue = "true")
     boolean emailEnabled;
-    String emailFrom;
 
-    @Scheduled(cron = "0 0 10 ? * MON")
     @Scheduled(cron = "0 0 10 ? * MON")
     void sendWeeklyDigest() {
         // Check if email notifications are globally enabled

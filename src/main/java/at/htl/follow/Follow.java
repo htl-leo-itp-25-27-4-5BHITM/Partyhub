@@ -4,7 +4,6 @@ import jakarta.persistence.*;
 import java.util.Objects;
 
 @Entity
-@TableGenerator(name="follow")
 @Table(name="follow")
 public class Follow {
     public Follow() {

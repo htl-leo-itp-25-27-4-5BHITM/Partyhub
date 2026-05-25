@@ -3,7 +3,6 @@ package at.htl.follow;
 import jakarta.persistence.*;
 
 @Entity
-@TableGenerator(name="follow_status")
 @Table(name="follow_status")
 public class FollowStatus {
     @Id
