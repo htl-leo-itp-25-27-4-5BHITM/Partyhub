@@ -1,0 +1,209 @@
+{
+  "realm": "partyhub",
+  "enabled": true,
+  "roles": {
+    "realm": [
+      {
+        "name": "admin"
+      }
+    ]
+  },
+  "clients": [
+    {
+      "clientId": "frontend",
+      "enabled": true,
+      "protocol": "openid-connect",
+      "publicClient": true,
+      "directAccessGrantsEnabled": false,
+      "standardFlowEnabled": true,
+      "redirectUris": [
+        "http://localhost:8080/*"
+      ],
+      "webOrigins": [
+        "http://localhost:8080"
+      ],
+      "attributes": {
+        "pkce.code.challenge.method": "S256"
+      }
+    },
+    {
+      "clientId": "backend-test",
+      "enabled": true,
+      "protocol": "openid-connect",
+      "publicClient": false,
+      "directAccessGrantsEnabled": true,
+      "standardFlowEnabled": false,
+      "secret": "test-client-secret",
+      "serviceAccountsEnabled": true,
+      "attributes": {
+        "pkce.code.challenge.method": "S256"
+      }
+    }
+  ],
+  "users": [
+    {
+      "username": "admin",
+      "enabled": true,
+      "credentials": [
+        {
+          "type": "password",
+          "value": "password",
+          "temporary": false
+        }
+      ],
+      "realmRoles": [
+        "admin"
+      ]
+    },
+    {
+      "username": "viki_dji",
+      "email": "v.vejmelek@students.htl-leonding.ac.at",
+      "firstName": "Victoria",
+      "lastName": "Vejmelek",
+      "enabled": true,
+      "emailVerified": true,
+      "credentials": [
+        {
+          "type": "password",
+          "value": "viki_dji",
+          "temporary": false
+        }
+      ]
+    },
+    {
+      "username": "carla_dimmler",
+      "email": "c.dimmler@students.htl-leonding.ac.at",
+      "firstName": "Carla",
+      "lastName": "Dimmler",
+      "enabled": true,
+      "emailVerified": true,
+      "credentials": [
+        {
+          "type": "password",
+          "value": "carla_dimmler",
+          "temporary": false
+        }
+      ]
+    },
+    {
+      "username": "katrin_bauer",
+      "email": "katrin.bauer@partyhub.at",
+      "firstName": "Katrin",
+      "lastName": "Bauer",
+      "enabled": true,
+      "emailVerified": true,
+      "credentials": [
+        {
+          "type": "password",
+          "value": "katrin_bauer",
+          "temporary": false
+        }
+      ]
+    },
+    {
+      "username": "michael_wagner",
+      "email": "michael.wagner@partyhub.at",
+      "firstName": "Michael",
+      "lastName": "Wagner",
+      "enabled": true,
+      "emailVerified": true,
+      "credentials": [
+        {
+          "type": "password",
+          "value": "michael_wagner",
+          "temporary": false
+        }
+      ]
+    },
+    {
+      "username": "sabine_weber",
+      "email": "sabine.weber@partyhub.at",
+      "firstName": "Sabine",
+      "lastName": "Weber",
+      "enabled": true,
+      "emailVerified": true,
+      "credentials": [
+        {
+          "type": "password",
+          "value": "sabine_weber",
+          "temporary": false
+        }
+      ]
+    },
+    {
+      "username": "lukas_gruber",
+      "email": "lukas.gruber@partyhub.at",
+      "firstName": "Lukas",
+      "lastName": "Gruber",
+      "enabled": true,
+      "emailVerified": true,
+      "credentials": [
+        {
+          "type": "password",
+          "value": "lukas_gruber",
+          "temporary": false
+        }
+      ]
+    },
+    {
+      "username": "mia_steiner",
+      "email": "mia.steiner@partyhub.at",
+      "firstName": "Mia",
+      "lastName": "Steiner",
+      "enabled": true,
+      "emailVerified": true,
+      "credentials": [
+        {
+          "type": "password",
+          "value": "mia_steiner",
+          "temporary": false
+        }
+      ]
+    },
+    {
+      "username": "david_koenig",
+      "email": "david.koenig@partyhub.at",
+      "firstName": "David",
+      "lastName": "Koenig",
+      "enabled": true,
+      "emailVerified": true,
+      "credentials": [
+        {
+          "type": "password",
+          "value": "david_koenig",
+          "temporary": false
+        }
+      ]
+    },
+    {
+      "username": "nina_fischer",
+      "email": "nina.fischer@partyhub.at",
+      "firstName": "Nina",
+      "lastName": "Fischer",
+      "enabled": true,
+      "emailVerified": true,
+      "credentials": [
+        {
+          "type": "password",
+          "value": "nina_fischer",
+          "temporary": false
+        }
+      ]
+    },
+    {
+      "username": "elias_berger",
+      "email": "elias.berger@partyhub.at",
+      "firstName": "Elias",
+      "lastName": "Berger",
+      "enabled": true,
+      "emailVerified": true,
+      "credentials": [
+        {
+          "type": "password",
+          "value": "elias_berger",
+          "temporary": false
+        }
+      ]
+    }
+  ]
+}

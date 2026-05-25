@@ -32,6 +32,7 @@ public class MediaRepositoryTest {
         entityManager.createQuery("DELETE FROM Notification").executeUpdate();
         entityManager.createQuery("DELETE FROM Media").executeUpdate();
         entityManager.createQuery("DELETE FROM Party").executeUpdate();
+        entityManager.createQuery("DELETE FROM UserNotificationSettings").executeUpdate();
         entityManager.createQuery("DELETE FROM User").executeUpdate();
         entityManager.flush();
     }

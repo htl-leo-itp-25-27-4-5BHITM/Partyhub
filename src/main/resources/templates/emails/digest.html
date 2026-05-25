@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Your PartyHub Weekly Digest</title>
+</head>
+<body>
+    <h1>Your Weekly Digest</h1>
+    <p>Hi {displayName},</p>
+    <p>Here are the upcoming parties you might be interested in:</p>
+    <ul>
+    {#for party in parties}
+        <li>
+            <strong>{party.title}</strong> - {party.theme}<br>
+            {party.timeStart.format('dd.MM.yyyy HH:mm')}
+        </li>
+    {/for}
+    </ul>
+    <p>See you there!</p>
+    <small>PartyHub - Your Party Platform</small>
+</body>
+</html>

@@ -9,7 +9,7 @@
 ###########################################
 ### Seed: visible parties for Mia include public + joined/invited
 ###########################################
-GET {{baseUrl}}?user={{mia}}
+GET {{baseUrl}}
 X-User-Id: {{mia}}
 
 ?? status == 200
@@ -34,7 +34,7 @@ GET {{baseUrl}}/4
 ###########################################
 ### Seed: invited user can load private party 4
 ###########################################
-GET {{baseUrl}}/4?user={{michael}}
+GET {{baseUrl}}/4
 X-User-Id: {{michael}}
 
 ?? status == 200
@@ -43,7 +43,7 @@ X-User-Id: {{michael}}
 ###########################################
 ### Seed: unrelated user cannot load private party 9
 ###########################################
-GET {{baseUrl}}/9?user={{michael}}
+GET {{baseUrl}}/9
 X-User-Id: {{michael}}
 
 ?? status == 404

@@ -657,6 +657,40 @@ public class PartyRepository {
         return Response.ok(Map.of("attending", attending, "count", count)).build();
     }
 
+    public InvitationStatsDto getInvitationStats(Long partyId, Long userId) {
+        Party party = getPartyByIdIfVisible(partyId, userId);
+        if (party == null) {
+            return null;
+        }
+
+        List<Invitation> invitations = entityManager.createQuery(
+                        "SELECT i FROM Invitation i WHERE i.party.id = :partyId",
+                        Invitation.class)
+                .setParameter("partyId", partyId)
+                .getResultList();
+
+        long accepted = 0;
+        long declined = 0;
+        long pending = 0;
+
+        for (Invitation inv : invitations) {
+            switch (inv.getStatus().toUpperCase()) {
+                case "ACCEPTED" -> accepted++;
+                case "DECLINED" -> declined++;
+                default -> pending++;
+            }
+        }
+
+        if (party.getHost_user() != null) {
+            accepted++;
+        }
+
+        long totalInvited = accepted + declined + pending;
+        double acceptedRatio = totalInvited > 0 ? (double) accepted / totalInvited : 0.0;
+
+        return new InvitationStatsDto(totalInvited, accepted, declined, pending, acceptedRatio);
+    }
+
     private LocalDateTime parseDateTime(String dateStr) {
         if (dateStr == null || dateStr.isBlank()) return null;
         try {

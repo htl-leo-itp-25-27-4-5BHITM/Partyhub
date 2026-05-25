@@ -35,6 +35,7 @@ public class UserRepositoryTest {
         entityManager.createQuery("DELETE FROM Media").executeUpdate();
         entityManager.createQuery("DELETE FROM Party").executeUpdate();
         entityManager.createQuery("DELETE FROM ProfilePicture").executeUpdate();
+        entityManager.createQuery("DELETE FROM UserNotificationSettings").executeUpdate();
         entityManager.createQuery("DELETE FROM User").executeUpdate();
         entityManager.createQuery("DELETE FROM Location").executeUpdate();
         entityManager.createQuery("DELETE FROM FollowStatus").executeUpdate();

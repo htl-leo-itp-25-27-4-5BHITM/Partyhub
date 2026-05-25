@@ -1,7 +1,9 @@
 package at.htl.resource;
 
 import at.htl.TestBase;
+import at.htl.invitation.Invitation;
 import at.htl.location.Location;
+import at.htl.party.Party;
 import at.htl.user.User;
 import io.quarkus.test.junit.QuarkusTest;
 import io.quarkus.test.security.TestSecurity;
@@ -22,6 +24,10 @@ public class PartyResourceTest extends TestBase {
     @Inject
     EntityManager entityManager;
 
+    Location testLocation;
+    User testUser;
+    Long testPartyId;
+
     @BeforeEach
     void setUp() {
         entityManager.createQuery("DELETE FROM UserLocation").executeUpdate();
@@ -29,23 +35,47 @@ public class PartyResourceTest extends TestBase {
         entityManager.createQuery("DELETE FROM Invitation").executeUpdate();
         entityManager.createQuery("DELETE FROM Media").executeUpdate();
         entityManager.createQuery("DELETE FROM Party").executeUpdate();
+        entityManager.createQuery("DELETE FROM UserNotificationSettings").executeUpdate();
         entityManager.createQuery("DELETE FROM User").executeUpdate();
         entityManager.createQuery("DELETE FROM Location").executeUpdate();
 
-        Location location = new Location();
-        location.setAddress("Test Address");
-        location.setLatitude(48.2082);
-        location.setLongitude(16.3738);
-        entityManager.persist(location);
+        testLocation = new Location();
+        testLocation.setAddress("Test Address");
+        testLocation.setLatitude(48.2082);
+        testLocation.setLongitude(16.3738);
+        entityManager.persist(testLocation);
 
-        User user = new User();
-        user.setDisplayName("Test User");
-        user.setDistinctName("testuser");
-        user.setEmail("test@example.com");
-        user.setKeycloakId("test-sub");
-        entityManager.persist(user);
+        testUser = new User();
+        testUser.setDisplayName("Test User");
+        testUser.setDistinctName("testuser");
+        testUser.setEmail("test@example.com");
+        testUser.setKeycloakId("test-sub");
+        entityManager.persist(testUser);
+
+        Party party = new Party();
+        party.setTitle("Test Party");
+        party.setHost_user(testUser);
+        party.setLocation(testLocation);
+        party.setVisibility("PUBLIC");
+        party.setTime_start(java.time.LocalDateTime.now());
+        party.setTime_end(java.time.LocalDateTime.now().plusHours(4));
+        entityManager.persist(party);
+
+        User invUser = new User();
+        invUser.setDisplayName("Invited User");
+        invUser.setDistinctName("invuser");
+        invUser.setEmail("inv@example.com");
+        entityManager.persist(invUser);
+
+        Invitation inv = new Invitation();
+        inv.setParty(party);
+        inv.setRecipient(invUser);
+        inv.setSender(testUser);
+        inv.setStatus("PENDING");
+        entityManager.persist(inv);
 
         entityManager.flush();
+        testPartyId = party.getId();
     }
 
     @Test
@@ -302,5 +332,33 @@ public class PartyResourceTest extends TestBase {
             .then()
             .statusCode(200)
             .body("$", is(notNullValue()));
+    }
+
+    @Test
+    void testGetInvitationStats() {
+        given()
+            .header("X-User-Id", testUser.getId().toString())
+            .when().get("/api/parties/" + testPartyId + "/invitation-stats")
+            .then()
+            .statusCode(200)
+            .body("totalInvited", is(greaterThan(0)))
+            .body("acceptedRatio", is(greaterThan(0.0f)));
+    }
+
+    @Test
+    void testGetInvitationStats_notFound() {
+        given()
+            .header("X-User-Id", testUser.getId().toString())
+            .when().get("/api/parties/99999/invitation-stats")
+            .then()
+            .statusCode(404);
+    }
+
+    @Test
+    void testGetInvitationStats_noAuth() {
+        given()
+            .when().get("/api/parties/" + testPartyId + "/invitation-stats")
+            .then()
+            .statusCode(401);
     }
 }

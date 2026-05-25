@@ -32,6 +32,7 @@ public class UserLocationRepositoryTest {
         entityManager.createQuery("DELETE FROM UserLocation").executeUpdate();
         entityManager.createQuery("DELETE FROM Invitation").executeUpdate();
         entityManager.createQuery("DELETE FROM Party").executeUpdate();
+        entityManager.createQuery("DELETE FROM UserNotificationSettings").executeUpdate();
         entityManager.createQuery("DELETE FROM User").executeUpdate();
         entityManager.flush();
     }

@@ -34,6 +34,7 @@ public class QrLoginRepositoryTest {
         entityManager.createQuery("DELETE FROM Invitation").executeUpdate();
         entityManager.createQuery("DELETE FROM QrLogin").executeUpdate();
         entityManager.createQuery("DELETE FROM Party").executeUpdate();
+        entityManager.createQuery("DELETE FROM UserNotificationSettings").executeUpdate();
         entityManager.createQuery("DELETE FROM User").executeUpdate();
         entityManager.flush();
     }

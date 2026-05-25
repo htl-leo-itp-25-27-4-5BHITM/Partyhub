@@ -1,0 +1,2 @@
+The party "{partyTitle}" has been updated.
+Check the new details in PartyHub.

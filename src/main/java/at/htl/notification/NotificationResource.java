@@ -30,9 +30,13 @@ public class NotificationResource {
     @Path("")
     @Transactional
     @Authenticated
-    public Response getNotifications() {
+    public Response getNotifications(
+            @QueryParam("partyId") Long partyId,
+            @QueryParam("type") String type,
+            @QueryParam("search") String search) {
         Long actualUserId = currentUserResolver.requireCurrentUserId();
-        List<NotificationDto> notifications = notificationRepository.getNotificationsByUser(actualUserId)
+        List<NotificationDto> notifications = notificationRepository
+                .getNotificationsByUser(actualUserId, partyId, type, search)
                 .stream()
                 .map(NotificationDto::from)
                 .toList();

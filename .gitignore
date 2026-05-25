@@ -51,3 +51,4 @@ app/
 api/node_modules
 
 prompts
+.opencode

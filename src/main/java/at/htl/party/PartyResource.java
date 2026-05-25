@@ -222,6 +222,19 @@ public class PartyResource {
         return partyRepository.getJoinedMembers(partyId, actualUserId);
     }
 
+    @GET
+    @Produces(MediaType.APPLICATION_JSON)
+    @Path("/{id}/invitation-stats")
+    @Authenticated
+    public Response invitationStats(@PathParam("id") Long partyId) {
+        Long actualUserId = currentUserResolver.requireCurrentUserId();
+        InvitationStatsDto stats = partyRepository.getInvitationStats(partyId, actualUserId);
+        if (stats == null) {
+            return Response.status(Response.Status.NOT_FOUND).build();
+        }
+        return Response.ok(stats).build();
+    }
+
     @POST
     @Path("/{partyId}/media/upload")
     @Consumes(MediaType.MULTIPART_FORM_DATA)

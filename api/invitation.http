@@ -4,7 +4,8 @@
 ###########################################
 ### Seed: Michael received invitation 1 for private party 4
 ###########################################
-GET {{baseUrl}}?user=2&direction=received
+GET {{baseUrl}}?direction=received
+X-User-Id: 2
 
 ?? status == 200
 
@@ -12,7 +13,8 @@ GET {{baseUrl}}?user=2&direction=received
 ###########################################
 ### Seed: Thomas sent invitations for private party 4
 ###########################################
-GET {{baseUrl}}?user=4&direction=sent
+GET {{baseUrl}}?direction=sent
+X-User-Id: 4
 
 ?? status == 200
 
@@ -20,7 +22,8 @@ GET {{baseUrl}}?user=4&direction=sent
 ###########################################
 ### Seed: Anna received invitation 3 for private party 9
 ###########################################
-GET {{baseUrl}}?user=1&direction=received
+GET {{baseUrl}}?direction=received
+X-User-Id: 1
 
 ?? status == 200
 
@@ -30,13 +33,14 @@ GET {{baseUrl}}?user=1&direction=received
 ###########################################
 GET {{baseUrl}}
 
-?? status == 400
+?? status == 401
 
 
 ###########################################
 ### Only sender or recipient may delete an invitation
 ###########################################
-DELETE {{baseUrl}}/1?user=5
+DELETE {{baseUrl}}/1
+X-User-Id: 5
 
 ?? status == 403
 
@@ -44,6 +48,7 @@ DELETE {{baseUrl}}/1?user=5
 ###########################################
 ### Unknown invitation returns 404
 ###########################################
-DELETE {{baseUrl}}/99999?user=8
+DELETE {{baseUrl}}/99999
+X-User-Id: 8
 
 ?? status == 404

@@ -2,6 +2,8 @@ package at.htl.auth;
 
 import java.util.Optional;
 
+import at.htl.notificationsettings.UserNotificationSettings;
+import at.htl.notificationsettings.UserNotificationSettingsRepository;
 import at.htl.user.User;
 import at.htl.user.UserRepository;
 import io.quarkus.security.identity.SecurityIdentity;
@@ -18,6 +20,9 @@ public class CurrentUserResolver {
     UserRepository userRepository;
 
     @Inject
+    UserNotificationSettingsRepository notificationSettingsRepository;
+
+    @Inject
     JsonWebToken jwt;
 
     @Inject
@@ -28,6 +33,12 @@ public class CurrentUserResolver {
         String subject = currentSubject()
                 .filter(value -> !value.isBlank())
                 .orElseThrow(() -> new NotAuthorizedException("Bearer token required"));
+
+        // Auth bypass: X-User-Id header sends numeric user ID
+        Optional<User> byId = tryFindByNumericId(subject);
+        if (byId.isPresent()) {
+            return byId.get();
+        }
 
         return userRepository.findByKeycloakId(subject)
                 .orElseGet(() -> linkOrCreateUser(subject));
@@ -41,8 +52,15 @@ public class CurrentUserResolver {
 
         return currentSubject()
                 .filter(value -> !value.isBlank())
-                .map(subject -> userRepository.findByKeycloakId(subject)
-                        .orElseGet(() -> linkOrCreateUser(subject)));
+                .map(subject -> {
+                    // Auth bypass: X-User-Id header sends numeric user ID
+                    Optional<User> byId = tryFindByNumericId(subject);
+                    if (byId.isPresent()) {
+                        return byId.get();
+                    }
+                    return userRepository.findByKeycloakId(subject)
+                            .orElseGet(() -> linkOrCreateUser(subject));
+                });
     }
 
     public Long requireCurrentUserId() {
@@ -51,6 +69,15 @@ public class CurrentUserResolver {
 
     public Optional<Long> currentUserIdIfAuthenticated() {
         return currentUserIfAuthenticated().map(User::getId);
+    }
+
+    private Optional<User> tryFindByNumericId(String subject) {
+        try {
+            long id = Long.parseLong(subject);
+            return userRepository.findById(id);
+        } catch (NumberFormatException e) {
+            return Optional.empty();
+        }
     }
 
     private User linkOrCreateUser(String subject) {
@@ -74,6 +101,10 @@ public class CurrentUserResolver {
                 .or(() -> claimAsString("given_name"))
                 .orElse(user.getUsername()));
         userRepository.persist(user);
+
+        UserNotificationSettings settings = new UserNotificationSettings(user);
+        notificationSettingsRepository.persist(settings);
+
         return user;
     }
 

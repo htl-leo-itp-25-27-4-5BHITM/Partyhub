@@ -2,7 +2,6 @@ package at.htl.resource;
 
 import at.htl.TestBase;
 import io.quarkus.test.junit.QuarkusTest;
-import io.quarkus.test.security.TestSecurity;
 import org.junit.jupiter.api.Test;
 
 import static io.restassured.RestAssured.given;
@@ -20,9 +19,9 @@ public class NotificationResourceTest extends TestBase {
     }
 
     @Test
-    @TestSecurity(user = "test-sub")
-    void testGetNotifications_withUserId() {
+    void testGetNotifications_withUser() {
         given()
+            .header("X-User-Id", "2")
             .when().get("/api/notifications")
             .then()
             .statusCode(200)
@@ -30,12 +29,36 @@ public class NotificationResourceTest extends TestBase {
     }
 
     @Test
-    void testGetNotifications_withHeader() {
+    void testGetNotifications_filterByParty() {
         given()
-            .header("X-User-Id", "1")
+            .header("X-User-Id", "2")
+            .queryParam("partyId", "4")
             .when().get("/api/notifications")
             .then()
-            .statusCode(401);
+            .statusCode(200)
+            .body("$", is(notNullValue()));
+    }
+
+    @Test
+    void testGetNotifications_filterByType() {
+        given()
+            .header("X-User-Id", "2")
+            .queryParam("type", "INVITATION")
+            .when().get("/api/notifications")
+            .then()
+            .statusCode(200)
+            .body("$", is(notNullValue()));
+    }
+
+    @Test
+    void testGetNotifications_filterBySearch() {
+        given()
+            .header("X-User-Id", "2")
+            .queryParam("search", "invited")
+            .when().get("/api/notifications")
+            .then()
+            .statusCode(200)
+            .body("$", is(notNullValue()));
     }
 
     @Test
@@ -47,9 +70,9 @@ public class NotificationResourceTest extends TestBase {
     }
 
     @Test
-    @TestSecurity(user = "test-sub")
-    void testGetUnreadNotifications_withUserId() {
+    void testGetUnreadNotifications_withUser() {
         given()
+            .header("X-User-Id", "2")
             .when().get("/api/notifications/unread")
             .then()
             .statusCode(200)
@@ -57,9 +80,9 @@ public class NotificationResourceTest extends TestBase {
     }
 
     @Test
-    @TestSecurity(user = "test-sub")
     void testMarkAsRead_notFound() {
         given()
+            .header("X-User-Id", "2")
             .when().post("/api/notifications/999/read")
             .then()
             .statusCode(404);
@@ -74,9 +97,9 @@ public class NotificationResourceTest extends TestBase {
     }
 
     @Test
-    @TestSecurity(user = "test-sub")
     void testDeleteNotification_notFound() {
         given()
+            .header("X-User-Id", "2")
             .when().delete("/api/notifications/999")
             .then()
             .statusCode(404);

@@ -1,0 +1,2 @@
+{hostName} invited you to the party "{partyTitle}".
+Check PartyHub for more details.

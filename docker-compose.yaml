@@ -23,7 +23,7 @@ services:
     ports:
       - 8000:8080
     volumes:
-      - ./keycloak/realm-export.json:/opt/keycloak/data/import/realm-export.json:ro
+      - ./keycloak/realm-dev.json:/opt/keycloak/data/import/realm-dev.json:ro
     environment:
       - KC_BOOTSTRAP_ADMIN_USERNAME=admin
       - KC_BOOTSTRAP_ADMIN_PASSWORD=admin

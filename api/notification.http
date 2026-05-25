@@ -4,7 +4,7 @@
 ###########################################
 ### Seed: notifications for Michael
 ###########################################
-GET {{baseUrl}}?user=2
+GET {{baseUrl}}
 X-User-Id: 2
 
 ?? status == 200
@@ -13,7 +13,7 @@ X-User-Id: 2
 ###########################################
 ### Seed: unread notifications for Michael
 ###########################################
-GET {{baseUrl}}/unread?user=2
+GET {{baseUrl}}/unread
 X-User-Id: 2
 
 ?? status == 200
@@ -24,13 +24,13 @@ X-User-Id: 2
 ###########################################
 GET {{baseUrl}}
 
-?? status == 200
+?? status == 401
 
 
 ###########################################
 ### Mark Michael's invitation notification as read
 ###########################################
-POST {{baseUrl}}/1/read?user=2
+POST {{baseUrl}}/1/read
 X-User-Id: 2
 
 ?? status == 200
@@ -39,7 +39,7 @@ X-User-Id: 2
 ###########################################
 ### Other users cannot mark Michael's notification
 ###########################################
-POST {{baseUrl}}/1/read?user=1
+POST {{baseUrl}}/1/read
 X-User-Id: 1
 
 ?? status == 403
@@ -48,7 +48,7 @@ X-User-Id: 1
 ###########################################
 ### Other users cannot delete Michael's notification
 ###########################################
-DELETE {{baseUrl}}/1?user=1
+DELETE {{baseUrl}}/1
 X-User-Id: 1
 
 ?? status == 403
@@ -57,7 +57,7 @@ X-User-Id: 1
 ###########################################
 ### Delete unknown notification
 ###########################################
-DELETE {{baseUrl}}/99999?user=2
+DELETE {{baseUrl}}/99999
 X-User-Id: 2
 
 ?? status == 404

@@ -1,0 +1,11 @@
+Hi {displayName},
+
+Here are the upcoming parties you might be interested in:
+
+{#for party in parties}
+- {party.title} ({party.theme}) - {party.timeStart.format('dd.MM.yyyy HH:mm')}
+{/for}
+
+See you there!
+
+PartyHub - Your Party Platform

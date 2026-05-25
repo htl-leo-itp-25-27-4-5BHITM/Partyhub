@@ -54,4 +54,33 @@ public class InvitationResource {
         Long actualUserId = currentUserResolver.requireCurrentUserId();
         return invitationRepository.deleteInvite(id, actualUserId);
     }
+
+    @GET
+    @Produces(MediaType.APPLICATION_JSON)
+    @Path("/{id}/details")
+    @Authenticated
+    public Response getInvitationDetails(@PathParam("id") Long id) {
+        Long actualUserId = currentUserResolver.requireCurrentUserId();
+        return invitationRepository.getInvitationDetails(id, actualUserId);
+    }
+
+    @POST
+    @Produces(MediaType.APPLICATION_JSON)
+    @Transactional
+    @Path("/{id}/accept")
+    @Authenticated
+    public Response acceptInvitation(@PathParam("id") Long id) {
+        Long actualUserId = currentUserResolver.requireCurrentUserId();
+        return invitationRepository.acceptInvite(id, actualUserId);
+    }
+
+    @POST
+    @Produces(MediaType.APPLICATION_JSON)
+    @Transactional
+    @Path("/{id}/decline")
+    @Authenticated
+    public Response declineInvitation(@PathParam("id") Long id) {
+        Long actualUserId = currentUserResolver.requireCurrentUserId();
+        return invitationRepository.declineInvite(id, actualUserId);
+    }
 }
