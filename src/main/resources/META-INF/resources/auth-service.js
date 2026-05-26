@@ -147,18 +147,36 @@
       createdAt: Date.now(),
     });
 
-    const params = new URLSearchParams({
-      client_id: config.clientId,
-      response_type: "code",
-      scope: "openid profile email",
-      redirect_uri: config.redirectUri,
-      state,
-      nonce,
-      code_challenge: codeChallenge,
-      code_challenge_method: "S256",
-    });
+    // Build the authorization URL using the URL API and set() so any
+    // existing query parameters on config.authorizationEndpoint are
+    // replaced instead of producing duplicate keys (e.g. client_id).
+    try {
+      const authUrl = new URL(config.authorizationEndpoint);
+      authUrl.searchParams.set("client_id", config.clientId);
+      authUrl.searchParams.set("response_type", "code");
+      authUrl.searchParams.set("scope", "openid profile email");
+      authUrl.searchParams.set("redirect_uri", config.redirectUri);
+      authUrl.searchParams.set("state", state);
+      authUrl.searchParams.set("nonce", nonce);
+      authUrl.searchParams.set("code_challenge", codeChallenge);
+      authUrl.searchParams.set("code_challenge_method", "S256");
 
-    window.location.assign(`${config.authorizationEndpoint}?${params.toString()}`);
+      window.location.assign(authUrl.toString());
+    } catch (err) {
+      // Fallback for environments where config.authorizationEndpoint may
+      // not be an absolute URL - use the legacy approach.
+      const params = new URLSearchParams({
+        client_id: config.clientId,
+        response_type: "code",
+        scope: "openid profile email",
+        redirect_uri: config.redirectUri,
+        state,
+        nonce,
+        code_challenge: codeChallenge,
+        code_challenge_method: "S256",
+      });
+      window.location.assign(`${config.authorizationEndpoint}?${params.toString()}`);
+    }
   }
 
   async function handleCallback() {
@@ -355,15 +373,26 @@
     const idToken = tokenSession?.idToken;
     clearAuthState();
 
-    const params = new URLSearchParams({
-      client_id: config.clientId,
-      post_logout_redirect_uri: config.postLogoutRedirectUri,
-    });
-    if (idToken) {
-      params.set("id_token_hint", idToken);
+    // Use URL API to avoid duplicated parameters if logoutEndpoint already
+    // contains query parameters.
+    try {
+      const logoutUrl = new URL(config.logoutEndpoint);
+      logoutUrl.searchParams.set("client_id", config.clientId);
+      logoutUrl.searchParams.set("post_logout_redirect_uri", config.postLogoutRedirectUri);
+      if (idToken) {
+        logoutUrl.searchParams.set("id_token_hint", idToken);
+      }
+      window.location.assign(logoutUrl.toString());
+    } catch (err) {
+      const params = new URLSearchParams({
+        client_id: config.clientId,
+        post_logout_redirect_uri: config.postLogoutRedirectUri,
+      });
+      if (idToken) {
+        params.set("id_token_hint", idToken);
+      }
+      window.location.assign(`${config.logoutEndpoint}?${params.toString()}`);
     }
-
-    window.location.assign(`${config.logoutEndpoint}?${params.toString()}`);
   }
 
   function storeUser(_userId, userInfo) {
