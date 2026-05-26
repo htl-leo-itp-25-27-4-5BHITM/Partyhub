@@ -224,9 +224,42 @@ struct PartyHubiOSApp: App {
     }
     
     private func parseDate(_ dateString: String?) -> Date? {
-        guard let dateString = dateString else { return nil }
-        let formatter = ISO8601DateFormatter()
-        return formatter.date(from: dateString)
+        guard let dateString = dateString?.trimmingCharacters(in: .whitespacesAndNewlines),
+              !dateString.isEmpty else {
+            return nil
+        }
+
+        let isoFormatter = ISO8601DateFormatter()
+        isoFormatter.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
+        if let date = isoFormatter.date(from: dateString) {
+            return date
+        }
+
+        isoFormatter.formatOptions = [.withInternetDateTime]
+        if let date = isoFormatter.date(from: dateString) {
+            return date
+        }
+
+        let fallbackFormats = [
+            "yyyy-MM-dd'T'HH:mm:ss.SSSSSS",
+            "yyyy-MM-dd'T'HH:mm:ss.SSS",
+            "yyyy-MM-dd'T'HH:mm:ss",
+            "yyyy-MM-dd HH:mm:ss",
+            "dd.MM.yyyy HH:mm"
+        ]
+
+        for format in fallbackFormats {
+            let formatter = DateFormatter()
+            formatter.locale = Locale(identifier: "en_US_POSIX")
+            formatter.timeZone = .current
+            formatter.dateFormat = format
+
+            if let date = formatter.date(from: dateString) {
+                return date
+            }
+        }
+
+        return nil
     }
     
     class AppDelegate: NSObject, UIApplicationDelegate {

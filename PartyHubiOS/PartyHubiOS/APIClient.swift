@@ -28,7 +28,7 @@ class APIClient {
             let fallbackFormatter = DateFormatter()
             fallbackFormatter.dateFormat = "yyyy-MM-dd'T'HH:mm:ss"
             fallbackFormatter.locale = Locale(identifier: "en_US_POSIX")
-            fallbackFormatter.timeZone = TimeZone(secondsFromGMT: 0)
+            fallbackFormatter.timeZone = .current
             
             if let date = fallbackFormatter.date(from: dateString) {
                 return date
