@@ -17,10 +17,12 @@
       "directAccessGrantsEnabled": false,
       "standardFlowEnabled": true,
       "redirectUris": [
-        "http://localhost:8080/*"
+        "http://localhost:8080/*",
+        "https://it220274.cloud.htl-leonding.ac.at/*"
       ],
       "webOrigins": [
-        "http://localhost:8080"
+        "http://localhost:8080",
+        "https://it220274.cloud.htl-leonding.ac.at"
       ],
       "attributes": {
         "pkce.code.challenge.method": "S256"

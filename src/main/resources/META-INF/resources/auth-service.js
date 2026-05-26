@@ -1,15 +1,36 @@
 (function () {
+  const DEFAULT_ISSUER = "http://localhost:8000/realms/partyhub";
+
   const config = {
     realm: "partyhub",
     clientId: "frontend",
-    issuer: "http://localhost:8000/realms/partyhub",
+    issuer: DEFAULT_ISSUER,
     redirectUri: `${window.location.origin}/auth/callback.html`,
     postLogoutRedirectUri: `${window.location.origin}/register_login/start.html`,
   };
 
-  config.authorizationEndpoint = `${config.issuer}/protocol/openid-connect/auth`;
-  config.tokenEndpoint = `${config.issuer}/protocol/openid-connect/token`;
-  config.logoutEndpoint = `${config.issuer}/protocol/openid-connect/logout`;
+  function buildEndpoints() {
+    config.authorizationEndpoint = `${config.issuer}/protocol/openid-connect/auth`;
+    config.tokenEndpoint = `${config.issuer}/protocol/openid-connect/token`;
+    config.logoutEndpoint = `${config.issuer}/protocol/openid-connect/logout`;
+  }
+
+  async function fetchKeycloakConfig() {
+    try {
+      const response = await fetch("/api/config/public");
+      if (response.ok) {
+        const data = await response.json();
+        if (data.keycloakIssuer) {
+          config.issuer = data.keycloakIssuer;
+        }
+      }
+    } catch {
+      // use default
+    }
+    buildEndpoints();
+  }
+
+  buildEndpoints();
 
   const TOKEN_SESSION_KEY = "partyhub_keycloak_session";
   const LOGIN_TRANSACTION_KEY = "partyhub_oidc_transaction";
@@ -231,6 +252,7 @@
   async function init(options = {}) {
     if (!initPromise) {
       initPromise = (async () => {
+        await fetchKeycloakConfig();
         removeLegacyLocalAuth();
         tokenSession = readJson(TOKEN_SESSION_KEY);
         currentUser = readJson(CURRENT_USER_KEY);

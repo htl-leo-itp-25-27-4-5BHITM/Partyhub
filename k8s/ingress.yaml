@@ -15,3 +15,10 @@ spec:
             name: quarkus
             port:
               number: 8080
+      - path: /keycloak
+        pathType: Prefix
+        backend:
+          service:
+            name: keycloak
+            port:
+              number: 8081

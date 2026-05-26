@@ -33,8 +33,8 @@ spec:
           env:
           - name: QUARKUS_PROFILE
             value: prod
-          - name: PARTYHUB_AUTH_BYPASS_ENABLED
-            value: "true"
+          - name: KEYCLOAK_ISSUER
+            value: "https://it220274.cloud.htl-leonding.ac.at/keycloak/realms/partyhub"
           envFrom:
           - secretRef:
               name: partyhub-smtp-secret
