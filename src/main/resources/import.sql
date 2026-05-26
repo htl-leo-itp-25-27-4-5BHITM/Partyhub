@@ -107,32 +107,32 @@ INSERT INTO party (
     created_at,
     visibility
 ) VALUES
-    (1, 1, 1, 'Afterwork at Main Square', 'Afterwork', '2026-05-22 18:30:00', '2026-05-02 23:30:00', 80, 18, 45, 'https://partyhub.local/afterwork-hauptplatz', 'Start casual, meet people and continue together afterwards.', 0.00, '2026-04-25 16:00:00', 'PUBLIC'),
-    (2, 2, 4, 'Tabakfabrik Techno Session', 'Techno', '2026-05-23 22:00:00', '2026-05-04 04:30:00', 180, 18, 40, 'https://partyhub.local/tabakfabrik-techno', 'Night with fast sound, fog and warehouse vibes.', 14.00, '2026-04-26 11:20:00', 'PUBLIC'),
-    (3, 3, 11, 'Sunset Beats at Danube Waterfront', 'Open-Air', '2026-05-24 17:00:00', '2026-05-04 23:00:00', 150, 18, 38, 'https://partyhub.local/donau-sunset', 'Open-air set right at the Danube with drinks and street food.', 6.00, '2026-04-26 18:40:00', 'PUBLIC'),
-    (4, 4, 7, 'Private Birthday in Leonding', 'Birthday', '2026-05-25 19:00:00', '2026-05-06 01:00:00', 35, 18, 40, NULL, 'Birthday celebration in a small circle with playlist and BBQ.', 0.00, '2026-04-27 09:00:00', 'PRIVATE'),
-    (5, 5, 12, 'Cocktail Night at the Theater', 'Cocktails', '2026-05-26 20:00:00', '2026-05-07 01:30:00', 70, 21, 50, 'https://partyhub.local/musiktheater-cocktails', 'Dress up, great drinks and relaxed lounge music.', 12.00, '2026-04-27 14:15:00', 'PUBLIC'),
-    (6, 6, 8, 'Student Night PlusCity', 'Student', '2026-05-27 20:30:00', '2026-05-08 02:00:00', 120, 18, 30, 'https://partyhub.local/student-pluscity', 'Cheap drinks, lots of movement and a young crowd.', 5.00, '2026-04-27 19:30:00', 'PUBLIC'),
-    (7, 7, 6, 'Postlingberg Sundowner', 'Chill', '2026-05-14 18:00:00', '2026-05-08 23:00:00', 60, 18, 45, NULL, 'Sunset, picnic blankets and calm house sound.', 0.00, '2026-04-28 08:10:00', 'PUBLIC'),
-    (8, 8, 15, 'Port District Indie Night', 'Indie', '2026-05-17 21:00:00', '2026-05-09 02:30:00', 90, 18, 39, 'https://partyhub.local/hafen-indie', 'Small stage, live acts and DJ set afterwards until late.', 9.00, '2026-04-28 09:45:00', 'PUBLIC'),
-    (9, 9, 10, 'Private Dinner Party in Steyregg', 'Dinner', '2026-05-19 18:30:00', '2026-05-09 23:30:00', 20, 20, 45, NULL, 'Invitation only, good food and living room dance floor afterwards.', 0.00, '2026-04-28 10:10:00', 'PRIVATE'),
-    (10, 10, 13, 'JKU Semester Kickoff', 'Campus', '2026-05-16 19:00:00', '2026-05-11 01:00:00', 200, 18, 32, 'https://partyhub.local/jku-kickoff', 'Semester start with DJ, photo booth and lots of new faces.', 4.00, '2026-04-28 11:00:00', 'PUBLIC'),
-    (11, 1, 16, 'Graduation Gala', 'School Party', '2026-06-18 18:00:00', '2026-06-14 23:30:00', 120, 16, 28, 'https://www.htl-leonding.at', 'From classroom to red carpet. We celebrate our graduation with style, glamour and glory. Dress to impress!', 7.50, '2026-04-28 19:59:00', 'PUBLIC'),
+    (1, 1, 1, 'Afterwork at Main Square', 'Afterwork', '2026-05-26 18:30:00', '2026-05-26 23:30:00', 80, 18, 45, 'https://partyhub.local/afterwork-hauptplatz', 'Start casual, meet people and continue together afterwards.', 0.00, '2026-04-25 16:00:00', 'PUBLIC'),
+    (2, 2, 4, 'Tabakfabrik Techno Session', 'Techno', '2026-05-29 22:00:00', '2026-05-30 04:30:00', 180, 18, 40, 'https://partyhub.local/tabakfabrik-techno', 'Night with fast sound, fog and warehouse vibes.', 14.00, '2026-04-26 11:20:00', 'PUBLIC'),
+    (3, 3, 11, 'Sunset Beats at Danube Waterfront', 'Open-Air', '2026-05-30 17:00:00', '2026-05-30 23:00:00', 150, 18, 38, 'https://partyhub.local/donau-sunset', 'Open-air set right at the Danube with drinks and street food.', 6.00, '2026-04-26 18:40:00', 'PUBLIC'),
+    (4, 4, 7, 'Private Birthday in Leonding', 'Birthday', '2026-05-31 19:00:00', '2026-06-01 01:00:00', 35, 18, 40, NULL, 'Birthday celebration in a small circle with playlist and BBQ.', 0.00, '2026-04-27 09:00:00', 'PRIVATE'),
+    (5, 5, 12, 'Cocktail Night at the Theater', 'Cocktails', '2026-06-02 20:00:00', '2026-06-03 01:30:00', 70, 21, 50, 'https://partyhub.local/musiktheater-cocktails', 'Dress up, great drinks and relaxed lounge music.', 12.00, '2026-04-27 14:15:00', 'PUBLIC'),
+    (6, 6, 8, 'Student Night PlusCity', 'Student', '2026-06-03 20:30:00', '2026-06-04 02:00:00', 120, 18, 30, 'https://partyhub.local/student-pluscity', 'Cheap drinks, lots of movement and a young crowd.', 5.00, '2026-04-27 19:30:00', 'PUBLIC'),
+    (7, 7, 6, 'Postlingberg Sundowner', 'Chill', '2026-06-04 18:00:00', '2026-06-04 23:00:00', 60, 18, 45, NULL, 'Sunset, picnic blankets and calm house sound.', 0.00, '2026-04-28 08:10:00', 'PUBLIC'),
+    (8, 8, 15, 'Port District Indie Night', 'Indie', '2026-06-05 21:00:00', '2026-06-06 02:30:00', 90, 18, 39, 'https://partyhub.local/hafen-indie', 'Small stage, live acts and DJ set afterwards until late.', 9.00, '2026-04-28 09:45:00', 'PUBLIC'),
+    (9, 9, 10, 'Private Dinner Party in Steyregg', 'Dinner', '2026-06-06 18:30:00', '2026-06-06 23:30:00', 20, 20, 45, NULL, 'Invitation only, good food and living room dance floor afterwards.', 0.00, '2026-04-28 10:10:00', 'PRIVATE'),
+    (10, 10, 13, 'JKU Semester Kickoff', 'Campus', '2026-06-09 19:00:00', '2026-06-10 01:00:00', 200, 18, 32, 'https://partyhub.local/jku-kickoff', 'Semester start with DJ, photo booth and lots of new faces.', 4.00, '2026-04-28 11:00:00', 'PUBLIC'),
+    (11, 1, 16, 'Graduation Gala', 'School Party', '2026-06-18 18:00:00', '2026-06-18 23:30:00', 120, 16, 28, 'https://www.htl-leonding.at', 'From classroom to red carpet. We celebrate our graduation with style, glamour and glory. Dress to impress!', 7.50, '2026-04-28 19:59:00', 'PUBLIC'),
     (12, 2, 17, 'Carla''s 18th Birthday', 'Birthday Party','2026-06-14 18:00:00', '2026-06-14 23:30:00', 18, 17,20,'https://partyhub.local/carlaparty','Carla''s Birthday Party', 0.00,'2026-04-25 16:00:00', 'PUBLIC'),
-    -- Filter test data: Within 2 weeks (from 2026-05-19)
-    (13, 1, 2, 'Jazz Night Next Week', 'Jazz', '2026-05-25 20:00:00', '2026-05-25 23:00:00', 100, NULL, NULL, 'https://partyhub.local/jazz', 'Smooth jazz evening with local artists.', 0.00, '2026-04-28 10:00:00', 'PUBLIC'),
-    (14, 3, 3, 'Spring Party May Weekend', 'Festival', '2026-05-24 15:00:00', '2026-05-24 23:00:00', 300, 16, 40, 'https://partyhub.local/spring', 'All-day festival at the Danube with music, food and fun.', 0.00, '2026-04-27 10:00:00', 'PUBLIC'),
+    -- Filter test data: Within 2 weeks (from 2026-05-26)
+    (13, 1, 2, 'Jazz Night Next Week', 'Jazz', '2026-06-01 20:00:00', '2026-06-01 23:00:00', 100, NULL, NULL, 'https://partyhub.local/jazz', 'Smooth jazz evening with local artists.', 0.00, '2026-04-28 10:00:00', 'PUBLIC'),
+    (14, 3, 3, 'Spring Party May Weekend', 'Festival', '2026-06-07 15:00:00', '2026-06-07 23:00:00', 300, 16, 40, 'https://partyhub.local/spring', 'All-day festival at the Danube with music, food and fun.', 0.00, '2026-04-27 10:00:00', 'PUBLIC'),
     -- Filter test data: Free parties
-    (15, 5, 4, 'Free House Music Session', 'House', '2026-05-22 22:00:00', '2026-05-23 04:00:00', 200, 18, 50, 'https://partyhub.local/free-house', 'Free entry, fun beats and great people.', 0.00, '2026-04-27 10:00:00', 'PUBLIC'),
+    (15, 5, 4, 'Free House Music Session', 'House', '2026-06-11 22:00:00', '2026-06-12 04:00:00', 200, 18, 50, 'https://partyhub.local/free-house', 'Free entry, fun beats and great people.', 0.00, '2026-04-27 10:00:00', 'PUBLIC'),
     -- Filter test data: Age restricted parties
-    (16, 6, 5, 'Over 30s Cocktail Lounge', 'Cocktails', '2026-05-28 20:00:00', '2026-05-29 01:00:00', 80, 30, NULL, 'https://partyhub.local/over30', 'Sophisticated cocktails for the mature crowd.', 15.00, '2026-04-28 10:00:00', 'PUBLIC'),
-    (17, 7, 7, 'Teen Movie Night', 'Movie', '2026-05-21 19:00:00', '2026-05-21 21:30:00', 50, 13, 19, 'https://partyhub.local/teen', 'Movie screening for teenagers with snacks.', 0.00, '2026-04-28 10:00:00', 'PUBLIC'),
+    (16, 6, 5, 'Over 30s Cocktail Lounge', 'Cocktails', '2026-06-12 20:00:00', '2026-06-13 01:00:00', 80, 30, NULL, 'https://partyhub.local/over30', 'Sophisticated cocktails for the mature crowd.', 15.00, '2026-04-28 10:00:00', 'PUBLIC'),
+    (17, 7, 7, 'Teen Movie Night', 'Movie', '2026-06-13 19:00:00', '2026-06-13 21:30:00', 50, 13, 19, 'https://partyhub.local/teen', 'Movie screening for teenagers with snacks.', 0.00, '2026-04-28 10:00:00', 'PUBLIC'),
     -- Filter test data: Distance filtering (various locations)
-    (18, 8, 1, 'Hauptplatz Techno Rave', 'Techno', '2026-05-23 23:00:00', '2026-05-24 05:00:00', 250, 18, 40, 'https://partyhub.local/rave', 'Electric beats at the main square.', 12.00, '2026-04-28 10:00:00', 'PUBLIC'),
-    (19, 9, 8, 'PlusCity Spring Shopping Party', 'Shopping', '2026-05-26 14:00:00', '2026-05-26 20:00:00', 150, 16, 45, 'https://partyhub.local/pluscity', 'Shop, eat, party at the mall.', 0.00, '2026-04-28 10:00:00', 'PUBLIC'),
+    (18, 8, 1, 'Hauptplatz Techno Rave', 'Techno', '2026-06-19 23:00:00', '2026-06-20 05:00:00', 250, 18, 40, 'https://partyhub.local/rave', 'Electric beats at the main square.', 12.00, '2026-04-28 10:00:00', 'PUBLIC'),
+    (19, 9, 8, 'PlusCity Spring Shopping Party', 'Shopping', '2026-06-20 14:00:00', '2026-06-20 20:00:00', 150, 16, 45, 'https://partyhub.local/pluscity', 'Shop, eat, party at the mall.', 0.00, '2026-04-28 10:00:00', 'PUBLIC'),
     -- Filter test data: Text search matches
-    (20, 10, 9, 'Electronic Music Festival Weekend', 'Electronic', '2026-05-31 16:00:00', '2026-06-01 04:00:00', 400, 16, 60, 'https://partyhub.local/festival', 'Two-day electronic music festival with world-class DJs. Search for electronic or festival!', 25.00, '2026-04-28 10:00:00', 'PUBLIC'),
-    (21, 2, 11, 'Wellness & Yoga Party', 'Wellness', '2026-05-20 09:00:00', '2026-05-20 13:00:00', 60, 18, NULL, 'https://partyhub.local/yoga', 'Morning yoga session followed by healthy breakfast and smoothies. Search for wellness or yoga!', 8.00, '2026-04-28 10:00:00', 'PUBLIC');
+    (20, 10, 9, 'Electronic Music Festival Weekend', 'Electronic', '2026-06-21 16:00:00', '2026-06-22 04:00:00', 400, 16, 60, 'https://partyhub.local/festival', 'Two-day electronic music festival with world-class DJs. Search for electronic or festival!', 25.00, '2026-04-28 10:00:00', 'PUBLIC'),
+    (21, 2, 11, 'Wellness & Yoga Party', 'Wellness', '2026-06-22 09:00:00', '2026-06-22 13:00:00', 60, 18, NULL, 'https://partyhub.local/yoga', 'Morning yoga session followed by healthy breakfast and smoothies. Search for wellness or yoga!', 8.00, '2026-04-28 10:00:00', 'PUBLIC');
 
 -- =========================
 -- PARTY ATTENDEES
