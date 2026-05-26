@@ -18,19 +18,14 @@ struct ContentView: View {
                     Label("Party", systemImage: "party.popper")
                 }
 
-            InvitationsView()
+            MapView(locationManager: locationManager)
                 .tabItem {
-                    Label("Invites", systemImage: "envelope.badge")
+                    Label("Map", systemImage: "map")
                 }
 
             TimeTrackingView()
                 .tabItem {
-                    Label("Time", systemImage: "timer")
-                }
-
-            MapView(locationManager: locationManager)
-                .tabItem {
-                    Label("Map", systemImage: "map")
+                    Label("Time Tracking", systemImage: "timer")
                 }
 
             ProfileView()
@@ -52,4 +47,3 @@ struct ContentView: View {
         }
     }
 }
-

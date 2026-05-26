@@ -14,20 +14,6 @@ private struct FollowUserResponse: Decodable {
     let id: Int
 }
 
-private enum CostFilter: String, CaseIterable {
-    case all = "All"
-    case free = "Free"
-    case paid = "Paid"
-
-    var systemImage: String {
-        switch self {
-        case .all: return "banknote"
-        case .free: return "banknote.fill"
-        case .paid: return "creditcard.fill"
-        }
-    }
-}
-
 struct MapView: View {
     var locationManager: LocationManager
 
@@ -41,19 +27,13 @@ struct MapView: View {
     )
     @State private var mapViewSize: CGSize = .zero
     @State private var partyClusters: [Cluster<Party>] = []
-    @State private var userAge: Int? = nil
-    @State private var userLocation: CLLocationCoordinate2D? = nil
-    @State private var searchText = ""
-
-    @State private var costFilter: CostFilter = .all
-    @State private var nearMeEnabled = false
-    @State private var myAgeEnabled = false
-    @State private var within2WeeksEnabled = false
+    @State private var filterState = PartyMapFilterState()
 
     @Query var parties: [Party]
     private let highlightedPartyId: Int?
 
     private let clusteringEngine = MapClusteringEngine()
+    private let ageOptions = Array(16...99)
 
     private var currentUserId: Int? {
         if let userId = AuthManager.shared.userId {
@@ -63,45 +43,181 @@ struct MapView: View {
         return storedId > 0 ? storedId : nil
     }
 
-    private var isFilterActive: Bool {
-        costFilter != .all || nearMeEnabled || myAgeEnabled || within2WeeksEnabled
+    private var currentUserLocation: CLLocationCoordinate2D? {
+        locationManager.currentLocation
+    }
+
+    private var hasCurrentUserLocation: Bool {
+        currentUserLocation != nil
+    }
+
+    private var availableThemes: [String] {
+        Array(
+            Set(
+                parties.compactMap {
+                    $0.themeName?.trimmingCharacters(in: .whitespacesAndNewlines)
+                }
+                .filter { !$0.isEmpty }
+            )
+        )
+        .sorted { $0.localizedCaseInsensitiveCompare($1) == .orderedAscending }
+    }
+
+    private var filteredPartyIDs: [Int] {
+        filteredParties.map(\.backendId).sorted()
     }
 
     private var filteredParties: [Party] {
-        var result = parties
+        let now = Date()
+        let twoWeeksFromNow = Calendar.current.date(byAdding: .day, value: 14, to: now) ?? now
+        let trimmedSearchText = filterState.trimmedSearchText
 
-        if costFilter == .free {
-            result = result.filter { $0.fee == nil || $0.fee == 0 }
-        } else if costFilter == .paid {
-            result = result.filter { $0.fee != nil && $0.fee! > 0 }
+        return parties.filter { party in
+            if filterState.timeFilter == .withinTwoWeeks {
+                guard let start = party.timeStart else { return false }
+                guard start >= now else { return false }
+                guard start <= twoWeeksFromNow else { return false }
+            }
+
+            if !filterState.selectedThemes.isEmpty {
+                guard let themeName = normalizedThemeName(for: party) else { return false }
+                guard filterState.selectedThemes.contains(themeName) else { return false }
+            }
+
+            if let maximumDistance = filterState.distanceFilter.distanceInMeters {
+                guard let currentUserLocation else { return false }
+
+                let userLocation = CLLocation(
+                    latitude: currentUserLocation.latitude,
+                    longitude: currentUserLocation.longitude
+                )
+                let partyLocation = CLLocation(
+                    latitude: party.latitude,
+                    longitude: party.longitude
+                )
+
+                guard partyLocation.distance(from: userLocation) <= maximumDistance else { return false }
+            }
+
+            if let minimumAge = filterState.minimumAge {
+                guard party.maxAge == nil || party.maxAge! >= minimumAge else { return false }
+            }
+
+            if let maximumAge = filterState.maximumAge {
+                guard party.minAge == nil || party.minAge! <= maximumAge else { return false }
+            }
+
+            switch filterState.feeFilter {
+            case .all:
+                break
+            case .freeOnly:
+                guard party.fee == nil || party.fee == 0 else { return false }
+            case .paidOnly:
+                guard let fee = party.fee, fee > 0 else { return false }
+            }
+
+            if !trimmedSearchText.isEmpty {
+                let haystacks = [
+                    party.name,
+                    party.partyDescription ?? "",
+                    party.location,
+                    party.hostDisplayName ?? "",
+                    normalizedThemeName(for: party) ?? ""
+                ]
+
+                guard haystacks.contains(where: {
+                    $0.localizedCaseInsensitiveContains(trimmedSearchText)
+                }) else {
+                    return false
+                }
+            }
+
+            return true
+        }
+    }
+
+    private var isFilterActive: Bool {
+        filterState.isActive
+    }
+
+    private var activeFilterDisplayText: String {
+        var parts: [String] = []
+
+        if filterState.timeFilter == .withinTwoWeeks {
+            parts.append("2 weeks")
         }
 
-        if myAgeEnabled, let age = userAge {
-            result = result.filter { party in
-                let minMatch = party.minAge == nil || party.minAge! <= age
-                let maxMatch = party.maxAge == nil || party.maxAge! >= age
-                return minMatch && maxMatch
+        if !filterState.selectedThemes.isEmpty {
+            if filterState.selectedThemes.count == 1, let theme = filterState.selectedThemes.first {
+                parts.append(theme)
+            } else {
+                parts.append("\(filterState.selectedThemes.count) themes")
             }
         }
 
-        if nearMeEnabled, let location = userLocation {
-            result = result.filter { party in
-                let distance = CLLocation(latitude: location.latitude, longitude: location.longitude)
-                    .distance(from: CLLocation(latitude: party.latitude, longitude: party.longitude))
-                return distance <= 5000
-            }
+        if let distanceLabel = filterState.distanceFilter.summaryLabel {
+            parts.append(distanceLabel)
         }
 
-        if !searchText.isEmpty {
-            result = result.filter { party in
-                party.name.localizedCaseInsensitiveContains(searchText) ||
-                (party.partyDescription ?? "").localizedCaseInsensitiveContains(searchText) ||
-                party.location.localizedCaseInsensitiveContains(searchText) ||
-                (party.hostDisplayName ?? "").localizedCaseInsensitiveContains(searchText)
-            }
+        if let ageSummary = ageSummaryLabel {
+            parts.append(ageSummary)
         }
 
-        return result
+        if let feeSummary = filterState.feeFilter.summaryLabel {
+            parts.append(feeSummary)
+        }
+
+        if !filterState.trimmedSearchText.isEmpty {
+            parts.append("search")
+        }
+
+        let description = parts.isEmpty ? "all parties" : parts.joined(separator: ", ")
+        return "\(description) (\(filteredParties.count))"
+    }
+
+    private var ageSummaryLabel: String? {
+        switch (filterState.minimumAge, filterState.maximumAge) {
+        case let (minimumAge?, maximumAge?):
+            return "\(minimumAge)-\(maximumAge)"
+        case let (minimumAge?, nil):
+            return "\(minimumAge)+"
+        case let (nil, maximumAge?):
+            return "up to \(maximumAge)"
+        case (nil, nil):
+            return nil
+        }
+    }
+
+    private var minimumAgeSelection: Binding<Int> {
+        Binding(
+            get: { filterState.minimumAge ?? 0 },
+            set: { newValue in
+                let updatedAge = newValue == 0 ? nil : newValue
+                filterState.minimumAge = updatedAge
+
+                if let minimumAge = updatedAge,
+                   let maximumAge = filterState.maximumAge,
+                   maximumAge < minimumAge {
+                    filterState.maximumAge = minimumAge
+                }
+            }
+        )
+    }
+
+    private var maximumAgeSelection: Binding<Int> {
+        Binding(
+            get: { filterState.maximumAge ?? 0 },
+            set: { newValue in
+                let updatedAge = newValue == 0 ? nil : newValue
+                filterState.maximumAge = updatedAge
+
+                if let maximumAge = updatedAge,
+                   let minimumAge = filterState.minimumAge,
+                   maximumAge < minimumAge {
+                    filterState.minimumAge = maximumAge
+                }
+            }
+        )
     }
 
     init(locationManager: LocationManager, highlightedPartyId: Int? = nil) {
@@ -118,37 +234,47 @@ struct MapView: View {
 
     var body: some View {
         GeometryReader { geo in
-            ZStack(alignment: .top) {
-                mapContent
-                    .ignoresSafeArea()
-
-                searchBar
-                    .padding(.horizontal, 12)
-                    .padding(.top, 8)
+            Map(position: $position) {
+                userLocationAnnotation
+                partyClusterAnnotations
+            }
+            .ignoresSafeArea()
+            .overlay(alignment: .top) {
+                filterSummaryOverlay
             }
             .onAppear {
                 mapViewSize = geo.size
                 locationManager.requestPermission()
+                locationManager.ensureLocationUpdates()
+                sanitizeDistanceFilterForLocationAvailability()
                 focusMap(on: displayedParty)
                 loadFilterData()
-                loadUserProfile()
+                triggerRecomputeClusters()
             }
             .onChange(of: geo.size) { _, newSize in
                 mapViewSize = newSize
+                triggerRecomputeClusters()
             }
             .onMapCameraChange(frequency: .onEnd) { context in
                 currentRegion = context.region
             }
+            .onChange(of: currentRegion) { _, _ in
+                triggerRecomputeClusters()
+            }
             .onChange(of: displayedParty?.backendId) { _, _ in
                 focusMap(on: displayedParty)
             }
-            .onChange(of: filteredParties.count) { _, _ in
+            .onChange(of: filteredPartyIDs) { _, _ in
                 triggerRecomputeClusters()
             }
-            .onChange(of: followingUserIds.count) { _, _ in
+            .onChange(of: followingUserIds) { _, _ in
                 triggerRecomputeClusters()
             }
-            .onChange(of: invitedPartyIds.count) { _, _ in
+            .onChange(of: invitedPartyIds) { _, _ in
+                triggerRecomputeClusters()
+            }
+            .onChange(of: locationManager.currentLocation) { _, _ in
+                sanitizeDistanceFilterForLocationAvailability()
                 triggerRecomputeClusters()
             }
             .navigationTitle(displayedParty?.name ?? "Map")
@@ -160,16 +286,31 @@ struct MapView: View {
         }
     }
 
-    private var mapContent: some View {
-        Map(position: $position) {
-            userLocationAnnotation
-            partyClusterAnnotations
+    private var filterSummaryOverlay: some View {
+        VStack {
+            HStack(spacing: 8) {
+                Image(systemName: isFilterActive ? "line.3.horizontal.decrease.circle.fill" : "line.3.horizontal.decrease.circle")
+                    .font(.caption)
+                Text(activeFilterDisplayText)
+                    .font(.caption)
+                    .fontWeight(.semibold)
+                Spacer()
+            }
+            .padding(.horizontal, 12)
+            .padding(.vertical, 8)
+            .background(isFilterActive ? Color.black.opacity(0.65) : Color.black.opacity(0.5))
+            .foregroundStyle(.white)
+            .clipShape(RoundedRectangle(cornerRadius: 10))
+            .padding(.horizontal, 12)
+            .padding(.top, 12)
+
+            Spacer()
         }
     }
 
     private var userLocationAnnotation: some MapContent {
         Group {
-            if let coord = locationManager.currentLocation {
+            if let coord = currentUserLocation {
                 Annotation("You", coordinate: coord) {
                     MapBadge(type: .attendee(isAtParty: locationManager.isAtParty, isSelf: true, userId: currentUserId))
                 }
@@ -209,63 +350,109 @@ struct MapView: View {
             Button {
                 showFilterSheet = true
             } label: {
-                Image(systemName: isFilterActive ? "line.3.horizontal.decrease.circle.fill" : "line.3.horizontal.decrease.circle")
-                    .font(.title2)
-                    .foregroundStyle(isFilterActive ? Color("primary pink") : .primary)
+                ZStack(alignment: .topTrailing) {
+                    Image(systemName: "line.3.horizontal.decrease.circle.fill")
+                        .font(.title3)
+                        .foregroundStyle(isFilterActive ? Color("primary pink") : .secondary)
+
+                    if isFilterActive {
+                        Circle()
+                            .fill(.red)
+                            .frame(width: 8, height: 8)
+                            .offset(x: 2, y: -2)
+                    }
+                }
             }
         }
     }
 
     private var filterSheet: some View {
         NavigationStack {
-            Form {
-                Section("Cost") {
-                    Picker("Cost", selection: $costFilter) {
-                        ForEach(CostFilter.allCases, id: \.self) { filter in
-                            HStack(spacing: 8) {
-                                Image(systemName: filter.systemImage)
-                                    .frame(width: 24)
-                                Text(filter.rawValue)
-                            }
-                            .tag(filter)
-                        }
-                    }
-                    .pickerStyle(.inline)
+            List {
+                Section("Search") {
+                    TextField("Search parties", text: $filterState.searchText)
+                        .autocorrectionDisabled()
+                        .textInputAutocapitalization(.never)
                 }
 
-                Section("Location") {
-                    Toggle(isOn: $nearMeEnabled) {
-                        HStack(spacing: 8) {
-                            Image(systemName: "location.fill")
-                                .frame(width: 24)
-                                .foregroundStyle(Color("primary pink"))
-                            VStack(alignment: .leading, spacing: 2) {
-                                Text("Near Me")
-                                Text("Parties within 5km")
-                                    .font(.caption)
-                                    .foregroundStyle(.secondary)
+                Section("Time") {
+                    ForEach(PartyMapTimeFilter.allCases, id: \.self) { filter in
+                        selectionRow(
+                            title: filter.rawValue,
+                            systemImage: filter.systemImage,
+                            isSelected: filterState.timeFilter == filter
+                        ) {
+                            filterState.timeFilter = filter
+                        }
+                    }
+                }
+
+                Section("Theme") {
+                    if availableThemes.isEmpty {
+                        Text("Themes will appear here after party data sync includes displayable theme metadata.")
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                    } else {
+                        ForEach(availableThemes, id: \.self) { theme in
+                            selectionRow(
+                                title: theme,
+                                systemImage: "tag.fill",
+                                isSelected: filterState.selectedThemes.contains(theme)
+                            ) {
+                                toggleTheme(theme)
                             }
+                        }
+                    }
+                }
+
+                Section("Distance") {
+                    if !hasCurrentUserLocation {
+                        Text("Distance filters are unavailable until your current location is available.")
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                    }
+
+                    ForEach(PartyMapDistanceFilter.allCases, id: \.self) { filter in
+                        selectionRow(
+                            title: filter.rawValue,
+                            systemImage: filter.systemImage,
+                            isSelected: filterState.distanceFilter == filter,
+                            isDisabled: !hasCurrentUserLocation && filter != .anyDistance
+                        ) {
+                            filterState.distanceFilter = filter
                         }
                     }
                 }
 
                 Section("Age") {
-                    Toggle(isOn: $myAgeEnabled) {
-                        HStack(spacing: 8) {
-                            Image(systemName: "person.fill")
-                                .frame(width: 24)
-                                .foregroundStyle(Color("primary pink"))
-                            VStack(alignment: .leading, spacing: 2) {
-                                Text("My Age")
-                                Text("Parties matching your age")
-                                    .font(.caption)
-                                    .foregroundStyle(.secondary)
-                            }
+                    Picker("Minimum Age", selection: minimumAgeSelection) {
+                        Text("Any").tag(0)
+                        ForEach(ageOptions, id: \.self) { age in
+                            Text("\(age)").tag(age)
+                        }
+                    }
+
+                    Picker("Maximum Age", selection: maximumAgeSelection) {
+                        Text("Any").tag(0)
+                        ForEach(ageOptions, id: \.self) { age in
+                            Text("\(age)").tag(age)
+                        }
+                    }
+                }
+
+                Section("Price") {
+                    ForEach(PartyMapFeeFilter.allCases, id: \.self) { filter in
+                        selectionRow(
+                            title: filter.rawValue,
+                            systemImage: filter.systemImage,
+                            isSelected: filterState.feeFilter == filter
+                        ) {
+                            filterState.feeFilter = filter
                         }
                     }
                 }
             }
-            .navigationTitle("Filters")
+            .navigationTitle("filter")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
@@ -273,44 +460,44 @@ struct MapView: View {
                         showFilterSheet = false
                     }
                 }
-                ToolbarItem(placement: .destructiveAction) {
+                ToolbarItem(placement: .topBarLeading) {
                     Button("Reset") {
-                        costFilter = .all
-                        nearMeEnabled = false
-                        myAgeEnabled = false
+                        filterState.reset()
                     }
                     .disabled(!isFilterActive)
                 }
             }
         }
-        .presentationDetents([.medium])
+        .presentationDetents([.medium, .large])
         .presentationDragIndicator(.visible)
     }
 
-    private var searchBar: some View {
-        HStack(spacing: 8) {
-            Image(systemName: "magnifyingglass")
-                .foregroundStyle(.secondary)
+    private func selectionRow(
+        title: String,
+        systemImage: String,
+        isSelected: Bool,
+        isDisabled: Bool = false,
+        action: @escaping () -> Void
+    ) -> some View {
+        Button(action: action) {
+            HStack(spacing: 12) {
+                Image(systemName: systemImage)
+                    .frame(width: 28)
+                    .foregroundStyle(isSelected ? Color("primary pink") : .primary)
 
-            TextField("Search parties...", text: $searchText)
-                .textFieldStyle(.plain)
-                .autocorrectionDisabled()
+                Text(title)
+                    .foregroundStyle(isDisabled ? .secondary : .primary)
 
-            if !searchText.isEmpty {
-                Button {
-                    searchText = ""
-                } label: {
-                    Image(systemName: "xmark.circle.fill")
-                        .foregroundStyle(.secondary)
+                Spacer()
+
+                if isSelected {
+                    Image(systemName: "checkmark")
+                        .foregroundStyle(Color("primary pink"))
+                        .fontWeight(.semibold)
                 }
-                .buttonStyle(.plain)
             }
         }
-        .padding(.horizontal, 12)
-        .padding(.vertical, 10)
-        .background(.regularMaterial)
-        .clipShape(RoundedRectangle(cornerRadius: 12))
-        .shadow(color: .black.opacity(0.15), radius: 4, y: 2)
+        .disabled(isDisabled)
     }
 
     private func triggerRecomputeClusters() {
@@ -321,6 +508,29 @@ struct MapView: View {
             for: currentRegion,
             in: mapViewSize
         )
+    }
+
+    private func normalizedThemeName(for party: Party) -> String? {
+        guard let themeName = party.themeName?.trimmingCharacters(in: .whitespacesAndNewlines),
+              !themeName.isEmpty else {
+            return nil
+        }
+
+        return themeName
+    }
+
+    private func toggleTheme(_ theme: String) {
+        if filterState.selectedThemes.contains(theme) {
+            filterState.selectedThemes.remove(theme)
+        } else {
+            filterState.selectedThemes.insert(theme)
+        }
+    }
+
+    private func sanitizeDistanceFilterForLocationAvailability() {
+        if !hasCurrentUserLocation, filterState.distanceFilter != .anyDistance {
+            filterState.distanceFilter = .anyDistance
+        }
     }
 
     private func zoomToFit<T: Clusterable>(cluster: Cluster<T>) {
@@ -354,16 +564,6 @@ private extension MapView {
             await withTaskGroup(of: Void.self) { group in
                 group.addTask { await fetchInvitations(userId: userId) }
                 group.addTask { await fetchFollowing(userId: userId) }
-            }
-        }
-    }
-
-    func loadUserProfile() {
-        Task {
-            if let location = locationManager.currentLocation {
-                await MainActor.run {
-                    userLocation = location
-                }
             }
         }
     }

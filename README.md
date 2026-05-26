@@ -144,6 +144,8 @@ The application provides a comprehensive REST API with the following endpoints:
 - **Media**: `/api/media/*` - Media upload and retrieval
 - **Invitations**: `/api/invitations/*` - Invitation management
 - **Follow**: `/api/follow/*` - Social connections
+### Codex commands
+![alt text](image.png)
 
 ## Sprint Review Dates
 

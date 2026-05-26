@@ -21,6 +21,7 @@ class Party {
     var website: String?
     var fee: Double?
     var categoryId: Int?
+    var themeName: String?
     
     
     @Relationship(deleteRule: .cascade)
@@ -42,6 +43,7 @@ class Party {
          website: String? = nil,
          fee: Double? = nil,
          categoryId: Int? = nil,
+         themeName: String? = nil,
          hostDisplayName: String? = nil) {  
         self.backendId = backendId
         self.name = name
@@ -60,6 +62,7 @@ class Party {
         self.website = website
         self.fee = fee
         self.categoryId = categoryId
+        self.themeName = themeName
     }
     
     var activeEntry: TimeEntry? {

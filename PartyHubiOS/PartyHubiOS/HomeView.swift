@@ -17,20 +17,7 @@ struct HomeView: View {
                 .padding()
             }
             .navigationTitle("")
-            .navigationBarTitleDisplayMode(.inline)
-            .toolbar {
-                ToolbarItem(placement: .principal) {
-                    HStack(spacing: 6) {
-                        Image(systemName: "party.popper.fill")
-                            .foregroundStyle(Color("primary pink"))
-                        Text("PartyHub")
-                            .font(.headline)
-                            .fontWeight(.bold)
-                    }
-                }
-            }
-        }
-    }
+        }}
 
     private var brandingHeader: some View {
         VStack(spacing: 4) {

@@ -126,6 +126,7 @@ struct PartyHubiOSApp: App {
             let location: LocationResponse
             let hostUser: HostUserResponse?
             let category: CategoryResponse?
+            let theme: String?
             let timeStart: String?
             let timeEnd: String?
             let maxPeople: Int?
@@ -182,6 +183,7 @@ struct PartyHubiOSApp: App {
                 existing.website = p.website
                 existing.fee = p.fee
                 existing.categoryId = p.category?.id
+                existing.themeName = preferredThemeName(theme: p.theme, categoryName: p.category?.name)
             } else {
                 let party = Party(
                     backendId:  p.id,
@@ -199,11 +201,26 @@ struct PartyHubiOSApp: App {
                     website: p.website,
                     fee: p.fee,
                     categoryId: p.category?.id,
+                    themeName: preferredThemeName(theme: p.theme, categoryName: p.category?.name),
                     hostDisplayName: p.hostUser?.displayName)
                 context.insert(party)
             }
         }
         try? context.save()
+    }
+
+    private func preferredThemeName(theme: String?, categoryName: String?) -> String? {
+        let normalizedTheme = theme?.trimmingCharacters(in: .whitespacesAndNewlines)
+        if let normalizedTheme, !normalizedTheme.isEmpty {
+            return normalizedTheme
+        }
+
+        let normalizedCategory = categoryName?.trimmingCharacters(in: .whitespacesAndNewlines)
+        if let normalizedCategory, !normalizedCategory.isEmpty {
+            return normalizedCategory
+        }
+
+        return nil
     }
     
     private func parseDate(_ dateString: String?) -> Date? {
