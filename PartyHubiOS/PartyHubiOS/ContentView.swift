@@ -18,10 +18,12 @@ struct ContentView: View {
                     Label("Party", systemImage: "party.popper")
                 }
 
-            MapView(locationManager: locationManager)
-                .tabItem {
-                    Label("Map", systemImage: "map")
-                }
+            NavigationStack {
+                MapView(locationManager: locationManager)
+            }
+            .tabItem {
+                Label("Map", systemImage: "map")
+            }
 
             TimeTrackingView()
                 .tabItem {

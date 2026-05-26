@@ -227,9 +227,11 @@ struct MapView: View {
 
     var displayedParty: Party? {
         if let highlightedPartyId {
-            return parties.first(where: { $0.backendId == highlightedPartyId })
+            if let highlightedParty = filteredParties.first(where: { $0.backendId == highlightedPartyId }) {
+                return highlightedParty
+            }
         }
-        return parties.first(where: { $0.isActive }) ?? parties.first
+        return filteredParties.first(where: { $0.isActive }) ?? filteredParties.first
     }
 
     var body: some View {
