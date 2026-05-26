@@ -1,4 +1,4 @@
-document.addEventListener("DOMContentLoaded", function () {
+document.addEventListener("DOMContentLoaded", async function () {
   const img = document.getElementById("profileImg");
   const displayNameElement = document.getElementById("displayName");
   const distinctNameElement = document.getElementById("distinctName");
@@ -959,6 +959,7 @@ document.addEventListener("DOMContentLoaded", function () {
     }
 
     if (String(loggedInUserId) === String(profileUserId)) {
+      // Edit account button
       const btn = document.createElement("button");
       btn.type = "button";
       btn.className = "edit-account-btn";
@@ -971,6 +972,39 @@ document.addEventListener("DOMContentLoaded", function () {
 
       btn.appendChild(link);
       container.appendChild(btn);
+
+      // Logout button
+      try {
+        const logoutBtn = document.createElement("button");
+        logoutBtn.type = "button";
+        logoutBtn.className = "logout-btn";
+        logoutBtn.textContent = "Logout";
+        logoutBtn.style.marginLeft = "8px";
+
+        logoutBtn.addEventListener("click", (e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          try {
+            // Use authService.logout to perform full Keycloak logout and redirect
+            if (window.authService && typeof window.authService.logout === "function") {
+              window.authService.logout();
+            } else {
+              // Fallback: clear local state and reload
+              try {
+                window.authService?.clearAuth?.();
+              } catch {}
+              window.location.reload();
+            }
+          } catch (err) {
+            console.error("Logout failed", err);
+          }
+        });
+
+        container.appendChild(logoutBtn);
+      } catch (err) {
+        // ignore any DOM errors
+      }
+
       return;
     }
 
@@ -1556,6 +1590,22 @@ document.addEventListener("DOMContentLoaded", function () {
     });
 
     showTab("Parties");
+  }
+  // If no explicit user is requested (no handle/id in URL) and no stored
+  // logged-in user is available, require login similar to notifications page.
+  // This ensures users who open /profile/profile.html are redirected to
+  // Keycloak and returned to the same page after authentication.
+  try {
+    const urlParams = new URLSearchParams(window.location.search);
+    const hasHandle = urlParams.has("handle");
+    const hasId = urlParams.has("id");
+    const stored = getStoredUserId();
+
+    if (!hasHandle && !hasId && (stored == null)) {
+      await window.authService?.init?.({ requireLogin: true, redirectTo: window.location.pathname });
+    }
+  } catch (err) {
+    console.warn("Profile init login check failed", err);
   }
 
   initTabs();

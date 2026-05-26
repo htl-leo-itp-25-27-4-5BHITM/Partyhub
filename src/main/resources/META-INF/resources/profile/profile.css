@@ -105,7 +105,8 @@
 }
 
 .edit-account-btn,
-.follow-action-main {
+.follow-action-main,
+.logout-btn {
   width: 90vw;
   max-width: 420px;
   min-height: 52px;
@@ -140,7 +141,8 @@
 }
 
 .edit-account-btn::before,
-.follow-action-main::before {
+.follow-action-main::before,
+.logout-btn::before {
   content: "";
   position: absolute;
   inset: 1px;
@@ -154,7 +156,8 @@
 }
 
 .edit-account-btn::after,
-.follow-action-main::after {
+.follow-action-main::after,
+.logout-btn::after {
   content: "";
   position: absolute;
   top: -120%;
@@ -174,7 +177,8 @@
 }
 
 .edit-account-btn:hover,
-.follow-action-main:hover {
+.follow-action-main:hover,
+.logout-btn:hover {
   transform: translateY(-1px) scale(1.01);
   box-shadow:
     0 14px 30px rgba(255, 46, 99, 0.36),
@@ -184,12 +188,14 @@
 }
 
 .edit-account-btn:hover::after,
-.follow-action-main:hover::after {
+.follow-action-main:hover::after,
+.logout-btn:hover::after {
   opacity: 1;
 }
 
 .edit-account-btn:active,
-.follow-action-main:active {
+.follow-action-main:active,
+.logout-btn:active {
   transform: translateY(1px) scale(0.99);
   box-shadow:
     0 8px 18px rgba(255, 46, 99, 0.22),
@@ -197,13 +203,15 @@
 }
 
 .edit-account-btn:focus-visible,
-.follow-action-main:focus-visible {
+.follow-action-main:focus-visible,
+.logout-btn:focus-visible {
   outline: 2px solid rgba(255, 255, 255, 0.9);
   outline-offset: 3px;
 }
 
 .edit-account-btn[disabled],
-.follow-action-main[disabled] {
+.follow-action-main[disabled],
+.logout-btn[disabled] {
   opacity: 0.72;
   cursor: not-allowed;
   transform: none;
@@ -224,6 +232,19 @@
   width: 100%;
   position: relative;
   z-index: 2;
+}
+
+/* Slightly smaller variant used for logout to avoid visual dominance */
+.logout-btn {
+  /* make it compact but still touch-friendly */
+  width: auto;
+  min-width: 120px;
+  max-width: 240px;
+  padding: 10px 16px;
+  min-height: 44px;
+  font-size: 0.94rem;
+  font-weight: 700;
+  border-radius: 16px;
 }
 
 /* Search result follow buttons auch pink */
