@@ -52,3 +52,6 @@ api/node_modules
 
 prompts
 .opencode
+
+xcuserdata/
+*.xcuserstate
