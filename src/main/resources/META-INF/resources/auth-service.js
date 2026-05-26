@@ -1,5 +1,11 @@
 (function () {
-  const DEFAULT_ISSUER = "http://localhost:8000/realms/partyhub";
+  // Default issuer should prefer the same origin as the frontend when
+  // running in production. Using a localhost literal causes the browser to
+  // attempt token requests against localhost when /api/config/public fails
+  // (which results in CORS/network errors in the cloud). Build a sensible
+  // default from window.location.origin so deployments that serve the
+  // frontend and Keycloak under the same host work out of the box.
+  const DEFAULT_ISSUER = `${window.location.origin}/keycloak/realms/partyhub`;
 
   const config = {
     realm: "partyhub",
@@ -24,8 +30,12 @@
           config.issuer = data.keycloakIssuer;
         }
       }
-    } catch {
-      // use default
+    } catch (err) {
+      // Keep DEFAULT_ISSUER but surface the error to aid debugging.
+      // This used to be silently ignored which caused the frontend to
+      // fall back to a hardcoded localhost URL in cloud deployments.
+      // eslint-disable-next-line no-console
+      console.warn("Could not fetch /api/config/public, using default issuer:", err);
     }
     buildEndpoints();
   }
@@ -180,6 +190,12 @@
   }
 
   async function handleCallback() {
+    // Ensure we have up-to-date Keycloak issuer configuration before
+    // attempting the token exchange. Without this, the code may use the
+    // DEFAULT_ISSUER (localhost) which causes the token POST to go to the
+    // wrong origin when the app is hosted elsewhere.
+    await fetchKeycloakConfig();
+
     const params = new URLSearchParams(window.location.search);
     const error = params.get("error");
     if (error) {
