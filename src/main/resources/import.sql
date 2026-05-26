@@ -85,7 +85,11 @@ INSERT INTO location (id, longitude, latitude, address) VALUES
     (14, 14.2478, 48.3007, 'Leonding Rooftop'),
     (15, 14.2974, 48.2874, 'Hafenviertel Linz'),
     (16, 14.251920, 48.268335, 'HTL Leonding'),
-    (17, 14.022591, 48.123066, 'Hubingerstraße 3');
+    (17, 14.022591, 48.123066, 'Hubingerstrasse 3'),
+    (18, 14.2852, 48.3201, 'PlusCity Pasching'),
+    (19, 14.2346, 48.2217, 'Traun Schlosspark'),
+    (20, 14.3371, 48.2851, 'Steyregg Ortszentrum'),
+    (21, 14.3107, 48.2989, 'Lentos / Donaulaende Linz - duplicate');
 
 -- =========================
 -- PARTIES
