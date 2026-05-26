@@ -131,4 +131,5 @@ public void setDeviceToken(String deviceToken) { this.deviceToken = deviceToken;
     public void setParty(Set<Party> party) {
         this.party = party;
     }
+
 }
