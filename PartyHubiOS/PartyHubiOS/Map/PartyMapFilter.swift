@@ -34,39 +34,71 @@ enum PartyMapFeeFilter: String, CaseIterable {
     }
 }
 
-enum PartyMapDistanceFilter: String, CaseIterable {
-    case anyDistance = "Any Distance"
-    case fiveKilometers = "Within 5 km"
-    case twentyKilometers = "Within 20 km"
-    case fiftyKilometers = "Within 50 km"
+enum PartyMapDistanceFilter: CaseIterable {
+    case fiveKilometers
+    case tenKilometers
+    case twentyFiveKilometers
+    case fiftyKilometers
+    case oneHundredKilometers
+    case twoHundredFiftyKilometers
+    case fiveHundredKilometers
+    case oneThousandKilometers
+    case unlimited
 
     var systemImage: String {
         "location.fill"
     }
 
+    var displayLabel: String {
+        switch self {
+        case .fiveKilometers: return "5 km"
+        case .tenKilometers: return "10 km"
+        case .twentyFiveKilometers: return "25 km"
+        case .fiftyKilometers: return "50 km"
+        case .oneHundredKilometers: return "100 km"
+        case .twoHundredFiftyKilometers: return "250 km"
+        case .fiveHundredKilometers: return "500 km"
+        case .oneThousandKilometers: return "1000 km"
+        case .unlimited: return "∞"
+        }
+    }
+
     var distanceInMeters: Double? {
         switch self {
-        case .anyDistance: return nil
         case .fiveKilometers: return 5_000
-        case .twentyKilometers: return 20_000
+        case .tenKilometers: return 10_000
+        case .twentyFiveKilometers: return 25_000
         case .fiftyKilometers: return 50_000
+        case .oneHundredKilometers: return 100_000
+        case .twoHundredFiftyKilometers: return 250_000
+        case .fiveHundredKilometers: return 500_000
+        case .oneThousandKilometers: return 1_000_000
+        case .unlimited: return nil
         }
     }
 
     var summaryLabel: String? {
         switch self {
-        case .anyDistance: return nil
-        case .fiveKilometers: return "5 km"
-        case .twentyKilometers: return "20 km"
-        case .fiftyKilometers: return "50 km"
+        case .unlimited: return nil
+        default: return displayLabel
         }
+    }
+
+    var sliderIndex: Double {
+        Double(Self.allCases.firstIndex(of: self) ?? 0)
+    }
+
+    static func filter(for sliderValue: Double) -> PartyMapDistanceFilter {
+        let rawIndex = Int(sliderValue.rounded())
+        let clampedIndex = min(max(rawIndex, 0), allCases.count - 1)
+        return allCases[clampedIndex]
     }
 }
 
 struct PartyMapFilterState {
     var timeFilter: PartyMapTimeFilter = .anytime
     var selectedThemes: Set<String> = []
-    var distanceFilter: PartyMapDistanceFilter = .anyDistance
+    var distanceFilter: PartyMapDistanceFilter = .unlimited
     var minimumAge: Int? = nil
     var maximumAge: Int? = nil
     var feeFilter: PartyMapFeeFilter = .all
@@ -79,7 +111,7 @@ struct PartyMapFilterState {
     var isActive: Bool {
         timeFilter != .anytime ||
         !selectedThemes.isEmpty ||
-        distanceFilter != .anyDistance ||
+        distanceFilter != .unlimited ||
         minimumAge != nil ||
         maximumAge != nil ||
         feeFilter != .all ||

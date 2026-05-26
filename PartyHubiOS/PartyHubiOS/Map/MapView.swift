@@ -414,15 +414,31 @@ struct MapView: View {
                             .foregroundStyle(.secondary)
                     }
 
-                    ForEach(PartyMapDistanceFilter.allCases, id: \.self) { filter in
-                        selectionRow(
-                            title: filter.rawValue,
-                            systemImage: filter.systemImage,
-                            isSelected: filterState.distanceFilter == filter,
-                            isDisabled: !hasCurrentUserLocation && filter != .anyDistance
-                        ) {
-                            filterState.distanceFilter = filter
+                    VStack(alignment: .leading, spacing: 12) {
+                        HStack {
+                            Text(filterState.distanceFilter.displayLabel)
+                                .font(.subheadline)
+                                .fontWeight(.semibold)
+                            Spacer()
+                            Text("from 5 km to ∞")
+                                .font(.caption)
+                                .foregroundStyle(.secondary)
                         }
+
+                        Slider(
+                            value: distanceFilterSelection,
+                            in: 0...Double(PartyMapDistanceFilter.allCases.count - 1),
+                            step: 1
+                        )
+                        .disabled(!hasCurrentUserLocation)
+
+                        HStack {
+                            Text(PartyMapDistanceFilter.allCases.first?.displayLabel ?? "5 km")
+                            Spacer()
+                            Text(PartyMapDistanceFilter.allCases.last?.displayLabel ?? "∞")
+                        }
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
                     }
                 }
 
@@ -530,9 +546,18 @@ struct MapView: View {
     }
 
     private func sanitizeDistanceFilterForLocationAvailability() {
-        if !hasCurrentUserLocation, filterState.distanceFilter != .anyDistance {
-            filterState.distanceFilter = .anyDistance
+        if !hasCurrentUserLocation, filterState.distanceFilter != .unlimited {
+            filterState.distanceFilter = .unlimited
         }
+    }
+
+    private var distanceFilterSelection: Binding<Double> {
+        Binding(
+            get: { filterState.distanceFilter.sliderIndex },
+            set: { newValue in
+                filterState.distanceFilter = PartyMapDistanceFilter.filter(for: newValue)
+            }
+        )
     }
 
     private func zoomToFit<T: Clusterable>(cluster: Cluster<T>) {
