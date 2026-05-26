@@ -33,6 +33,11 @@ spec:
           env:
           - name: QUARKUS_PROFILE
             value: prod
+          - name: PARTYHUB_AUTH_BYPASS_ENABLED
+            value: "true"
+          envFrom:
+          - secretRef:
+              name: partyhub-smtp-secret
           image: ghcr.io/htl-leo-itp-25-27-4-5bhitm/partyhub-backend:latest
           imagePullPolicy: Always
           ports:
