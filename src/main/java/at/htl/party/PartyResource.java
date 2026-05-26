@@ -64,6 +64,19 @@ public class PartyResource {
         
         Long actualUserId = currentUserResolver.currentUserIdIfAuthenticated().orElse(null);
 
+        if (userLatitude != null && userLongitude == null) {
+            return Response.status(400).entity("{\"error\": \"user_longitude is required when user_latitude is provided\"}").build();
+        }
+        if (userLongitude != null && userLatitude == null) {
+            return Response.status(400).entity("{\"error\": \"user_latitude is required when user_longitude is provided\"}").build();
+        }
+        if (distanceKm != null && distanceKm < 0) {
+            return Response.status(400).entity("{\"error\": \"distance must be a positive number\"}").build();
+        }
+        if (distanceKm != null && (userLatitude == null || userLongitude == null)) {
+            return Response.status(400).entity("{\"error\": \"user_latitude and user_longitude are required for distance filter\"}").build();
+        }
+
         boolean hasNewFilters = (userAge != null) ||
                                (free != null) ||
                                (userLatitude != null && userLongitude != null);

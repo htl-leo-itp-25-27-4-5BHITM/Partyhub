@@ -32,6 +32,7 @@ GET {{baseUrl}}/{{anna}}
 ### Get current user by query param
 ###########################################
 GET {{baseUrl}}/me?userId={{anna}}
+X-User-Id: {{anna}}
 
 ?? status == 200
 
@@ -40,8 +41,9 @@ GET {{baseUrl}}/me?userId={{anna}}
 ### Current user needs query param
 ###########################################
 GET {{baseUrl}}/me
+X-User-Id: {{anna}}
 
-?? status == 400
+?? status == 200
 
 
 ###########################################

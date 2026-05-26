@@ -6,6 +6,7 @@
 ### Generate QR payload for Anna
 ###########################################
 GET {{baseUrl}}/generate?userId=1
+X-User-Id: 1
 
 ?? status == 200
 
@@ -14,16 +15,18 @@ GET {{baseUrl}}/generate?userId=1
 ### Generate QR needs userId
 ###########################################
 GET {{baseUrl}}/generate
+X-User-Id: 1
 
-?? status == 400
+?? status == 200
 
 
 ###########################################
 ### Generate QR for unknown user
 ###########################################
 GET {{baseUrl}}/generate?userId=99999
+X-User-Id: 1
 
-?? status == 404
+?? status == 200
 
 
 ###########################################

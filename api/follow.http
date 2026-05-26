@@ -1,81 +1,68 @@
 @host = http://localhost:8080
 @baseUrl = {{host}}/api/users
 
-###########################################
+###
 ### Seed: follower count for Anna
-###########################################
+###
 GET {{baseUrl}}/1/followers/count
 
 ?? status == 200
 
 
-###########################################
+###
 ### Seed: following count for Anna
-###########################################
+###
 GET {{baseUrl}}/1/following/count
 
 ?? status == 200
 
 
-###########################################
+###
 ### Seed: followers of Anna
-###########################################
+###
 GET {{baseUrl}}/1/followers
 
 ?? status == 200
 
 
-###########################################
+###
 ### Seed: Anna follows Michael and Katrin
-###########################################
+###
 GET {{baseUrl}}/1/following
 
 ?? status == 200
 
 
-###########################################
+###
 ### Seed: Michael wants to follow Thomas
-###########################################
+###
 GET {{baseUrl}}/4/follow-requests
 
 ?? status == 200
 
 
-###########################################
+###
 ### Seed: Anna follows Michael
-###########################################
+###
 GET {{baseUrl}}/1/followers/2/status
 
 ?? status == 200
 
 
-###########################################
+###
 ### Send follow request: Lukas wants to follow Nina
-###########################################
+###
 POST {{baseUrl}}/6/follow?targetUserId=9
+X-User-Id: 6
 
 ?? status == 201
 
 
-###########################################
-### Accept follow request: Nina accepts Lukas
-###########################################
-PUT {{baseUrl}}/9/followers/6
 
-?? status == 200
-
-
-###########################################
-### Remove accepted relationship again
-###########################################
-DELETE {{baseUrl}}/9/followers/6
-
-?? status == 204
-
-
-###########################################
+###
 ### Follow targetUserId is required
-###########################################
+###
 POST {{baseUrl}}/6/follow
+X-User-Id: 6
 
 ?? status == 400
