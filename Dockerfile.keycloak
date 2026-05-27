@@ -2,8 +2,6 @@ FROM quay.io/keycloak/keycloak:26.5.0
 
 COPY keycloak/themes/partyhub /opt/keycloak/themes/partyhub
 COPY keycloak/realm-staging.json /opt/keycloak/data/import/realm-staging.json
-COPY keycloak/entrypoint.sh /opt/keycloak/entrypoint.sh
-
-RUN chmod +x /opt/keycloak/entrypoint.sh
+COPY --chmod=0755 keycloak/entrypoint.sh /opt/keycloak/entrypoint.sh
 
 ENTRYPOINT ["/opt/keycloak/entrypoint.sh"]
