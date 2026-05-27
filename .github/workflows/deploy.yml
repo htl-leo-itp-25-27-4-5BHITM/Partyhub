@@ -45,6 +45,29 @@ jobs:
           kubectl apply -f k8s/keycloak.yaml
           echo "Deployment successful."
 
+      - name: Update Keycloak Realm
+        run: |
+          echo "Waiting for Keycloak pod to be running..."
+          kubectl wait --for=condition=Ready pod -l app=keycloak --timeout=180s
+          KC_POD=$(kubectl get pods -l app=keycloak -o jsonpath="{.items[0].metadata.name}")
+          echo "Waiting for Keycloak server to respond..."
+          for i in $(seq 1 30); do
+            if kubectl exec "$KC_POD" -- curl -sf http://localhost:8080/realms/master > /dev/null 2>&1; then
+              echo "Keycloak is responding."
+              break
+            fi
+            echo "Waiting... ($i/30)"
+            sleep 5
+          done
+          echo "Updating realm via $KC_POD..."
+          kubectl exec "$KC_POD" -- /opt/keycloak/bin/kcadm.sh config credentials \
+            --server http://localhost:8080 \
+            --realm master \
+            --user admin --password admin
+          kubectl exec "$KC_POD" -- /opt/keycloak/bin/kcadm.sh update realms/partyhub \
+            -f /opt/keycloak/data/import/realm-staging.json || true
+          echo "Realm update complete."
+
       - name: Reset Database
         run: |
           POD=$(kubectl get pods -l app=postgres -o jsonpath="{.items[0].metadata.name}")
