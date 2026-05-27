@@ -7,15 +7,6 @@
   "resetPasswordAllowed": true,
   "loginWithEmailAllowed": true,
   "duplicateEmailsAllowed": false,
-  "requiredActions": [
-    {
-      "alias": "VERIFY_EMAIL",
-      "name": "Verify Email",
-      "enabled": true,
-      "defaultAction": true,
-      "priority": 0
-    }
-  ],
   "smtpServer": {
     "host": "smtp.gmail.com",
     "port": "587",
