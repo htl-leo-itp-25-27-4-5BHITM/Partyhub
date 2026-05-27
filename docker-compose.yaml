@@ -36,7 +36,6 @@ services:
       - KC_DB_USERNAME=demo
       - KC_DB_PASSWORD=demo
       - KC_SPI_THEME_DEFAULT=partyhub
-      - KC_HEALTH_ENABLED=true
       - SMTP_PASSWORD=${SMTP_PASSWORD}
     depends_on:
       - postgres
