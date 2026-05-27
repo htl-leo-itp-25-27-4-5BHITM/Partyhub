@@ -33,6 +33,9 @@ jobs:
           kubectl delete deployment quarkus --ignore-not-found=true
           kubectl delete service quarkus --ignore-not-found=true
           kubectl apply -f k8s/quarkus.yaml
+          kubectl delete deployment keycloak --ignore-not-found=true
+          kubectl delete service keycloak --ignore-not-found=true
+          kubectl apply -f k8s/keycloak.yaml
           echo "Deployment successful."
 
       - name: Reset Database

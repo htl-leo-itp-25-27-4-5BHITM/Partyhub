@@ -10,212 +10,6 @@ spec:
       targetPort: 8080
   selector:
     app: keycloak
-
----
-apiVersion: v1
-kind: ConfigMap
-metadata:
-  name: keycloak-realm
-data:
-  realm-dev.json: |
-    {
-      "realm": "partyhub",
-      "enabled": true,
-      "roles": {
-        "realm": [
-          {
-            "name": "admin"
-          }
-        ]
-      },
-      "clients": [
-        {
-          "clientId": "frontend",
-          "enabled": true,
-          "protocol": "openid-connect",
-          "publicClient": true,
-          "directAccessGrantsEnabled": false,
-          "standardFlowEnabled": true,
-          "redirectUris": [
-            "http://localhost:8080/*",
-            "https://it220274.cloud.htl-leonding.ac.at/*"
-          ],
-          "webOrigins": [
-            "http://localhost:8080",
-            "https://it220274.cloud.htl-leonding.ac.at"
-          ],
-          "attributes": {
-            "pkce.code.challenge.method": "S256"
-          }
-        }
-      ],
-      "users": [
-        {
-          "username": "admin",
-          "enabled": true,
-          "credentials": [
-            {
-              "type": "password",
-              "value": "password",
-              "temporary": false
-            }
-          ],
-          "realmRoles": [
-            "admin"
-          ]
-        },
-        {
-          "username": "viki_dji",
-          "email": "v.vejmelek@students.htl-leonding.ac.at",
-          "firstName": "Victoria",
-          "lastName": "Vejmelek",
-          "enabled": true,
-          "emailVerified": true,
-          "credentials": [
-            {
-              "type": "password",
-              "value": "viki_dji",
-              "temporary": false
-            }
-          ]
-        },
-        {
-          "username": "carla_dimmler",
-          "email": "c.dimmler@students.htl-leonding.ac.at",
-          "firstName": "Carla",
-          "lastName": "Dimmler",
-          "enabled": true,
-          "emailVerified": true,
-          "credentials": [
-            {
-              "type": "password",
-              "value": "carla_dimmler",
-              "temporary": false
-            }
-          ]
-        },
-        {
-          "username": "katrin_bauer",
-          "email": "katrin.bauer@partyhub.at",
-          "firstName": "Katrin",
-          "lastName": "Bauer",
-          "enabled": true,
-          "emailVerified": true,
-          "credentials": [
-            {
-              "type": "password",
-              "value": "katrin_bauer",
-              "temporary": false
-            }
-          ]
-        },
-        {
-          "username": "michael_wagner",
-          "email": "michael.wagner@partyhub.at",
-          "firstName": "Michael",
-          "lastName": "Wagner",
-          "enabled": true,
-          "emailVerified": true,
-          "credentials": [
-            {
-              "type": "password",
-              "value": "michael_wagner",
-              "temporary": false
-            }
-          ]
-        },
-        {
-          "username": "sabine_weber",
-          "email": "sabine.weber@partyhub.at",
-          "firstName": "Sabine",
-          "lastName": "Weber",
-          "enabled": true,
-          "emailVerified": true,
-          "credentials": [
-            {
-              "type": "password",
-              "value": "sabine_weber",
-              "temporary": false
-            }
-          ]
-        },
-        {
-          "username": "lukas_gruber",
-          "email": "lukas.gruber@partyhub.at",
-          "firstName": "Lukas",
-          "lastName": "Gruber",
-          "enabled": true,
-          "emailVerified": true,
-          "credentials": [
-            {
-              "type": "password",
-              "value": "lukas_gruber",
-              "temporary": false
-            }
-          ]
-        },
-        {
-          "username": "mia_steiner",
-          "email": "mia.steiner@partyhub.at",
-          "firstName": "Mia",
-          "lastName": "Steiner",
-          "enabled": true,
-          "emailVerified": true,
-          "credentials": [
-            {
-              "type": "password",
-              "value": "mia_steiner",
-              "temporary": false
-            }
-          ]
-        },
-        {
-          "username": "david_koenig",
-          "email": "david.koenig@partyhub.at",
-          "firstName": "David",
-          "lastName": "Koenig",
-          "enabled": true,
-          "emailVerified": true,
-          "credentials": [
-            {
-              "type": "password",
-              "value": "david_koenig",
-              "temporary": false
-            }
-          ]
-        },
-        {
-          "username": "nina_fischer",
-          "email": "nina.fischer@partyhub.at",
-          "firstName": "Nina",
-          "lastName": "Fischer",
-          "enabled": true,
-          "emailVerified": true,
-          "credentials": [
-            {
-              "type": "password",
-              "value": "nina_fischer",
-              "temporary": false
-            }
-          ]
-        },
-        {
-          "username": "elias_berger",
-          "email": "elias.berger@partyhub.at",
-          "firstName": "Elias",
-          "lastName": "Berger",
-          "enabled": true,
-          "emailVerified": true,
-          "credentials": [
-            {
-              "type": "password",
-              "value": "elias_berger",
-              "temporary": false
-            }
-          ]
-        }
-      ]
-    }
 ---
 apiVersion: v1
 kind: Service
@@ -245,7 +39,7 @@ spec:
     spec:
       containers:
         - name: keycloak
-          image: quay.io/keycloak/keycloak:26.5.0
+          image: ghcr.io/4bhitm/partyhub-keycloak:latest
           args: ["start", "--import-realm"]
           env:
             - name: KC_BOOTSTRAP_ADMIN_USERNAME
@@ -291,13 +85,11 @@ spec:
               value: 'demo'
             - name: 'KC_DB_USERNAME'
               value: 'demo'
+            - name: KC_SPI_THEME_DEFAULT
+              value: "partyhub"
           ports:
             - name: http
               containerPort: 8080
-          volumeMounts:
-            - name: realm-import
-              mountPath: /opt/keycloak/data/import
-              readOnly: true
           resources:
             limits:
               cpu: 2000m
@@ -305,7 +97,4 @@ spec:
             requests:
               cpu: 500m
               memory: 1700Mi
-      volumes:
-        - name: realm-import
-          configMap:
-            name: keycloak-realm
+

@@ -8,7 +8,8 @@ on:
   workflow_dispatch:
 env:
   REGISTRY: ghcr.io
-  IMAGE_NAME: ${{ github.repository }}-backend
+  BACKEND_IMAGE: ${{ github.repository }}-backend
+  KEYCLOAK_IMAGE: ${{ github.repository }}-keycloak
 
 jobs:
   build-and-push:
@@ -40,20 +41,38 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Extract metadata
-        id: meta
+      - name: Extract backend metadata
+        id: meta-backend
         uses: docker/metadata-action@v5
         with:
-          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+          images: ${{ env.REGISTRY }}/${{ env.BACKEND_IMAGE }}
           tags: |
             type=raw,value=latest
             type=sha,prefix=
 
-      - name: Build and push Docker image
+      - name: Build and push backend image
         uses: docker/build-push-action@v5
         with:
           context: .
           file: Dockerfile
           push: true
-          tags: ${{ steps.meta.outputs.tags }}
-          labels: ${{ steps.meta.outputs.labels }}
+          tags: ${{ steps.meta-backend.outputs.tags }}
+          labels: ${{ steps.meta-backend.outputs.labels }}
+
+      - name: Extract keycloak metadata
+        id: meta-keycloak
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.REGISTRY }}/${{ env.KEYCLOAK_IMAGE }}
+          tags: |
+            type=raw,value=latest
+            type=sha,prefix=
+
+      - name: Build and push keycloak image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: Dockerfile.keycloak
+          push: true
+          tags: ${{ steps.meta-keycloak.outputs.tags }}
+          labels: ${{ steps.meta-keycloak.outputs.labels }}
