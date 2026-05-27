@@ -39,7 +39,8 @@ spec:
     spec:
       containers:
         - name: keycloak
-          image: ghcr.io/4bhitm/partyhub-keycloak:latest
+          image: ghcr.io/htl-leo-itp-25-27-4-5bhitm/partyhub-keycloak:latest
+          imagePullPolicy: Always
           args: ["start", "--import-realm"]
           env:
             - name: KC_BOOTSTRAP_ADMIN_USERNAME
