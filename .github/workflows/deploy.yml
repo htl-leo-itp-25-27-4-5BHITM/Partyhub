@@ -27,7 +27,14 @@ jobs:
           echo "${{ secrets.KUBE_CONFIG_DATA }}" | base64 -d > ~/.kube/config
           chmod 600 ~/.kube/config
 
-      - name: Deploy to Kubernetes
+      - name: Deploy PostgreSQL
+        run: |
+          echo "Ensuring postgres is running..."
+          kubectl apply -f k8s/postgres.yaml
+          echo "Waiting for postgres pod to be Ready..."
+          kubectl wait --for=condition=Ready pod -l app=postgres --timeout=180s
+
+      - name: Deploy Services
         run: |
           echo "Applying Kubernetes manifests"
           kubectl delete deployment quarkus --ignore-not-found=true
@@ -40,10 +47,8 @@ jobs:
 
       - name: Reset Database
         run: |
-          echo "Waiting for postgres pod to be ready..."
-          kubectl wait --for=condition=Ready pod -l app=postgres --timeout=120s
           POD=$(kubectl get pods -l app=postgres -o jsonpath="{.items[0].metadata.name}")
-          echo "Copying import.sql to $POD..."
+          echo "Resetting database via $POD..."
           kubectl cp src/main/resources/import.sql $POD:/tmp/import.sql
           kubectl exec $POD -- psql -U demo -d demo -f /tmp/import.sql
           echo "Database reset successful."
