@@ -40,9 +40,10 @@ jobs:
 
       - name: Reset Database
         run: |
-          echo "Waiting for Quarkus to start..."
-          sleep 30
+          echo "Waiting for postgres pod to be ready..."
+          kubectl wait --for=condition=Ready pod -l app=postgres --timeout=120s
           POD=$(kubectl get pods -l app=postgres -o jsonpath="{.items[0].metadata.name}")
+          echo "Copying import.sql to $POD..."
           kubectl cp src/main/resources/import.sql $POD:/tmp/import.sql
           kubectl exec $POD -- psql -U demo -d demo -f /tmp/import.sql
           echo "Database reset successful."
