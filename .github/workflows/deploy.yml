@@ -39,9 +39,14 @@ jobs:
           echo "Applying Kubernetes manifests"
           kubectl delete deployment quarkus --ignore-not-found=true
           kubectl delete service quarkus --ignore-not-found=true
-          kubectl apply -f k8s/quarkus.yaml
           kubectl delete deployment keycloak --ignore-not-found=true
           kubectl delete service keycloak --ignore-not-found=true
+
+          # Drop Keycloak schema so --import-realm creates realm fresh
+          POD=$(kubectl get pods -l app=postgres -o jsonpath="{.items[0].metadata.name}")
+          kubectl exec $POD -- psql -U demo -d demo -c "DROP SCHEMA IF EXISTS public CASCADE; CREATE SCHEMA public;"
+
+          kubectl apply -f k8s/quarkus.yaml
           kubectl apply -f k8s/keycloak.yaml
           echo "Deployment successful."
 
