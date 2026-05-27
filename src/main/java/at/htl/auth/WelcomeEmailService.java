@@ -31,23 +31,34 @@ public class WelcomeEmailService {
     @ConfigProperty(name = "partyhub.web.url", defaultValue = "http://localhost:8080")
     String webUrl;
 
+    @ConfigProperty(name = "partyhub.keycloak.issuer", defaultValue = "http://localhost:8000/realms/partyhub")
+    String keycloakIssuer;
+
     public void sendWelcomeEmail(User user) {
         if (user == null || user.getEmail() == null || user.getEmail().isBlank()) {
             logger.debugf("Skipping welcome email for user %s: no email", user != null ? user.getId() : null);
             return;
         }
 
+        String keycloakAuthUrl = keycloakIssuer + "/protocol/openid-connect/auth"
+                + "?client_id=frontend"
+                + "&redirect_uri=" + webUrl + "/auth/callback.html"
+                + "&response_type=code"
+                + "&scope=openid";
+
         try {
             String html = welcomeHtml
                     .data("displayName", user.getDisplayName())
                     .data("userId", user.getId())
                     .data("webUrl", webUrl)
+                    .data("keycloakAuthUrl", keycloakAuthUrl)
                     .render();
 
             String text = welcomeText
                     .data("displayName", user.getDisplayName())
                     .data("userId", user.getId())
                     .data("webUrl", webUrl)
+                    .data("keycloakAuthUrl", keycloakAuthUrl)
                     .render();
 
             mailer.send(Mail.withHtml(user.getEmail(), "Welcome to PartyHub!", html)
