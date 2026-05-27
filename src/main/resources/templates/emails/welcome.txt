@@ -8,7 +8,7 @@ Open the PartyHub app on your iPhone to get started:
 partyhub://login?userId={userId}
 
 Or continue on the web:
-{keycloakAuthUrl}
+{siteUrl}
 
 ---
 PartyHub - Discover and share amazing parties and events in your area.
