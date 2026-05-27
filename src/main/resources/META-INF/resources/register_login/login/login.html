@@ -184,7 +184,7 @@
             <div class="divider">or</div>
 
             <div class="signup-link">
-                Don't have an account? <a href="#">Contact administrator</a>
+                Don't have an account? <a href="#" id="registerLink">Register here</a>
             </div>
         </div>
     </div>
@@ -205,6 +205,16 @@
             const loginBtn = document.getElementById('loginBtn');
             const errorMsg = document.getElementById('errorMessage');
             const successMsg = document.getElementById('successMessage');
+            const registerLink = document.getElementById('registerLink');
+
+            registerLink.addEventListener('click', async function(e) {
+                e.preventDefault();
+                try {
+                    await window.authService.register({ redirectTo: '/index.html' });
+                } catch (err) {
+                    console.error('Register error:', err);
+                }
+            });
 
             form.addEventListener('submit', async function(e) {
                 e.preventDefault();

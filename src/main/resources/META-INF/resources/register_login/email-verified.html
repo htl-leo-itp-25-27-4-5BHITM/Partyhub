@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Email Verified - PartyHub</title>
+    <link rel="stylesheet" href="../global.css" />
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+      body {
+        background: var(--bg-primary);
+        font-family: var(--font-family);
+      }
+
+      .verified-page {
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        min-height: 100vh;
+        padding: 20px;
+        background: var(--bg-primary);
+        position: relative;
+        overflow: hidden;
+      }
+
+      .verified-page::before {
+        content: '';
+        position: absolute;
+        top: -30%;
+        right: -20%;
+        width: 500px;
+        height: 500px;
+        border-radius: 50%;
+        background: radial-gradient(circle, rgba(86,242,124,0.10) 0%, transparent 70%);
+        pointer-events: none;
+      }
+
+      .verified-card {
+        background: rgba(255, 255, 255, 0.06);
+        backdrop-filter: blur(20px);
+        -webkit-backdrop-filter: blur(20px);
+        border: 1px solid var(--border-soft);
+        border-radius: 24px;
+        padding: 56px 40px;
+        box-shadow: var(--shadow-soft);
+        max-width: 420px;
+        width: 100%;
+        text-align: center;
+        position: relative;
+        z-index: 1;
+      }
+
+      .checkmark {
+        width: 72px;
+        height: 72px;
+        background: var(--accent-color-green);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto 24px;
+        box-shadow: 0 4px 20px rgba(86, 242, 124, 0.35);
+      }
+
+      .checkmark svg {
+        width: 32px;
+        height: 32px;
+        color: #0d0b1a;
+        stroke-width: 3;
+      }
+
+      .verified-card h1 {
+        font-family: var(--font-display);
+        font-size: 32px;
+        color: var(--text-primary);
+        margin: 0 0 12px 0;
+        font-weight: 400;
+      }
+
+      .verified-card p {
+        color: var(--text-secondary);
+        font-size: 16px;
+        margin: 0 0 36px 0;
+        line-height: 1.6;
+        font-family: var(--font-family);
+      }
+
+      .actions {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+      }
+
+      .btn-primary {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 10px;
+        padding: 16px 32px;
+        background: var(--accent-color);
+        color: white;
+        text-decoration: none;
+        border-radius: 12px;
+        font-size: 16px;
+        font-weight: 600;
+        transition: all 0.2s ease;
+        width: 100%;
+        box-sizing: border-box;
+        font-family: var(--font-family);
+        box-shadow: 0 4px 20px rgba(255, 46, 99, 0.35);
+      }
+
+      .btn-primary:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 28px rgba(255, 46, 99, 0.5);
+      }
+
+      .divider-text {
+        color: var(--text-muted);
+        font-size: 13px;
+      }
+
+      .btn-secondary {
+        display: inline-block;
+        padding: 14px 32px;
+        background: rgba(255, 255, 255, 0.08);
+        color: var(--text-primary);
+        text-decoration: none;
+        border-radius: 12px;
+        font-size: 16px;
+        font-weight: 600;
+        border: 1px solid var(--border-soft);
+        transition: all 0.2s ease;
+        width: 100%;
+        box-sizing: border-box;
+        font-family: var(--font-family);
+      }
+
+      .btn-secondary:hover {
+        background: rgba(255, 255, 255, 0.14);
+        border-color: rgba(255, 255, 255, 0.2);
+      }
+
+      @media (max-width: 480px) {
+        .verified-card {
+          padding: 40px 24px;
+          border-radius: 20px;
+        }
+
+        .verified-card h1 {
+          font-size: 28px;
+        }
+      }
+    </style>
+    <script src="../user-utils.js" defer></script>
+    <script src="../auth-service.js" defer></script>
+</head>
+<body>
+    <div class="verified-page">
+        <div class="verified-card">
+            <div class="checkmark">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                    <polyline points="20 6 9 17 4 12"/>
+                </svg>
+            </div>
+            <h1>Email Verified!</h1>
+            <p>
+                Your email address has been successfully verified.<br>
+                Welcome to PartyHub!
+            </p>
+
+            <div class="actions">
+                <a href="partyhub://" id="openAppLink" class="btn-primary">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M12 2L2 7l10 5 10-5-10-5z"/>
+                        <path d="M2 17l10 5 10-5"/>
+                        <path d="M2 12l10 5 10-5"/>
+                    </svg>
+                    Open PartyHub App
+                </a>
+                <span class="divider-text">or</span>
+                <a href="/register_login/login/login.html" id="continueWebBtn" class="btn-secondary">
+                    Continue in Browser
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const openAppLink = document.getElementById('openAppLink');
+            const continueBtn = document.getElementById('continueWebBtn');
+
+            const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent)
+                || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+
+            if (!isIOS) {
+                openAppLink.style.display = 'none';
+            }
+
+            openAppLink.addEventListener('click', function(e) {
+                if (isIOS) {
+                    setTimeout(function() {
+                        window.location.href = '/register_login/login/login.html';
+                    }, 500);
+                }
+            });
+
+            if (window.authService && window.authService.isLoggedIn()) {
+                window.location.href = '/index.html';
+            }
+        });
+    </script>
+</body>
+</html>

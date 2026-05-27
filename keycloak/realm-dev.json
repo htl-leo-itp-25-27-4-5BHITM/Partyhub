@@ -1,6 +1,12 @@
 {
   "realm": "partyhub",
   "enabled": true,
+  "registrationAllowed": true,
+  "registrationEmailAsUsername": false,
+  "verifyEmail": false,
+  "resetPasswordAllowed": true,
+  "loginWithEmailAllowed": true,
+  "duplicateEmailsAllowed": false,
   "roles": {
     "realm": [
       {

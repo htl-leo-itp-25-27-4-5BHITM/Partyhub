@@ -28,6 +28,9 @@ public class CurrentUserResolver {
     @Inject
     SecurityIdentity securityIdentity;
 
+    @Inject
+    WelcomeEmailService welcomeEmailService;
+
     @Transactional
     public User requireCurrentUser() {
         String subject = currentSubject()
@@ -104,6 +107,8 @@ public class CurrentUserResolver {
 
         UserNotificationSettings settings = new UserNotificationSettings(user);
         notificationSettingsRepository.persist(settings);
+
+        welcomeEmailService.sendWelcomeEmail(user);
 
         return user;
     }

@@ -157,9 +157,8 @@
       createdAt: Date.now(),
     });
 
-    // Build the authorization URL using the URL API and set() so any
-    // existing query parameters on config.authorizationEndpoint are
-    // replaced instead of producing duplicate keys (e.g. client_id).
+    const kcAction = options.kcAction || "";
+
     try {
       const authUrl = new URL(config.authorizationEndpoint);
       authUrl.searchParams.set("client_id", config.clientId);
@@ -171,10 +170,12 @@
       authUrl.searchParams.set("code_challenge", codeChallenge);
       authUrl.searchParams.set("code_challenge_method", "S256");
 
+      if (kcAction) {
+        authUrl.searchParams.set("kc_action", kcAction);
+      }
+
       window.location.assign(authUrl.toString());
     } catch (err) {
-      // Fallback for environments where config.authorizationEndpoint may
-      // not be an absolute URL - use the legacy approach.
       const params = new URLSearchParams({
         client_id: config.clientId,
         response_type: "code",
@@ -185,7 +186,53 @@
         code_challenge: codeChallenge,
         code_challenge_method: "S256",
       });
+      if (kcAction) {
+        params.set("kc_action", kcAction);
+      }
       window.location.assign(`${config.authorizationEndpoint}?${params.toString()}`);
+    }
+  }
+
+  async function register(options = {}) {
+    const codeVerifier = randomBase64Url(64);
+    const codeChallenge = await sha256Base64Url(codeVerifier);
+    const state = randomBase64Url(32);
+    const nonce = randomBase64Url(32);
+    const redirectTo = options.redirectTo || getIntendedPath() || "/index.html";
+
+    writeJson(LOGIN_TRANSACTION_KEY, {
+      state,
+      nonce,
+      codeVerifier,
+      redirectTo,
+      createdAt: Date.now(),
+    });
+
+    const registrationEndpoint = `${config.issuer}/protocol/openid-connect/registrations`;
+
+    try {
+      const url = new URL(registrationEndpoint);
+      url.searchParams.set("client_id", config.clientId);
+      url.searchParams.set("response_type", "code");
+      url.searchParams.set("scope", "openid profile email");
+      url.searchParams.set("redirect_uri", config.redirectUri);
+      url.searchParams.set("state", state);
+      url.searchParams.set("nonce", nonce);
+      url.searchParams.set("code_challenge", codeChallenge);
+      url.searchParams.set("code_challenge_method", "S256");
+      window.location.assign(url.toString());
+    } catch (err) {
+      const params = new URLSearchParams({
+        client_id: config.clientId,
+        response_type: "code",
+        scope: "openid profile email",
+        redirect_uri: config.redirectUri,
+        state,
+        nonce,
+        code_challenge: codeChallenge,
+        code_challenge_method: "S256",
+      });
+      window.location.assign(`${registrationEndpoint}?${params.toString()}`);
     }
   }
 
@@ -423,6 +470,7 @@
     config,
     init,
     login,
+    register,
     handleCallback,
     logout,
     isLoggedIn,

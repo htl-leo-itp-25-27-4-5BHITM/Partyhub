@@ -1,0 +1,14 @@
+Welcome to PartyHub!
+
+Hi {displayName},
+
+Welcome to PartyHub! You're all set to discover amazing parties and events in your area.
+
+Open the PartyHub app on your iPhone to get started:
+partyhub://login?userId={userId}
+
+Or continue on the web:
+{webUrl}/register_login/login/login.html
+
+---
+PartyHub - Discover and share amazing parties and events in your area.

@@ -24,6 +24,7 @@ services:
       - 8000:8080
     volumes:
       - ./keycloak/realm-dev.json:/opt/keycloak/data/import/realm-dev.json:ro
+      - ./keycloak/themes/partyhub:/opt/keycloak/themes/partyhub:ro
     environment:
       - KC_BOOTSTRAP_ADMIN_USERNAME=admin
       - KC_BOOTSTRAP_ADMIN_PASSWORD=admin
@@ -32,6 +33,8 @@ services:
       - KC_DB_URL_DATABASE=keycloak
       - KC_DB_USERNAME=demo
       - KC_DB_PASSWORD=demo
+      - KC_SPI_THEME_DEFAULT=partyhub
+      - SMTP_PASSWORD=${SMTP_PASSWORD}
     depends_on:
       - postgres
     networks:
