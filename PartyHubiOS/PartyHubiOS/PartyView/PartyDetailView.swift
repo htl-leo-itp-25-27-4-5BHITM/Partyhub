@@ -40,11 +40,14 @@ struct PartyDetailView: View {
     enum CalendarButtonState {
         case idle, loading, success, alreadyAdded
     }
-    
+}
+
+extension PartyDetailView {
+
     private var shareURL: URL? {
         URL(string: "https://maps.apple.com/?ll=\(party.latitude),\(party.longitude)&q=\(party.name.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? "")")
     }
-    
+
     private var appDeepLink: URL? {
         URL(string: "partyhub://party?id=\(party.backendId)")
     }
@@ -67,106 +70,103 @@ struct PartyDetailView: View {
         party.canEdit(currentUserId: currentUserId)
     }
     
+    @ViewBuilder
+    private func listContent() -> some View {
+        if unreadUpdateCount > 0 {
+            Section {
+                HStack {
+                    Image(systemName: "bell.badge.fill")
+                        .foregroundColor(.red)
+                    Text("\(unreadUpdateCount) new Update\(unreadUpdateCount == 1 ? "" : "s")")
+                        .font(.subheadline)
+                        .foregroundColor(.red)
+                    Spacer()
+                    Text("You can see them right now")
+                        .font(.caption)
+                        .foregroundColor(.secondary)
+                }
+                .padding(.vertical, 4)
+            }
+        }
+        
+        if isOwner {
+            Section {
+                HStack {
+                    Image(systemName: "crown.fill")
+                        .foregroundColor(.yellow)
+                    Text("You are the organiser")
+                        .font(.subheadline)
+                        .foregroundColor(.secondary)
+                }
+                .padding(.vertical, 4)
+            }
+        }
+        
+        Section {
+            LabeledContent("Status") {
+                Text(party.isActive ? "You are currently here": "Not present")
+                    .foregroundStyle(party.isActive ? .green : .gray)
+                    .fontWeight(.semibold)
+            }
+        }
+        
+        PartyDetailsSection(party: party)
+        
+        LocationSection(
+            party: party,
+            resolvedAddress: $resolvedAddress
+        )
+
+        Section("Participants") {
+            NavigationLink {
+                PartyAttendeeMapView(
+                    party: party,
+                    locationManager: locationManager
+                )
+            } label: {
+                Label("Show participants on map", systemImage: "person.2.fill")
+            }
+            
+            NavigationLink {
+                UserLocationListView(parties: [party])
+            } label: {
+                Label("List of participants", systemImage: "list.bullet")
+            }
+        }
+        
+        AttendanceSection(party: party, now: now)
+        PastVisitsSection(entries: finished)
+        
+        #if DEBUG
+        PartyDetailDebugSection(
+            party: party,
+            currentUserId: currentUserId,
+            simulateEnterParty: simulateEnterParty,
+            simulateLeaveParty: simulateLeaveParty,
+            simulatePartyUpdate: simulatePartyUpdate,
+            testLocalNotification: testLocalNotification,
+            printDebugInfo: printDebugInfo,
+            becomeOwner: becomeOwner,
+            isOwner: isOwner
+        )
+        #endif
+        
+        PhotosSection(
+            geladeneBilder: $geladeneBilder,
+            selectedItems: $selectedItems,
+            ausgewaehlteBilderZumLoeschen: $ausgewaehlteBilderZumLoeschen,
+            istImBearbeitungsModus: $istImBearbeitungsModus,
+            onSaveImage: speicherBild,
+            onDelete: {
+                loescheAusgewaehlteBilder()
+                ausgewaehlteBilderZumLoeschen.removeAll()
+            }
+        )
+    }
+    
     var body: some View {
         List {
-            
-            // MARK: - Update Badge Section
-            if unreadUpdateCount > 0 {
-                Section {
-                    HStack {
-                        Image(systemName: "bell.badge.fill")
-                            .foregroundColor(.red)
-                        Text("\(unreadUpdateCount) new Update\(unreadUpdateCount == 1 ? "" : "s")")
-                            .font(.subheadline)
-                            .foregroundColor(.red)
-                        Spacer()
-                        Text("You can see them right now")
-                            .font(.caption)
-                            .foregroundColor(.secondary)
-                    }
-                    .padding(.vertical, 4)
-                }
-            }
-            
-            // MARK: - Owner Status (NEU)
-            if isOwner {
-                Section {
-                    HStack {
-                        Image(systemName: "crown.fill")
-                            .foregroundColor(.yellow)
-                        Text("You are the organiser")
-                            .font(.subheadline)
-                            .foregroundColor(.secondary)
-                    }
-                    .padding(.vertical, 4)
-                }
-            }
-            
-            Section {
-                LabeledContent("Status") {
-                    Text(party.isActive ? "You are currently here": "Not present")
-                        .foregroundStyle(party.isActive ? .green : .gray)
-                        .fontWeight(.semibold)
-                }
-            }
-            
-            // MARK: - Party Details Section
-            PartyDetailsSection(party: party)
-            
-            // MARK: - Location Section
-            LocationSection(
-                party: party,
-                resolvedAddress: $resolvedAddress
-            )
-
-            Section("Participants") {
-                NavigationLink {
-                    PartyAttendeeMapView(
-                        party: party,
-                        locationManager: locationManager
-                    )
-                } label: {
-                    Label("Show participants on map", systemImage: "person.2.fill")
-                }
-                
-                NavigationLink {
-                    UserLocationListView(parties: [party])
-                } label: {
-                    Label("List of participants", systemImage: "list.bullet")
-                }
-            }
-            
-            // MARK: - Time Tracking
-            AttendanceSection(party: party, now: now)
-            PastVisitsSection(entries: finished)
-            
-            
-            // MARK: - Debug Section#if DEBUG
-            PartyDetailDebugSection(
-                party: party,
-                currentUserId: currentUserId,
-                simulateEnterParty: simulateEnterParty,
-                simulateLeaveParty: simulateLeaveParty,
-                simulatePartyUpdate: simulatePartyUpdate,
-                testLocalNotification: testLocalNotification,
-                printDebugInfo: printDebugInfo,
-                becomeOwner: becomeOwner,
-                isOwner: isOwner
-            )
-            
-            
-            // MARK: - Photos Section
-            PhotosSection(
-                geladeneBilder: $geladeneBilder,
-                selectedItems: $selectedItems,
-                ausgewaehlteBilderZumLoeschen: $ausgewaehlteBilderZumLoeschen,
-                istImBearbeitungsModus: $istImBearbeitungsModus,
-                onSaveImage: speicherBild,
-                onDelete: {
-                    loescheAusgewaehlteBilder()
-                    ausgewaehlteBilderZumLoeschen.removeAll()
-                }
-            )
+            listContent()
         }
             .navigationTitle(party.name)
             .navigationBarTitleDisplayMode(.large)
@@ -400,100 +400,94 @@ struct PartyDetailView: View {
         }
 #endif
         
-        // MARK: - Update Party on Backend (FIXED)
-        func updatePartyOnBackend(_ updatedParty: PartyEditData) async {
+        // MARK: - Update Party on Backend
+        @MainActor
+        func updatePartyOnBackend(_ updatedParty: PartyEditData) async -> Bool {
             guard let currentUserId = currentUserId else {
                 errorMessage = "You are not logged in"
                 showError = true
-                return
+                return false
             }
             
             guard isOwner else {
                 errorMessage = "You do not have permission (owner check failed)"
                 showError = true
-                return
+                return false
             }
             
             isUpdating = true
             
             do {
-                let baseURL = "https://it220274.cloud.htl-leonding.ac.at"
-                guard let url = URL(string: "\(baseURL)/api/parties/\(party.backendId)?user=\(currentUserId)") else {
+                let df = DateFormatter()
+                df.dateFormat = "yyyy-MM-dd'T'HH:mm:ss"
+                df.locale = Locale(identifier: "en_US_POSIX")
+
+                let body = UpdatePartyBody(
+                    title: updatedParty.title,
+                    desc: updatedParty.description,
+                    fee: updatedParty.fee ?? 0,
+                    timeStart: df.string(from: updatedParty.timeStart ?? Date()),
+                    timeEnd: df.string(from: updatedParty.timeEnd ?? Date()),
+                    maxPeople: updatedParty.maxPeople,
+                    minAge: updatedParty.minAge ?? 0,
+                    maxAge: updatedParty.maxAge ?? 150,
+                    website: updatedParty.website ?? "",
+                    latitude: updatedParty.latitude,
+                    longitude: updatedParty.longitude,
+                    locationAddress: updatedParty.location,
+                    theme: "Standard",
+                    visibility: "public",
+                    selectedUsers: []
+                )
+
+                let encoder = JSONEncoder()
+                let jsonData = try encoder.encode(body)
+
+                guard let url = URL(string: "\(Config.backendURL)/api/parties/\(party.backendId)?user=\(currentUserId)") else {
                     throw URLError(.badURL)
                 }
-                
-                let dateFormatter = DateFormatter()
-                dateFormatter.dateFormat = "yyyy-MM-dd'T'HH:mm:ss"
-                
-                let payload: [String: Any] = [
-                    "title": updatedParty.title,
-                    "description": updatedParty.description,
-                    "fee": Double(updatedParty.fee ?? 0.0),
-                    "time_start": dateFormatter.string(from: updatedParty.timeStart ?? Date()),
-                    "time_end": dateFormatter.string(from: updatedParty.timeEnd ?? Date()),
-                    "max_people": Int(updatedParty.maxPeople ?? 0),
-                    "min_age": Int(updatedParty.minAge ?? 16),
-                    "max_age": Int(updatedParty.maxAge ?? 99),
-                    "website": updatedParty.website ?? "",
-                    "latitude": updatedParty.latitude,
-                    "longitude": updatedParty.longitude,
-                    "location_address": updatedParty.location,
-                    "theme": "Standard",
-                    "visibility": "public",
-                    "selectedUsers": []
-                ]
+
                 var request = URLRequest(url: url)
                 request.httpMethod = "PUT"
                 request.setValue("application/json", forHTTPHeaderField: "Content-Type")
-                request.setValue("application/json", forHTTPHeaderField: "Accept")
-                
-                request.httpBody = try JSONSerialization.data(withJSONObject: payload)
-                
-                let (data, response) = try await URLSession.shared.data(for: request)
-                
-                if let httpResponse = response as? HTTPURLResponse {
-                    print("Status Code: \(httpResponse.statusCode)")
-                    
-                    if !(200...299).contains(httpResponse.statusCode) {
-                        if let errorString = String(data: data, encoding: .utf8) {
-                            print("SERVER Error message: \(errorString)")
-                            errorMessage = "Server says: \(errorString)"
-                        } else {
-                            errorMessage = "Error: Status \(httpResponse.statusCode)"
-                        }
-                        showError = true
-                        isUpdating = false
-                        return
-                    }
+
+                let (data, response) = try await URLSession.shared.upload(for: request, from: jsonData)
+
+                guard let httpResponse = response as? HTTPURLResponse else {
+                    throw APIError.invalidResponse
+                }
+
+                guard (200...299).contains(httpResponse.statusCode) else {
+                    let message = String(data: data, encoding: .utf8)
+                    throw APIError.http(statusCode: httpResponse.statusCode, message: message)
                 }
                 
-                await MainActor.run {
-                    party.name = updatedParty.title
-                    party.partyDescription = updatedParty.description
-                    party.location = updatedParty.location
-                    party.latitude = updatedParty.latitude
-                    party.longitude = updatedParty.longitude
-                    party.timeStart = updatedParty.timeStart
-                    party.timeEnd = updatedParty.timeEnd
-                    party.maxPeople = updatedParty.maxPeople
-                    party.minAge = updatedParty.minAge
-                    party.maxAge = updatedParty.maxAge
-                    party.website = updatedParty.website
-                    party.fee = updatedParty.fee
-                    party.categoryId = updatedParty.categoryId
-                    
-                    try? modelContext.save()
-                }
+                party.name = updatedParty.title
+                party.partyDescription = updatedParty.description
+                party.location = updatedParty.location
+                party.latitude = updatedParty.latitude
+                party.longitude = updatedParty.longitude
+                party.timeStart = updatedParty.timeStart
+                party.timeEnd = updatedParty.timeEnd
+                party.maxPeople = updatedParty.maxPeople
+                party.minAge = updatedParty.minAge
+                party.maxAge = updatedParty.maxAge
+                party.website = updatedParty.website
+                party.fee = updatedParty.fee
+                party.categoryId = updatedParty.categoryId
                 
+                try? modelContext.save()
                 print("Party successfully updated")
+                isUpdating = false
+                return true
                 
             } catch {
                 print("Request Error: \(error)")
-                errorMessage = "Connection Error: \(error.localizedDescription)"
+                errorMessage = "Error: \(error)"
                 showError = true
+                isUpdating = false
+                return false
             }
-            
-            isUpdating = false
         }
         
         // MARK: - Notification Functions
@@ -611,6 +605,34 @@ struct PartyDetailView: View {
                 calendarState = .idle
             }
         }
-    }
-    
+}
 
+private struct UpdatePartyBody: Encodable {
+    let title: String
+    let desc: String
+    let fee: Double
+    let timeStart: String
+    let timeEnd: String
+    let maxPeople: Int?
+    let minAge: Int
+    let maxAge: Int
+    let website: String
+    let latitude: Double
+    let longitude: Double
+    let locationAddress: String
+    let theme: String
+    let visibility: String
+    let selectedUsers: [String]
+
+    enum CodingKeys: String, CodingKey {
+        case title, fee, website, theme, visibility, latitude, longitude
+        case desc = "description"
+        case timeStart = "time_start"
+        case timeEnd = "time_end"
+        case maxPeople = "max_people"
+        case minAge = "min_age"
+        case maxAge = "max_age"
+        case locationAddress = "location_address"
+        case selectedUsers
+    }
+}

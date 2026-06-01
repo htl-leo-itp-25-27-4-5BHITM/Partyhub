@@ -36,7 +36,7 @@ spec:
           - name: KEYCLOAK_ISSUER
             value: "https://it220274.cloud.htl-leonding.ac.at/keycloak/realms/partyhub"
           - name: PARTYHUB_AUTH_BYPASS_ENABLED
-            value: "false"
+            value: "true"
           envFrom:
           - secretRef:
               name: partyhub-smtp-secret

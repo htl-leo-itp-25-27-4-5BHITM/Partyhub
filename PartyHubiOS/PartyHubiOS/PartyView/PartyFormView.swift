@@ -32,7 +32,7 @@ enum PartyFormMode: Equatable {
 
 struct PartyFormView: View {
     let mode: PartyFormMode
-    let onSave: (PartyEditData) async -> Void
+    let onSave: (PartyEditData) async -> Bool
 
     @Environment(LocationManager.self) private var locationManager
     @Environment(\.dismiss) private var dismiss
@@ -58,7 +58,7 @@ struct PartyFormView: View {
         locationManager.currentLocation?.longitude ?? 16.3738
     }
 
-    init(mode: PartyFormMode, onSave: @escaping (PartyEditData) async -> Void) {
+    init(mode: PartyFormMode, onSave: @escaping (PartyEditData) async -> Bool) {
         self.mode = mode
         self.onSave = onSave
 
@@ -188,10 +188,12 @@ struct PartyFormView: View {
 
         isSaving = true
         Task {
-            await onSave(data)
+            let success = await onSave(data)
             await MainActor.run {
                 isSaving = false
-                dismiss()
+                if success {
+                    dismiss()
+                }
             }
         }
     }

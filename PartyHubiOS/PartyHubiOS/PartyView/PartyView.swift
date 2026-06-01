@@ -130,22 +130,24 @@ struct PartyView: View {
         }
     }
 
-    private func createParty(_ data: PartyEditData) async {
+    @MainActor
+    private func createParty(_ data: PartyEditData) async -> Bool {
         isCreating = true
         defer { isCreating = false }
 
-        let dateFormatter = DateFormatter()
-        dateFormatter.dateFormat = "yyyy-MM-dd'T'HH:mm:ss"
+        let df = DateFormatter()
+        df.dateFormat = "yyyy-MM-dd'T'HH:mm:ss"
+        df.locale = Locale(identifier: "en_US_POSIX")
 
-        let payload = PartyCreatePayload(
+        let body = CreatePartyBody(
             title: data.title,
-            description: data.description,
+            desc: data.description,
             fee: data.fee ?? 0,
-            timeStart: dateFormatter.string(from: data.timeStart ?? Date()),
-            timeEnd: data.timeEnd.map { dateFormatter.string(from: $0) },
+            timeStart: df.string(from: data.timeStart ?? Date()),
+            timeEnd: df.string(from: data.timeEnd ?? Date()),
             maxPeople: data.maxPeople,
-            minAge: data.minAge,
-            maxAge: data.maxAge,
+            minAge: data.minAge ?? 0,
+            maxAge: data.maxAge ?? 150,
             website: data.website ?? "",
             latitude: data.latitude,
             longitude: data.longitude,
@@ -156,22 +158,69 @@ struct PartyView: View {
         )
 
         do {
-            let _: EmptyResponse = try await APIClient.shared.request(
-                method: .POST,
-                path: "/api/parties",
-                body: payload,
-                authType: .userIdHeader
-            )
+            let encoder = JSONEncoder()
+            let jsonData = try encoder.encode(body)
 
-            await MainActor.run {
-                showCreateSheet = false
+            guard let url = URL(string: "\(Config.backendURL)/api/parties") else {
+                throw APIError.invalidURL
             }
 
+            var request = URLRequest(url: url)
+            request.httpMethod = "POST"
+            request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+
+            guard let userId = AuthManager.shared.userId else {
+                throw APIError.noAuthToken
+            }
+            request.setValue("\(userId)", forHTTPHeaderField: "X-User-Id")
+
+            let (_, response) = try await URLSession.shared.upload(for: request, from: jsonData)
+
+            guard let httpResponse = response as? HTTPURLResponse else {
+                throw APIError.invalidResponse
+            }
+
+            guard (200...299).contains(httpResponse.statusCode) else {
+                throw APIError.http(statusCode: httpResponse.statusCode, message: nil)
+            }
+
+            showCreateSheet = false
             NotificationCenter.default.post(name: .partyDidUpdate, object: nil)
+            return true
+
         } catch {
-            await MainActor.run {
-                createError = "Failed to create party: \(error.localizedDescription)"
-            }
+            createError = "Failed: \(error)"
+            return false
+        }
+    }
+
+    private struct CreatePartyBody: Encodable {
+        let title: String
+        let desc: String
+        let fee: Double
+        let timeStart: String
+        let timeEnd: String
+        let maxPeople: Int?
+        let minAge: Int
+        let maxAge: Int
+        let website: String
+        let latitude: Double
+        let longitude: Double
+        let locationAddress: String
+        let theme: String
+        let visibility: String
+        let selectedUsers: [String]
+
+        enum CodingKeys: String, CodingKey {
+            case title, fee, website, theme, visibility, latitude, longitude
+            case desc = "description"
+            case timeStart = "time_start"
+            case timeEnd = "time_end"
+            case maxPeople = "max_people"
+            case minAge = "min_age"
+            case maxAge = "max_age"
+            case locationAddress = "location_address"
+            case selectedUsers
         }
     }
 
@@ -272,31 +321,4 @@ struct PartyView: View {
     }
 }
 
-private struct PartyCreatePayload: Encodable {
-    let title: String
-    let description: String
-    let fee: Double
-    let timeStart: String
-    let timeEnd: String?
-    let maxPeople: Int?
-    let minAge: Int?
-    let maxAge: Int?
-    let website: String
-    let latitude: Double
-    let longitude: Double
-    let locationAddress: String
-    let theme: String
-    let visibility: String
-    let selectedUsers: [String]
 
-    enum CodingKeys: String, CodingKey {
-        case title, description, fee, website, theme, visibility, latitude, longitude
-        case timeStart = "time_start"
-        case timeEnd = "time_end"
-        case maxPeople = "max_people"
-        case minAge = "min_age"
-        case maxAge = "max_age"
-        case locationAddress = "location_address"
-        case selectedUsers = "selected_users"
-    }
-}
