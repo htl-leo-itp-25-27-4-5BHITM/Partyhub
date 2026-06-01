@@ -140,7 +140,7 @@ struct PartyFormView: View {
                         save()
                     }
                     .fontWeight(.semibold)
-                    .disabled(title.isEmpty || location.isEmpty || isSaving)
+                    .disabled(isSaving)
                 }
             }
             .overlay {
@@ -171,9 +171,9 @@ struct PartyFormView: View {
         }
 
         let data = PartyEditData(
-            title: title,
+            title: title.isEmpty ? "New Party" : title,
             description: description,
-            location: location,
+            location: location.isEmpty ? "TBD" : location,
             latitude: lat,
             longitude: lng,
             timeStart: timeStart,
