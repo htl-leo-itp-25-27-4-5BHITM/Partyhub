@@ -89,7 +89,8 @@ INSERT INTO location (id, longitude, latitude, address) VALUES
     (18, 14.2852, 48.3201, 'PlusCity Pasching'),
     (19, 14.2346, 48.2217, 'Traun Schlosspark'),
     (20, 14.3371, 48.2851, 'Steyregg Ortszentrum'),
-    (21, 14.3107, 48.2989, 'Lentos / Donaulaende Linz - duplicate');
+    (21, 14.3107, 48.2989, 'Lentos / Donaulaende Linz - duplicate'),
+    (22, 14.29669, 48.31185, 'Untere Donaulände 24–28, 4020 Linz, Austria');
 
 -- =========================
 -- PARTIES
@@ -129,7 +130,7 @@ INSERT INTO party (
     -- Filter test data: Free parties
     (15, 5, 15, 'Free House Music Session', 'House', '2026-06-11 22:00:00', '2026-06-12 04:00:00', 200, 18, 50, 'https://partyhub.local/free-house', 'Free entry, fun beats and great people.', 0.00, '2026-04-27 10:00:00', 'PUBLIC'),
     -- Filter test data: Age restricted parties
-    (16, 6, 16, 'Over 30s Cocktail Lounge', 'Cocktails', '2026-06-12 20:00:00', '2026-06-13 01:00:00', 80, 30, NULL, 'https://partyhub.local/over30', 'Sophisticated cocktails for the mature crowd.', 15.00, '2026-04-28 10:00:00', 'PUBLIC'),
+    (16, 6, 22, 'Over 30s Cocktail Lounge', 'Cocktails', '2026-06-12 20:00:00', '2026-06-13 01:00:00', 80, 30, NULL, 'https://partyhub.local/over30', 'Sophisticated cocktails for the mature crowd.', 15.00, '2026-04-28 10:00:00', 'PUBLIC'),
     (17, 7, 17, 'Teen Movie Night', 'Movie', '2026-06-13 19:00:00', '2026-06-13 21:30:00', 50, 13, 19, 'https://partyhub.local/teen', 'Movie screening for teenagers with snacks.', 0.00, '2026-04-28 10:00:00', 'PUBLIC'),
     -- Filter test data: Distance filtering (various locations)
     (18, 8, 18, 'Hauptplatz Techno Rave', 'Techno', '2026-06-19 23:00:00', '2026-06-20 05:00:00', 250, 18, 40, 'https://partyhub.local/rave', 'Electric beats at the main square.', 12.00, '2026-04-28 10:00:00', 'PUBLIC'),
