@@ -80,6 +80,117 @@ struct PartyView: View {
 
             fetchIfNeeded(userCoord: newCoord)
         }
+        .onReceive(NotificationCenter.default.publisher(for: .partyDidUpdate)) { _ in
+            Task { await fetchPartiesFromBackend() }
+        }
+    }
+
+    @MainActor
+    private func fetchPartiesFromBackend() async {
+        guard let url = URL(string: "\(Config.backendURL)/api/parties") else { return }
+        guard let (data, _) = try? await URLSession.shared.data(from: url) else { return }
+
+        struct PartyResponse: Decodable {
+            let id: Int
+            let title: String
+            let description: String?
+            let fee: Double?
+            let timeStart: String?
+            let timeEnd: String?
+            let website: String?
+            let location: LocationResponse
+            let theme: String?
+            let maxPeople: Int?
+            let minAge: Int?
+            let maxAge: Int?
+            let hostUser: HostUserResponse?
+            let category: CategoryResponse?
+            struct LocationResponse: Decodable {
+                let latitude: Double
+                let longitude: Double
+                let address: String?
+            }
+            struct HostUserResponse: Decodable {
+                let id: Int?
+                let displayName: String?
+            }
+            struct CategoryResponse: Decodable {
+                let id: Int?
+                let name: String?
+            }
+        }
+
+        let decoder = JSONDecoder()
+        decoder.keyDecodingStrategy = .convertFromSnakeCase
+        guard let parties = try? decoder.decode([PartyResponse].self, from: data) else { return }
+
+        let incomingIds = Set(parties.map { $0.id })
+        let allExisting = (try? modelContext.fetch(FetchDescriptor<Party>())) ?? []
+        for existing in allExisting where !incomingIds.contains(existing.backendId) {
+            modelContext.delete(existing)
+        }
+
+        let existingById = Dictionary(
+            uniqueKeysWithValues: allExisting
+                .filter { incomingIds.contains($0.backendId) }
+                .map { ($0.backendId, $0) }
+        )
+
+        let isoFormatter = ISO8601DateFormatter()
+        isoFormatter.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
+
+        func parse(_ s: String?) -> Date? {
+            guard let s else { return nil }
+            return isoFormatter.date(from: s) ?? {
+                isoFormatter.formatOptions = [.withInternetDateTime]
+                let d = isoFormatter.date(from: s)
+                isoFormatter.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
+                return d
+            }()
+        }
+
+        for p in parties {
+            if let existing = existingById[p.id] {
+                existing.name = p.title
+                existing.location = p.location.address ?? ""
+                existing.latitude = p.location.latitude
+                existing.longitude = p.location.longitude
+                existing.partyDescription = p.description
+                existing.hostUserId = p.hostUser?.id.map { Int64($0) }
+                existing.hostDisplayName = p.hostUser?.displayName
+                existing.timeStart = parse(p.timeStart)
+                existing.timeEnd = parse(p.timeEnd)
+                existing.maxPeople = p.maxPeople
+                existing.minAge = p.minAge
+                existing.maxAge = p.maxAge
+                existing.website = p.website
+                existing.fee = p.fee
+                existing.categoryId = p.category?.id
+                existing.themeName = p.theme
+            } else {
+                let party = Party(
+                    backendId: p.id,
+                    name: p.title,
+                    location: p.location.address ?? "",
+                    latitude: p.location.latitude,
+                    longitude: p.location.longitude,
+                    partyDescription: p.description,
+                    hostUserId: p.hostUser?.id.map { Int64($0) },
+                    timeStart: parse(p.timeStart),
+                    timeEnd: parse(p.timeEnd),
+                    maxPeople: p.maxPeople,
+                    minAge: p.minAge,
+                    maxAge: p.maxAge,
+                    website: p.website,
+                    fee: p.fee,
+                    categoryId: p.category?.id,
+                    themeName: p.theme,
+                    hostDisplayName: p.hostUser?.displayName
+                )
+                modelContext.insert(party)
+            }
+        }
+        try? modelContext.save()
     }
 
     private func fetchIfNeeded(userCoord: CLLocationCoordinate2D?) {
