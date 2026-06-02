@@ -170,10 +170,12 @@ struct PartyFormView: View {
             lng = defaultLongitude
         }
 
+        print("[FLOW] save() called: title='\(title)' desc='\(description)' location='\(location)' fee='\(fee)'")
+
         let data = PartyEditData(
-            title: title.isEmpty ? "New Party" : title,
+            title: title,
             description: description,
-            location: location.isEmpty ? "TBD" : location,
+            location: location,
             latitude: lat,
             longitude: lng,
             timeStart: timeStart,

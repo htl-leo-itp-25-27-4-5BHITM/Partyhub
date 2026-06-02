@@ -58,10 +58,19 @@ struct PartyView: View {
             .navigationBarTitleDisplayMode(.large)
             .toolbar {
                 ToolbarItem(placement: .primaryAction) {
-                    Button(action: { showCreateSheet = true }) {
-                        Label("Party create", systemImage: "plus")
+                    HStack {
+                        Button(action: { showCreateSheet = true }) {
+                            Label("Party create", systemImage: "plus")
+                        }
+                        .disabled(isCreating)
+
+                        Button("Quick") {
+                            Task { await quickCreateDebug() }
+                        }
+                        .disabled(isCreating)
+                        .buttonStyle(.borderedProminent)
+                        .tint(.purple)
                     }
-                    .disabled(isCreating)
                 }
             }
             .sheet(isPresented: $showCreateSheet) {
@@ -135,53 +144,56 @@ struct PartyView: View {
         isCreating = true
         defer { isCreating = false }
 
-        let df = DateFormatter()
-        df.dateFormat = "yyyy-MM-dd'T'HH:mm:ss"
-        df.locale = Locale(identifier: "en_US_POSIX")
-
-        let body = CreatePartyBody(
-            title: data.title,
-            desc: data.description,
-            fee: data.fee ?? 0,
-            timeStart: df.string(from: data.timeStart ?? Date()),
-            timeEnd: df.string(from: data.timeEnd ?? Date()),
-            maxPeople: data.maxPeople,
-            minAge: data.minAge ?? 0,
-            maxAge: data.maxAge ?? 150,
-            website: data.website ?? "",
-            latitude: data.latitude,
-            longitude: data.longitude,
-            locationAddress: data.location,
-            theme: "Standard",
-            visibility: "public",
-            selectedUsers: []
-        )
-
         do {
-            let encoder = JSONEncoder()
-            let jsonData = try encoder.encode(body)
+            print("[FLOW] createParty received: title='\(data.title)' desc='\(data.description)' fee='\(data.fee ?? -1)'")
 
-            guard let url = URL(string: "\(Config.backendURL)/api/parties") else {
-                throw APIError.invalidURL
-            }
+            let df = DateFormatter()
+            df.dateFormat = "yyyy-MM-dd'T'HH:mm:ss"
+            df.locale = Locale(identifier: "en_US_POSIX")
 
-            var request = URLRequest(url: url)
+            var body: [String: Any] = [
+                "title": data.title.isEmpty ? "New Party" : data.title,
+                "description": data.description.isEmpty ? "Party Description" : data.description,
+                "fee": data.fee ?? 0,
+                "time_start": df.string(from: data.timeStart ?? Date()),
+                "time_end": df.string(from: data.timeEnd ?? Date()),
+                "website": data.website ?? "",
+                "latitude": data.latitude,
+                "longitude": data.longitude,
+                "location_address": data.location.isEmpty ? "TBD" : data.location,
+                "theme": "Standard",
+                "visibility": "public",
+                "selectedUsers": [String](),
+            ]
+
+            if let v = data.maxPeople { body["max_people"] = v }
+            if let v = data.minAge { body["min_age"] = v }
+            if let v = data.maxAge { body["max_age"] = v }
+
+            print("[FLOW] body dict: \(body)")
+
+            let jsonData = try JSONSerialization.data(withJSONObject: body)
+            print("[FLOW] jsonData size: \(jsonData.count) bytes")
+            print("[FLOW] jsonString: \(String(data: jsonData, encoding: .utf8) ?? "nil")")
+
+            var request = URLRequest(url: URL(string: "\(Config.backendURL)/api/parties")!)
             request.httpMethod = "POST"
             request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+            request.setValue("\(AuthManager.shared.userId ?? 1)", forHTTPHeaderField: "X-User-Id")
+            request.httpBody = jsonData
 
-            guard let userId = AuthManager.shared.userId else {
-                throw APIError.noAuthToken
-            }
-            request.setValue("\(userId)", forHTTPHeaderField: "X-User-Id")
+            print("[FLOW] sending request to \(request.url?.absoluteString ?? "nil")")
+            print("[FLOW] request body: \(String(data: request.httpBody ?? Data(), encoding: .utf8) ?? "nil")")
 
-            let (_, response) = try await URLSession.shared.upload(for: request, from: jsonData)
+            let (_, response) = try await URLSession.shared.data(for: request)
 
             guard let httpResponse = response as? HTTPURLResponse else {
-                throw APIError.invalidResponse
+                print("[FLOW] response not HTTPURLResponse")
+                return false
             }
-
+            print("[FLOW] response status: \(httpResponse.statusCode)")
             guard (200...299).contains(httpResponse.statusCode) else {
-                throw APIError.http(statusCode: httpResponse.statusCode, message: nil)
+                return false
             }
 
             showCreateSheet = false
@@ -194,33 +206,53 @@ struct PartyView: View {
         }
     }
 
-    private struct CreatePartyBody: Encodable {
-        let title: String
-        let desc: String
-        let fee: Double
-        let timeStart: String
-        let timeEnd: String
-        let maxPeople: Int?
-        let minAge: Int
-        let maxAge: Int
-        let website: String
-        let latitude: Double
-        let longitude: Double
-        let locationAddress: String
-        let theme: String
-        let visibility: String
-        let selectedUsers: [String]
+    @MainActor
+    private func quickCreateDebug() async {
+        isCreating = true
+        defer { isCreating = false }
 
-        enum CodingKeys: String, CodingKey {
-            case title, fee, website, theme, visibility, latitude, longitude
-            case desc = "description"
-            case timeStart = "time_start"
-            case timeEnd = "time_end"
-            case maxPeople = "max_people"
-            case minAge = "min_age"
-            case maxAge = "max_age"
-            case locationAddress = "location_address"
-            case selectedUsers
+        do {
+            let body: [String: Any] = [
+                "title": "Debug Party",
+                "description": "created from quick button",
+                "fee": 0,
+                "time_start": "2026-06-02T18:00:00",
+                "time_end": "2026-06-02T23:00:00",
+                "website": "",
+                "latitude": 48.2082,
+                "longitude": 16.3738,
+                "location_address": "Debug Location",
+                "theme": "Standard",
+                "visibility": "public",
+                "selectedUsers": [String](),
+            ]
+
+            let jsonData = try JSONSerialization.data(withJSONObject: body)
+            print("[QUICK] body: \(String(data: jsonData, encoding: .utf8) ?? "nil")")
+
+            var request = URLRequest(url: URL(string: "\(Config.backendURL)/api/parties")!)
+            request.httpMethod = "POST"
+            request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+            request.setValue("\(AuthManager.shared.userId ?? 1)", forHTTPHeaderField: "X-User-Id")
+            request.httpBody = jsonData
+
+            let (data, response) = try await URLSession.shared.data(for: request)
+
+            guard let httpResponse = response as? HTTPURLResponse else {
+                print("[QUICK] response not HTTP")
+                return
+            }
+            print("[QUICK] status: \(httpResponse.statusCode)")
+
+            if (200...299).contains(httpResponse.statusCode) {
+                NotificationCenter.default.post(name: .partyDidUpdate, object: nil)
+            } else {
+                let msg = String(data: data, encoding: .utf8) ?? "nil"
+                print("[QUICK] error body: \(msg)")
+            }
+
+        } catch {
+            print("[QUICK] error: \(error)")
         }
     }
 
