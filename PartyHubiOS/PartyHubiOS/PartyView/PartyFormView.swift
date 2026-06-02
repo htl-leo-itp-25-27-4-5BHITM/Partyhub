@@ -103,36 +103,17 @@ struct PartyFormView: View {
                 }
 
                 Section("Place") {
-                    Button {
-                        showMapPicker = true
-                    } label: {
-                        HStack {
-                            VStack(alignment: .leading, spacing: 2) {
-                                Text(location.isEmpty ? "Set location on map" : location)
-                                    .foregroundStyle(location.isEmpty ? .secondary : .primary)
-                                if !location.isEmpty {
-                                    Text("\(selectedLat != 0 ? selectedLat : defaultLatitude, specifier: "%.5f"), \(selectedLng != 0 ? selectedLng : defaultLongitude, specifier: "%.5f")")
-                                        .font(.caption)
-                                        .foregroundStyle(.secondary)
-                                }
-                            }
-                            Spacer()
+                    HStack {
+                        TextField("Address", text: $location)
+                        Button { showMapPicker = true } label: {
                             Image(systemName: "map.fill")
                         }
                     }
-                }
-                .sheet(isPresented: $showMapPicker) {
-                    MapLocationPickerView(
-                        latitude: Binding(
-                            get: { selectedLat != 0 ? selectedLat : defaultLatitude },
-                            set: { selectedLat = $0 }
-                        ),
-                        longitude: Binding(
-                            get: { selectedLng != 0 ? selectedLng : defaultLongitude },
-                            set: { selectedLng = $0 }
-                        ),
-                        address: $location
-                    )
+                    if selectedLat != 0 {
+                        Text("\(selectedLat, specifier: "%.5f"), \(selectedLng, specifier: "%.5f")")
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                    }
                 }
 
                 Section("Time") {
@@ -176,6 +157,19 @@ struct PartyFormView: View {
                     .fontWeight(.semibold)
                     .disabled(isSaving)
                 }
+            }
+            .sheet(isPresented: $showMapPicker) {
+                MapLocationPickerView(
+                    latitude: Binding(
+                        get: { selectedLat != 0 ? selectedLat : defaultLatitude },
+                        set: { selectedLat = $0 }
+                    ),
+                    longitude: Binding(
+                        get: { selectedLng != 0 ? selectedLng : defaultLongitude },
+                        set: { selectedLng = $0 }
+                    ),
+                    address: $location
+                )
             }
             .overlay {
                 if isSaving {
