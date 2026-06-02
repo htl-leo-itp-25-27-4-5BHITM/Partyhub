@@ -1,4 +1,5 @@
 import SwiftUI
+import MapKit
 import CoreLocation
 
 struct PartyEditData {
@@ -48,6 +49,9 @@ struct PartyFormView: View {
     @State private var website: String
     @State private var fee: String
     @State private var isSaving = false
+    @State private var selectedLat = 0.0
+    @State private var selectedLng = 0.0
+    @State private var showMapPicker = false
 
     private var defaultLatitude: Double {
         locationManager.currentLocation?.latitude ?? 48.2082
@@ -77,6 +81,8 @@ struct PartyFormView: View {
             _title = State(initialValue: party.name)
             _description = State(initialValue: party.partyDescription ?? "")
             _location = State(initialValue: party.location)
+            _selectedLat = State(initialValue: party.latitude)
+            _selectedLng = State(initialValue: party.longitude)
             _timeStart = State(initialValue: party.timeStart ?? Date())
             _timeEnd = State(initialValue: party.timeEnd ?? Date())
             _maxPeople = State(initialValue: party.maxPeople.map { "\($0)" } ?? "")
@@ -97,7 +103,36 @@ struct PartyFormView: View {
                 }
 
                 Section("Place") {
-                    TextField("Address", text: $location)
+                    Button {
+                        showMapPicker = true
+                    } label: {
+                        HStack {
+                            VStack(alignment: .leading, spacing: 2) {
+                                Text(location.isEmpty ? "Set location on map" : location)
+                                    .foregroundStyle(location.isEmpty ? .secondary : .primary)
+                                if !location.isEmpty {
+                                    Text("\(selectedLat != 0 ? selectedLat : defaultLatitude, specifier: "%.5f"), \(selectedLng != 0 ? selectedLng : defaultLongitude, specifier: "%.5f")")
+                                        .font(.caption)
+                                        .foregroundStyle(.secondary)
+                                }
+                            }
+                            Spacer()
+                            Image(systemName: "map.fill")
+                        }
+                    }
+                }
+                .sheet(isPresented: $showMapPicker) {
+                    MapLocationPickerView(
+                        latitude: Binding(
+                            get: { selectedLat != 0 ? selectedLat : defaultLatitude },
+                            set: { selectedLat = $0 }
+                        ),
+                        longitude: Binding(
+                            get: { selectedLng != 0 ? selectedLng : defaultLongitude },
+                            set: { selectedLng = $0 }
+                        ),
+                        address: $location
+                    )
                 }
 
                 Section("Time") {
@@ -202,8 +237,8 @@ struct PartyFormView: View {
 
     @MainActor
     private func sendCreateRequest() async {
-        let lat = defaultLatitude
-        let lng = defaultLongitude
+        let lat = selectedLat != 0 ? selectedLat : defaultLatitude
+        let lng = selectedLng != 0 ? selectedLng : defaultLongitude
 
         let df = DateFormatter()
         df.dateFormat = "yyyy-MM-dd'T'HH:mm:ss"
