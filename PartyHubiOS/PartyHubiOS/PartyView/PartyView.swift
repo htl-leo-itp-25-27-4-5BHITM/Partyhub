@@ -57,17 +57,10 @@ struct PartyView: View {
             .navigationBarTitleDisplayMode(.large)
             .toolbar {
                 ToolbarItem(placement: .primaryAction) {
-                    HStack {
-                        Button(action: { showCreateSheet = true }) {
-                            Label("Create party", systemImage: "plus")
-                        }
-                        .disabled(isCreating)
-
-                        Button("Quick") {
-                            Task { await quickCreateDebug() }
-                        }
-                        .disabled(isCreating)
+                    Button(action: { showCreateSheet = true }) {
+                        Label("Create party", systemImage: "plus")
                     }
+                    .disabled(isCreating)
                 }
             }
             .sheet(isPresented: $showCreateSheet) {
@@ -123,56 +116,6 @@ struct PartyView: View {
 
         group.notify(queue: .main) {
             isFetching = false
-        }
-    }
-
-    @MainActor
-    private func quickCreateDebug() async {
-        isCreating = true
-        defer { isCreating = false }
-
-        do {
-            let body: [String: Any] = [
-                "title": "Debug Party",
-                "description": "created from quick button",
-                "fee": 0,
-                "time_start": "2026-06-02T18:00:00",
-                "time_end": "2026-06-02T23:00:00",
-                "website": "",
-                "latitude": 48.2082,
-                "longitude": 16.3738,
-                "location_address": "Debug Location",
-                "theme": "Standard",
-                "visibility": "public",
-                "selectedUsers": [String](),
-            ]
-
-            let jsonData = try JSONSerialization.data(withJSONObject: body)
-            print("[QUICK] body: \(String(data: jsonData, encoding: .utf8) ?? "nil")")
-
-            var request = URLRequest(url: URL(string: "\(Config.backendURL)/api/parties")!)
-            request.httpMethod = "POST"
-            request.setValue("application/json", forHTTPHeaderField: "Content-Type")
-            request.setValue("\(AuthManager.shared.userId ?? 1)", forHTTPHeaderField: "X-User-Id")
-            request.httpBody = jsonData
-
-            let (data, response) = try await URLSession.shared.data(for: request)
-
-            guard let httpResponse = response as? HTTPURLResponse else {
-                print("[QUICK] response not HTTP")
-                return
-            }
-            print("[QUICK] status: \(httpResponse.statusCode)")
-
-            if (200...299).contains(httpResponse.statusCode) {
-                NotificationCenter.default.post(name: .partyDidUpdate, object: nil)
-            } else {
-                let msg = String(data: data, encoding: .utf8) ?? "nil"
-                print("[QUICK] error body: \(msg)")
-            }
-
-        } catch {
-            print("[QUICK] error: \(error)")
         }
     }
 
