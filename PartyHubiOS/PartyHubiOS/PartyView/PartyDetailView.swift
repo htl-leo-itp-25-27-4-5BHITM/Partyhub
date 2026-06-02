@@ -72,6 +72,42 @@ extension PartyDetailView {
     
     @ViewBuilder
     private func listContent() -> some View {
+        updatesSection
+        ownerSection
+        statusSection
+        PartyDetailsSection(party: party)
+        LocationSection(party: party, resolvedAddress: $resolvedAddress)
+        participantsSection
+        AttendanceSection(party: party, now: now)
+        PastVisitsSection(entries: finished)
+        #if DEBUG
+        PartyDetailDebugSection(
+            party: party,
+            currentUserId: currentUserId,
+            simulateEnterParty: simulateEnterParty,
+            simulateLeaveParty: simulateLeaveParty,
+            simulatePartyUpdate: simulatePartyUpdate,
+            testLocalNotification: testLocalNotification,
+            printDebugInfo: printDebugInfo,
+            becomeOwner: becomeOwner,
+            isOwner: isOwner
+        )
+        #endif
+        PhotosSection(
+            geladeneBilder: $geladeneBilder,
+            selectedItems: $selectedItems,
+            ausgewaehlteBilderZumLoeschen: $ausgewaehlteBilderZumLoeschen,
+            istImBearbeitungsModus: $istImBearbeitungsModus,
+            onSaveImage: speicherBild,
+            onDelete: {
+                loescheAusgewaehlteBilder()
+                ausgewaehlteBilderZumLoeschen.removeAll()
+            }
+        )
+    }
+
+    @ViewBuilder
+    private var updatesSection: some View {
         if unreadUpdateCount > 0 {
             Section {
                 HStack {
@@ -88,7 +124,10 @@ extension PartyDetailView {
                 .padding(.vertical, 4)
             }
         }
-        
+    }
+
+    @ViewBuilder
+    private var ownerSection: some View {
         if isOwner {
             Section {
                 HStack {
@@ -101,7 +140,10 @@ extension PartyDetailView {
                 .padding(.vertical, 4)
             }
         }
-        
+    }
+
+    @ViewBuilder
+    private var statusSection: some View {
         Section {
             LabeledContent("Status") {
                 Text(party.isActive ? "You are currently here": "Not present")
@@ -109,14 +151,10 @@ extension PartyDetailView {
                     .fontWeight(.semibold)
             }
         }
-        
-        PartyDetailsSection(party: party)
-        
-        LocationSection(
-            party: party,
-            resolvedAddress: $resolvedAddress
-        )
+    }
 
+    @ViewBuilder
+    private var participantsSection: some View {
         Section("Participants") {
             NavigationLink {
                 PartyAttendeeMapView(
@@ -126,42 +164,13 @@ extension PartyDetailView {
             } label: {
                 Label("Show participants on map", systemImage: "person.2.fill")
             }
-            
+
             NavigationLink {
                 UserLocationListView(parties: [party])
             } label: {
                 Label("List of participants", systemImage: "list.bullet")
             }
         }
-        
-        AttendanceSection(party: party, now: now)
-        PastVisitsSection(entries: finished)
-        
-        #if DEBUG
-        PartyDetailDebugSection(
-            party: party,
-            currentUserId: currentUserId,
-            simulateEnterParty: simulateEnterParty,
-            simulateLeaveParty: simulateLeaveParty,
-            simulatePartyUpdate: simulatePartyUpdate,
-            testLocalNotification: testLocalNotification,
-            printDebugInfo: printDebugInfo,
-            becomeOwner: becomeOwner,
-            isOwner: isOwner
-        )
-        #endif
-        
-        PhotosSection(
-            geladeneBilder: $geladeneBilder,
-            selectedItems: $selectedItems,
-            ausgewaehlteBilderZumLoeschen: $ausgewaehlteBilderZumLoeschen,
-            istImBearbeitungsModus: $istImBearbeitungsModus,
-            onSaveImage: speicherBild,
-            onDelete: {
-                loescheAusgewaehlteBilder()
-                ausgewaehlteBilderZumLoeschen.removeAll()
-            }
-        )
     }
     
     var body: some View {

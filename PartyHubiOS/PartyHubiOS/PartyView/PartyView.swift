@@ -1,8 +1,8 @@
 import SwiftUI
 import SwiftData
-import Combine
 import CoreLocation
 import MapKit
+import Combine
 
 struct PartyView: View {
     @StateObject private var notificationManager = PartyNotificationManager.shared
@@ -13,9 +13,10 @@ struct PartyView: View {
     @State private var drivingDistances: [Int: Double] = [:]
     @State private var lastFetchLocation: CLLocation? = nil
     @State private var isFetching = false
-    @State private var showCreateSheet = false
     @State private var isCreating = false
-    @State private var createError: String? = nil
+    @State private var newTitle = ""
+    @State private var newDescription = ""
+    @State private var newLocation = ""
 
     func sortedParties(userCoord: CLLocationCoordinate2D?) -> [Party] {
         guard let userCoord else { return parties }
@@ -36,6 +37,16 @@ struct PartyView: View {
 
         NavigationStack {
             List {
+                Section {
+                    TextField("Title", text: $newTitle)
+                    TextField("Description", text: $newDescription)
+                    TextField("Location", text: $newLocation)
+                    Button("Create") {
+                        Task { await createParty() }
+                    }
+                    .disabled(isCreating || newTitle.isEmpty)
+                }
+
                 if sorted.isEmpty {
                     HStack(spacing: 12) {
                         ProgressView()
@@ -58,33 +69,11 @@ struct PartyView: View {
             .navigationBarTitleDisplayMode(.large)
             .toolbar {
                 ToolbarItem(placement: .primaryAction) {
-                    HStack {
-                        Button(action: { showCreateSheet = true }) {
-                            Label("Party create", systemImage: "plus")
-                        }
-                        .disabled(isCreating)
-
-                        Button("Quick") {
-                            Task { await quickCreateDebug() }
-                        }
-                        .disabled(isCreating)
-                        .buttonStyle(.borderedProminent)
-                        .tint(.purple)
+                    Button("Quick") {
+                        Task { await quickCreateDebug() }
                     }
+                    .disabled(isCreating)
                 }
-            }
-            .sheet(isPresented: $showCreateSheet) {
-                PartyFormView(mode: .create) { data in
-                    await createParty(data)
-                }
-            }
-            .alert("Error", isPresented: .init(
-                get: { createError != nil },
-                set: { if !$0 { createError = nil } }
-            )) {
-                Button("OK", role: .cancel) { }
-            } message: {
-                Text(createError ?? "")
             }
         }
         .onAppear {
@@ -120,8 +109,8 @@ struct PartyView: View {
 
             group.enter()
             let request = MKDirections.Request()
-            request.source = MKMapItem(placemark: MKPlacemark(coordinate: userCoord))
-            request.destination = MKMapItem(placemark: MKPlacemark(coordinate: party.coordinate))
+            request.source = MKMapItem(location: CLLocation(latitude: userCoord.latitude, longitude: userCoord.longitude), address: nil)
+            request.destination = MKMapItem(location: CLLocation(latitude: party.latitude, longitude: party.longitude), address: nil)
             request.transportType = .automobile
 
             MKDirections(request: request).calculate { response, _ in
@@ -140,70 +129,47 @@ struct PartyView: View {
     }
 
     @MainActor
-    private func createParty(_ data: PartyEditData) async -> Bool {
+    private func createParty() async {
         isCreating = true
         defer { isCreating = false }
 
+        let df = DateFormatter()
+        df.dateFormat = "yyyy-MM-dd'T'HH:mm:ss"
+        df.locale = Locale(identifier: "en_US_POSIX")
+
+        let body: [String: Any] = [
+            "title": newTitle,
+            "description": newDescription.isEmpty ? "Party Description" : newDescription,
+            "fee": 0,
+            "time_start": df.string(from: Date()),
+            "time_end": df.string(from: Date().addingTimeInterval(3600 * 4)),
+            "website": "",
+            "latitude": 48.2082,
+            "longitude": 16.3738,
+            "location_address": newLocation.isEmpty ? "TBD" : newLocation,
+            "theme": "Standard",
+            "visibility": "public",
+            "selectedUsers": [String](),
+        ]
+
         do {
-            print("[FLOW] createParty received: title='\(data.title)' desc='\(data.description)' fee='\(data.fee ?? -1)'")
-
-            let df = DateFormatter()
-            df.dateFormat = "yyyy-MM-dd'T'HH:mm:ss"
-            df.locale = Locale(identifier: "en_US_POSIX")
-
-            var body: [String: Any] = [
-                "title": data.title.isEmpty ? "New Party" : data.title,
-                "description": data.description.isEmpty ? "Party Description" : data.description,
-                "fee": data.fee ?? 0,
-                "time_start": df.string(from: data.timeStart ?? Date()),
-                "time_end": df.string(from: data.timeEnd ?? Date()),
-                "website": data.website ?? "",
-                "latitude": data.latitude,
-                "longitude": data.longitude,
-                "location_address": data.location.isEmpty ? "TBD" : data.location,
-                "theme": "Standard",
-                "visibility": "public",
-                "selectedUsers": [String](),
-            ]
-
-            if let v = data.maxPeople { body["max_people"] = v }
-            if let v = data.minAge { body["min_age"] = v }
-            if let v = data.maxAge { body["max_age"] = v }
-
-            print("[FLOW] body dict: \(body)")
-
             let jsonData = try JSONSerialization.data(withJSONObject: body)
-            print("[FLOW] jsonData size: \(jsonData.count) bytes")
-            print("[FLOW] jsonString: \(String(data: jsonData, encoding: .utf8) ?? "nil")")
-
             var request = URLRequest(url: URL(string: "\(Config.backendURL)/api/parties")!)
             request.httpMethod = "POST"
             request.setValue("application/json", forHTTPHeaderField: "Content-Type")
             request.setValue("\(AuthManager.shared.userId ?? 1)", forHTTPHeaderField: "X-User-Id")
             request.httpBody = jsonData
 
-            print("[FLOW] sending request to \(request.url?.absoluteString ?? "nil")")
-            print("[FLOW] request body: \(String(data: request.httpBody ?? Data(), encoding: .utf8) ?? "nil")")
-
             let (_, response) = try await URLSession.shared.data(for: request)
+            guard let httpResponse = response as? HTTPURLResponse,
+                  (200...299).contains(httpResponse.statusCode) else { return }
 
-            guard let httpResponse = response as? HTTPURLResponse else {
-                print("[FLOW] response not HTTPURLResponse")
-                return false
-            }
-            print("[FLOW] response status: \(httpResponse.statusCode)")
-            guard (200...299).contains(httpResponse.statusCode) else {
-                return false
-            }
-
-            showCreateSheet = false
+            newTitle = ""
+            newDescription = ""
+            newLocation = ""
             NotificationCenter.default.post(name: .partyDidUpdate, object: nil)
-            return true
 
-        } catch {
-            createError = "Failed: \(error)"
-            return false
-        }
+        } catch { }
     }
 
     @MainActor
@@ -354,3 +320,4 @@ struct PartyView: View {
 }
 
 
+               
