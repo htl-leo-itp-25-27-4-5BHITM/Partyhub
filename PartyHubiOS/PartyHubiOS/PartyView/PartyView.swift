@@ -14,9 +14,7 @@ struct PartyView: View {
     @State private var lastFetchLocation: CLLocation? = nil
     @State private var isFetching = false
     @State private var isCreating = false
-    @State private var newTitle = ""
-    @State private var newDescription = ""
-    @State private var newLocation = ""
+    @State private var showCreateSheet = false
 
     func sortedParties(userCoord: CLLocationCoordinate2D?) -> [Party] {
         guard let userCoord else { return parties }
@@ -37,16 +35,6 @@ struct PartyView: View {
 
         NavigationStack {
             List {
-                Section {
-                    TextField("Title", text: $newTitle)
-                    TextField("Description", text: $newDescription)
-                    TextField("Location", text: $newLocation)
-                    Button("Create") {
-                        Task { await createParty() }
-                    }
-                    .disabled(isCreating || newTitle.isEmpty)
-                }
-
                 if sorted.isEmpty {
                     HStack(spacing: 12) {
                         ProgressView()
@@ -69,11 +57,21 @@ struct PartyView: View {
             .navigationBarTitleDisplayMode(.large)
             .toolbar {
                 ToolbarItem(placement: .primaryAction) {
-                    Button("Quick") {
-                        Task { await quickCreateDebug() }
+                    HStack {
+                        Button(action: { showCreateSheet = true }) {
+                            Label("Create party", systemImage: "plus")
+                        }
+                        .disabled(isCreating)
+
+                        Button("Quick") {
+                            Task { await quickCreateDebug() }
+                        }
+                        .disabled(isCreating)
                     }
-                    .disabled(isCreating)
                 }
+            }
+            .sheet(isPresented: $showCreateSheet) {
+                PartyFormView(mode: .create, onSave: { _ in true })
             }
         }
         .onAppear {
@@ -126,50 +124,6 @@ struct PartyView: View {
         group.notify(queue: .main) {
             isFetching = false
         }
-    }
-
-    @MainActor
-    private func createParty() async {
-        isCreating = true
-        defer { isCreating = false }
-
-        let df = DateFormatter()
-        df.dateFormat = "yyyy-MM-dd'T'HH:mm:ss"
-        df.locale = Locale(identifier: "en_US_POSIX")
-
-        let body: [String: Any] = [
-            "title": newTitle,
-            "description": newDescription.isEmpty ? "Party Description" : newDescription,
-            "fee": 0,
-            "time_start": df.string(from: Date()),
-            "time_end": df.string(from: Date().addingTimeInterval(3600 * 4)),
-            "website": "",
-            "latitude": 48.2082,
-            "longitude": 16.3738,
-            "location_address": newLocation.isEmpty ? "TBD" : newLocation,
-            "theme": "Standard",
-            "visibility": "public",
-            "selectedUsers": [String](),
-        ]
-
-        do {
-            let jsonData = try JSONSerialization.data(withJSONObject: body)
-            var request = URLRequest(url: URL(string: "\(Config.backendURL)/api/parties")!)
-            request.httpMethod = "POST"
-            request.setValue("application/json", forHTTPHeaderField: "Content-Type")
-            request.setValue("\(AuthManager.shared.userId ?? 1)", forHTTPHeaderField: "X-User-Id")
-            request.httpBody = jsonData
-
-            let (_, response) = try await URLSession.shared.data(for: request)
-            guard let httpResponse = response as? HTTPURLResponse,
-                  (200...299).contains(httpResponse.statusCode) else { return }
-
-            newTitle = ""
-            newDescription = ""
-            newLocation = ""
-            NotificationCenter.default.post(name: .partyDidUpdate, object: nil)
-
-        } catch { }
     }
 
     @MainActor
