@@ -88,6 +88,9 @@ spec:
               value: 'demo'
             - name: KC_SPI_THEME_DEFAULT
               value: "partyhub"
+          envFrom:
+            - secretRef:
+                name: partyhub-smtp-secret
           ports:
             - name: http
               containerPort: 8080
