@@ -296,6 +296,114 @@
   stroke: var(--danger);
 }
 
+.confirm-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 10000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  background: rgba(4, 4, 12, 0.62);
+  backdrop-filter: blur(10px);
+}
+
+.confirm-overlay[hidden] {
+  display: none;
+}
+
+.confirm-dialog {
+  width: min(360px, 100%);
+  border: 1px solid rgba(255,255,255,0.12);
+  border-radius: 12px;
+  background: var(--bg-tertiary);
+  color: #fff;
+  box-shadow: 0 18px 48px rgba(0,0,0,0.42), 0 0 0 1px rgba(255,255,255,0.04);
+  padding: 18px;
+  transform: translateY(8px) scale(0.98);
+  animation: confirm-pop-in 0.18s ease forwards;
+}
+
+.confirm-icon {
+  width: 38px;
+  height: 38px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  color: var(--danger);
+  background: rgba(255,46,99,0.12);
+  margin-bottom: 12px;
+}
+
+.confirm-icon svg {
+  width: 22px;
+  height: 22px;
+  display: block;
+}
+
+.confirm-icon svg,
+.confirm-icon svg * {
+  stroke: currentColor;
+  fill: none;
+}
+
+.confirm-copy h2 {
+  margin: 0;
+  font-family: var(--font-body);
+  font-size: 1rem;
+  font-weight: 800;
+  letter-spacing: 0;
+}
+
+.confirm-copy p {
+  margin: 8px 0 0;
+  color: rgba(255,255,255,0.72);
+  font-family: var(--font-body);
+  font-size: 0.86rem;
+  line-height: 1.45;
+}
+
+.confirm-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 18px;
+}
+
+.confirm-btn {
+  border: 0;
+  border-radius: 8px;
+  min-height: 38px;
+  padding: 0 14px;
+  color: #fff;
+  font-family: var(--font-body);
+  font-size: 0.84rem;
+  font-weight: 800;
+  cursor: pointer;
+  transition: transform .08s ease, background .12s ease;
+}
+
+.confirm-btn:hover {
+  transform: translateY(-1px);
+}
+
+.confirm-cancel {
+  background: rgba(255,255,255,0.08);
+}
+
+.confirm-cancel:hover {
+  background: rgba(255,255,255,0.12);
+}
+
+.confirm-danger {
+  background: rgba(255,46,99,0.82);
+}
+
+.confirm-danger:hover {
+  background: rgba(255,46,99,0.96);
+}
+
 @keyframes toast-pop-in {
   to { 
     opacity: 1; 
@@ -307,6 +415,12 @@
   to { 
     opacity: 0; 
     transform: translateY(-8px) scale(0.96); 
+  }
+}
+
+@keyframes confirm-pop-in {
+  to {
+    transform: translateY(0) scale(1);
   }
 }
 

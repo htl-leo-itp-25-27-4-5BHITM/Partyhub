@@ -4,8 +4,10 @@ document.addEventListener("DOMContentLoaded", async () => {
   const list = document.getElementById("notifList");
   const tpl = document.getElementById("notifTpl");
 
-  await window.authService?.init?.({ requireLogin: true, redirectTo: window.location.pathname });
-  const currentUserId = window.authService?.getCurrentUserId?.() ?? window.getCurrentUserId?.();
+  const isAuthenticated = await window.authService?.init?.({ requireLogin: true, redirectTo: window.location.pathname });
+  if (isAuthenticated === false) return;
+
+  let currentUserId = await resolveCurrentUserId();
   console.log("Current user:", currentUserId);
 
   if (!currentUserId) {
@@ -22,6 +24,30 @@ document.addEventListener("DOMContentLoaded", async () => {
       return direct.id ?? direct.userId ?? direct.user_id ?? null;
     }
     return direct ?? null;
+  }
+
+  async function resolveCurrentUserId() {
+    let userId = window.authService?.getCurrentUserId?.() ?? window.getCurrentUserId?.();
+    if (userId != null) return userId;
+
+    const currentUser = await window.authService?.getCurrentUser?.();
+    userId = currentUser?.id ?? window.authService?.getCurrentUserId?.() ?? window.getCurrentUserId?.();
+    if (userId != null) return userId;
+
+    try {
+      const response = await window.authService?.apiCall?.("/api/users/me");
+      if (response?.ok) {
+        const user = await response.json().catch(() => null);
+        if (user?.id != null) {
+          window.authService?.storeUser?.(user.id, user);
+          return user.id;
+        }
+      }
+    } catch (error) {
+      console.warn("Could not resolve current user", error);
+    }
+
+    return null;
   }
 
   function readPartyId(item) {
@@ -168,7 +194,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     for (const url of urls) {
       try {
-        const res = await fetch(url);
+        const res = await (window.authService?.apiCall || fetch)(url);
         if (res.ok) {
           const json = await res.json().catch(() => null);
           console.log("Fetch success:", url, json);
@@ -231,20 +257,30 @@ document.addEventListener("DOMContentLoaded", async () => {
   }
 
   async function getReceivedInvites() {
-    const userId = window.getCurrentUserId();
+    const userId = await resolveCurrentUserId();
     if (!userId) {
       console.warn("No user logged in for getReceivedInvites");
       return [];
     }
 
-    const response = await window.authService.apiCall("/api/invitations?direction=received");
-    const json = await response.json();
+    try {
+      const response = await window.authService.apiCall("/api/invitations?direction=received");
+      if (!response.ok) {
+        console.warn("Fetching invitations failed:", response.status);
+        return [];
+      }
 
-    if (Array.isArray(json)) return json;
-    if (Array.isArray(json?.items)) return json.items;
-    if (Array.isArray(json?.data)) return json.data;
-    if (Array.isArray(json?.invitations)) return json.invitations;
-    return [];
+      const json = await response.json().catch(() => null);
+
+      if (Array.isArray(json)) return json;
+      if (Array.isArray(json?.items)) return json.items;
+      if (Array.isArray(json?.data)) return json.data;
+      if (Array.isArray(json?.invitations)) return json.invitations;
+      return [];
+    } catch (err) {
+      console.warn("Fetching invitations failed completely:", err);
+      return [];
+    }
   }
 
   async function getPendingFollowUsers() {
@@ -279,7 +315,12 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     try {
       const response = await window.authService.apiCall("/api/notifications");
-      const json = await response.json();
+      if (!response.ok) {
+        console.warn("Fetching notifications failed:", response.status);
+        return [];
+      }
+
+      const json = await response.json().catch(() => null);
 
       if (Array.isArray(json)) return json;
       if (Array.isArray(json?.items)) return json.items;
@@ -399,8 +440,102 @@ document.addEventListener("DOMContentLoaded", async () => {
     setTimeout(() => toast.remove(), 2200);
   }
 
-  function confirmTwice(firstMessage, secondMessage) {
-    return window.confirm(firstMessage) && window.confirm(secondMessage);
+  function confirmIconSvg(icon) {
+    if (icon === "trash") {
+      return `
+        <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+          <rect x="6.5" y="6" width="11" height="12" rx="2" stroke="currentColor" stroke-width="2" fill="none"/>
+          <path d="M9.5 10v6M12 10v6M14.5 10v6" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+          <path d="M5 6h14" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+          <rect x="9" y="3" width="6" height="3" rx="1.5" stroke="currentColor" stroke-width="2" fill="none"/>
+        </svg>
+      `;
+    }
+
+    return `
+      <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+        <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2" fill="none"/>
+        <path d="M8.75 8.75l6.5 6.5M15.25 8.75l-6.5 6.5" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+      </svg>
+    `;
+  }
+
+  function showConfirmBox({
+    title,
+    message,
+    confirmLabel = "Bestätigen",
+    cancelLabel = "Abbrechen",
+    icon = "x"
+  }) {
+    const overlay = document.getElementById("confirmOverlay");
+    const titleEl = document.getElementById("confirmTitle");
+    const messageEl = document.getElementById("confirmMessage");
+    const iconEl = document.getElementById("confirmIcon");
+    const cancelBtn = document.getElementById("confirmCancelBtn");
+    const confirmBtn = document.getElementById("confirmConfirmBtn");
+
+    if (!overlay || !titleEl || !messageEl || !iconEl || !cancelBtn || !confirmBtn) {
+      return Promise.resolve(false);
+    }
+
+    titleEl.textContent = title;
+    messageEl.textContent = message;
+    iconEl.innerHTML = confirmIconSvg(icon);
+    cancelBtn.textContent = cancelLabel;
+    confirmBtn.textContent = confirmLabel;
+
+    return new Promise(resolve => {
+      const previousFocus = document.activeElement;
+
+      function close(result) {
+        overlay.hidden = true;
+        cancelBtn.removeEventListener("click", onCancel);
+        confirmBtn.removeEventListener("click", onConfirm);
+        overlay.removeEventListener("click", onOverlayClick);
+        document.removeEventListener("keydown", onKeyDown);
+
+        if (previousFocus && typeof previousFocus.focus === "function") {
+          previousFocus.focus();
+        }
+
+        resolve(result);
+      }
+
+      function onCancel() {
+        close(false);
+      }
+
+      function onConfirm() {
+        close(true);
+      }
+
+      function onOverlayClick(event) {
+        if (event.target === overlay) {
+          close(false);
+        }
+      }
+
+      function onKeyDown(event) {
+        if (event.key === "Escape") {
+          close(false);
+        }
+      }
+
+      cancelBtn.addEventListener("click", onCancel);
+      confirmBtn.addEventListener("click", onConfirm);
+      overlay.addEventListener("click", onOverlayClick);
+      document.addEventListener("keydown", onKeyDown);
+
+      overlay.hidden = false;
+      cancelBtn.focus();
+    });
+  }
+
+  async function confirmTwice(firstOptions, secondOptions) {
+    const firstConfirmed = await showConfirmBox(firstOptions);
+    if (!firstConfirmed) return false;
+
+    return showConfirmBox(secondOptions);
   }
 
   function setDismissButtonMode(button, item) {
@@ -433,6 +568,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   async function loadNotificationData({ quiet = false } = {}) {
     try {
+      currentUserId = await resolveCurrentUserId();
       const invitations = await getReceivedInvites();
       const pendingFollowUsers = await getPendingFollowUsers();
       const backendNotifications = await getBackendNotifications();
@@ -816,24 +952,42 @@ document.addEventListener("DOMContentLoaded", async () => {
           setDismissButtonMode(dismissBtn, item);
           dismissBtn.addEventListener("click", async () => {
             try {
-              if (
-                item.type === "invite" &&
-                !confirmTwice(
-                  "Willst du diese Einladung wirklich ablehnen?",
-                  "Bist du dir sicher? Die Einladung wird abgelehnt."
-                )
-              ) {
-                return;
+              if (item.type === "invite") {
+                const confirmed = await confirmTwice(
+                  {
+                    title: "Einladung ablehnen?",
+                    message: "Willst du diese Einladung wirklich ablehnen?",
+                    confirmLabel: "Ablehnen",
+                    icon: "x"
+                  },
+                  {
+                    title: "Wirklich ablehnen?",
+                    message: "Bist du dir sicher? Die Einladung wird abgelehnt.",
+                    confirmLabel: "Ja, ablehnen",
+                    icon: "x"
+                  }
+                );
+
+                if (!confirmed) return;
               }
 
-              if (
-                item.type === "notification" &&
-                !confirmTwice(
-                  "Willst du diese Benachrichtigung wirklich löschen?",
-                  "Bist du dir sicher? Die Benachrichtigung wird endgültig gelöscht."
-                )
-              ) {
-                return;
+              if (item.type === "notification") {
+                const confirmed = await confirmTwice(
+                  {
+                    title: "Notification löschen?",
+                    message: "Willst du diese Benachrichtigung wirklich löschen?",
+                    confirmLabel: "Löschen",
+                    icon: "trash"
+                  },
+                  {
+                    title: "Endgültig löschen?",
+                    message: "Bist du dir sicher? Die Benachrichtigung wird endgültig gelöscht.",
+                    confirmLabel: "Ja, löschen",
+                    icon: "trash"
+                  }
+                );
+
+                if (!confirmed) return;
               }
 
               let deleted = false;

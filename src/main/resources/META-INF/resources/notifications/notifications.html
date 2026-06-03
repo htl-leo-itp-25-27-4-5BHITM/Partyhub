@@ -26,7 +26,7 @@
     <script src="../auth-service.js" defer></script>
     <script src="../nav.js" defer></script>
     <script src="../backend-functions.js?v=20260429-notifications" defer></script>
-    <script src="./notifications.js?v=20260603-dismiss-confirm" defer></script>
+    <script src="./notifications.js?v=20260603-custom-confirm" defer></script>
   </head>
 
   <body class="bg-light">
@@ -176,6 +176,30 @@
       </nav>
 
       <div class="toast-container" id="toastContainer"></div>
+      <div class="confirm-overlay" id="confirmOverlay" hidden>
+        <div
+          class="confirm-dialog"
+          id="confirmDialog"
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="confirmTitle"
+          aria-describedby="confirmMessage"
+        >
+          <div class="confirm-icon" id="confirmIcon" aria-hidden="true"></div>
+          <div class="confirm-copy">
+            <h2 id="confirmTitle">Bestätigen</h2>
+            <p id="confirmMessage">Willst du diese Aktion wirklich ausführen?</p>
+          </div>
+          <div class="confirm-actions">
+            <button class="confirm-btn confirm-cancel" id="confirmCancelBtn" type="button">
+              Abbrechen
+            </button>
+            <button class="confirm-btn confirm-danger" id="confirmConfirmBtn" type="button">
+              Bestätigen
+            </button>
+          </div>
+        </div>
+      </div>
     </div>
   </body>
 </html>
