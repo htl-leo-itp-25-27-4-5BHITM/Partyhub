@@ -1,8 +1,10 @@
 package at.htl;
 
+import at.htl.follow.FollowStatus;
 import at.htl.user.User;
 import at.htl.user.UserRepository;
 import at.htl.user_location.UserLocation;
+import io.quarkus.runtime.LaunchMode;
 import io.quarkus.runtime.StartupEvent;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.enterprise.event.Observes;
@@ -22,6 +24,10 @@ public class DataSeeder {
 
     @Transactional
     void onStart(@Observes StartupEvent ev) {
+        if (LaunchMode.current() != LaunchMode.TEST) {
+            ensureFollowStatuses();
+        }
+
         List<User> users = userRepository.getUsers();
         
         if (!users.isEmpty()) {
@@ -46,5 +52,27 @@ public class DataSeeder {
                 }
             }
         }
+    }
+
+    private void ensureFollowStatuses() {
+        ensureFollowStatus(1L, "pending");
+        ensureFollowStatus(2L, "accepted");
+        ensureFollowStatus(3L, "blocked");
+    }
+
+    private void ensureFollowStatus(Long id, String name) {
+        FollowStatus existing = em.find(FollowStatus.class, id);
+        if (existing != null) {
+            if (existing.getName() == null || !existing.getName().equals(name)) {
+                existing.setName(name);
+                em.merge(existing);
+            }
+            return;
+        }
+
+        FollowStatus status = new FollowStatus();
+        status.setStatus_id(id);
+        status.setName(name);
+        em.persist(status);
     }
 }

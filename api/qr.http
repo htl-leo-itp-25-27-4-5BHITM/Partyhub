@@ -30,11 +30,11 @@ X-User-Id: 1
 
 
 ###########################################
-### Seed QR token status
+### Missing QR token status
 ###########################################
 GET {{baseUrl}}/status/{{annaQrToken}}
 
-?? status == 200
+?? status == 404
 
 
 ###########################################
@@ -62,11 +62,11 @@ GET {{baseUrl}}/image/user/99999
 
 
 ###########################################
-### QR image by seed token
+### QR image by missing token
 ###########################################
 GET {{baseUrl}}/image/{{annaQrToken}}
 
-?? status == 200
+?? status == 404
 
 
 ###########################################
