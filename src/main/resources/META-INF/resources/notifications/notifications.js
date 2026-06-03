@@ -399,6 +399,38 @@ document.addEventListener("DOMContentLoaded", async () => {
     setTimeout(() => toast.remove(), 2200);
   }
 
+  function confirmTwice(firstMessage, secondMessage) {
+    return window.confirm(firstMessage) && window.confirm(secondMessage);
+  }
+
+  function setDismissButtonMode(button, item) {
+    if (!button) return;
+
+    const isPlainNotification = item.type === "notification";
+
+    button.setAttribute(
+      "aria-label",
+      isPlainNotification ? "Benachrichtigung löschen" : "Ablehnen"
+    );
+    button.setAttribute("title", isPlainNotification ? "Löschen" : "Ablehnen");
+
+    button.innerHTML = isPlainNotification
+      ? `
+        <svg viewBox="0 0 24 24" width="18" height="18" fill="none" aria-hidden="true">
+          <rect x="6.5" y="6" width="11" height="12" rx="2" stroke="currentColor" stroke-width="2" fill="none"/>
+          <path d="M9.5 10v6M12 10v6M14.5 10v6" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+          <path d="M5 6h14" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+          <rect x="9" y="3" width="6" height="3" rx="1.5" stroke="currentColor" stroke-width="2" fill="none"/>
+        </svg>
+      `
+      : `
+        <svg viewBox="0 0 24 24" width="18" height="18" fill="none" aria-hidden="true">
+          <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2" fill="none"/>
+          <path d="M8.75 8.75l6.5 6.5M15.25 8.75l-6.5 6.5" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+        </svg>
+      `;
+  }
+
   async function loadNotificationData({ quiet = false } = {}) {
     try {
       const invitations = await getReceivedInvites();
@@ -781,8 +813,29 @@ document.addEventListener("DOMContentLoaded", async () => {
           dismissBtn.disabled = true;
           dismissBtn.setAttribute("aria-hidden", "true");
         } else {
+          setDismissButtonMode(dismissBtn, item);
           dismissBtn.addEventListener("click", async () => {
             try {
+              if (
+                item.type === "invite" &&
+                !confirmTwice(
+                  "Willst du diese Einladung wirklich ablehnen?",
+                  "Bist du dir sicher? Die Einladung wird abgelehnt."
+                )
+              ) {
+                return;
+              }
+
+              if (
+                item.type === "notification" &&
+                !confirmTwice(
+                  "Willst du diese Benachrichtigung wirklich löschen?",
+                  "Bist du dir sicher? Die Benachrichtigung wird endgültig gelöscht."
+                )
+              ) {
+                return;
+              }
+
               let deleted = false;
               if (item.type === "invite") {
                 deleted = await declineInvite(item);
