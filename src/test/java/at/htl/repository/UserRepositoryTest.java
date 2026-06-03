@@ -117,6 +117,20 @@ public class UserRepositoryTest {
     }
 
     @Test
+    void testFindByDistinctName_caseInsensitive() {
+        User user = new User();
+        user.setDisplayName("Carla");
+        user.setDistinctName("carla");
+        user.setEmail("carla@example.com");
+        entityManager.persist(user);
+        entityManager.flush();
+
+        User found = userRepository.findByDistinctName("Carla");
+        assertNotNull(found);
+        assertEquals("carla@example.com", found.getEmail());
+    }
+
+    @Test
     void testFindByDistinctName_notFound() {
         User found = userRepository.findByDistinctName("nonexistent");
         assertNull(found);
@@ -182,6 +196,20 @@ public class UserRepositoryTest {
 
         List<User> results = userRepository.getUsersByDistinctNameSearch("user_");
         assertEquals(2, results.size());
+    }
+
+    @Test
+    void testGetUsersByDistinctNameSearch_caseInsensitive() {
+        User user = new User();
+        user.setDisplayName("Carla");
+        user.setDistinctName("carla");
+        user.setEmail("carla@example.com");
+        entityManager.persist(user);
+        entityManager.flush();
+
+        List<User> results = userRepository.getUsersByDistinctNameSearch("Carla");
+        assertEquals(1, results.size());
+        assertEquals("carla", results.get(0).getDistinctName());
     }
 
     @Test

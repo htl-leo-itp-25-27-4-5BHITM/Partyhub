@@ -51,6 +51,129 @@
   justify-content: center;
 }
 
+.party-filters {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin: 4px 0 16px;
+}
+
+.filter-search {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 46px;
+  padding: 0 14px;
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.07);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: rgba(255, 255, 255, 0.78);
+}
+
+.filter-search-label {
+  width: 20px;
+  height: 20px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 auto;
+}
+
+.filter-search input {
+  width: 100%;
+  min-width: 0;
+  border: none;
+  outline: none;
+  background: transparent;
+  color: #fff;
+  font: 600 0.96rem var(--app-body-font);
+}
+
+.filter-search input::placeholder {
+  color: rgba(255, 255, 255, 0.58);
+}
+
+.filter-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  min-width: 0;
+}
+
+.filter-chips {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  min-width: 0;
+}
+
+.filter-chip {
+  min-height: 36px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 999px;
+  padding: 8px 13px;
+  background: rgba(255, 255, 255, 0.06);
+  color: rgba(255, 255, 255, 0.82);
+  font: 700 0.84rem var(--app-body-font);
+  cursor: pointer;
+  transition: background 0.18s ease, border-color 0.18s ease, transform 0.18s ease;
+}
+
+.filter-chip:hover:not(:disabled) {
+  transform: translateY(-1px);
+  border-color: rgba(255, 46, 99, 0.34);
+}
+
+.filter-chip.active {
+  background: rgba(255, 46, 99, 0.18);
+  border-color: rgba(255, 46, 99, 0.4);
+  color: #fff;
+}
+
+.filter-chip:disabled {
+  opacity: 0.42;
+  cursor: not-allowed;
+}
+
+.filter-select-control,
+.sort-control {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  flex: 1 1 0;
+  min-width: 150px;
+  color: rgba(255, 255, 255, 0.68);
+  font: 700 0.82rem var(--app-body-font);
+}
+
+.filter-select-control span,
+.sort-control span {
+  flex: 0 0 auto;
+}
+
+.filter-select-control select,
+.sort-control select {
+  flex: 1 1 auto;
+  min-width: 0;
+  min-height: 36px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 10px;
+  padding: 0 30px 0 10px;
+  background: rgba(255, 255, 255, 0.07);
+  color: #fff;
+  font: 700 0.84rem var(--app-body-font);
+}
+
+.filter-select-control option,
+.sort-control option {
+  background: #1a1040;
+  color: #fff;
+}
+
 .parties-list {
   flex: 1;
   min-height: 0;
@@ -67,6 +190,63 @@
   font-family: var(--font-body);
   text-align: center;
   padding: 24px 10px;
+}
+
+.party-header-list {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  min-width: 0;
+}
+
+.party-title-group {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  min-width: 0;
+}
+
+.party-name-list {
+  margin: 0;
+  color: #fff;
+  font-family: var(--font-body);
+  font-size: 1.18rem;
+  font-weight: 800;
+  line-height: 1.2;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.party-visibility,
+.party-price {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 28px;
+  padding: 6px 10px;
+  border-radius: 999px;
+  font: 800 0.72rem var(--app-body-font);
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.party-visibility.public {
+  background: rgba(86, 242, 124, 0.13);
+  border: 1px solid rgba(86, 242, 124, 0.22);
+  color: #93f7ac;
+}
+
+.party-visibility.private {
+  background: rgba(62, 193, 243, 0.13);
+  border: 1px solid rgba(62, 193, 243, 0.24);
+  color: #8ddffb;
+}
+
+.party-price {
+  justify-self: end;
+  background: rgba(255, 255, 255, 0.08);
+  color: rgba(255, 255, 255, 0.86);
 }
 
 /* Hauptkarten */
@@ -129,7 +309,7 @@
   font-size: 1.18rem;
   font-weight: 800;
   line-height: 1.2;
-  letter-spacing: -0.01em;
+  letter-spacing: 0;
 }
 
 /* rechter Bereich / Metadaten */
@@ -255,7 +435,8 @@
   }
 
   .party-attendees,
-  .meta-attendees {
+  .meta-attendees,
+  .party-price {
     justify-self: start;
   }
 }
@@ -282,6 +463,26 @@
   .party-card__meta {
     grid-template-columns: 1fr;
     gap: 10px;
+  }
+
+  .filter-select-control,
+  .sort-control {
+    min-width: 0;
+  }
+
+  .filter-select-control select,
+  .sort-control select {
+    flex: 1 1 auto;
+  }
+
+  .party-header-list {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .party-title-group {
+    align-items: flex-start;
+    flex-direction: column;
   }
 
   .party-badge,

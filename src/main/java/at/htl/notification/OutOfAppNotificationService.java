@@ -67,8 +67,16 @@ public class OutOfAppNotificationService {
             return;
         }
 
-        logger.infof("Sending email to user %s at %s: %s", recipient.getId(), to, subject);
-        mailer.send(Mail.withText(to, subject, message).setFrom(emailFrom));
+        try {
+            logger.infof("Sending email to user %s at %s: %s", recipient.getId(), to, subject);
+            mailer.send(Mail.withText(to, subject, message).setFrom(emailFrom));
+        } catch (RuntimeException e) {
+            logger.warnf(
+                    e,
+                    "Skipping email notification for user %s because mail delivery failed: %s",
+                    recipient.getId(),
+                    e.getMessage());
+        }
     }
 
     private boolean isBlank(String value) {

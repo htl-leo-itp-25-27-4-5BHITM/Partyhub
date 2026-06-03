@@ -26,7 +26,7 @@
     <script src="../auth-service.js" defer></script>
     <script src="../nav.js" defer></script>
     <script src="../backend-functions.js?v=20260429-fresh-db" defer></script>
-    <script src="./listPartys.js?v=20260429-fresh-db" defer></script>
+    <script src="./listPartys.js?v=20260603-party-filters" defer></script>
   </head>
 
   <body class="bg-light">
@@ -52,6 +52,41 @@
             </span>
           </a>
         </header>
+
+        <section class="party-filters" aria-label="Party filters">
+          <div class="filter-search">
+            <label class="filter-search-label" for="partySearch">
+              <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true">
+                <circle cx="11" cy="11" r="7" stroke="currentColor" stroke-width="1.7" fill="none" />
+                <path d="M16.5 16.5 21 21" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" />
+              </svg>
+            </label>
+            <input id="partySearch" type="search" placeholder="Search parties" autocomplete="off" />
+          </div>
+
+          <div class="filter-toolbar">
+            <label class="filter-select-control" for="partyFilter">
+              <span>Filter</span>
+              <select id="partyFilter">
+                <option value="all">All</option>
+                <option value="public">Public</option>
+                <option value="private">Private</option>
+                <option value="invited">Invited</option>
+                <option value="hosted">Hosted</option>
+                <option value="free">Free</option>
+              </select>
+            </label>
+
+            <label class="sort-control" for="partySort">
+              <span>Sort</span>
+              <select id="partySort">
+                <option value="soonest">Soonest</option>
+                <option value="newest">Newest</option>
+                <option value="title">Title</option>
+              </select>
+            </label>
+          </div>
+        </section>
 
         <div id="partiesContainer" class="parties-list">
           <div class="loading">Loading parties...</div>

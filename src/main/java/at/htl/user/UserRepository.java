@@ -26,10 +26,10 @@ public class UserRepository {
     }
 
     public List<User> getUsersByDistinctNameSearch(String search) {
-        String like = "%" + search + "%";
+        String like = "%" + search.trim().toLowerCase() + "%";
         String jpql =
         """
-        SELECT u FROM User u WHERE u.distinctName like :substring
+        SELECT u FROM User u WHERE LOWER(u.distinctName) like :substring
         """;
         return em.createQuery(jpql, User.class).setParameter("substring", like).getResultList();
     }
@@ -51,8 +51,8 @@ public class UserRepository {
     }
 
     public User findByDistinctName(String distinctName) {
-        User res = em.createQuery("SELECT u FROM User u WHERE u.distinctName = :distinctName", User.class)
-                .setParameter("distinctName", distinctName)
+        User res = em.createQuery("SELECT u FROM User u WHERE LOWER(u.distinctName) = :distinctName", User.class)
+                .setParameter("distinctName", distinctName.trim().toLowerCase())
                 .getSingleResultOrNull();
         return res;
     }

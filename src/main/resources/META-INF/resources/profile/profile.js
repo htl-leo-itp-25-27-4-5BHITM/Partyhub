@@ -809,6 +809,174 @@ document.addEventListener("DOMContentLoaded", async function () {
     closeFollowMenu();
   }
 
+  function getPartyDate(party) {
+    const value = party?.time_start || party?.timeStart || party?.date;
+    if (!value) {
+      return null;
+    }
+
+    const date = new Date(value);
+    return Number.isNaN(date.getTime()) ? null : date;
+  }
+
+  function formatDate(date) {
+    if (!date) {
+      return "-";
+    }
+
+    return date.toLocaleDateString("de-AT", {
+      day: "2-digit",
+      month: "2-digit",
+      year: "numeric",
+    });
+  }
+
+  function formatTime(date) {
+    if (!date || Number.isNaN(date.getTime())) {
+      return "-";
+    }
+
+    return date.toLocaleTimeString("de-AT", {
+      hour: "2-digit",
+      minute: "2-digit",
+    });
+  }
+
+  function formatDateTime(value) {
+    const date = value ? new Date(value) : null;
+    if (!date || Number.isNaN(date.getTime())) {
+      return "-";
+    }
+
+    return `${formatDate(date)}, ${formatTime(date)}`;
+  }
+
+  function getPartyTimeRange(party) {
+    const start = party?.time_start || party?.timeStart;
+    const end = party?.time_end || party?.timeEnd;
+
+    if (!start && !end) {
+      return "-";
+    }
+
+    if (start && end) {
+      return `${formatDateTime(start)} - ${formatDateTime(end)}`;
+    }
+
+    return formatDateTime(start || end);
+  }
+
+  function getPartyLocation(party) {
+    const direct =
+      party?.location_address ||
+      party?.locationAddress ||
+      party?.location_adress ||
+      party?.locationAdress ||
+      party?.address ||
+      party?.adress ||
+      party?.place;
+
+    if (direct) {
+      return direct;
+    }
+
+    if (typeof party?.location === "string") {
+      return party.location;
+    }
+
+    if (party?.location?.address) {
+      return party.location.address;
+    }
+
+    if (party?.location?.latitude != null && party?.location?.longitude != null) {
+      return `${Number(party.location.latitude).toFixed(4)}, ${Number(party.location.longitude).toFixed(4)}`;
+    }
+
+    if (party?.latitude != null && party?.longitude != null) {
+      return `${Number(party.latitude).toFixed(4)}, ${Number(party.longitude).toFixed(4)}`;
+    }
+
+    return "-";
+  }
+
+  function getPartyVisibility(party) {
+    return String(party?.visibility || "PUBLIC").toUpperCase();
+  }
+
+  function formatFee(fee) {
+    const value = Number(fee || 0);
+    if (!Number.isFinite(value) || value <= 0) {
+      return "Free";
+    }
+
+    return new Intl.NumberFormat("de-AT", {
+      style: "currency",
+      currency: "EUR",
+      maximumFractionDigits: value % 1 === 0 ? 0 : 2,
+    }).format(value);
+  }
+
+  function getAgeRange(party) {
+    const min = party?.min_age;
+    const max = party?.max_age;
+
+    if (min != null && max != null) {
+      return `${min} - ${max}`;
+    }
+
+    if (min != null) {
+      return `from ${min}`;
+    }
+
+    if (max != null) {
+      return `up to ${max}`;
+    }
+
+    return "No limit";
+  }
+
+  function escapeHtml(value) {
+    return String(value ?? "")
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")
+      .replace(/"/g, "&quot;")
+      .replace(/'/g, "&#039;");
+  }
+
+  function detailItem(label, value) {
+    return `
+      <div class="party-detail-item">
+        <span class="party-detail-label">${escapeHtml(label)}</span>
+        <span class="party-detail-value">${escapeHtml(value || "-")}</span>
+      </div>
+    `;
+  }
+
+  function buildPartyDetailsHtml(party) {
+    const website = party?.website
+      ? `<a class="party-detail-link" href="${escapeHtml(party.website)}" target="_blank" rel="noopener">${escapeHtml(party.website)}</a>`
+      : `<span class="party-detail-value">-</span>`;
+
+    return `
+      <div class="party-detail-description">
+        <span class="party-detail-label">Description</span>
+        <p>${escapeHtml(party?.description || "No description")}</p>
+      </div>
+      ${detailItem("Theme", party?.theme || "General")}
+      ${detailItem("Visibility", getPartyVisibility(party))}
+      ${detailItem("When", getPartyTimeRange(party))}
+      ${detailItem("Location", getPartyLocation(party))}
+      ${detailItem("Guests", party?.max_people ? `up to ${party.max_people}` : "Unlimited")}
+      ${detailItem("Age", getAgeRange(party))}
+      ${detailItem("Fee", formatFee(party?.fee))}
+      <div class="party-detail-item">
+        <span class="party-detail-label">Website</span>
+        ${website}
+      </div>
+    `;
+  }
+
   // -----------------------------
   // Load user
   // -----------------------------
@@ -1238,7 +1406,26 @@ document.addEventListener("DOMContentLoaded", async function () {
 
       searchTimeout = setTimeout(() => performSearch(query), 600);
     });
+
+    searchInput.addEventListener("keydown", (event) => {
+      if (event.key === "Escape") {
+        hideSearchDropdown();
+        searchInput.blur();
+      }
+    });
   }
+
+  document.addEventListener("click", (event) => {
+    const searchBar = document.getElementById("searchBar");
+
+    if (
+      searchDropdown &&
+      !searchDropdown.classList.contains("hidden") &&
+      (!searchBar || !searchBar.contains(event.target))
+    ) {
+      hideSearchDropdown();
+    }
+  });
 
   // -----------------------------
   // Username dropdown
@@ -1387,9 +1574,6 @@ document.addEventListener("DOMContentLoaded", async function () {
       const parties = await window.backend.getPartiesByUser(viewedUserId);
       const ownParties = filterCreatedParties(parties, viewedUserId);
 
-      console.log("All loaded parties:", parties);
-      console.log("Only parties created by user", viewedUserId, ownParties);
-
       renderParties(ownParties);
     } catch (error) {
       console.error("Failed to load user parties:", error);
@@ -1442,35 +1626,26 @@ document.addEventListener("DOMContentLoaded", async function () {
       }
 
       const infoValues = node.querySelectorAll(".info-value");
+      const startDate = getPartyDate(party);
 
       if (infoValues[0]) {
-        infoValues[0].textContent =
-          party.date || party.time_start?.split?.("T")?.[0] || "-";
+        infoValues[0].textContent = formatDate(startDate);
       }
 
       if (infoValues[1]) {
-        infoValues[1].textContent = party.time || party.time_start || "-";
+        infoValues[1].textContent = getPartyTimeRange(party);
       }
 
       if (infoValues[2]) {
-        infoValues[2].textContent =
-          party.location_address ||
-          party.locationAddress ||
-          party.location_adress ||
-          party.locationAdress ||
-          party.location ||
-          party.place ||
-          party.address ||
-          party.adress ||
-          "-";
+        infoValues[2].textContent = getPartyLocation(party);
       }
 
       const extra = node.querySelector(".party-extra");
-      const jsonPre = node.querySelector(".party-json");
+      const detailsGrid = node.querySelector(".party-detail-grid");
       const detailsBtn = node.querySelector(".details-btn");
 
-      if (jsonPre) {
-        jsonPre.textContent = JSON.stringify(party, null, 2);
+      if (detailsGrid) {
+        detailsGrid.innerHTML = buildPartyDetailsHtml(party);
       }
 
       if (detailsBtn && extra) {

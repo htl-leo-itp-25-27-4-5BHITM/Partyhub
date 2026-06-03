@@ -8,7 +8,6 @@ document.addEventListener("DOMContentLoaded", async () => {
   if (isAuthenticated === false) return;
 
   let currentUserId = await resolveCurrentUserId();
-  console.log("Current user:", currentUserId);
 
   if (!currentUserId) {
     console.warn("No user logged in");
@@ -197,7 +196,6 @@ document.addEventListener("DOMContentLoaded", async () => {
         const res = await (window.authService?.apiCall || fetch)(url);
         if (res.ok) {
           const json = await res.json().catch(() => null);
-          console.log("Fetch success:", url, json);
           return json;
         }
 
@@ -428,6 +426,31 @@ document.addEventListener("DOMContentLoaded", async () => {
     return deleteInviteNotifications(item);
   }
 
+  async function acceptInvite(item) {
+    if (item.invitationId) {
+      const response = await window.authService.apiCall(
+        `/api/invitations/${encodeURIComponent(item.invitationId)}/accept`,
+        { method: "POST" }
+      );
+
+      if (response.ok) {
+        return true;
+      }
+
+      throw new Error(`Invitation could not be accepted: ${response.status}`);
+    }
+
+    if (typeof attendParty === "function" && item.partyId) {
+      const joined = await attendParty(item.partyId);
+      if (joined === false || joined?.ok === false) {
+        throw new Error("Party could not be accepted");
+      }
+      return true;
+    }
+
+    return false;
+  }
+
   function showToast(message, type = "success") {
     const toastContainer = document.getElementById("toastContainer");
     if (!toastContainer) return;
@@ -545,9 +568,9 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     button.setAttribute(
       "aria-label",
-      isPlainNotification ? "Benachrichtigung löschen" : "Ablehnen"
+      isPlainNotification ? "Delete" : "Decline"
     );
-    button.setAttribute("title", isPlainNotification ? "Löschen" : "Ablehnen");
+    button.setAttribute("title", isPlainNotification ? "Delete" : "Decline");
 
     button.innerHTML = isPlainNotification
       ? `
@@ -572,24 +595,6 @@ document.addEventListener("DOMContentLoaded", async () => {
       const invitations = await getReceivedInvites();
       const pendingFollowUsers = await getPendingFollowUsers();
       const backendNotifications = await getBackendNotifications();
-      console.log("notifications: raw pending follow users ->", pendingFollowUsers);
-      console.log("notifications: raw backend notifications ->", backendNotifications);
-
-      try {
-        console.table(
-          invitations.map(inv => ({
-            id: inv.id ?? inv.invitationId ?? null,
-            senderId: readId(inv, "sender"),
-            recipientId: readId(inv, "recipient"),
-            partyId:
-              (inv.party && typeof inv.party === "object" ? inv.party.id : null) ??
-              inv.partyId ??
-              inv.party_id ??
-              null,
-            partyTitle: inv.party?.title ?? inv.party?.name ?? null
-          }))
-        );
-      } catch {}
 
       let relevantInvites = invitations;
 
@@ -646,8 +651,6 @@ document.addEventListener("DOMContentLoaded", async () => {
       } else {
         console.warn("getUserById() is missing; usernames will be shown as User#id");
       }
-
-      console.log("notifications: userMap ->", userMap);
 
       const partyIds = new Set();
 
@@ -828,7 +831,6 @@ document.addEventListener("DOMContentLoaded", async () => {
 
       nextData.sort((a, b) => notificationTimestamp(b) - notificationTimestamp(a));
 
-      console.log("Final notification data:", nextData);
       return nextData;
     } catch (e) {
       if (quiet) {
@@ -916,12 +918,7 @@ document.addEventListener("DOMContentLoaded", async () => {
           acceptBtn.addEventListener("click", async () => {
             try {
               if (item.type === "invite") {
-                if (typeof attendParty === "function" && item.partyId) {
-                  const joined = await attendParty(item.partyId);
-                  if (joined === false || joined?.ok === false) {
-                    throw new Error("Party could not be accepted");
-                  }
-                }
+                await acceptInvite(item);
               } else if (item.type === "follow") {
                 if (item.followerId != null && currentUserId != null) {
                   await acceptFollowRequest(currentUserId, item.followerId);

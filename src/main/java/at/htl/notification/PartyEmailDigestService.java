@@ -71,8 +71,7 @@ public class PartyEmailDigestService {
 
         int sent = 0;
         for (User user : users) {
-            if (shouldSendDigest(user)) {
-                sendDigest(user, upcomingParties);
+            if (shouldSendDigest(user) && sendDigest(user, upcomingParties)) {
                 sent++;
             }
         }
@@ -88,7 +87,7 @@ public class PartyEmailDigestService {
         return settings.isEmailEnabled() && settings.isPartyUpdates();
     }
 
-    private void sendDigest(User user, List<Party> parties) {
+    private boolean sendDigest(User user, List<Party> parties) {
         StringBuilder text = new StringBuilder();
         text.append("Hi ").append(user.getDisplayName() != null ? user.getDisplayName() : user.getUsername()).append(",\n\n");
         text.append("Here are the upcoming parties you might be interested in:\n\n");
@@ -102,7 +101,14 @@ public class PartyEmailDigestService {
         }
         text.append("\nSee you there!\n\nPartyHub - Your Party Platform");
 
-        mailer.send(Mail.withText(user.getEmail(), "PartyHub Weekly Digest", text.toString())
-                .setFrom(emailFrom));
+        try {
+            mailer.send(Mail.withText(user.getEmail(), "PartyHub Weekly Digest", text.toString())
+                    .setFrom(emailFrom));
+            return true;
+        } catch (RuntimeException e) {
+            logger.warnf(e, "Skipping weekly digest for user %s because mail delivery failed: %s",
+                    user.getId(), e.getMessage());
+            return false;
+        }
     }
 }
