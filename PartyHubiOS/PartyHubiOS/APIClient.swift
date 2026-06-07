@@ -69,7 +69,7 @@ class APIClient {
         request.httpMethod = method.rawValue
         request.setValue("application/json", forHTTPHeaderField: "Accept")
         
-        try addAuthHeaders(to: &request, type: authType)
+        try await addAuthHeaders(to: &request, type: authType)
         
         if let body = body {
             request.setValue("application/json", forHTTPHeaderField: "Content-Type")
@@ -149,7 +149,7 @@ class APIClient {
         request.setValue("image/*, */*", forHTTPHeaderField: "Accept")
         request.cachePolicy = .reloadIgnoringLocalCacheData
         
-        try addAuthHeaders(to: &request, type: authType)
+        try await addAuthHeaders(to: &request, type: authType)
         
         print("\(method.rawValue) \(url.absoluteString) [data]")
         
@@ -188,7 +188,7 @@ class APIClient {
         mimeType: String = "image/jpeg",
         fieldName: String = "file",
         queryItems: [URLQueryItem] = [],
-        authType: AuthType = .userIdHeader
+        authType: AuthType = .bearerToken
     ) async throws -> T {
         guard var components = URLComponents(string: Config.backendURL) else {
             throw APIError.invalidURL
@@ -210,7 +210,7 @@ class APIClient {
         request.setValue("multipart/form-data; boundary=\(boundary)", forHTTPHeaderField: "Content-Type")
         request.setValue("application/json", forHTTPHeaderField: "Accept")
         
-        try addAuthHeaders(to: &request, type: authType)
+        try await addAuthHeaders(to: &request, type: authType)
         
         var body = Data()
         
@@ -275,37 +275,22 @@ class APIClient {
         }
     }
     
-    private func addAuthHeaders(to request: inout URLRequest, type: AuthType) throws {
-        let authManager = AuthManager.shared
-        
+    private func addAuthHeaders(to request: inout URLRequest, type: AuthType) async throws {
+        let auth = KeycloakAuthService.shared
+
         switch type {
         case .none:
             break
-            
-        case .userIdHeader:
-            guard let userId = authManager.userId else {
-                throw APIError.noAuthToken
-            }
-            request.setValue("\(userId)", forHTTPHeaderField: "X-User-Id")
-            print("Added X-User-Id: \(userId)")
-            
+
         case .bearerToken:
-            guard let token = authManager.mobileToken else {
-                throw APIError.noAuthToken
-            }
+            let token = try await auth.validAccessToken()
             request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
-            print("Added Bearer token")
-            
-        case .either:
-            if let userId = authManager.userId {
-                request.setValue("\(userId)", forHTTPHeaderField: "X-User-Id")
-                print("Added X-User-Id: \(userId)")
-            } else if let token = authManager.mobileToken {
+
+        case .bearerOrAnonymous:
+            if let token = try? await auth.validAccessToken() {
                 request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
-                print("Added Bearer token")
-            } else {
-                throw APIError.noAuthToken
             }
+
         }
     }
 }
@@ -319,9 +304,8 @@ enum HTTPMethod: String {
 
 enum AuthType {
     case none
-    case userIdHeader
     case bearerToken
-    case either
+    case bearerOrAnonymous
 }
 
 struct EmptyResponse: Decodable {}

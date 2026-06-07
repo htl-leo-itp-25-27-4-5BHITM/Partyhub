@@ -266,7 +266,7 @@ struct PartyFormView: View {
             var request = URLRequest(url: URL(string: "\(Config.backendURL)/api/parties")!)
             request.httpMethod = "POST"
             request.setValue("application/json", forHTTPHeaderField: "Content-Type")
-            request.setValue("\(AuthManager.shared.userId ?? 1)", forHTTPHeaderField: "X-User-Id")
+            request.setValue("Bearer \(try await KeycloakAuthService.shared.validAccessToken())", forHTTPHeaderField: "Authorization")
             request.httpBody = jsonData
 
             let (_, response) = try await URLSession.shared.data(for: request)

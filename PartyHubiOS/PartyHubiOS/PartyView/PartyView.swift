@@ -326,6 +326,3 @@ struct PartyView: View {
         }
     }
 }
-
-
-               

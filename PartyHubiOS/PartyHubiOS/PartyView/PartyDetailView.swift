@@ -9,7 +9,7 @@ struct PartyDetailView: View {
     @Bindable var party: Party
     @Environment(LocationManager.self) private var locationManager
     @Environment(\.modelContext) private var modelContext
-    @EnvironmentObject private var authManager: AuthManager
+    @Environment(KeycloakAuthService.self) private var auth
     @State private var now = Date()
     let timer = Timer.publish(every: 1, on: .main, in: .common).autoconnect()
     
@@ -63,7 +63,7 @@ extension PartyDetailView {
     
     // MARK: - Owner Check
     private var currentUserId: Int64? {
-        authManager.userId.map { Int64($0) }
+        auth.partyhubUserId.map { Int64($0) }
     }
     
     private var isOwner: Bool {
@@ -405,7 +405,7 @@ extension PartyDetailView {
         }
         
         func becomeOwner() {
-            print("becomeOwner() is deprecated - user authentication is handled by AuthManager")
+            print("becomeOwner() is deprecated - user authentication is handled by KeycloakAuthService")
         }
 #endif
         

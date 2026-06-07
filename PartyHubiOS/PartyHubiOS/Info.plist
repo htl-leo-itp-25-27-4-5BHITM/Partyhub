@@ -12,6 +12,14 @@
 				<string>partyhub</string>
 			</array>
 		</dict>
+		<dict>
+			<key>CFBundleURLName</key>
+			<string>com.partyhub.app.auth</string>
+			<key>CFBundleURLSchemes</key>
+			<array>
+				<string>partyhub.auth</string>
+			</array>
+		</dict>
 	</array>
 	<key>NSAppTransportSecurity</key>
 	<dict>

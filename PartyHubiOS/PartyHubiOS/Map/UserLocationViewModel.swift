@@ -75,9 +75,16 @@ class UserLocationViewModel {
         request.httpMethod = "PUT"
         request.httpBody = jsonData
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
-        request.setValue(String(userId), forHTTPHeaderField: "X-User-Id")
 
-        URLSession.shared.dataTask(with: request) { _, _, _ in }.resume()
+        Task { @MainActor in
+            do {
+                let token = try await KeycloakAuthService.shared.validAccessToken()
+                request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
+                URLSession.shared.dataTask(with: request) { _, _, _ in }.resume()
+            } catch {
+                print("uploadUserLocation: no auth token: \(error.localizedDescription)")
+            }
+        }
     }
 
     private func getCurrentDeviceLocation() -> CLLocationCoordinate2D? {

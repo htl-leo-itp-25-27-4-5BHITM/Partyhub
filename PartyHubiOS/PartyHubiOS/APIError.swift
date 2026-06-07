@@ -8,7 +8,8 @@ enum APIError: Error, LocalizedError {
     case invalidURL
     case unauthorized
     case noAuthToken
-    
+    case legacyHeaderUnsupported
+
     var errorDescription: String? {
         switch self {
         case .network(let error):
@@ -27,7 +28,9 @@ enum APIError: Error, LocalizedError {
         case .unauthorized:
             return "Unauthorized - please log in again"
         case .noAuthToken:
-            return "Not logged in"
+            return "Not signed in"
+        case .legacyHeaderUnsupported:
+            return "Legacy X-User-Id authentication is no longer supported. Use Keycloak."
         }
     }
 }

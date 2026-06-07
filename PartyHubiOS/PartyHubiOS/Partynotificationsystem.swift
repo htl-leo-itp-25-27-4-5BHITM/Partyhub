@@ -346,16 +346,23 @@ class PartyUpdateService: ObservableObject {
         localParty: Party,
         modelContext: ModelContext
     ) async {
-        guard let token = AuthManager.shared.mobileToken,
-              let userId = AuthManager.shared.userId else {
+        guard KeycloakAuthService.shared.isAuthenticated,
+              let userId = KeycloakAuthService.shared.partyhubUserId else {
             return
         }
-        
+
+        let token: String
+        do {
+            token = try await KeycloakAuthService.shared.validAccessToken()
+        } catch {
+            return
+        }
+
         let isInvited = await checkIfUserIsInvited(partyId: partyId, userId: userId, token: token)
         guard isInvited else {
             return
         }
-        
+
         guard let serverParty = await fetchPartyFromServer(partyId: partyId, token: token) else {
             return
         }
@@ -556,28 +563,35 @@ class AppDelegate: NSObject, UIApplicationDelegate, UNUserNotificationCenterDele
     // MARK: - Server Communication
     
     private func sendDeviceTokenToServer(token: String) async {
-        guard let userId = AuthManager.shared.userId,
-              let accessToken = AuthManager.shared.mobileToken,
+        guard let userId = KeycloakAuthService.shared.partyhubUserId,
               let url = URL(string: "\(Config.backendURL)/api/users/\(userId)/device-token") else {
             print("Unable to send device token: Authentication missing")
             return
         }
-        
+
+        let accessToken: String
+        do {
+            accessToken = try await KeycloakAuthService.shared.validAccessToken()
+        } catch {
+            print("Unable to send device token: no access token")
+            return
+        }
+
         var request = URLRequest(url: url)
         request.httpMethod = "POST"
         request.setValue("Bearer \(accessToken)", forHTTPHeaderField: "Authorization")
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
-        
+
         let body: [String: Any] = [
             "deviceToken": token,
             "platform": "ios"
         ]
-        
+
         request.httpBody = try? JSONSerialization.data(withJSONObject: body)
-        
+
         do {
             let (_, response) = try await URLSession.shared.data(for: request)
-            
+
             if let httpResponse = response as? HTTPURLResponse, httpResponse.statusCode == 200 {
                 print("Device token successfully sent to the server")
             } else {

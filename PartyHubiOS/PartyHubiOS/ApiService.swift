@@ -24,20 +24,16 @@ class ApiService {
 
         var request = URLRequest(url: url)
         request.httpMethod = "PUT"
-        
+
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
-        
-        if let userId = AuthManager.shared.userId {
-            request.setValue("\(userId)", forHTTPHeaderField: "X-User-Id")
-        } else {
-            request.setValue("1", forHTTPHeaderField: "X-User-Id")
-        }
+        let accessToken = try await KeycloakAuthService.shared.validAccessToken()
+        request.setValue("Bearer \(accessToken)", forHTTPHeaderField: "Authorization")
 
         let body: [String: Any] = [
             "title": title,
             "description": description
         ]
-        
+
         request.httpBody = try? JSONSerialization.data(withJSONObject: body)
 
         let (_, response) = try await URLSession.shared.data(for: request)

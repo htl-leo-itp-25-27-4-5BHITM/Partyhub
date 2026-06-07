@@ -2,9 +2,10 @@ import SwiftUI
 import AVFoundation
 import AudioToolbox
 import PhotosUI
+import AuthenticationServices
 
 struct ProfileView: View {
-    @EnvironmentObject var authManager: AuthManager
+    @Environment(KeycloakAuthService.self) private var auth
     @State private var showSignOutAlert = false
     @State private var showCamera = false
     @State private var followerCount: Int = 0
@@ -24,15 +25,13 @@ struct ProfileView: View {
     @State private var loadState: LoadState = .loading
     @State private var initialLoadComplete = false
 
-    @State private var testLoginUserId = ""
-    @State private var testLoginError = false
-    @State private var testLoginErrorMessage = ""
-    @State private var isLoggingIn = false
-
     var body: some View {
         contentView
-            .task {
-                await restoreSession()
+            .task(id: auth.partyhubUserId) {
+                if let userId = auth.partyhubUserId {
+                    initialLoadComplete = false
+                    await loadUserProfile(userId: userId)
+                }
             }
             .alert("Log Out", isPresented: $showSignOutAlert) {
                 Button("Log Out", role: .destructive) {
@@ -40,28 +39,23 @@ struct ProfileView: View {
                 }
                 Button("Cancel", role: .cancel) {}
             } message: {
-                Text("Are you sure you want to log out?")
+                Text("Signing out will clear your local session and open the Keycloak sign-in page again.")
             }
             .alert("Upload Error", isPresented: $showUploadError) {
                 Button("OK", role: .cancel) {}
             } message: {
                 Text(uploadErrorMessage)
             }
-            .alert("Login Error", isPresented: $testLoginError) {
-                Button("OK", role: .cancel) {}
-            } message: {
-                Text(testLoginErrorMessage.isEmpty ? "Invalid user ID or server not available." : testLoginErrorMessage)
-            }
             .fullScreenCover(isPresented: $showCamera) {
-                CameraView()
+                CameraView(auth: auth)
                     .ignoresSafeArea()
-                    .environmentObject(authManager)
+                    .environment(auth)
             }
     }
 
     @ViewBuilder
     private var contentView: some View {
-        if let userId = authManager.userId {
+        if let userId = auth.partyhubUserId {
             loggedInView(userId: userId)
         } else {
             notLoggedInView
@@ -75,59 +69,42 @@ struct ProfileView: View {
                 .font(.system(size: 80))
                 .foregroundStyle(.gray)
 
-            Text("Not logged in")
+            Text("Not signed in")
                 .font(.headline)
                 .foregroundStyle(.gray)
 
-            Text("Scan a QR code to log in")
+            Text("Sign in with your Keycloak account to continue.")
                 .font(.subheadline)
                 .foregroundStyle(.gray)
                 .multilineTextAlignment(.center)
                 .padding(.horizontal, 40)
 
-            Button(action: { showCamera = true }) {
-                HStack(spacing: 8) {
-                    Image(systemName: "qrcode.viewfinder")
-                    Text("Scan QR code")
-                }
-                .fontWeight(.semibold)
-                .frame(width: 200, height: 45)
-                .background(Color("primary dark blue"))
-                .foregroundStyle(.white)
-                .cornerRadius(10)
-                .shadow(color: Color("primary dark blue").opacity(0.5), radius: 10)
-            }
-            .disabled(isLoggingIn)
-
-            Divider().padding(.horizontal, 40)
-
-            VStack(spacing: 12) {
-                Text("Test-Login")
-                    .font(.headline)
-                    .foregroundStyle(.secondary)
-
-                TextField("Enter User-Id", text: $testLoginUserId)
-                    .textFieldStyle(.roundedBorder)
-                    .keyboardType(.numberPad)
-                    .frame(maxWidth: 200)
-                    .multilineTextAlignment(.center)
-                    .disabled(isLoggingIn)
-
-                if isLoggingIn {
-                    ProgressView()
-                        .padding(.top, 8)
-                } else {
-                    Button(action: {
-                        Task { await performTestLogin() }
-                    }) {
-                        Text("Log in")
-                            .fontWeight(.semibold)
-                            .frame(width: 150, height: 40)
-                            .background(Color.accentColor)
-                            .foregroundStyle(.white)
-                            .cornerRadius(10)
+            if auth.isLoggingIn {
+                ProgressView("Opening Keycloak…")
+                    .padding(.top, 12)
+            } else {
+                Button {
+                    startKeycloakLogin()
+                } label: {
+                    HStack(spacing: 8) {
+                        Image(systemName: "person.crop.circle.badge.checkmark")
+                        Text("Sign in")
                     }
+                    .fontWeight(.semibold)
+                    .frame(width: 240, height: 45)
+                    .background(Color("primary dark blue"))
+                    .foregroundStyle(.white)
+                    .cornerRadius(10)
+                    .shadow(color: Color("primary dark blue").opacity(0.5), radius: 10)
                 }
+            }
+
+            if let error = auth.lastError {
+                Text(error)
+                    .font(.footnote)
+                    .foregroundStyle(.red)
+                    .multilineTextAlignment(.center)
+                    .padding(.horizontal, 40)
             }
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
@@ -153,35 +130,22 @@ struct ProfileView: View {
                         Task { await loadUserProfile(userId: userId) }
                     }
                     .buttonStyle(.borderedProminent)
-                    Button("Other User") {
+                    Button("Sign out") {
                         signOut()
                     }
                     .foregroundStyle(.red)
                 }
             }
         }
-        .task(id: userId) {
-            await loadUserProfile(userId: userId)
-        }
     }
 
     private func profileContent(user: UserProfile) -> some View {
         VStack {
             ZStack(alignment: .bottomTrailing) {
-                if let userId = authManager.userId {
-                    UserProfileImageView(userId: userId, size: 120, showBorder: false)
-                        .overlay(Circle().stroke(Color.white, lineWidth: 4))
-                        .shadow(radius: 10)
-                        .id(profilePictureRefreshTrigger)
-                } else {
-                    Image(systemName: "person.circle.fill")
-                        .resizable()
-                        .scaledToFill()
-                        .frame(width: 120, height: 120)
-                        .clipShape(Circle())
-                        .overlay(Circle().stroke(Color.white, lineWidth: 4))
-                        .shadow(radius: 10)
-                }
+                UserProfileImageView(userId: user.id, size: 120, showBorder: false)
+                    .overlay(Circle().stroke(Color.white, lineWidth: 4))
+                    .shadow(radius: 10)
+                    .id(profilePictureRefreshTrigger)
 
                 PhotosPicker(selection: $selectedPhotoItem, matching: .images) {
                     ZStack {
@@ -268,16 +232,14 @@ struct ProfileView: View {
 
     @MainActor
     private func signOut() {
-        authManager.clear()
-        loadState = .loading
-        followerCount = 0
-        followingCount = 0
-        initialLoadComplete = false
-        profilePictureRefreshTrigger.toggle()
-    }
-
-    @MainActor
-    private func restoreSession() async {
+        Task {
+            await auth.logout()
+            loadState = .loading
+            followerCount = 0
+            followingCount = 0
+            initialLoadComplete = false
+            profilePictureRefreshTrigger.toggle()
+        }
     }
 
     @MainActor
@@ -289,33 +251,30 @@ struct ProfileView: View {
             let profile: UserProfile = try await APIClient.shared.request(
                 method: .GET,
                 path: "/api/users/\(userId)",
-                authType: .none
+                authType: .bearerOrAnonymous
             )
-            let followerCountResp: CountResponse = try await APIClient.shared.request(
+            let followerResp: CountResponse = try await APIClient.shared.request(
                 method: .GET,
                 path: "/api/users/\(userId)/followers/count",
-                authType: .none
+                authType: .bearerOrAnonymous
             )
-            let followingCountResp: CountResponse = try await APIClient.shared.request(
+            let followingResp: CountResponse = try await APIClient.shared.request(
                 method: .GET,
                 path: "/api/users/\(userId)/following/count",
-                authType: .none
+                authType: .bearerOrAnonymous
             )
-
-            let user = profile
-            followerCount = followerCountResp.count
-            followingCount = followingCountResp.count
-
-            loadState = .loaded(user)
+            followerCount = followerResp.count
+            followingCount = followingResp.count
+            loadState = .loaded(profile)
             initialLoadComplete = true
         } catch {
             print("Failed to load profile: \(error)")
             let fallback = UserProfile(
-                id: userId, 
-                username: "User \(userId)", 
-                displayName: nil, 
-                distinctName: nil, 
-                email: nil, 
+                id: userId,
+                username: "User \(userId)",
+                displayName: nil,
+                distinctName: nil,
+                email: nil,
                 biography: nil,
                 phoneNumber: nil
             )
@@ -325,32 +284,33 @@ struct ProfileView: View {
     }
 
     @MainActor
-    private func performTestLogin() async {
-        guard let userId = Int(testLoginUserId), userId > 0 else {
-            testLoginErrorMessage = "Please enter a valid user ID."
-            testLoginError = true
-            return
-        }
-
-        isLoggingIn = true
-        defer { isLoggingIn = false }
-
-        do {
-            try await authManager.loginWithUserId(userId)
-            testLoginUserId = ""
-            initialLoadComplete = false
-            loadState = .loading
-            print("Login successful for user \(userId)")
-        } catch {
-            print("Login failed: \(error)")
-            testLoginErrorMessage = "Login failed: \(error.localizedDescription)"
-            testLoginError = true
+    private func startKeycloakLogin() {
+        guard let anchor = windowAnchor() else { return }
+        Task {
+            do {
+                try await auth.login(presentationAnchor: anchor)
+            } catch {
+                print("Keycloak login failed: \(error)")
+            }
         }
     }
 
+    private func windowAnchor() -> ASPresentationAnchor? {
+        for scene in UIApplication.shared.connectedScenes {
+            guard let windowScene = scene as? UIWindowScene else { continue }
+            if let keyWindow = windowScene.windows.first(where: { $0.isKeyWindow }) {
+                return keyWindow
+            }
+            if let first = windowScene.windows.first {
+                return first
+            }
+        }
+        return nil
+    }
+
     private func uploadSelectedPhoto(_ item: PhotosPickerItem?) async {
-        guard let item, let userId = authManager.userId else { return }
-        
+        guard let item, let userId = auth.partyhubUserId else { return }
+
         guard let data = try? await item.loadTransferable(type: Data.self) else {
             uploadErrorMessage = "The photo could not be loaded."
             showUploadError = true
@@ -363,15 +323,15 @@ struct ProfileView: View {
                 data: data,
                 fileName: "profile.jpg",
                 mimeType: "image/jpeg",
-                authType: .userIdHeader
+                authType: .bearerToken
             )
-            
+
             ApiService.shared.invalidateProfilePictureCache(for: userId)
-            
+
             await MainActor.run {
                 profilePictureRefreshTrigger.toggle()
             }
-            
+
             print("Profile picture uploaded successfully")
         } catch {
             uploadErrorMessage = "Error during upload: \(error.localizedDescription)"
@@ -380,14 +340,14 @@ struct ProfileView: View {
     }
 }
 
-// MARK: - QR Scanner
+// MARK: - QR Scanner (kept for legacy partyhub://login?userId= deep links)
 
 struct CameraView: UIViewControllerRepresentable {
     @Environment(\.dismiss) private var dismiss
-    @EnvironmentObject var authManager: AuthManager
+    let auth: KeycloakAuthService
 
     func makeCoordinator() -> Coordinator {
-        Coordinator(dismiss: dismiss, authManager: authManager)
+        Coordinator(dismiss: dismiss, auth: auth)
     }
 
     func makeUIViewController(context: Context) -> ScannerViewController {
@@ -400,34 +360,17 @@ struct CameraView: UIViewControllerRepresentable {
 
     class Coordinator: NSObject, ScannerViewControllerDelegate {
         let dismiss: DismissAction
-        let authManager: AuthManager
+        let auth: KeycloakAuthService
 
-        init(dismiss: DismissAction, authManager: AuthManager) {
+        init(dismiss: DismissAction, auth: KeycloakAuthService) {
             self.dismiss = dismiss
-            self.authManager = authManager
+            self.auth = auth
         }
 
         func didScanCode(_ code: String) {
-            guard let url = URL(string: code),
-                  url.scheme == "partyhub",
-                  url.host == "login",
-                  let components = URLComponents(url: url, resolvingAgainstBaseURL: false),
-                  let userIdString = components.queryItems?.first(where: { $0.name == "userId" })?.value,
-                  let userId = Int(userIdString) else {
-                print("Invalid QR code: \(code)")
-                return
-            }
-
-            Task { @MainActor in
-                do {
-                    try await authManager.loginWithUserId(userId)
-                    print("QR login succeeded for userId: \(userId)")
-                    NotificationCenter.default.post(name: .didLoginMobile, object: userId)
-                    self.dismiss()
-                } catch {
-                    print("QR login failed: \(error)")
-                }
-            }
+            dismiss()
+            _ = code
+            print("Legacy QR code detected; please use Keycloak sign-in instead.")
         }
     }
 }
@@ -533,5 +476,5 @@ struct StatView: View {
 
 #Preview {
     ProfileView()
-        .environmentObject(AuthManager.shared)
+        .environment(KeycloakAuthService.shared)
 }

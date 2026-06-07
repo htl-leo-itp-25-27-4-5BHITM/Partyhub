@@ -43,7 +43,7 @@ final class InvitationsViewModel {
                 method: .GET,
                 path: "/api/invitations",
                 queryItems: [URLQueryItem(name: "direction", value: "received")],
-                authType: .userIdHeader
+                authType: .bearerToken
             )
             invitations = result
         } catch {
@@ -61,7 +61,7 @@ final class InvitationsViewModel {
             let _: EmptyResponse = try await APIClient.shared.request(
                 method: .POST,
                 path: "/api/parties/\(partyId)/join",
-                authType: .userIdHeader
+                authType: .bearerToken
             )
             await fetch()
         } catch {
@@ -79,7 +79,7 @@ final class InvitationsViewModel {
             let _: EmptyResponse = try await APIClient.shared.request(
                 method: .DELETE,
                 path: "/api/parties/\(partyId)/join",
-                authType: .userIdHeader
+                authType: .bearerToken
             )
             await fetch()
         } catch {

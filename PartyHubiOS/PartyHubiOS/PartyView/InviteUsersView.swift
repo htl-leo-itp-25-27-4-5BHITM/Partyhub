@@ -15,7 +15,7 @@ final class InviteUsersViewModel {
             let result: [UserProfile] = try await APIClient.shared.request(
                 method: .GET,
                 path: "/api/users/\(userId)/following",
-                authType: .userIdHeader
+                authType: .bearerToken
             )
             friends = result
         } catch {
@@ -33,7 +33,7 @@ final class InviteUsersViewModel {
                 method: .POST,
                 path: "/api/invitations",
                 body: payload,
-                authType: .userIdHeader
+                authType: .bearerToken
             )
             successMessage = "Invitation sent!"
             return true
@@ -61,9 +61,10 @@ struct InviteUsersView: View {
     @State private var viewModel = InviteUsersViewModel()
     @State private var searchText = ""
     @State private var invitedUserIds: Set<Int> = []
+    @Environment(KeycloakAuthService.self) private var auth
 
     private var currentUserId: Int {
-        AuthManager.shared.userId ?? 0
+        auth.partyhubUserId ?? 0
     }
 
     private var filteredFriends: [UserProfile] {

@@ -30,17 +30,14 @@ struct MapView: View {
     @State private var filterState = PartyMapFilterState()
 
     @Query var parties: [Party]
+    @Environment(KeycloakAuthService.self) private var auth
     private let highlightedPartyId: Int?
 
     private let clusteringEngine = MapClusteringEngine()
     private let ageOptions = Array(16...99)
 
     private var currentUserId: Int? {
-        if let userId = AuthManager.shared.userId {
-            return userId
-        }
-        let storedId = UserDefaults.standard.integer(forKey: "partyhub_user_id")
-        return storedId > 0 ? storedId : nil
+        auth.partyhubUserId
     }
 
     private var currentUserLocation: CLLocationCoordinate2D? {
