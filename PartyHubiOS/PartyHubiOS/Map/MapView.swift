@@ -28,6 +28,7 @@ struct MapView: View {
     @State private var mapViewSize: CGSize = .zero
     @State private var partyClusters: [Cluster<Party>] = []
     @State private var filterState = PartyMapFilterState()
+    @State private var searchRadiusSliderValue = PartyMapDistanceFilter.unlimited.sliderIndex
 
     @Query var parties: [Party]
     @Environment(KeycloakAuthService.self) private var auth
@@ -46,6 +47,10 @@ struct MapView: View {
 
     private var hasCurrentUserLocation: Bool {
         currentUserLocation != nil
+    }
+
+    private var selectedSearchRadiusInMeters: Double? {
+        filterState.distanceFilter.distanceInMeters
     }
 
     private var availableThemes: [String] {
@@ -234,6 +239,7 @@ struct MapView: View {
     var body: some View {
         GeometryReader { geo in
             Map(position: $position) {
+                searchRadiusCircle
                 userLocationAnnotation
                 partyClusterAnnotations
             }
@@ -241,12 +247,16 @@ struct MapView: View {
             .overlay(alignment: .top) {
                 filterSummaryOverlay
             }
+            .overlay(alignment: .trailing) {
+                distanceSliderOverlay
+            }
             .onAppear {
                 mapViewSize = geo.size
                 locationManager.requestPermission()
                 locationManager.ensureLocationUpdates()
+                syncSearchRadiusSliderWithDistanceFilter()
                 sanitizeDistanceFilterForLocationAvailability()
-                focusMap(on: displayedParty)
+                focusMapForCurrentContext()
                 loadFilterData()
                 triggerRecomputeClusters()
             }
@@ -261,10 +271,14 @@ struct MapView: View {
                 triggerRecomputeClusters()
             }
             .onChange(of: displayedParty?.backendId) { _, _ in
-                focusMap(on: displayedParty)
+                focusMapForCurrentContext()
             }
             .onChange(of: filteredPartyIDs) { _, _ in
                 triggerRecomputeClusters()
+            }
+            .onChange(of: filterState.distanceFilter) { _, _ in
+                syncSearchRadiusSliderWithDistanceFilter()
+                focusMapForCurrentContext()
             }
             .onChange(of: followingUserIds) { _, _ in
                 triggerRecomputeClusters()
@@ -274,6 +288,7 @@ struct MapView: View {
             }
             .onChange(of: locationManager.currentLocation) { _, _ in
                 sanitizeDistanceFilterForLocationAvailability()
+                focusMapForCurrentContext()
                 triggerRecomputeClusters()
             }
             .navigationTitle(displayedParty?.name ?? "Map")
@@ -283,6 +298,48 @@ struct MapView: View {
                 filterSheet
             }
         }
+    }
+
+    private var distanceSliderOverlay: some View {
+        VStack(spacing: 12) {
+            Text(filterState.distanceFilter.displayLabel)
+                .font(.caption)
+                .fontWeight(.bold)
+                .monospacedDigit()
+                .foregroundStyle(.white)
+                .padding(.horizontal, 8)
+                .padding(.vertical, 6)
+                .background(Color.black.opacity(0.65))
+                .clipShape(Capsule())
+
+            Slider(
+                value: searchRadiusSelection,
+                in: 0...Double(PartyMapDistanceFilter.allCases.count - 1),
+                step: 1
+            )
+            .frame(width: 180)
+            .rotationEffect(.degrees(-90))
+            .disabled(!hasCurrentUserLocation)
+            .tint(Color("primary pink"))
+            .opacity(hasCurrentUserLocation ? 1 : 0.45)
+            .frame(width: 44, height: 180)
+
+            Image(systemName: hasCurrentUserLocation ? "location.fill" : "location.slash")
+                .font(.caption)
+                .foregroundStyle(.white)
+                .padding(8)
+                .background(Color.black.opacity(0.65))
+                .clipShape(Circle())
+        }
+        .padding(.vertical, 14)
+        .padding(.horizontal, 10)
+        .background(.ultraThinMaterial)
+        .clipShape(RoundedRectangle(cornerRadius: 18))
+        .shadow(radius: 6)
+        .padding(.trailing, 12)
+        .accessibilityElement(children: .combine)
+        .accessibilityLabel("Search radius")
+        .accessibilityValue(hasCurrentUserLocation ? filterState.distanceFilter.displayLabel : "Location unavailable")
     }
 
     private var filterSummaryOverlay: some View {
@@ -304,6 +361,17 @@ struct MapView: View {
             .padding(.top, 12)
 
             Spacer()
+        }
+    }
+
+    private var searchRadiusCircle: some MapContent {
+        Group {
+            if let coord = currentUserLocation,
+               let radius = filterState.distanceFilter.distanceInMeters {
+                MapCircle(center: coord, radius: radius)
+                    .foregroundStyle(Color("primary pink").opacity(0.12))
+                    .stroke(Color("primary pink").opacity(0.65), lineWidth: 2)
+            }
         }
     }
 
@@ -401,41 +469,6 @@ struct MapView: View {
                                 toggleTheme(theme)
                             }
                         }
-                    }
-                }
-
-                Section("Distance") {
-                    if !hasCurrentUserLocation {
-                        Text("Distance filters are unavailable until your current location is available.")
-                            .font(.caption)
-                            .foregroundStyle(.secondary)
-                    }
-
-                    VStack(alignment: .leading, spacing: 12) {
-                        HStack {
-                            Text(filterState.distanceFilter.displayLabel)
-                                .font(.subheadline)
-                                .fontWeight(.semibold)
-                            Spacer()
-                            Text("from 5 km to ∞")
-                                .font(.caption)
-                                .foregroundStyle(.secondary)
-                        }
-
-                        Slider(
-                            value: distanceFilterSelection,
-                            in: 0...Double(PartyMapDistanceFilter.allCases.count - 1),
-                            step: 1
-                        )
-                        .disabled(!hasCurrentUserLocation)
-
-                        HStack {
-                            Text(PartyMapDistanceFilter.allCases.first?.displayLabel ?? "5 km")
-                            Spacer()
-                            Text(PartyMapDistanceFilter.allCases.last?.displayLabel ?? "∞")
-                        }
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
                     }
                 }
 
@@ -545,13 +578,19 @@ struct MapView: View {
     private func sanitizeDistanceFilterForLocationAvailability() {
         if !hasCurrentUserLocation, filterState.distanceFilter != .unlimited {
             filterState.distanceFilter = .unlimited
+            syncSearchRadiusSliderWithDistanceFilter()
         }
     }
 
-    private var distanceFilterSelection: Binding<Double> {
+    private func syncSearchRadiusSliderWithDistanceFilter() {
+        searchRadiusSliderValue = filterState.distanceFilter.sliderIndex
+    }
+
+    private var searchRadiusSelection: Binding<Double> {
         Binding(
-            get: { filterState.distanceFilter.sliderIndex },
+            get: { searchRadiusSliderValue },
             set: { newValue in
+                searchRadiusSliderValue = newValue
                 filterState.distanceFilter = PartyMapDistanceFilter.filter(for: newValue)
             }
         )
@@ -568,6 +607,36 @@ struct MapView: View {
 }
 
 private extension MapView {
+    func focusMapForCurrentContext() {
+        if focusMapOnSearchRadiusIfAvailable() {
+            return
+        }
+
+        focusMap(on: displayedParty)
+    }
+
+    @discardableResult
+    func focusMapOnSearchRadiusIfAvailable() -> Bool {
+        guard let currentUserLocation,
+              let radius = selectedSearchRadiusInMeters else {
+            return false
+        }
+
+        let visibleDiameter = max(radius * 2.4, 1_200)
+        let newRegion = MKCoordinateRegion(
+            center: currentUserLocation,
+            latitudinalMeters: visibleDiameter,
+            longitudinalMeters: visibleDiameter
+        )
+
+        currentRegion = newRegion
+        withAnimation {
+            position = .region(newRegion)
+        }
+
+        return true
+    }
+
     func focusMap(on party: Party?) {
         guard let party else { return }
 

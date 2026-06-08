@@ -41,8 +41,6 @@ enum PartyMapDistanceFilter: CaseIterable {
     case fiftyKilometers
     case oneHundredKilometers
     case twoHundredFiftyKilometers
-    case fiveHundredKilometers
-    case oneThousandKilometers
     case unlimited
 
     var systemImage: String {
@@ -57,8 +55,6 @@ enum PartyMapDistanceFilter: CaseIterable {
         case .fiftyKilometers: return "50 km"
         case .oneHundredKilometers: return "100 km"
         case .twoHundredFiftyKilometers: return "250 km"
-        case .fiveHundredKilometers: return "500 km"
-        case .oneThousandKilometers: return "1000 km"
         case .unlimited: return "∞"
         }
     }
@@ -71,8 +67,6 @@ enum PartyMapDistanceFilter: CaseIterable {
         case .fiftyKilometers: return 50_000
         case .oneHundredKilometers: return 100_000
         case .twoHundredFiftyKilometers: return 250_000
-        case .fiveHundredKilometers: return 500_000
-        case .oneThousandKilometers: return 1_000_000
         case .unlimited: return nil
         }
     }

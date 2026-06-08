@@ -85,11 +85,15 @@ The system SHALL model invitation acceptance through joining or attending the pa
 - **THEN** the system SHALL update the invitation state to declined
 
 ### Requirement: Home map supports client-side party filtering for visible parties
-The system SHALL allow users to narrow already-visible home-map parties with client-side filters without changing the underlying party-visibility rules.
+The system SHALL allow users to narrow already-visible home-map parties with client-side filters without changing the underlying party-visibility rules, and SHALL expose distance filtering directly in the map interface.
 
 #### Scenario: User opens home map filters
 - **WHEN** a user opens the regular party map filter controls
 - **THEN** the system SHALL present filter options for within-two-weeks, party theme, distance, minimum age, maximum age, free parties, and text search
+
+#### Scenario: User uses in-map distance control
+- **WHEN** a user adjusts the distance radius from the map interface
+- **THEN** the system SHALL apply the selected radius to the visible home-map party result set
 
 #### Scenario: User combines multiple filters
 - **WHEN** a user enables or enters more than one party-map filter
@@ -104,7 +108,7 @@ The system SHALL allow users to narrow already-visible home-map parties with cli
 - **THEN** the system SHALL immediately update the visible home-map party result set to reflect that active filter
 
 ### Requirement: Home map filter experience matches the attendee-map interaction style
-The system SHALL present the regular party map filter affordance using the same interaction style as the attendee map, including an obvious active-filter state and a sheet-based editing flow.
+The system SHALL present the regular party map filter affordance using the same interaction style as the attendee map, including an obvious active-filter state, a sheet-based editing flow, and direct in-map distance feedback.
 
 #### Scenario: No filters are active
 - **WHEN** the user has not enabled any non-default regular map filters
@@ -113,6 +117,10 @@ The system SHALL present the regular party map filter affordance using the same 
 #### Scenario: Filters are active
 - **WHEN** one or more non-default regular map filters are active
 - **THEN** the filter affordance SHALL show an active state and the map UI SHALL reflect that filters are currently narrowing the party results
+
+#### Scenario: Distance filter is active
+- **WHEN** the user selects a finite distance radius
+- **THEN** the map UI SHALL visually reflect the active radius around the current user location where that location is available
 
 #### Scenario: Active filter state and map results stay in sync
 - **WHEN** the regular map indicates that a filter is active
@@ -128,6 +136,10 @@ The system SHALL evaluate each regular-map party filter against party metadata a
 #### Scenario: Distance filter is active and user location is available
 - **WHEN** the user selects a distance filter and current location is available
 - **THEN** the system SHALL include only parties whose coordinates fall within the selected distance threshold from the user
+
+#### Scenario: Distance filter is changed from map interface
+- **WHEN** the user changes the selected distance threshold from the in-map distance slider and current location is available
+- **THEN** the system SHALL update both the visible result set and the map radius visualization to match the selected threshold
 
 #### Scenario: Distance filter is active and user location is unavailable
 - **WHEN** the user selects a distance filter but the app has no current user location
