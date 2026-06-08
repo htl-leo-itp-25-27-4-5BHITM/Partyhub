@@ -22,6 +22,7 @@ final class KeycloakAuthService: NSObject {
     private(set) var username: String?
     private(set) var isLoggingIn: Bool = false
     private(set) var lastError: String?
+    private(set) var sessionEstablished = false
 
     private weak var presentationAnchor: ASPresentationAnchor?
     private var loginContinuation: CheckedContinuation<URL, Error>?
@@ -45,6 +46,7 @@ final class KeycloakAuthService: NSObject {
         didBootstrap = true
         config = await KeycloakConfig.load()
         await loadFromKeychain()
+        sessionEstablished = isAuthenticated
         if let refresh = token?.refreshToken,
            let expiresAt = token?.accessTokenExpiresAt(),
            expiresAt < Date() {
@@ -225,6 +227,7 @@ final class KeycloakAuthService: NSObject {
         self.keycloakSub = sub
         self.partyhubUserId = partyhubId
         self.username = displayName
+        sessionEstablished = true
     }
 
     private func fetchPartyHubUserId(accessToken: String) async throws -> Int {
@@ -327,6 +330,7 @@ final class KeycloakAuthService: NSObject {
         self.keycloakSub = nil
         self.partyhubUserId = nil
         self.username = nil
+        sessionEstablished = false
     }
 
     private func formEncode(_ parameters: [String: String]) -> Data {

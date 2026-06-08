@@ -48,7 +48,7 @@ struct PartyHubiOSApp: App {
                     await bootstrap()
                 }
                 .onAppear {
-                    if authService.isAuthenticated {
+                    if authService.sessionEstablished {
                         updateService.startPolling(modelContext: container.mainContext)
                     }
                 }
@@ -58,9 +58,12 @@ struct PartyHubiOSApp: App {
                 .onOpenURL { url in
                     handleDeepLink(url)
                 }
-                .onChange(of: authService.isAuthenticated) { _, isAuthed in
-                    if isAuthed {
+                .onChange(of: authService.sessionEstablished) { _, established in
+                    if established {
                         updateService.startPolling(modelContext: container.mainContext)
+                        Task { @MainActor in
+                            await fetchAndStoreParties(context: container.mainContext)
+                        }
                     } else {
                         updateService.stopPolling()
                         notificationManager.clearAllBadges()
@@ -75,7 +78,7 @@ struct PartyHubiOSApp: App {
             ProgressView()
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
                 .background(Color("primary dark blue").opacity(0.05))
-        } else if authService.isAuthenticated {
+        } else if authService.sessionEstablished {
             ContentView()
         } else {
             LoginView()
