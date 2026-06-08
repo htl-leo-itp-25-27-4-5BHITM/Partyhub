@@ -48,8 +48,7 @@ final class KeycloakAuthService: NSObject {
         await loadFromKeychain()
         sessionEstablished = isAuthenticated
         if let refresh = token?.refreshToken,
-           let expiresAt = token?.accessTokenExpiresAt(),
-           expiresAt < Date() {
+           let token, token.isAccessTokenExpired {
             do {
                 _ = try await refreshTokens(refreshToken: refresh)
             } catch {
@@ -135,7 +134,7 @@ final class KeycloakAuthService: NSObject {
                 continuation.resume(returning: callbackURL)
             }
             session.presentationContextProvider = self
-            session.prefersEphemeralWebBrowserSession = false
+            session.prefersEphemeralWebBrowserSession = true
             if !session.start() {
                 self.loginContinuation = nil
                 continuation.resume(throwing: KeycloakAuthError.failedToStartSession)
@@ -257,7 +256,7 @@ final class KeycloakAuthService: NSObject {
             throw KeycloakAuthError.notAuthenticated
         }
 
-        if token.accessTokenExpiresAt() > Date() {
+        if !token.isAccessTokenExpired {
             return token.accessToken
         }
 

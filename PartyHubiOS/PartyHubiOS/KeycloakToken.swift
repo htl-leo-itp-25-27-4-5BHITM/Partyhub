@@ -9,6 +9,7 @@ struct KeycloakToken: Codable, Sendable, Equatable {
     let expiresIn: Int
     let refreshExpiresIn: Int?
     let scope: String?
+    let issuedAt: Date?
 
     enum CodingKeys: String, CodingKey {
         case accessToken = "access_token"
@@ -18,15 +19,17 @@ struct KeycloakToken: Codable, Sendable, Equatable {
         case expiresIn = "expires_in"
         case refreshExpiresIn = "refresh_expires_in"
         case scope
+        case issuedAt = "issued_at"
     }
 
-    func accessTokenExpiresAt(from now: Date = Date()) -> Date {
-        now.addingTimeInterval(TimeInterval(max(0, expiresIn - 30)))
+    var isAccessTokenExpired: Bool {
+        let base = issuedAt ?? Date()
+        return Date() >= base.addingTimeInterval(TimeInterval(max(0, expiresIn - 30)))
     }
 
-    func refreshTokenExpiresAt(from now: Date = Date()) -> Date? {
-        guard let refreshExpiresIn else { return nil }
-        return now.addingTimeInterval(TimeInterval(refreshExpiresIn))
+    var isRefreshTokenExpired: Bool? {
+        guard let refreshExpiresIn, let issuedAt else { return nil }
+        return Date() >= issuedAt.addingTimeInterval(TimeInterval(refreshExpiresIn))
     }
 }
 
@@ -57,7 +60,8 @@ struct KeycloakTokenResponse: Decodable, Sendable {
             tokenType: tokenType,
             expiresIn: expiresIn,
             refreshExpiresIn: refreshExpiresIn,
-            scope: scope
+            scope: scope,
+            issuedAt: issuedAt
         )
     }
 }
