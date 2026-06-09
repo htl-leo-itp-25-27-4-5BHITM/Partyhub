@@ -952,15 +952,15 @@ document.addEventListener("DOMContentLoaded", async () => {
               if (item.type === "invite") {
                 const confirmed = await confirmTwice(
                   {
-                    title: "Einladung ablehnen?",
-                    message: "Willst du diese Einladung wirklich ablehnen?",
-                    confirmLabel: "Ablehnen",
+                    title: "Decline invitation?",
+                    message: "Do you really want to decline this invitation?",
+                    confirmLabel: "Decline",
                     icon: "x"
                   },
                   {
-                    title: "Wirklich ablehnen?",
-                    message: "Bist du dir sicher? Die Einladung wird abgelehnt.",
-                    confirmLabel: "Ja, ablehnen",
+                    title: "Decline for sure?",
+                    message: "Are you sure? This invitation will be declined.",
+                    confirmLabel: "Yes, decline",
                     icon: "x"
                   }
                 );
@@ -971,15 +971,15 @@ document.addEventListener("DOMContentLoaded", async () => {
               if (item.type === "notification") {
                 const confirmed = await confirmTwice(
                   {
-                    title: "Notification löschen?",
-                    message: "Willst du diese Benachrichtigung wirklich löschen?",
-                    confirmLabel: "Löschen",
+                    title: "Delete notification?",
+                    message: "Do you really want to delete this notification?",
+                    confirmLabel: "Delete",
                     icon: "trash"
                   },
                   {
-                    title: "Endgültig löschen?",
-                    message: "Bist du dir sicher? Die Benachrichtigung wird endgültig gelöscht.",
-                    confirmLabel: "Ja, löschen",
+                    title: "Delete permanently?",
+                    message: "Are you sure? This notification will be permanently deleted.",
+                    confirmLabel: "Yes, delete",
                     icon: "trash"
                   }
                 );
