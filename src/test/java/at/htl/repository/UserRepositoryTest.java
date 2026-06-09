@@ -265,14 +265,14 @@ public class UserRepositoryTest {
     @Test
     void testFindUnlinkedByUsernameOrEmail_matchesUsername() {
         User user = new User();
-        user.setUsername("viki_dji");
+        user.setUsername("viki_vej");
         user.setDisplayName("Victoria Vejmelek");
         user.setDistinctName("viki_vejmelek");
         user.setEmail("v.vejmelek@students.htl-leonding.ac.at");
         entityManager.persist(user);
         entityManager.flush();
 
-        var found = userRepository.findUnlinkedByUsernameOrEmail("viki_dji", null);
+        var found = userRepository.findUnlinkedByUsernameOrEmail("viki_vej", null);
         assertTrue(found.isPresent());
         assertEquals("viki_vejmelek", found.get().getDistinctName());
     }

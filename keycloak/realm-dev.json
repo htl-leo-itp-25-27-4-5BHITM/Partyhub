@@ -68,7 +68,7 @@
       ]
     },
     {
-      "username": "viki_dji",
+      "username": "viki_vej",
       "email": "v.vejmelek@students.htl-leonding.ac.at",
       "firstName": "Vitoria",
       "lastName": "Vejmelek",
@@ -77,7 +77,7 @@
       "credentials": [
         {
           "type": "password",
-          "value": "viki_dji",
+          "value": "viki_vej",
           "temporary": false
         }
       ]

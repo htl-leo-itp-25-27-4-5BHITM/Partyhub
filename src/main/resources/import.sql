@@ -25,7 +25,7 @@ INSERT INTO follow_status (id, name) VALUES
 -- USERS
 -- =========================
 INSERT INTO users (id, username, keycloak_id, display_name, distinct_name, email, phone_number, biography, device_token) VALUES
-    (1, 'viki_dji', NULL, 'Victoria Vejmelek', 'viki_vejmelek', 'v.vejmelek@students.htl-leonding.ac.at', '+4367762662103', 'Enjoys afterwork events, concerts and rooftop evenings in Linz.', 'MANUAL_TEST_TOKEN_ANNA'),
+    (1, 'viki_vej', NULL, 'Victoria Vejmelek', 'viki_vejmelek', 'v.vejmelek@students.htl-leonding.ac.at', '+4367762662103', 'Enjoys afterwork events, concerts and rooftop evenings in Linz.', 'MANUAL_TEST_TOKEN_ANNA'),
     (4, 'michael_wagner', NULL, 'Michael Wagner', 'michael_wagner', 'michael.wagner@partyhub.at', '+436641234002', 'Techno, startups and spontaneous weekend plans.', NULL),
     (3, 'katrin_bauer', NULL, 'Katrin Bauer', 'katrin_bauer', 'katrin.bauer@partyhub.at', '+436641234003', 'Loves dance floors, summer festivals and great cocktails.', NULL),
     (2, 'carla_dimmler', NULL, 'Carla Dimmler', 'carla_dimmler', 'c.dimmler@students.htl-leonding.ac.at', '+436602045422', 'Enjoys organizing events in Linz and Urfahr.', NULL),

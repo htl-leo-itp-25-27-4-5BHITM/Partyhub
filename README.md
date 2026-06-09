@@ -81,11 +81,11 @@ Keycloak runs at http://localhost:8000 and imports the `partyhub` realm from
 Local browser demo user:
 
 ```text
-Username: viki_dji
+Username: viki_vej
 Password: partyhub
 ```
 
-This user matches the seeded PartyHub user `viki_dji` and is linked on first
+This user matches the seeded PartyHub user `viki_vej` and is linked on first
 login. If the `frontend` client or demo users do not appear in Keycloak after
 changing the realm export, recreate the local Postgres volume or delete and
 re-import the `partyhub` realm because Keycloak only imports the mounted realm

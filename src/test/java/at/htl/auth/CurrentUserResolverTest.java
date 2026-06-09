@@ -60,10 +60,10 @@ class CurrentUserResolverTest {
     }
 
     @Test
-    @TestSecurity(user = "viki_dji")
+    @TestSecurity(user = "viki_vej")
     void linksExistingUnlinkedUserOnFirstLogin() {
         User user = new User();
-        user.setUsername("viki_dji");
+        user.setUsername("viki_vej");
         user.setDistinctName("viki_vejmelek");
         user.setDisplayName("Victoria Vejmelek");
         user.setEmail("v.vejmelek@students.htl-leonding.ac.at");
@@ -73,7 +73,7 @@ class CurrentUserResolverTest {
         User resolved = currentUserResolver.requireCurrentUser();
 
         assertEquals(user.getId(), resolved.getId());
-        assertEquals("viki_dji", resolved.getKeycloakId());
+        assertEquals("viki_vej", resolved.getKeycloakId());
     }
 
     @Test
