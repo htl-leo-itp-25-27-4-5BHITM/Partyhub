@@ -101,17 +101,21 @@
         </div>
         <div class="body-content">
             <p><strong>Hi ${user.firstName!}!</strong></p>
-            <p>Welcome to PartyHub! Please verify your email address to get started.</p>
+            <p>We received a request to reset your PartyHub password. Click the button below to set a new password.</p>
 
             <div class="actions">
                 <a href="${link}" class="btn-primary">
-                    Verify Email Address
+                    Reset Password
                 </a>
             </div>
 
             <p style="font-size: 14px; color: #8880a8;">
                 Or copy this link into your browser:<br>
                 <span style="word-break: break-all;">${link}</span>
+            </p>
+
+            <p style="font-size: 14px; color: #8880a8;">
+                This link will expire soon. If you didn't request a password reset, you can safely ignore this email.
             </p>
 
             <div class="divider"></div>
