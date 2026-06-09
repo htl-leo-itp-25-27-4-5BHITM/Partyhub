@@ -53,6 +53,14 @@ struct MapView: View {
         filterState.distanceFilter.distanceInMeters
     }
 
+    private var shouldShowSearchRadiusCircle: Bool {
+        filterState.distanceFilter != .unlimited && filterState.distanceFilter != .fiveKilometers
+    }
+
+    private var shouldAutoFocusForDistanceFilter: Bool {
+        filterState.distanceFilter != .unlimited && filterState.distanceFilter != .fiveKilometers
+    }
+
     private var availableThemes: [String] {
         Array(
             Set(
@@ -366,7 +374,8 @@ struct MapView: View {
 
     private var searchRadiusCircle: some MapContent {
         Group {
-            if let coord = currentUserLocation,
+            if shouldShowSearchRadiusCircle,
+               let coord = currentUserLocation,
                let radius = filterState.distanceFilter.distanceInMeters {
                 MapCircle(center: coord, radius: radius)
                     .foregroundStyle(Color("primary pink").opacity(0.12))
@@ -608,6 +617,8 @@ struct MapView: View {
 
 private extension MapView {
     func focusMapForCurrentContext() {
+        guard shouldAutoFocusForDistanceFilter else { return }
+
         if focusMapOnSearchRadiusIfAvailable() {
             return
         }
@@ -622,7 +633,7 @@ private extension MapView {
             return false
         }
 
-        let visibleDiameter = max(radius * 2.4, 1_200)
+        let visibleDiameter = max(radius * 1.15, 900)
         let newRegion = MKCoordinateRegion(
             center: currentUserLocation,
             latitudinalMeters: visibleDiameter,

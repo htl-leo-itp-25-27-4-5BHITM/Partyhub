@@ -80,7 +80,7 @@ extension PartyDetailView {
         participantsSection
         AttendanceSection(party: party, now: now)
         PastVisitsSection(entries: finished)
-        #if DEBUG
+        /*#if DEBUG
         PartyDetailDebugSection(
             party: party,
             currentUserId: currentUserId,
@@ -104,7 +104,9 @@ extension PartyDetailView {
                 ausgewaehlteBilderZumLoeschen.removeAll()
             }
         )
+         */
     }
+        
 
     @ViewBuilder
     private var updatesSection: some View {

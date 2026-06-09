@@ -124,9 +124,8 @@ struct PartyFormView: View {
                 Section("Participants") {
                     TextField("Max. Participants", text: $maxPeople)
                         .keyboardType(.numberPad)
-                    Text("Age")
-                        .font(.subheadline)
-                        .foregroundStyle(.secondary)
+                }
+                Section("Age"){
                     HStack {
                         TextField("Min. Age", text: $minAge)
                             .keyboardType(.numberPad)
