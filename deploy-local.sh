@@ -35,19 +35,4 @@ if lsof -ti tcp:8080 >/dev/null 2>&1; then
 fi
 
 echo ">> Starting quarkus runtime"
-java_args=(
-	--add-opens=java.base/java.lang=ALL-UNNAMED
-	-Dquarkus.profile=dev
-	-Dquarkus.datasource.db-kind=postgresql
-	-Dquarkus.datasource.jdbc.url=jdbc:postgresql://localhost:5432/demo
-	-Dquarkus.datasource.username=demo
-	-Dquarkus.datasource.password=demo
-	-Dquarkus.mailer.host=${SMTP_HOST:-smtp.gmail.com}
-	-Dquarkus.mailer.port=${SMTP_PORT:-587}
-	-Dquarkus.mailer.username=${SMTP_USER:-noreply.partyhub@gmail.com}
-	-Dquarkus.mailer.password=${SMTP_PASSWORD:-}
-	-Dquarkus.mailer.auth-methods="${SMTP_AUTH:-DIGEST-MD5 CRAM-SHA256 CRAM-SHA1 CRAM-MD5 PLAIN LOGIN}"
-	-Dquarkus.mailer.login=${SMTP_LOGIN:-REQUIRED}
-	-Dquarkus.mailer.start-tls=${SMTP_TLS:-REQUIRED}
-)
-exec java "${java_args[@]}" -jar target/quarkus-app/quarkus-run.jar
+./mvnw quarkus:dev
