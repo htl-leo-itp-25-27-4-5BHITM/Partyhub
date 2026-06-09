@@ -160,6 +160,7 @@ public class InvitationRepository {
         if (isRecipient) {
             invitation.setStatus("DECLINED");
             entityManager.merge(invitation);
+            removeAttendee(partyId, userId);
             return Response.noContent().build();
         }
 
@@ -259,6 +260,9 @@ public class InvitationRepository {
         Party party = invitation.getParty();
         invitation.setStatus(INVITATION_DECLINED);
         entityManager.merge(invitation);
+        if (party != null) {
+            removeAttendee(party, userId);
+        }
 
         Long senderId = invitation.getSender() != null ? invitation.getSender().getId() : null;
         notificationRepository.deleteInvitationNotifications(
@@ -273,6 +277,30 @@ public class InvitationRepository {
         }
 
         return Response.ok().build();
+    }
+
+    private void removeAttendee(Long partyId, Long userId) {
+        if (partyId == null) {
+            return;
+        }
+
+        Party party = entityManager.find(Party.class, partyId);
+        if (party != null) {
+            removeAttendee(party, userId);
+        }
+    }
+
+    private void removeAttendee(Party party, Long userId) {
+        if (party == null || party.getUsers() == null || userId == null) {
+            return;
+        }
+
+        boolean removed = party.getUsers().removeIf(user ->
+                user != null && user.getId() != null && user.getId().equals(userId));
+
+        if (removed) {
+            entityManager.merge(party);
+        }
     }
 
     private Invitation findInvitation(Long partyId, Long recipientId) {

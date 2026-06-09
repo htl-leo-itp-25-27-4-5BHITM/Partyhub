@@ -56,8 +56,18 @@
   border-radius: var(--border-radius-l);
   padding:10px;
   display:block;
-  transition:opacity .18s ease, transform .18s ease;
+  transition:opacity .18s ease, transform .18s ease, border-color .18s ease, box-shadow .18s ease;
   box-shadow: 0 2px 10px rgba(0,0,0,0.25), 0 0 0 1px rgba(255,255,255,0.02); /* shadow + subtle outline effect */
+}
+
+.notif-card.status-accepted {
+  border-color: rgba(86,242,124,0.42);
+  box-shadow: 0 2px 12px rgba(0,0,0,0.25), 0 0 0 1px rgba(86,242,124,0.18);
+}
+
+.notif-card.status-declined {
+  border-color: rgba(255,46,99,0.42);
+  box-shadow: 0 2px 12px rgba(0,0,0,0.25), 0 0 0 1px rgba(255,46,99,0.18);
 }
 
 .notif-row {
@@ -128,6 +138,12 @@
 }
 .btn-accept:hover { background: rgba(86,242,124,0.18); transform:translateY(-2px); }
 
+.notif-actions .btn-accept.is-selected {
+  background: rgba(86,242,124,0.28);
+  color: #fff;
+  box-shadow: 0 0 0 1px rgba(86,242,124,0.5), 0 0 16px rgba(86,242,124,0.24);
+}
+
 .btn-accept svg,
 .btn-accept svg * {
   stroke: currentColor;
@@ -156,6 +172,12 @@
   fill: none; /* keep icons outlined unless they explicitly set a fill */
 }
 .btn-dismiss:hover { background: rgba(255,46,99,0.12); transform:translateY(-2px); }
+
+.notif-actions .btn-dismiss.is-selected {
+  background: rgba(255,46,99,0.28);
+  color: #fff;
+  box-shadow: 0 0 0 1px rgba(255,46,99,0.5), 0 0 16px rgba(255,46,99,0.22);
+}
 
 .accepted-badge {
   display:inline-flex;

@@ -84,8 +84,9 @@ document.addEventListener("DOMContentLoaded", async () => {
     return String(invitation?.status ?? "PENDING").toUpperCase();
   }
 
-  function isPendingInvitation(invitation) {
-    return invitationStatus(invitation) === "PENDING";
+  function normalizeInvitationStatus(status) {
+    const normalized = String(status ?? "PENDING").toUpperCase();
+    return ["ACCEPTED", "DECLINED", "PENDING"].includes(normalized) ? normalized : "PENDING";
   }
 
   function isInvitationNotification(notification) {
@@ -361,7 +362,8 @@ document.addEventListener("DOMContentLoaded", async () => {
     const userId = window.getCurrentUserId();
     if (!userId || !notificationId) return null;
 
-    const response = await window.authService.apiCall(`/api/notifications/${encodeURIComponent(notificationId)}`, {
+    const url = `/api/notifications/${encodeURIComponent(notificationId)}`;
+    const response = await window.authService.apiCall(url, {
       method: "DELETE"
     });
 
@@ -370,6 +372,31 @@ document.addEventListener("DOMContentLoaded", async () => {
     }
 
     throw new Error(`${url} -> ${response.status}`);
+  }
+
+  async function acceptInvite(item) {
+    if (item.invitationId) {
+      const response = await window.authService.apiCall(
+        `/api/invitations/${encodeURIComponent(item.invitationId)}/accept`,
+        { method: "POST" }
+      );
+
+      if (response.ok || response.status === 204) {
+        return true;
+      }
+
+      throw new Error(`Accept invitation failed: ${response.status}`);
+    }
+
+    if (typeof attendParty === "function" && item.partyId) {
+      const joined = await attendParty(item.partyId);
+      if (joined === false || joined?.ok === false) {
+        throw new Error("Party could not be accepted");
+      }
+      return true;
+    }
+
+    return false;
   }
 
   function isNotFoundError(error) {
@@ -420,7 +447,16 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   async function declineInvite(item) {
     if (item.invitationId) {
-      return deleteInvitationRecord(item.invitationId);
+      const response = await window.authService.apiCall(
+        `/api/invitations/${encodeURIComponent(item.invitationId)}/decline`,
+        { method: "POST" }
+      );
+
+      if (response.ok || response.status === 204) {
+        return true;
+      }
+
+      throw new Error(`Decline invitation failed: ${response.status}`);
     }
 
     return deleteInviteNotifications(item);
@@ -611,11 +647,11 @@ document.addEventListener("DOMContentLoaded", async () => {
         }
       }
 
-      let filteredInvites = relevantInvites.filter(isPendingInvitation);
+      let displayedInvites = relevantInvites;
 
       const ids = new Set();
 
-      filteredInvites.forEach(inv => {
+      displayedInvites.forEach(inv => {
         const sid = readId(inv, "sender");
         const rid = readId(inv, "recipient");
 
@@ -654,7 +690,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
       const partyIds = new Set();
 
-      filteredInvites.forEach(inv => {
+      displayedInvites.forEach(inv => {
         const pid = readPartyId(inv);
 
         if (pid != null) partyIds.add(String(pid));
@@ -696,14 +732,14 @@ document.addEventListener("DOMContentLoaded", async () => {
         }
       });
 
-      filteredInvites.forEach(inv => {
+      displayedInvites.forEach(inv => {
         const key = notificationKey(readId(inv, "sender"), readId(inv, "recipient"), readPartyId(inv));
         if (key) {
           invitationNotificationKeys.add(key);
         }
       });
 
-      filteredInvites.forEach(inv => {
+      displayedInvites.forEach(inv => {
         const sid = readId(inv, "sender");
         const rid = readId(inv, "recipient");
         const sender = sid != null ? userMap[String(sid)] : null;
@@ -744,6 +780,7 @@ document.addEventListener("DOMContentLoaded", async () => {
           id: `invite-${inv.id ?? inv.invitationId ?? `${sid}-${rid}-${partyId ?? "x"}`}`,
           type: "invite",
           invitationId: inv.id ?? inv.invitationId ?? null,
+          status: normalizeInvitationStatus(inv.status),
           notificationId: backendNotificationIds.length ? Number(backendNotificationIds[0]) : null,
           notificationIds: backendNotificationIds.map(id => Number(id)),
           partyId: partyId != null ? Number(partyId) : null,
@@ -894,6 +931,11 @@ document.addEventListener("DOMContentLoaded", async () => {
       const viewBtn = clone.querySelector(".btn-view-party");
       const acceptBtn = clone.querySelector(".btn-accept");
       const dismissBtn = clone.querySelector(".btn-dismiss");
+      const card = clone.querySelector(".notif-card");
+
+      if (card && item.type === "invite") {
+        card.classList.add(`status-${String(item.status ?? "PENDING").toLowerCase()}`);
+      }
 
       if (viewBtn) {
         if ((item.type === "invite" || item.type === "notification") && item.partyId) {
@@ -915,6 +957,11 @@ document.addEventListener("DOMContentLoaded", async () => {
           acceptBtn.style.display = "none";
           acceptBtn.disabled = true;
         } else {
+          const isAccepted = item.type === "invite" && item.status === "ACCEPTED";
+          acceptBtn.classList.toggle("is-selected", isAccepted);
+          acceptBtn.setAttribute("aria-pressed", String(isAccepted));
+          acceptBtn.title = item.type === "invite" ? "Annehmen" : "Follow-Anfrage annehmen";
+
           acceptBtn.addEventListener("click", async () => {
             try {
               if (item.type === "invite") {
