@@ -23,6 +23,7 @@ document.addEventListener("DOMContentLoaded", function () {
 });
 
 let currentPartyIsPrivate = false;
+let currentParty = null;
 
 function getCurrentUserIdSafe() {
   try {
@@ -129,10 +130,11 @@ async function loadPartyDetails(partyId) {
 
     console.log("Loaded party details:", party);
 
+    currentParty = party;
     updatePartyDisplay(party);
     await loadPartyMembers(partyId, party);
 
-    await checkAttendanceStatus(partyId);
+    await checkAttendanceStatus(partyId, party);
   } catch (error) {
     console.error("Error loading party details:", error);
 
@@ -144,8 +146,9 @@ async function loadPartyDetails(partyId) {
   }
 }
 
-async function checkAttendanceStatus(partyId) {
+async function checkAttendanceStatus(partyId, party = null) {
   const userId = getCurrentUserIdSafe();
+  const partyData = party || currentParty;
 
   if (!userId) {
     console.warn("No user logged in");
@@ -165,6 +168,9 @@ async function checkAttendanceStatus(partyId) {
 
     return;
   }
+
+  // Check if current user is the party host
+  const isHost = partyData && (partyData.host_user?.id === userId || partyData.hostUserId === userId);
 
   try {
     const response = await window.authService.apiCall(
@@ -192,7 +198,7 @@ async function checkAttendanceStatus(partyId) {
       status.attendees ??
       null;
 
-    updateJoinButton(Boolean(isAttending), attendeeCount);
+    updateJoinButton(Boolean(isAttending), attendeeCount, isHost);
   } catch (error) {
     console.error("Error checking attendance status:", error);
 
@@ -204,7 +210,7 @@ async function checkAttendanceStatus(partyId) {
   }
 }
 
-function updateJoinButton(isAttending, attendeeCount) {
+function updateJoinButton(isAttending, attendeeCount, isHost = false) {
   const joinBtn = document.getElementById("joinPartyBtn");
 
   if (!joinBtn) {
@@ -216,7 +222,22 @@ function updateJoinButton(isAttending, attendeeCount) {
   const textElement = joinBtn.querySelector(".btn-text");
   const iconSvg = joinBtn.querySelector(".btn-icon svg");
 
-  if (isAttending) {
+  if (isHost) {
+    // Disable button for party host
+    joinBtn.disabled = true;
+    joinBtn.classList.add("is-host");
+
+    if (textElement) {
+      textElement.textContent = "You're the host";
+    }
+
+    if (iconSvg) {
+      iconSvg.innerHTML =
+        '<path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" fill="currentColor"/>';
+    }
+  } else if (isAttending) {
+    joinBtn.disabled = false;
+    joinBtn.classList.remove("is-host");
     joinBtn.classList.add("joined");
 
     if (textElement) {
@@ -228,6 +249,8 @@ function updateJoinButton(isAttending, attendeeCount) {
         '<path d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" fill="none"/>';
     }
   } else {
+    joinBtn.disabled = false;
+    joinBtn.classList.remove("is-host");
     joinBtn.classList.remove("joined");
 
     if (textElement) {
@@ -275,8 +298,8 @@ async function handleJoinParty(partyId) {
     );
 
     if (response.ok) {
-      await checkAttendanceStatus(partyId);
-      await loadPartyMembers(partyId);
+      await checkAttendanceStatus(partyId, currentParty);
+      await loadPartyMembers(partyId, currentParty);
     } else {
       const errorText = await response.text().catch(() => "");
       console.error("Failed to update party attendance:", response.status, errorText);
