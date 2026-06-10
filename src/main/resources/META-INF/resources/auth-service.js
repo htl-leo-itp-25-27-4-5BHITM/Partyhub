@@ -208,6 +208,9 @@
       createdAt: Date.now(),
     });
 
+    sessionStorage.setItem("partyhub_post_registration", "true");
+
+    const registrationRedirect = `${window.location.origin}/register_login/login/login.html`;
     const registrationEndpoint = `${config.issuer}/protocol/openid-connect/registrations`;
 
     try {
@@ -215,7 +218,7 @@
       url.searchParams.set("client_id", config.clientId);
       url.searchParams.set("response_type", "code");
       url.searchParams.set("scope", "openid profile email");
-      url.searchParams.set("redirect_uri", config.redirectUri);
+      url.searchParams.set("redirect_uri", registrationRedirect);
       url.searchParams.set("state", state);
       url.searchParams.set("nonce", nonce);
       url.searchParams.set("code_challenge", codeChallenge);
@@ -226,7 +229,7 @@
         client_id: config.clientId,
         response_type: "code",
         scope: "openid profile email",
-        redirect_uri: config.redirectUri,
+        redirect_uri: registrationRedirect,
         state,
         nonce,
         code_challenge: codeChallenge,

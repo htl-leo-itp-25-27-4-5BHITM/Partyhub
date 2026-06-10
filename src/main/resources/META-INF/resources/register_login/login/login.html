@@ -274,6 +274,13 @@
                 showSuccess('Email verified! Please log in.');
             }
 
+            // Show success message if redirected here after registration
+            const postRegistration = sessionStorage.getItem('partyhub_post_registration');
+            if (postRegistration === 'true') {
+                sessionStorage.removeItem('partyhub_post_registration');
+                showSuccess('Account created! Please log in.');
+            }
+
             registerLink.addEventListener('click', async function(e) {
                 e.preventDefault();
                 try {
