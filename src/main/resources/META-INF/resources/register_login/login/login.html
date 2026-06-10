@@ -267,6 +267,13 @@
                 demoCredentials.style.display = 'none';
             }
 
+            // Show success message if redirected here after email verification
+            const postVerify = sessionStorage.getItem('partyhub_post_verify');
+            if (postVerify === 'true') {
+                sessionStorage.removeItem('partyhub_post_verify');
+                showSuccess('Email verified! Please log in.');
+            }
+
             registerLink.addEventListener('click', async function(e) {
                 e.preventDefault();
                 try {

@@ -254,9 +254,20 @@
     const state = params.get("state");
     const transaction = readJson(LOGIN_TRANSACTION_KEY);
 
-    if (!code || !state || !transaction || transaction.state !== state) {
+    if (!code || !state) {
       clearAuthState();
-      throw new Error("Invalid Keycloak login callback state");
+      throw new Error("Invalid Keycloak login callback: missing code or state");
+    }
+
+    if (!transaction || transaction.state !== state) {
+      // OIDC transaction not found — likely the email verification link
+      // opened in a different tab/window where sessionStorage is separate.
+      // Keycloak already processed the action (email verified), so redirect
+      // to login for a fresh flow instead of showing "Sign-in failed".
+      clearAuthState();
+      sessionStorage.setItem("partyhub_post_verify", "true");
+      window.location.replace("/register_login/login/login.html");
+      return;
     }
 
     const body = new URLSearchParams({
