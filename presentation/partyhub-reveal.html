@@ -1,0 +1,141 @@
+<!doctype html>
+<html lang="de">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>PartyHub Präsentation</title>
+
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@5/dist/reveal.css" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@5/dist/theme/black.css" />
+
+    <style>
+      :root {
+        --ph-pink: #ff2e63;
+        --ph-blue: #1a1040;
+        --ph-text: #f4f2ff;
+      }
+
+      .reveal {
+        font-family: Arial, Helvetica, sans-serif;
+      }
+
+      .reveal .slides {
+        text-align: left;
+      }
+
+      .reveal h1,
+      .reveal h2,
+      .reveal h3,
+      .reveal p,
+      .reveal li {
+        color: var(--ph-text);
+      }
+
+      .reveal h1 {
+        font-size: 2.4em;
+        margin-bottom: 0.2em;
+      }
+
+      .reveal h2 {
+        color: var(--ph-pink);
+      }
+
+      .reveal ul {
+        margin-top: 0.4em;
+      }
+
+      .reveal li {
+        margin: 0.25em 0;
+        font-size: 1.1em;
+      }
+
+      .tag {
+        display: inline-block;
+        padding: 0.2em 0.6em;
+        border: 1px solid rgba(255, 255, 255, 0.25);
+        border-radius: 999px;
+        font-size: 0.55em;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        color: #ffffffcc;
+      }
+
+      .accent {
+        color: var(--ph-pink);
+      }
+
+      .small {
+        font-size: 0.78em;
+        color: #ffffffaa;
+      }
+
+      .reveal .slide-background {
+        background: radial-gradient(circle at top left, #ff2e6333, transparent 35%),
+                    linear-gradient(135deg, #1a1040 0%, #0d1022 100%);
+      }
+    </style>
+  </head>
+  <body>
+    <div class="reveal">
+      <div class="slides">
+        <section>
+          <span class="tag">Mobile Computing</span>
+          <h1>PartyHub</h1>
+          <p class="small">Martin Briefender, Carla Dimmler</p>
+        </section>
+
+        <section>
+          <h2>Projektidee</h2>
+          <p>PartyHub ist eine Plattform für Partys und Events in der Nähe, auf der man Veranstaltungen entdecken, ansehen und verwalten kann.</p>
+        </section>
+
+        <section>
+          <h2>Gemeinsame Basis</h2>
+          <ul>
+            <li>Backend,  Daten</li>
+            <li>Partys anzeigen</li>
+            <li>Profile Ansicht</li>
+            <li>Authentifizierung über Keycloak</li>
+          </ul>
+        </section>
+
+        <section>
+          <h2><span class="accent">Web App / ITP Projekt</span></h2>
+          <ul>
+            <li>Partys suchen, filtern, sortieren</li>
+            <li>Partys erstellen, bearbeiten, löschen</li>
+            <li>Profile durchsuchen</li>
+            <li>Follower, Following verwalten</li>
+            <li>Direkt im Browser nutzbar</li>
+            <li>Responsive, Progressive Web App</li>
+          </ul>
+        </section>
+        
+        <section>
+          <h2><span class="accent">iOS App / MC</span></h2>
+          <ul>
+            <li>AirDrop,  Teilen</li>
+            <li>Apple Karten</li>
+            <li>Standortbasierte Aktionen</li>
+            <li>Time Tracking</li>
+            <li>Partys erstellen, bearbeiten und löschen</li>
+            <li>Navigation per Tabs</li>
+          </ul>
+        </section>
+
+        <section>
+          <h2>Jetzt zur Live Demo</h2>
+        </section>
+      </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/reveal.js@5/dist/reveal.js"></script>
+    <script>
+      Reveal.initialize({
+        hash: true,
+        slideNumber: true,
+        transition: 'fade'
+      });
+    </script>
+  </body>
+</html>
