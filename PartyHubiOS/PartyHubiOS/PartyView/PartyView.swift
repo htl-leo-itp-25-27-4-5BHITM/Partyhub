@@ -9,16 +9,46 @@ struct PartyView: View {
     @Query var parties: [Party]
     @Environment(LocationManager.self) var locationManager
     @Environment(\.modelContext) private var modelContext
+    @Environment(KeycloakAuthService.self) private var auth
 
     @State private var drivingDistances: [Int: Double] = [:]
     @State private var lastFetchLocation: CLLocation? = nil
     @State private var isCreating = false
     @State private var showCreateSheet = false
+    @State private var partyPendingDeletion: PartyDeletionCandidate?
+    @State private var deletingPartyIds = Set<Int>()
+    @State private var showDeleteError = false
+    @State private var deleteErrorMessage = ""
 
     private struct DistanceTarget {
         let id: Int
         let latitude: Double
         let longitude: Double
+    }
+
+    private struct PartyDeletionCandidate: Identifiable {
+        let id: Int
+        let name: String
+
+        init(party: Party) {
+            id = party.backendId
+            name = party.name
+        }
+    }
+
+    private var currentUserId: Int64? {
+        auth.partyhubUserId.map { Int64($0) }
+    }
+
+    private var deleteConfirmationIsPresented: Binding<Bool> {
+        Binding(
+            get: { partyPendingDeletion != nil },
+            set: { isPresented in
+                if !isPresented {
+                    partyPendingDeletion = nil
+                }
+            }
+        )
     }
 
     func sortedParties(userCoord: CLLocationCoordinate2D?) -> [Party] {
@@ -55,6 +85,17 @@ struct PartyView: View {
                                 drivingDistanceMeters: drivingDistances[party.backendId]
                             )
                         }
+                        .swipeActions(edge: .trailing, allowsFullSwipe: false) {
+                            if party.canEdit(currentUserId: currentUserId) {
+                                Button(role: .destructive) {
+                                    partyPendingDeletion = PartyDeletionCandidate(party: party)
+                                } label: {
+                                    Label("Delete", systemImage: "trash")
+                                }
+                                .tint(.red)
+                                .disabled(deletingPartyIds.contains(party.backendId))
+                            }
+                        }
                     }
                 }
             }
@@ -70,6 +111,26 @@ struct PartyView: View {
             }
             .sheet(isPresented: $showCreateSheet) {
                 PartyFormView(mode: .create, onSave: { _ in true })
+            }
+            .confirmationDialog(
+                "Delete Party?",
+                isPresented: deleteConfirmationIsPresented,
+                titleVisibility: .visible,
+                presenting: partyPendingDeletion
+            ) { candidate in
+                Button("Delete Party", role: .destructive) {
+                    Task { await deleteParty(candidate) }
+                }
+                Button("Cancel", role: .cancel) {
+                    partyPendingDeletion = nil
+                }
+            } message: { candidate in
+                Text("Are you sure you want to delete \"\(candidate.name)\"? This cannot be undone.")
+            }
+            .alert("Could Not Delete Party", isPresented: $showDeleteError) {
+                Button("OK", role: .cancel) { }
+            } message: {
+                Text(deleteErrorMessage)
             }
         }
         .onAppear {
@@ -144,6 +205,7 @@ struct PartyView: View {
         let incomingIds = Set(responses.map { $0.id })
         let allExisting = (try? modelContext.fetch(FetchDescriptor<Party>())) ?? []
         for existing in allExisting where !incomingIds.contains(existing.backendId) {
+            locationManager.stopMonitoring(for: existing)
             modelContext.delete(existing)
         }
 
@@ -203,6 +265,35 @@ struct PartyView: View {
                 latitude: $0.location.latitude,
                 longitude: $0.location.longitude
             )
+        }
+    }
+
+    @MainActor
+    private func deleteParty(_ candidate: PartyDeletionCandidate) async {
+        guard !deletingPartyIds.contains(candidate.id) else { return }
+
+        partyPendingDeletion = nil
+        deletingPartyIds.insert(candidate.id)
+        defer { deletingPartyIds.remove(candidate.id) }
+
+        do {
+            let _: EmptyResponse = try await APIClient.shared.request(
+                method: .DELETE,
+                path: "/api/parties/\(candidate.id)",
+                authType: .bearerToken
+            )
+
+            if let localParty = parties.first(where: { $0.backendId == candidate.id }) {
+                locationManager.stopMonitoring(for: localParty)
+                modelContext.delete(localParty)
+                try modelContext.save()
+            }
+
+            drivingDistances.removeValue(forKey: candidate.id)
+            NotificationCenter.default.post(name: .partyDidUpdate, object: nil)
+        } catch {
+            deleteErrorMessage = error.localizedDescription
+            showDeleteError = true
         }
     }
 

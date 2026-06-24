@@ -149,8 +149,10 @@ public class PartyResource {
     @Transactional
     @Produces(MediaType.APPLICATION_JSON)
     @Path("/{id}")
+    @Authenticated
     public Response removeParty(@PathParam("id") Long id) {
-        return partyRepository.removeParty(id);
+        Long actualUserId = currentUserResolver.requireCurrentUserId();
+        return partyRepository.removeParty(id, actualUserId);
     }
 
     @PUT

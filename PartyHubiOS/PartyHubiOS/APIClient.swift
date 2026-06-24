@@ -97,6 +97,13 @@ class APIClient {
                 }
                 return dataAsT
             }
+
+            if data.isEmpty {
+                guard let empty = EmptyResponse() as? T else {
+                    throw APIError.invalidResponse
+                }
+                return empty
+            }
             
             do {
                 return try jsonDecoder.decode(T.self, from: data)

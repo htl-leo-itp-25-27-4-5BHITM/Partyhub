@@ -123,6 +123,7 @@ public class PartyRepositoryTest {
         party.setTitle("Party With Notification");
         party.setTheme("Test Theme");
         party.setLocation(location);
+        party.setHost_user(user);
         party.setTime_start(LocalDateTime.now());
         party.setTime_end(LocalDateTime.now().plusHours(2));
         party.setMax_people(50);
@@ -133,7 +134,7 @@ public class PartyRepositoryTest {
         entityManager.persist(notification);
         entityManager.flush();
 
-        Response response = partyRepository.removeParty(party.getId());
+        Response response = partyRepository.removeParty(party.getId(), user.getId());
         assertEquals(204, response.getStatus());
 
         Long remainingNotifications = entityManager
@@ -194,7 +195,7 @@ public class PartyRepositoryTest {
         party.getInvitations().add(acceptedInvitation);
         entityManager.flush();
 
-        Response response = partyRepository.removeParty(party.getId());
+        Response response = partyRepository.removeParty(party.getId(), host.getId());
         assertEquals(204, response.getStatus());
 
         List<Notification> cancellationNotifications = entityManager

@@ -26,6 +26,7 @@ public class PartyResourceTest extends TestBase {
 
     Location testLocation;
     User testUser;
+    User otherUser;
     Long testPartyId;
 
     @BeforeEach
@@ -51,6 +52,13 @@ public class PartyResourceTest extends TestBase {
         testUser.setEmail("test@example.com");
         testUser.setKeycloakId("test-sub");
         entityManager.persist(testUser);
+
+        otherUser = new User();
+        otherUser.setDisplayName("Other User");
+        otherUser.setDistinctName("otheruser");
+        otherUser.setEmail("other@example.com");
+        otherUser.setKeycloakId("other-sub");
+        entityManager.persist(otherUser);
 
         Party party = new Party();
         party.setTitle("Test Party");
@@ -96,11 +104,30 @@ public class PartyResourceTest extends TestBase {
     }
 
     @Test
+    @TestSecurity(user = "test-sub")
     void testDeleteParty_notFound() {
         given()
             .when().delete("/api/parties/999")
             .then()
             .statusCode(404);
+    }
+
+    @Test
+    @TestSecurity(user = "test-sub")
+    void testDeleteParty_owner() {
+        given()
+            .when().delete("/api/parties/{id}", testPartyId)
+            .then()
+            .statusCode(204);
+    }
+
+    @Test
+    @TestSecurity(user = "other-sub")
+    void testDeleteParty_notOwner() {
+        given()
+            .when().delete("/api/parties/{id}", testPartyId)
+            .then()
+            .statusCode(403);
     }
 
     @Test
@@ -225,9 +252,9 @@ public class PartyResourceTest extends TestBase {
     @Test
     void testDeleteParty_noUser() {
         given()
-            .when().delete("/api/parties/999")
+            .when().delete("/api/parties/{id}", testPartyId)
             .then()
-            .statusCode(404);
+            .statusCode(401);
     }
 
     @Test

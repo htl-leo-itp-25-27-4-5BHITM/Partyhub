@@ -49,6 +49,13 @@ class LocationManager: NSObject, CLLocationManagerDelegate {
         print("Total monitored regions: \(manager.monitoredRegions.count)")
     }
 
+    func stopMonitoring(for party: Party) {
+        let identifier = party.backendId.description
+        for region in manager.monitoredRegions where region.identifier == identifier {
+            manager.stopMonitoring(for: region)
+        }
+    }
+
     func checkIfAlreadyInsideRegions() {
         guard let context = modelContext else { return }
         let descriptor = FetchDescriptor<Party>()
@@ -59,11 +66,7 @@ class LocationManager: NSObject, CLLocationManagerDelegate {
     }
 
     func refreshMonitoringAndAttendance(for party: Party) {
-        let identifier = party.backendId.description
-
-        for region in manager.monitoredRegions where region.identifier == identifier {
-            manager.stopMonitoring(for: region)
-        }
+        stopMonitoring(for: party)
 
         let updatedRegion = party.region
         manager.startMonitoring(for: updatedRegion)

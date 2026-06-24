@@ -117,10 +117,21 @@ public class PartyRepository {
         ).build();
     }
 
-    public Response removeParty(Long id) {
+    public Response removeParty(Long id, Long userId) {
+        if (userId == null) {
+            return Response.status(Response.Status.BAD_REQUEST)
+                    .entity("{\"error\": \"User ID required\"}")
+                    .build();
+        }
+
         Party party = entityManager.find(Party.class, id);
         if (party == null) {
             return Response.status(Response.Status.NOT_FOUND).build();
+        }
+        if (party.getHost_user() == null || !Objects.equals(party.getHost_user().getId(), userId)) {
+            return Response.status(Response.Status.FORBIDDEN)
+                    .entity("{\"error\": \"Only the party host can delete this party\"}")
+                    .build();
         }
         notifyCancellationRecipients(party);
         List<Notification> notifications = entityManager.createQuery(
