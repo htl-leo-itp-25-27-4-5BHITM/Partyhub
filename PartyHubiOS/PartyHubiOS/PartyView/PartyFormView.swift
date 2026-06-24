@@ -2,38 +2,66 @@ import SwiftUI
 import MapKit
 import CoreLocation
 
-struct PartyEditData {
-    var title: String
-    var description: String
-    var location: String
-    var latitude: Double
-    var longitude: Double
-    var timeStart: Date?
-    var timeEnd: Date?
-    var maxPeople: Int?
-    var minAge: Int?
-    var maxAge: Int?
-    var website: String?
-    var fee: Double?
-    var categoryId: Int?
+struct PartyEditData: Sendable {
+    let title: String
+    let description: String
+    let location: String
+    let latitude: Double
+    let longitude: Double
+    let timeStart: Date?
+    let timeEnd: Date?
+    let maxPeople: Int?
+    let minAge: Int?
+    let maxAge: Int?
+    let website: String?
+    let fee: Double?
+    let categoryId: Int?
 }
 
-enum PartyFormMode: Equatable {
-    case create
-    case edit(Party)
+struct PartyFormEditSnapshot: Equatable, Sendable {
+    let title: String
+    let description: String
+    let location: String
+    let latitude: Double
+    let longitude: Double
+    let timeStart: Date?
+    let timeEnd: Date?
+    let maxPeople: Int?
+    let minAge: Int?
+    let maxAge: Int?
+    let website: String?
+    let fee: Double?
+    let categoryId: Int?
 
-    static func == (lhs: PartyFormMode, rhs: PartyFormMode) -> Bool {
-        switch (lhs, rhs) {
-        case (.create, .create): return true
-        case (.edit(let a), .edit(let b)): return a.backendId == b.backendId
-        default: return false
-        }
+    init(party: Party) {
+        title = Self.stableString(party.name)
+        description = Self.stableString(party.partyDescription ?? "")
+        location = Self.stableString(party.location)
+        latitude = party.latitude
+        longitude = party.longitude
+        timeStart = party.timeStart
+        timeEnd = party.timeEnd
+        maxPeople = party.maxPeople
+        minAge = party.minAge
+        maxAge = party.maxAge
+        website = party.website.map(Self.stableString)
+        fee = party.fee
+        categoryId = party.categoryId
     }
+
+    nonisolated private static func stableString(_ value: String) -> String {
+        String(decoding: value.utf8, as: UTF8.self)
+    }
+}
+
+enum PartyFormMode: Equatable, Sendable {
+    case create
+    case edit(PartyFormEditSnapshot)
 }
 
 struct PartyFormView: View {
     let mode: PartyFormMode
-    let onSave: (PartyEditData) async -> Bool
+    let onSave: @MainActor (PartyEditData) async -> Bool
 
     @Environment(LocationManager.self) private var locationManager
     @Environment(\.dismiss) private var dismiss
@@ -61,7 +89,7 @@ struct PartyFormView: View {
         locationManager.currentLocation?.longitude ?? 16.3738
     }
 
-    init(mode: PartyFormMode, onSave: @escaping (PartyEditData) async -> Bool) {
+    init(mode: PartyFormMode, onSave: @escaping @MainActor (PartyEditData) async -> Bool) {
         self.mode = mode
         self.onSave = onSave
 
@@ -77,19 +105,19 @@ struct PartyFormView: View {
             _maxAge = State(initialValue: "99")
             _website = State(initialValue: "")
             _fee = State(initialValue: "0.00")
-        case .edit(let party):
-            _title = State(initialValue: party.name)
-            _description = State(initialValue: party.partyDescription ?? "")
-            _location = State(initialValue: party.location)
-            _selectedLat = State(initialValue: party.latitude)
-            _selectedLng = State(initialValue: party.longitude)
-            _timeStart = State(initialValue: party.timeStart ?? Date())
-            _timeEnd = State(initialValue: party.timeEnd ?? Date())
-            _maxPeople = State(initialValue: party.maxPeople.map { "\($0)" } ?? "")
-            _minAge = State(initialValue: party.minAge.map { "\($0)" } ?? "18")
-            _maxAge = State(initialValue: party.maxAge.map { "\($0)" } ?? "99")
-            _website = State(initialValue: party.website ?? "")
-            _fee = State(initialValue: party.fee.map { String(format: "%.2f", $0) } ?? "0.00")
+        case .edit(let snapshot):
+            _title = State(initialValue: snapshot.title)
+            _description = State(initialValue: snapshot.description)
+            _location = State(initialValue: snapshot.location)
+            _selectedLat = State(initialValue: snapshot.latitude)
+            _selectedLng = State(initialValue: snapshot.longitude)
+            _timeStart = State(initialValue: snapshot.timeStart ?? Date())
+            _timeEnd = State(initialValue: snapshot.timeEnd ?? Date())
+            _maxPeople = State(initialValue: snapshot.maxPeople.map { "\($0)" } ?? "")
+            _minAge = State(initialValue: snapshot.minAge.map { "\($0)" } ?? "18")
+            _maxAge = State(initialValue: snapshot.maxAge.map { "\($0)" } ?? "99")
+            _website = State(initialValue: snapshot.website ?? "")
+            _fee = State(initialValue: snapshot.fee.map { String(format: "%.2f", $0) } ?? "0.00")
         }
     }
 
@@ -177,12 +205,14 @@ struct PartyFormView: View {
                 if isSaving {
                     Color.black.opacity(0.2)
                         .ignoresSafeArea()
+                        .allowsHitTesting(false)
                     ProgressView()
                         .scaleEffect(1.5)
                         .padding()
                         .background(Color(.systemBackground))
                         .cornerRadius(10)
                         .shadow(radius: 10)
+                        .allowsHitTesting(false)
                 }
             }
         }
@@ -192,23 +222,27 @@ struct PartyFormView: View {
         isSaving = true
 
         if case .create = mode {
-            Task { await sendCreateRequest() }
+            Task { @MainActor in await sendCreateRequest() }
         } else {
             let lat: Double
             let lng: Double
 
-            if case .edit(let party) = mode {
-                lat = party.latitude
-                lng = party.longitude
+            let categoryId: Int?
+
+            if case .edit(let snapshot) = mode {
+                lat = selectedLat != 0 ? selectedLat : snapshot.latitude
+                lng = selectedLng != 0 ? selectedLng : snapshot.longitude
+                categoryId = snapshot.categoryId
             } else {
                 lat = defaultLatitude
                 lng = defaultLongitude
+                categoryId = nil
             }
 
             let data = PartyEditData(
-                title: title,
-                description: description,
-                location: location,
+                title: stableString(title),
+                description: stableString(description),
+                location: stableString(location),
                 latitude: lat,
                 longitude: lng,
                 timeStart: timeStart,
@@ -216,17 +250,15 @@ struct PartyFormView: View {
                 maxPeople: Int(maxPeople),
                 minAge: Int(minAge),
                 maxAge: Int(maxAge),
-                website: website.isEmpty ? nil : website,
+                website: website.isEmpty ? nil : stableString(website),
                 fee: Double(fee.replacingOccurrences(of: ",", with: ".")),
-                categoryId: nil
+                categoryId: categoryId
             )
 
-            Task {
+            Task { @MainActor in
                 let success = await onSave(data)
-                await MainActor.run {
-                    isSaving = false
-                    if success { dismiss() }
-                }
+                isSaving = false
+                if success { dismiss() }
             }
         }
     }
@@ -236,20 +268,16 @@ struct PartyFormView: View {
         let lat = selectedLat != 0 ? selectedLat : defaultLatitude
         let lng = selectedLng != 0 ? selectedLng : defaultLongitude
 
-        let df = DateFormatter()
-        df.dateFormat = "yyyy-MM-dd'T'HH:mm:ss"
-        df.locale = Locale(identifier: "en_US_POSIX")
-
         var body: [String: Any] = [
-            "title": title.isEmpty ? "New Party" : title,
-            "description": description.isEmpty ? "Party Description" : description,
+            "title": title.isEmpty ? "New Party" : stableString(title),
+            "description": description.isEmpty ? "Party Description" : stableString(description),
             "fee": Double(fee.replacingOccurrences(of: ",", with: ".")) ?? 0,
-            "time_start": df.string(from: timeStart),
-            "time_end": df.string(from: timeEnd),
-            "website": website,
+            "time_start": PartyDateFormatter.stringForBackend(timeStart),
+            "time_end": PartyDateFormatter.stringForBackend(timeEnd),
+            "website": stableString(website),
             "latitude": lat,
             "longitude": lng,
-            "location_address": location.isEmpty ? "TBD" : location,
+            "location_address": location.isEmpty ? "TBD" : stableString(location),
             "theme": "Standard",
             "visibility": "public",
             "selectedUsers": [String](),
@@ -264,6 +292,7 @@ struct PartyFormView: View {
 
             var request = URLRequest(url: URL(string: "\(Config.backendURL)/api/parties")!)
             request.httpMethod = "POST"
+            request.timeoutInterval = 15
             request.setValue("application/json", forHTTPHeaderField: "Content-Type")
             request.setValue("Bearer \(try await KeycloakAuthService.shared.validAccessToken())", forHTTPHeaderField: "Authorization")
             request.httpBody = jsonData
@@ -284,5 +313,9 @@ struct PartyFormView: View {
             print("[FORM] create error: \(error)")
             isSaving = false
         }
+    }
+
+    private func stableString(_ value: String) -> String {
+        String(decoding: value.utf8, as: UTF8.self)
     }
 }

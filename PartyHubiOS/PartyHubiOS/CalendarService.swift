@@ -11,6 +11,8 @@ enum CalendarError: Error {
 @MainActor
 @Observable
 final class CalendarService {
+    static let shared = CalendarService()
+
     private let store = EKEventStore()
 
     var isAuthorized: Bool {
@@ -66,6 +68,10 @@ final class CalendarService {
     }
 
     func removeParty(_ party: Party) async -> Result<Void, CalendarError> {
+        guard EKEventStore.authorizationStatus(for: .event) == .fullAccess else {
+            return .failure(.accessDenied)
+        }
+
         guard let eventId = getCalendarEventId(party.backendId) else {
             return .failure(.eventNotFound)
         }
@@ -85,6 +91,10 @@ final class CalendarService {
     }
 
     func hasEvent(for party: Party) -> Bool {
+        guard EKEventStore.authorizationStatus(for: .event) == .fullAccess else {
+            return false
+        }
+
         guard let eventId = getCalendarEventId(party.backendId) else {
             return false
         }

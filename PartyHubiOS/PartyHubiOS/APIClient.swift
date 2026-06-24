@@ -19,21 +19,11 @@ class APIClient {
         self.jsonDecoder.dateDecodingStrategy = .custom { decoder in
             let container = try decoder.singleValueContainer()
             let dateString = try container.decode(String.self)
-            
-            let isoFormatter = ISO8601DateFormatter()
-            if let date = isoFormatter.date(from: dateString) {
+
+            if let date = PartyDateFormatter.parseBackendDate(dateString) {
                 return date
             }
-            
-            let fallbackFormatter = DateFormatter()
-            fallbackFormatter.dateFormat = "yyyy-MM-dd'T'HH:mm:ss"
-            fallbackFormatter.locale = Locale(identifier: "en_US_POSIX")
-            fallbackFormatter.timeZone = .current
-            
-            if let date = fallbackFormatter.date(from: dateString) {
-                return date
-            }
-            
+
             throw DecodingError.dataCorruptedError(
                 in: container,
                 debugDescription: "Cannot decode date string: \(dateString)"

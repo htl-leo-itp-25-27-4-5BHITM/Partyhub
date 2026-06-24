@@ -33,7 +33,7 @@ struct PartyDetailView: View {
     @StateObject private var notificationManager = PartyNotificationManager.shared
     @State private var hasCheckedUpdates = false
     
-    @State private var calendarService = CalendarService()
+    private let calendarService = CalendarService.shared
     @State private var calendarState: CalendarButtonState = .idle
     @State private var showCalendarRemoveSheet = false
     
@@ -75,6 +75,7 @@ extension PartyDetailView {
         updatesSection
         ownerSection
         statusSection
+        PartyDateTimeSection(party: party)
         PartyDetailsSection(party: party)
         LocationSection(party: party, resolvedAddress: $resolvedAddress)
         participantsSection
@@ -230,7 +231,7 @@ extension PartyDetailView {
                 }
             }
             .sheet(isPresented: $showEditSheet) {
-                PartyFormView(mode: .edit(party)) { updatedParty in
+                PartyFormView(mode: .edit(PartyFormEditSnapshot(party: party))) { updatedParty in
                     await updatePartyOnBackend(updatedParty)
                 }
             }
@@ -242,6 +243,7 @@ extension PartyDetailView {
                     ZStack {
                         Color.black.opacity(0.2)
                             .ignoresSafeArea()
+                            .allowsHitTesting(false)
                         
                         ProgressView()
                             .scaleEffect(1.5)
@@ -249,6 +251,7 @@ extension PartyDetailView {
                             .background(Color(.systemBackground))
                             .cornerRadius(10)
                             .shadow(radius: 10)
+                            .allowsHitTesting(false)
                     }
                 }
             }
@@ -281,21 +284,17 @@ extension PartyDetailView {
                     markPartyAsRead()
                     hasCheckedUpdates = true
                 }
-                setupNotificationObservers()
-                Task {
-                    let location = CLLocation(latitude: party.latitude, longitude: party.longitude)
-                    let placemarks = try? await CLGeocoder().reverseGeocodeLocation(location)
-                    if let p = placemarks?.first {
-                        let parts: [String?] = [p.thoroughfare, p.subThoroughfare, p.postalCode, p.locality]
-                        resolvedAddress = parts.compactMap { $0 }.joined(separator: " ")
-                    }
-                }
-                
                 if calendarService.hasEvent(for: party) {
                     calendarState = .alreadyAdded
                 }
             }
-            .onReceive(timer) { now = $0 }
+            .task(id: party.backendId) {
+                await resolvePartyAddress()
+            }
+            .onReceive(timer) { value in
+                guard !showEditSheet, !showInviteSheet, party.activeEntry != nil else { return }
+                now = value
+            }
         }
         
         // MARK: - Debug Functions
@@ -414,7 +413,7 @@ extension PartyDetailView {
         // MARK: - Update Party on Backend
         @MainActor
         func updatePartyOnBackend(_ updatedParty: PartyEditData) async -> Bool {
-            guard let currentUserId = currentUserId else {
+            guard currentUserId != nil else {
                 errorMessage = "You are not logged in"
                 showError = true
                 return false
@@ -429,23 +428,39 @@ extension PartyDetailView {
             isUpdating = true
             
             do {
-                let df = DateFormatter()
-                df.dateFormat = "yyyy-MM-dd'T'HH:mm:ss"
-                df.locale = Locale(identifier: "en_US_POSIX")
+                let updatedTitle = updatedParty.title
+                let updatedDescription = updatedParty.description
+                let updatedFee = updatedParty.fee ?? 0
+                let updatedOptionalTimeStart = updatedParty.timeStart
+                let updatedOptionalTimeEnd = updatedParty.timeEnd
+                let updatedTimeStart = updatedOptionalTimeStart ?? Date()
+                let updatedTimeEnd = updatedOptionalTimeEnd ?? Date()
+                let updatedMaxPeople = updatedParty.maxPeople
+                let updatedOptionalMinAge = updatedParty.minAge
+                let updatedOptionalMaxAge = updatedParty.maxAge
+                let updatedMinAge = updatedOptionalMinAge ?? 0
+                let updatedMaxAge = updatedOptionalMaxAge ?? 150
+                let updatedOptionalWebsite = updatedParty.website
+                let updatedWebsite = updatedOptionalWebsite ?? ""
+                let updatedLatitude = updatedParty.latitude
+                let updatedLongitude = updatedParty.longitude
+                let updatedLocation = updatedParty.location
+                let updatedOptionalFee = updatedParty.fee
+                let updatedCategoryId = updatedParty.categoryId
 
                 let body = UpdatePartyBody(
-                    title: updatedParty.title,
-                    desc: updatedParty.description,
-                    fee: updatedParty.fee ?? 0,
-                    timeStart: df.string(from: updatedParty.timeStart ?? Date()),
-                    timeEnd: df.string(from: updatedParty.timeEnd ?? Date()),
-                    maxPeople: updatedParty.maxPeople,
-                    minAge: updatedParty.minAge ?? 0,
-                    maxAge: updatedParty.maxAge ?? 150,
-                    website: updatedParty.website ?? "",
-                    latitude: updatedParty.latitude,
-                    longitude: updatedParty.longitude,
-                    locationAddress: updatedParty.location,
+                    title: updatedTitle,
+                    desc: updatedDescription,
+                    fee: updatedFee,
+                    timeStart: PartyDateFormatter.stringForBackend(updatedTimeStart),
+                    timeEnd: PartyDateFormatter.stringForBackend(updatedTimeEnd),
+                    maxPeople: updatedMaxPeople,
+                    minAge: updatedMinAge,
+                    maxAge: updatedMaxAge,
+                    website: updatedWebsite,
+                    latitude: updatedLatitude,
+                    longitude: updatedLongitude,
+                    locationAddress: updatedLocation,
                     theme: "Standard",
                     visibility: "public",
                     selectedUsers: []
@@ -454,13 +469,15 @@ extension PartyDetailView {
                 let encoder = JSONEncoder()
                 let jsonData = try encoder.encode(body)
 
-                guard let url = URL(string: "\(Config.backendURL)/api/parties/\(party.backendId)?user=\(currentUserId)") else {
+                guard let url = URL(string: "\(Config.backendURL)/api/parties/\(party.backendId)") else {
                     throw URLError(.badURL)
                 }
 
                 var request = URLRequest(url: url)
                 request.httpMethod = "PUT"
+                request.timeoutInterval = 15
                 request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+                request.setValue("Bearer \(try await auth.validAccessToken())", forHTTPHeaderField: "Authorization")
 
                 let (data, response) = try await URLSession.shared.upload(for: request, from: jsonData)
 
@@ -473,21 +490,23 @@ extension PartyDetailView {
                     throw APIError.http(statusCode: httpResponse.statusCode, message: message)
                 }
                 
-                party.name = updatedParty.title
-                party.partyDescription = updatedParty.description
-                party.location = updatedParty.location
-                party.latitude = updatedParty.latitude
-                party.longitude = updatedParty.longitude
-                party.timeStart = updatedParty.timeStart
-                party.timeEnd = updatedParty.timeEnd
-                party.maxPeople = updatedParty.maxPeople
-                party.minAge = updatedParty.minAge
-                party.maxAge = updatedParty.maxAge
-                party.website = updatedParty.website
-                party.fee = updatedParty.fee
-                party.categoryId = updatedParty.categoryId
+                party.name = updatedTitle
+                party.partyDescription = updatedDescription
+                party.location = updatedLocation
+                party.latitude = updatedLatitude
+                party.longitude = updatedLongitude
+                party.timeStart = updatedOptionalTimeStart
+                party.timeEnd = updatedOptionalTimeEnd
+                party.maxPeople = updatedMaxPeople
+                party.minAge = updatedOptionalMinAge
+                party.maxAge = updatedOptionalMaxAge
+                party.website = updatedOptionalWebsite
+                party.fee = updatedOptionalFee
+                party.categoryId = updatedCategoryId
                 
                 try? modelContext.save()
+                locationManager.refreshMonitoringAndAttendance(for: party)
+                NotificationCenter.default.post(name: .partyDidUpdate, object: party.backendId)
                 print("Party successfully updated")
                 isUpdating = false
                 return true
@@ -505,20 +524,7 @@ extension PartyDetailView {
         func markPartyAsRead() {
             notificationManager.markAsRead(partyId: party.backendId)
         }
-        
-        func setupNotificationObservers() {
-            NotificationCenter.default.addObserver(
-                forName: .partyDidUpdate,
-                object: nil,
-                queue: .main
-            ) { notification in
-                guard let updatedPartyId = notification.object as? Int,
-                      updatedPartyId == self.party.backendId else {
-                    return
-                }
-            }
-        }
-        
+
         // MARK: – Foto Funktionen
         func waehleBildAus(url: URL) {
             if ausgewaehlteBilderZumLoeschen.contains(url) {
@@ -571,6 +577,15 @@ extension PartyDetailView {
             } else {
                 return "\(minutes)m"
             }
+        }
+
+        private func resolvePartyAddress() async {
+            let location = CLLocation(latitude: party.latitude, longitude: party.longitude)
+            let placemarks = try? await CLGeocoder().reverseGeocodeLocation(location)
+            guard !Task.isCancelled, let p = placemarks?.first else { return }
+
+            let parts: [String?] = [p.thoroughfare, p.subThoroughfare, p.postalCode, p.locality]
+            resolvedAddress = parts.compactMap { $0 }.joined(separator: " ")
         }
         
         // MARK: - Calendar Functions

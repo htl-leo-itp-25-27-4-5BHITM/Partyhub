@@ -194,8 +194,8 @@ struct PartyHubiOSApp: App {
                 existing.partyDescription = p.description
                 existing.hostUserId = p.hostUser?.id.map { Int64($0) }
                 existing.hostDisplayName = p.hostUser?.displayName
-                existing.timeStart = parseDate(p.timeStart)
-                existing.timeEnd = parseDate(p.timeEnd)
+                existing.timeStart = PartyDateFormatter.parseBackendDate(p.timeStart)
+                existing.timeEnd = PartyDateFormatter.parseBackendDate(p.timeEnd)
                 existing.maxPeople = p.maxPeople
                 existing.minAge = p.minAge
                 existing.maxAge = p.maxAge
@@ -212,8 +212,8 @@ struct PartyHubiOSApp: App {
                     longitude:  p.location.longitude,
                     partyDescription: p.description,
                     hostUserId: p.hostUser?.id.map { Int64($0) },
-                    timeStart: parseDate(p.timeStart),
-                    timeEnd: parseDate(p.timeEnd),
+                    timeStart: PartyDateFormatter.parseBackendDate(p.timeStart),
+                    timeEnd: PartyDateFormatter.parseBackendDate(p.timeEnd),
                     maxPeople: p.maxPeople,
                     minAge: p.minAge,
                     maxAge: p.maxAge,
@@ -237,45 +237,6 @@ struct PartyHubiOSApp: App {
         let normalizedCategory = categoryName?.trimmingCharacters(in: .whitespacesAndNewlines)
         if let normalizedCategory, !normalizedCategory.isEmpty {
             return normalizedCategory
-        }
-
-        return nil
-    }
-
-    private func parseDate(_ dateString: String?) -> Date? {
-        guard let dateString = dateString?.trimmingCharacters(in: .whitespacesAndNewlines),
-              !dateString.isEmpty else {
-            return nil
-        }
-
-        let isoFormatter = ISO8601DateFormatter()
-        isoFormatter.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
-        if let date = isoFormatter.date(from: dateString) {
-            return date
-        }
-
-        isoFormatter.formatOptions = [.withInternetDateTime]
-        if let date = isoFormatter.date(from: dateString) {
-            return date
-        }
-
-        let fallbackFormats = [
-            "yyyy-MM-dd'T'HH:mm:ss.SSSSSS",
-            "yyyy-MM-dd'T'HH:mm:ss.SSS",
-            "yyyy-MM-dd'T'HH:mm:ss",
-            "yyyy-MM-dd HH:mm:ss",
-            "dd.MM.yyyy HH:mm"
-        ]
-
-        for format in fallbackFormats {
-            let formatter = DateFormatter()
-            formatter.locale = Locale(identifier: "en_US_POSIX")
-            formatter.timeZone = .current
-            formatter.dateFormat = format
-
-            if let date = formatter.date(from: dateString) {
-                return date
-            }
         }
 
         return nil

@@ -58,6 +58,21 @@ class LocationManager: NSObject, CLLocationManagerDelegate {
         }
     }
 
+    func refreshMonitoringAndAttendance(for party: Party) {
+        let identifier = party.backendId.description
+
+        for region in manager.monitoredRegions where region.identifier == identifier {
+            manager.stopMonitoring(for: region)
+        }
+
+        let updatedRegion = party.region
+        manager.startMonitoring(for: updatedRegion)
+        manager.requestState(for: updatedRegion)
+
+        refreshAttendance(for: party)
+        print("Geofence aktualisiert: \(party.name) lat:\(party.latitude) lon:\(party.longitude) radius:\(party.radiusMeters)m")
+    }
+
     func locationManagerDidChangeAuthorization(_ manager: CLLocationManager) {
         authorizationStatus = manager.authorizationStatus
         if manager.authorizationStatus == .authorizedAlways ||
@@ -85,6 +100,8 @@ class LocationManager: NSObject, CLLocationManagerDelegate {
         print("State for Region: \(region.identifier)")
         if state == .inside {
             handleRegionEvent(region: region, isEntry: true, context: context)
+        } else if state == .outside {
+            handleRegionEvent(region: region, isEntry: false, context: context)
         }
     }
 
@@ -99,21 +116,47 @@ class LocationManager: NSObject, CLLocationManagerDelegate {
         guard let party = parties.first(where: { $0.region.identifier == regionId }) else { return }
 
         DispatchQueue.main.async {
-            if isEntry {
-                guard party.activeEntry == nil else { return }
-                let entry = TimeEntry(locationIdentifier: party.name)
-                party.timeEntries.append(entry)
-                context.insert(entry)
-                self.lastEvent = "Enter: \(party.name)"
-                print("ENTRY: \(party.name)")
-            } else {
-                if let active = party.activeEntry {
-                    active.endTime = .now
-                    self.lastEvent = "Exit: \(party.name)"
-                    print("EXIT: \(party.name)")
-                }
-            }
-            try? context.save()
+            self.updateAttendance(for: party, isInside: isEntry, context: context)
         }
+    }
+
+    private func refreshAttendance(for party: Party) {
+        guard let context = modelContext else { return }
+
+        guard let currentLocation else {
+            ensureLocationUpdates()
+            manager.requestState(for: party.region)
+            return
+        }
+
+        let userLocation = CLLocation(
+            latitude: currentLocation.latitude,
+            longitude: currentLocation.longitude
+        )
+        let partyLocation = CLLocation(
+            latitude: party.latitude,
+            longitude: party.longitude
+        )
+        let isInside = userLocation.distance(from: partyLocation) <= party.radiusMeters
+
+        updateAttendance(for: party, isInside: isInside, context: context)
+    }
+
+    private func updateAttendance(for party: Party, isInside: Bool, context: ModelContext) {
+        if isInside {
+            guard party.activeEntry == nil else { return }
+            let entry = TimeEntry(locationIdentifier: party.name)
+            party.timeEntries.append(entry)
+            context.insert(entry)
+            lastEvent = "Enter: \(party.name)"
+            print("ENTRY: \(party.name)")
+        } else {
+            guard let active = party.activeEntry else { return }
+            active.endTime = .now
+            lastEvent = "Exit: \(party.name)"
+            print("EXIT: \(party.name)")
+        }
+
+        try? context.save()
     }
 }

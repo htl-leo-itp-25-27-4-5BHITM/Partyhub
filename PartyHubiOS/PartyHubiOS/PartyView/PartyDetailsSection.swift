@@ -32,20 +32,6 @@ struct PartyDetailsSection: View {
                     .foregroundStyle(.secondary)
             }
 
-            if let timeStart = party.timeStart {
-                LabeledContent("Start") {
-                    Text(timeStart, style: .date)
-                    Text(timeStart, style: .time)
-                }
-            }
-
-            if let timeEnd = party.timeEnd {
-                LabeledContent("End") {
-                    Text(timeEnd, style: .date)
-                    Text(timeEnd, style: .time)
-                }
-            }
-
             if let maxPeople = party.maxPeople {
                 LabeledContent("Max. of participants") {
                     Text("\(maxPeople)")
@@ -70,6 +56,31 @@ struct PartyDetailsSection: View {
             if let fee = party.fee, fee > 0 {
                 LabeledContent("Admission") {
                     Text("\(fee, specifier: "%.2f") €")
+                }
+            }
+        }
+    }
+}
+
+struct PartyDateTimeSection: View {
+    let party: Party
+
+    @ViewBuilder
+    var body: some View {
+        if party.timeStart != nil || party.timeEnd != nil {
+            Section("Date & Time") {
+                if let timeStart = party.timeStart {
+                    LabeledContent("Start") {
+                        Text(PartyDateFormatter.stringForDisplay(timeStart))
+                            .foregroundStyle(.secondary)
+                    }
+                }
+
+                if let timeEnd = party.timeEnd {
+                    LabeledContent("End") {
+                        Text(PartyDateFormatter.stringForDisplay(timeEnd))
+                            .foregroundStyle(.secondary)
+                    }
                 }
             }
         }

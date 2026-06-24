@@ -12,9 +12,14 @@ struct PartyView: View {
 
     @State private var drivingDistances: [Int: Double] = [:]
     @State private var lastFetchLocation: CLLocation? = nil
-    @State private var isFetching = false
     @State private var isCreating = false
     @State private var showCreateSheet = false
+
+    private struct DistanceTarget {
+        let id: Int
+        let latitude: Double
+        let longitude: Double
+    }
 
     func sortedParties(userCoord: CLLocationCoordinate2D?) -> [Party] {
         guard let userCoord else { return parties }
@@ -80,15 +85,27 @@ struct PartyView: View {
 
             fetchIfNeeded(userCoord: newCoord)
         }
-        .onReceive(NotificationCenter.default.publisher(for: .partyDidUpdate)) { _ in
-            Task { await fetchPartiesFromBackend() }
+        .onReceive(NotificationCenter.default.publisher(for: .partyDidUpdate)) { notification in
+            let updatedPartyId = notification.object as? Int
+
+            Task { @MainActor in
+                let refreshedParties = await fetchPartiesFromBackend()
+                if let updatedPartyId {
+                    drivingDistances.removeValue(forKey: updatedPartyId)
+                }
+                fetchDrivingDistances(
+                    userCoord: locationManager.currentLocation,
+                    targets: refreshedParties,
+                    force: false
+                )
+            }
         }
     }
 
     @MainActor
-    private func fetchPartiesFromBackend() async {
-        guard let url = URL(string: "\(Config.backendURL)/api/parties") else { return }
-        guard let (data, _) = try? await URLSession.shared.data(from: url) else { return }
+    private func fetchPartiesFromBackend() async -> [DistanceTarget] {
+        guard let url = URL(string: "\(Config.backendURL)/api/parties") else { return [] }
+        guard let (data, _) = try? await URLSession.shared.data(from: url) else { return [] }
 
         struct PartyResponse: Decodable {
             let id: Int
@@ -122,9 +139,9 @@ struct PartyView: View {
 
         let decoder = JSONDecoder()
         decoder.keyDecodingStrategy = .convertFromSnakeCase
-        guard let parties = try? decoder.decode([PartyResponse].self, from: data) else { return }
+        guard let responses = try? decoder.decode([PartyResponse].self, from: data) else { return [] }
 
-        let incomingIds = Set(parties.map { $0.id })
+        let incomingIds = Set(responses.map { $0.id })
         let allExisting = (try? modelContext.fetch(FetchDescriptor<Party>())) ?? []
         for existing in allExisting where !incomingIds.contains(existing.backendId) {
             modelContext.delete(existing)
@@ -136,20 +153,7 @@ struct PartyView: View {
                 .map { ($0.backendId, $0) }
         )
 
-        let isoFormatter = ISO8601DateFormatter()
-        isoFormatter.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
-
-        func parse(_ s: String?) -> Date? {
-            guard let s else { return nil }
-            return isoFormatter.date(from: s) ?? {
-                isoFormatter.formatOptions = [.withInternetDateTime]
-                let d = isoFormatter.date(from: s)
-                isoFormatter.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
-                return d
-            }()
-        }
-
-        for p in parties {
+        for p in responses {
             if let existing = existingById[p.id] {
                 existing.name = p.title
                 existing.location = p.location.address ?? ""
@@ -158,8 +162,8 @@ struct PartyView: View {
                 existing.partyDescription = p.description
                 existing.hostUserId = p.hostUser?.id.map { Int64($0) }
                 existing.hostDisplayName = p.hostUser?.displayName
-                existing.timeStart = parse(p.timeStart)
-                existing.timeEnd = parse(p.timeEnd)
+                existing.timeStart = PartyDateFormatter.parseBackendDate(p.timeStart)
+                existing.timeEnd = PartyDateFormatter.parseBackendDate(p.timeEnd)
                 existing.maxPeople = p.maxPeople
                 existing.minAge = p.minAge
                 existing.maxAge = p.maxAge
@@ -176,8 +180,8 @@ struct PartyView: View {
                     longitude: p.location.longitude,
                     partyDescription: p.description,
                     hostUserId: p.hostUser?.id.map { Int64($0) },
-                    timeStart: parse(p.timeStart),
-                    timeEnd: parse(p.timeEnd),
+                    timeStart: PartyDateFormatter.parseBackendDate(p.timeStart),
+                    timeEnd: PartyDateFormatter.parseBackendDate(p.timeEnd),
                     maxPeople: p.maxPeople,
                     minAge: p.minAge,
                     maxAge: p.maxAge,
@@ -191,42 +195,56 @@ struct PartyView: View {
             }
         }
         try? modelContext.save()
+        pruneDrivingDistanceCache(validPartyIds: incomingIds)
+
+        return responses.map {
+            DistanceTarget(
+                id: $0.id,
+                latitude: $0.location.latitude,
+                longitude: $0.location.longitude
+            )
+        }
     }
 
     private func fetchIfNeeded(userCoord: CLLocationCoordinate2D?) {
-        guard let userCoord, !isFetching else { return }
+        guard let userCoord else { return }
 
         let currentLocation = CLLocation(latitude: userCoord.latitude, longitude: userCoord.longitude)
         if let last = lastFetchLocation, currentLocation.distance(from: last) <= 200 {
+            fetchDrivingDistances(userCoord: userCoord, force: false)
             return
         }
 
-        isFetching = true
         lastFetchLocation = currentLocation
+        fetchDrivingDistances(userCoord: userCoord, force: true)
+    }
 
-        let group = DispatchGroup()
+    private func pruneDrivingDistanceCache(validPartyIds: Set<Int>) {
+        drivingDistances = drivingDistances.filter { validPartyIds.contains($0.key) }
+    }
 
-        for party in parties {
-            if drivingDistances[party.backendId] != nil { continue }
+    private func fetchDrivingDistances(
+        userCoord: CLLocationCoordinate2D?,
+        targets: [DistanceTarget]? = nil,
+        force: Bool
+    ) {
+        guard let userCoord else { return }
 
-            group.enter()
-            let request = MKDirections.Request()
-            request.source = MKMapItem(location: CLLocation(latitude: userCoord.latitude, longitude: userCoord.longitude), address: nil)
-            request.destination = MKMapItem(location: CLLocation(latitude: party.latitude, longitude: party.longitude), address: nil)
-            request.transportType = .automobile
-
-            MKDirections(request: request).calculate { response, _ in
-                DispatchQueue.main.async {
-                    if let distance = response?.routes.first?.distance {
-                        drivingDistances[party.backendId] = distance
-                    }
-                    group.leave()
-                }
-            }
+        let resolvedTargets = targets ?? parties.map {
+            DistanceTarget(id: $0.backendId, latitude: $0.latitude, longitude: $0.longitude)
         }
 
-        group.notify(queue: .main) {
-            isFetching = false
+        let targetsToFetch = resolvedTargets.filter { force || drivingDistances[$0.id] == nil }
+        guard !targetsToFetch.isEmpty else { return }
+
+        if force {
+            drivingDistances.removeAll()
+        }
+
+        let userLocation = CLLocation(latitude: userCoord.latitude, longitude: userCoord.longitude)
+        for target in targetsToFetch {
+            let partyLocation = CLLocation(latitude: target.latitude, longitude: target.longitude)
+            drivingDistances[target.id] = partyLocation.distance(from: userLocation)
         }
     }
 
@@ -285,7 +303,7 @@ struct PartyView: View {
                     if let label = distanceLabel {
                         VStack(alignment: .trailing, spacing: 2) {
                             HStack(spacing: 2) {
-                                Image(systemName: "car.fill")
+                                Image(systemName: "location.fill")
                                     .font(.caption2)
                                     .foregroundStyle(.secondary)
                                 Text(label)
@@ -312,7 +330,10 @@ struct PartyView: View {
                 }
             }
             .frame(minHeight: 60)
-            .onReceive(timer) { now = $0 }
+            .onReceive(timer) { value in
+                guard party.isActive else { return }
+                now = value
+            }
         }
 
         func formatDuration(_ start: Date, to end: Date) -> String {
