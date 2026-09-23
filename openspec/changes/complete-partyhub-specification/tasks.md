@@ -6,18 +6,18 @@ For every domain completion item below, record the change name and its strict va
 
 ## 1. Baseline and durable handoff package
 
-- [ ] 1.1 Create `docs/openspec-baseline/runbook.md`, `inventory.md`, `coverage.md`, `decisions.md`, `gaps.md`, and `handoff.md` with the structures in the design; verify all six files exist and the entry point links the umbrella design/checklist.
-- [ ] 1.2 Populate the inventory from README, the six main specs, archived decisions, REST resources, browser pages, iOS screens/services and test suites; verify each discovered surface has platform scope, a capability owner and a numbered work package, with no unassigned entries.
-- [ ] 1.3 Capture the glossary, entity relationships, existing 37-requirement coverage and already approved product decisions; verify each accepted decision has an existing spec/archive reference and observations are separate from intended behavior.
-- [ ] 1.4 Seed the contradiction/gap register using the design's named findings; verify each entry identifies evidence, expected/observed behavior or the precise decision needed, and an owner step.
-- [ ] 1.5 Record the inspected revision, relevant working-tree state, initial strict-validation result and unrun-test limitation; verify the handoff contains a self-contained prompt for Step 2 and Step 1 completion status.
+- [x] 1.1 Create `docs/openspec-baseline/runbook.md`, `inventory.md`, `coverage.md`, `decisions.md`, `gaps.md`, and `handoff.md` with the structures in the design; verify all six files exist and the entry point links the umbrella design/checklist.
+- [x] 1.2 Populate the inventory from README, the six main specs, archived decisions, REST resources, browser pages, iOS screens/services and test suites; verify each discovered surface has platform scope, a capability owner and a numbered work package, with no unassigned entries.
+- [x] 1.3 Capture the glossary, entity relationships, existing 37-requirement coverage and already approved product decisions; verify each accepted decision has an existing spec/archive reference and observations are separate from intended behavior.
+- [x] 1.4 Seed the contradiction/gap register using the design's named findings; verify each entry identifies evidence, expected/observed behavior or the precise decision needed, and an owner step.
+- [x] 1.5 Record the inspected revision, relevant working-tree state, initial strict-validation result and unrun-test limitation; verify the handoff contains a self-contained prompt for Step 2 and Step 1 completion status.
 
 ## 2. Authentication and identity
 
-- [ ] 2.1 Write the browser/iOS identity contract covering login, callbacks, token storage/refresh, logout, user linking and onboarding; verify each flow has platform-specific source evidence and success/failure scenarios tied to `user-auth-and-identity`.
-- [ ] 2.2 Build the endpoint access matrix using route annotations, caller resolution and repository checks; verify every inventoried endpoint has observed and intended anonymous/authenticated/same-user/host access, or a named unresolved decision.
-- [ ] 2.3 Document normal JWT identity and environment-dependent bypass separately, including the Kubernetes override; verify configuration observations are not presented as accepted policy or live deployment verification.
-- [ ] 2.4 Complete the bounded authentication specification update and handoff; verify accepted requirements are integrated, remaining implementation mismatches have gap IDs, and the completion record follows the domain protocol.
+- [x] 2.1 Write the browser/iOS identity contract covering login, callbacks, token storage/refresh, logout, user linking and onboarding; verify each flow has platform-specific source evidence and success/failure scenarios tied to `user-auth-and-identity`.
+- [x] 2.2 Build the endpoint access matrix using route annotations, caller resolution and repository checks; verify every inventoried endpoint has observed and intended anonymous/authenticated/same-user/host access, or a named unresolved decision.
+- [x] 2.3 Document normal JWT identity and environment-dependent bypass separately, including the Kubernetes override; verify configuration observations are not presented as accepted policy or live deployment verification.
+- [x] 2.4 Complete the bounded authentication specification update and handoff; verify accepted requirements are integrated, remaining implementation mismatches have gap IDs, and the completion record follows the domain protocol.
 
 ## 3. Profiles and social relationships
 
