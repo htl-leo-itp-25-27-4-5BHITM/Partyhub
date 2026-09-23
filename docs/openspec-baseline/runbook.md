@@ -9,15 +9,17 @@ This is the entry point for executing [complete-partyhub-specification](../../op
 3. Use [inventory.md](inventory.md) to find source surfaces and ownership, [coverage.md](coverage.md) for requirements/scenarios/evidence, [decisions.md](decisions.md) for accepted rules and unresolved questions, and [gaps.md](gaps.md) for discrepancies.
 4. Work only on the requested group. Update these records and the checklist before stopping.
 
-Authentication evidence: [browser/iOS flows](authentication.md), [all 58 endpoint access rows](access-matrix.md), [JWT/bypass environments](auth-environments.md). The completed group used the [bounded auth proposal](../../openspec/changes/document-authentication-and-identity/proposal.md), its [design](../../openspec/changes/document-authentication-and-identity/design.md), [delta](../../openspec/changes/document-authentication-and-identity/specs/user-auth-and-identity/spec.md) and [documentation tasks](../../openspec/changes/document-authentication-and-identity/tasks.md). The next permitted work package is group 3.
+Authentication evidence: [browser/iOS flows](authentication.md), [all 58 endpoint access rows](access-matrix.md), [JWT/bypass environments](auth-environments.md). Group 2 used the [bounded auth proposal](../../openspec/changes/document-authentication-and-identity/proposal.md), its [design](../../openspec/changes/document-authentication-and-identity/design.md), [delta](../../openspec/changes/document-authentication-and-identity/specs/user-auth-and-identity/spec.md) and [documentation tasks](../../openspec/changes/document-authentication-and-identity/tasks.md).
+
+Profiles/social evidence: [profile fields, client scope and follow transitions](profiles-and-social.md). Group 3 has reached the required proposal boundary with [document-profiles-and-social-relationships](../../openspec/changes/document-profiles-and-social-relationships/proposal.md), its [design](../../openspec/changes/document-profiles-and-social-relationships/design.md), [delta](../../openspec/changes/document-profiles-and-social-relationships/specs/social-and-notifications/spec.md) and [documentation tasks](../../openspec/changes/document-profiles-and-social-relationships/tasks.md). The next permitted task applies that child to finish umbrella item 3.3; Group 4 must remain untouched.
 
 ## Snapshot and boundaries
 
 - Foundation inspected revision: `9487ccb90bb438e24b3cfab547a5dc900b11aecb`, 2026-09-21.
 - Starting durable baseline: 6 capabilities, 37 requirements, 106 scenarios.
-- Latest review: same application-source revision, 2026-09-23. Group 2 is complete: the accepted identity delta and corrected identity Purpose are in the main spec. Application code/configuration and data are unchanged.
+- Latest review: same application-source revision, 2026-09-23. Group 3 items 3.1 and 3.2 are complete. Its child proposal is planning-complete and strictly valid, but no social delta has been applied or synced; the main social spec and application code/configuration/data are unchanged.
 - Product deltas are intentionally absent from this documentation umbrella (`skip_specs: true`). Actual domain changes use the normal proposal/integration workflow.
-- Source and test-file inspection do not prove runtime behavior. No application, API, UI, deployment or database tests were run in foundation or the group 2 documentation review.
+- Source and test-file inspection do not prove runtime behavior. No application, API, UI, deployment or database tests were run in the foundation, Group 2 or Group 3 documentation reviews.
 - Existing main-spec validation issue: `map-radius-control` has a placeholder Purpose; [G012](gaps.md#g012-radius-purpose-placeholder) belongs to Step 12.
 
 ## Progress
@@ -26,7 +28,7 @@ Authentication evidence: [browser/iOS flows](authentication.md), [all 58 endpoin
 |---|---|---|---|---|
 | 1 | Foundation and durable handoff | None | Complete | Items 1.1-1.5 remain complete; evidence package retained and extended. |
 | 2 | Authentication and identity | 1 | Complete | 2.1-2.4 complete; `document-authentication-and-identity` integrated and synced, all 8 child tasks complete, strict child/identity validation passes. Child remains active and unarchived. |
-| 3 | Profiles and social relationships | 2 | Not started | Profile/follow state and visibility contracts. |
+| 3 | Profiles and social relationships | 2 | In progress: proposal boundary | 3.1-3.2 complete. Child planning is complete with 0/7 apply tasks; a later apply/sync task must complete 3.3. |
 | 4 | Party lifecycle | 2 | Not started | Ownership, visibility, party fields and client compatibility. |
 | 5 | Invitations and attendance | 3, 4 | Not started | Invitation/membership transitions and events. |
 | 6 | Discovery and maps | 2, 4 | Not started | Shared discovery and explicitly scoped iOS map controls. |
@@ -37,9 +39,9 @@ Authentication evidence: [browser/iOS flows](authentication.md), [all 58 endpoin
 | 11 | Runtime and quality contracts | 2-10 | Not started | Environments, API compatibility, persistence, validation and quality evidence. |
 | 12 | Consolidation and acceptance | 1-11 | Not started | Integrate accepted changes, resolve documentation drift and pass all strict spec checks. |
 
-One domain change has been applied and synced: `document-authentication-and-identity`. It remains active and unarchived. The accepted baseline now has 40 requirements/122 scenarios, including AUTH-01-AUTH-12 with 43 scenarios. Acceptance records the contract; G002/G019-G023 and the unrun-test record prevent it from being read as implementation conformance.
+One domain change has been applied and synced: `document-authentication-and-identity`. It remains active and unarchived. One domain change is proposed but unapplied: `document-profiles-and-social-relationships`. The accepted baseline remains 40 requirements/122 scenarios, including AUTH-01-AUTH-12 with 43 scenarios and social coverage at 4/12. The proposed integrated counts are 42/145 overall and 6/35 social. Acceptance records contracts; gap records and the unrun-test record prevent them from being read as implementation conformance.
 
-Current progress: **9 of 46 checklist items complete**; **37 remain**. Foundation 1.1-1.5 and authentication 2.1-2.4 are complete. Groups 3-12 have not started. G001-G025 and Q001-Q013 preserve observed gaps and unresolved policy; Q011-Q013 have later owners and are explicit limits outside the accepted group 2 minimum.
+Current progress: **11 of 46 checklist items complete**; **35 remain**. Foundation 1.1-1.5, authentication 2.1-2.4 and profiles/social 3.1-3.2 are complete. Item 3.3 remains open at the proposal boundary; Groups 4-12 have not started. G001-G028 and Q001-Q013 preserve observed gaps and unresolved policy. Q009 has a proposed resolution that is not accepted until the child is applied and synced.
 
 ## Recording rules
 

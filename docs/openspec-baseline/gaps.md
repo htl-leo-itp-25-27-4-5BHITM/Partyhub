@@ -1,6 +1,6 @@
 # Initial implementation and documentation gaps
 
-Foundation snapshot: `9487ccb90bb438e24b3cfab547a5dc900b11aecb`, 2026-09-21; Step 2 refinements at the same revision on 2026-09-23. These are source/configuration observations and specification/documentation conflicts. None is a runtime reproduction. Priorities are initial triage for later work: high = access/identity boundary, medium = behavior/compatibility, low = editorial/evidence hygiene. This register is not a complete security audit or a finding about a live deployment.
+Foundation snapshot: `9487ccb90bb438e24b3cfab547a5dc900b11aecb`, 2026-09-21; Step 2 and Step 3 refinements on 2026-09-23 with application source unchanged. These are source/configuration observations and specification/documentation conflicts. None is a runtime reproduction. Priorities are initial triage for later work: high = access/identity boundary, medium = behavior/compatibility, low = editorial/evidence hygiene. This register is not a complete security audit or a finding about a live deployment.
 
 Java paths below start at `src/main/java/at/htl/`; browser paths at `src/main/resources/META-INF/resources/`; Swift paths at `PartyHubiOS/PartyHubiOS/`. Complete surface ownership is in [inventory.md](inventory.md); requirement anchors are in [coverage.md](coverage.md).
 
@@ -169,8 +169,8 @@ Java paths below start at `src/main/java/at/htl/`; browser paths at `src/main/re
 
 - **Expected:** D001 uses authenticated actor; D004 keeps request/recipient direction. Exact path contract remains Q009.
 - **Observed:** `UserResource:348-375` ignores path id for create/accept, but DELETE ignores followerId and removes caller→path id. Actor still comes from resolver. This is an API meaning discrepancy, not evidence that those parameters authenticate another user.
-- **Disposition:** Source/API compatibility gap. **Priority:** medium. **Owner:** Step 3, API reconciliation Step 11.
-- **Next action:** Reconcile callers and intended follow/unfollow/remove-follower directions in Step 3; keep group 3 checklist untouched in this execution.
+- **Disposition:** Source/API compatibility gap. The Group 3 child proposes token-derived actor plus explicit other-user relationship semantics; that target is not accepted until integration. **Priority:** medium. **Owner:** Step 3 integration, API reconciliation Step 11.
+- **Next action:** Apply/review the directed transition contract, then reconcile route shapes and callers in a bounded implementation/API change without retaining ignored actor-like path values as authority.
 
 ## G025 Browser registration flags are not provider success evidence
 
@@ -178,3 +178,24 @@ Java paths below start at `src/main/java/at/htl/`; browser paths at `src/main/re
 - **Observed:** `auth-service.js:211` sets post-registration flag before registration completes; invalid/missing callback transaction sets post-verify flag. Login page displays success from these flags and starts a fresh login; it does not exchange a registration-return code. Standalone register HTML is empty and its JS file is empty; active entry is the start/login page's Keycloak redirect.
 - **Disposition:** Source/UX evidence limitation; no registration or verification failure reproduced. **Priority:** medium. **Owner:** Step 2, realm setup Step 11.
 - **Next action:** Reconcile registration/cancellation/email-verification returns and error messages with provider evidence in a later client fix. Do not specify the flags as proof of account creation or email verification.
+
+## G026 Profile reads expose raw contact, identity-link and delivery fields
+
+- **Expected:** Cross-user profile/search/social reads expose only fields needed for social discovery; self reads may include private contact fields; Keycloak subject and device token are internal.
+- **Observed:** `UserResource` rows 37-40/42-50 return `User` entities or lists directly. `User` can serialize username, Keycloak ID, email, phone number and device token alongside profile fields. Reads are open, and server-side distinct-handle uniqueness/validation is not established even though handle lookup assumes one row.
+- **Disposition:** Data-minimization/access and identifier-integrity mismatch against the proposed Group 3 contract; no live response was captured. **Priority:** high. **Owner:** Step 3 integration and later implementation; API/privacy Step 11, picture serving Step 7.
+- **Next action:** Review/integrate the bounded projection and self-edit contract, audit existing handle collisions, then implement explicit response DTOs/auth gates and server validation in separate changes.
+
+## G027 Pending requests and relationship status are publicly selectable
+
+- **Expected:** Pending follow requests belong to the authenticated recipient; relationship status is caller-relative; follow mutations derive the actor from validated identity.
+- **Observed:** Rows 50-51 are open and accept arbitrary user IDs. The browser reads another user's pending inbox to infer whether its own outgoing request is pending. Incoming-request dismissal sends the same DELETE shape as unfollow, but backend DELETE removes caller-to-path-`id`, so dismissing A's request to B can target B-to-B instead of A-to-B. No recipient rejection/removal repository method is distinct from follower-initiated removal.
+- **Disposition:** Access/transition and client compatibility gap against the proposed Group 3 lifecycle; no browser flow was executed. **Priority:** high. **Owner:** Step 3 integration and later implementation; API Step 11.
+- **Next action:** Integrate the recipient-private/caller-relative contract, then implement and test send/accept/reject/cancel/unfollow/remove-follower directions with forged path IDs and reverse-direction preservation.
+
+## G028 Browser and iOS profile/social support differ
+
+- **Expected:** Platform scope is explicit; browser behavior does not silently create iOS parity requirements.
+- **Observed:** Browser profile code supports search, other-user profiles, follow request/unfollow controls, lists and hosted-party context. iOS `ProfileView` loads only the authenticated self profile/counts and uploads a picture; its Follow and Message buttons have empty actions, and no iOS other-user profile/search/request inbox was found.
+- **Disposition:** Platform-support difference and inert-control gap, not a decision to require parity. **Priority:** medium. **Owner:** Step 3 specification; any retained iOS UI expansion requires a later product/client change.
+- **Next action:** Preserve the bounded iOS self-profile minimum and browser social scope during integration. Treat inert controls as source debt; remove or implement them only through a separate approved change.

@@ -21,8 +21,8 @@ For every domain completion item below, record the change name and its strict va
 
 ## 3. Profiles and social relationships
 
-- [ ] 3.1 Document profile fields, editing, identifiers, search and profile-party visibility across both clients; verify same-user/cross-user permissions and field evidence are mapped to requirements or explicit decisions.
-- [ ] 3.2 Write follow-request, acceptance, removal, duplicate-action and mutual-contact scenarios; verify a transition table preserves one-way acceptance and two-way mutual-contact semantics.
+- [x] 3.1 Document profile fields, editing, identifiers, search and profile-party visibility across both clients; verify same-user/cross-user permissions and field evidence are mapped to requirements or explicit decisions.
+- [x] 3.2 Write follow-request, acceptance, removal, duplicate-action and mutual-contact scenarios; verify a transition table preserves one-way acceptance and two-way mutual-contact semantics.
 - [ ] 3.3 Complete the social/profile specification update using existing capability paths where appropriate; verify accepted deltas are integrated and the handoff includes evidence, validation and remaining gaps.
 
 ## 4. Party lifecycle

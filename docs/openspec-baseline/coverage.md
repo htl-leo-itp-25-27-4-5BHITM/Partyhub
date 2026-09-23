@@ -149,9 +149,26 @@ Native login/callback/storage/refresh/logout and public issuer bootstrap are acc
 
 The child change passes strict validation and is integrated into the main identity spec. Authentication now contains 12 requirements/43 scenarios and the full main baseline contains 40/122.
 
+## Step 3 profiles and social review
+
+Reviewed 2026-09-23 from the unchanged application-source snapshot. [Profiles and social evidence](profiles-and-social.md) maps profile fields, client scope, profile-party visibility and the complete directed follow transition table. The bounded child [proposal](../../openspec/changes/document-profiles-and-social-relationships/proposal.md), [design](../../openspec/changes/document-profiles-and-social-relationships/design.md), [delta](../../openspec/changes/document-profiles-and-social-relationships/specs/social-and-notifications/spec.md) and [tasks](../../openspec/changes/document-profiles-and-social-relationships/tasks.md) are planning-complete and pass strict validation.
+
+The child has not been applied or synced. The accepted baseline therefore remains **40 requirements/122 scenarios**, with `social-and-notifications` at **4/12**. If accepted in a later apply task, the complete delta projects `social-and-notifications` at **6/35** and the full baseline at **42/145**.
+
+| Stable mapping | Proposed full coverage after integration | Disposition at this checkpoint |
+|---|---:|---|
+| SOC-01 follow-request model | 12 scenarios | Full modified block preserves the original 3 scenarios and adds self, duplicate, actor, cancellation, rejection and removal transitions. Proposed only. |
+| SOC-02 mutual-contact invitation eligibility | 2 scenarios | Unchanged and omitted from the delta. Existing accepted coverage remains authoritative. |
+| SOC-03 notification center | 4 scenarios | Unchanged and omitted from the delta. Step 8 still owns event/delivery detail. |
+| SOC-04 profile discovery and party context | 6 scenarios | Full modified block preserves the original 3 scenarios and adds own-party context, anonymous denial and client-scope behavior. Proposed only. |
+| Proposed SOC-05 bounded profile/social projections | 6 scenarios | New requirement covering authenticated reads, cross-user/self fields, internal-field exclusion, private pending inbox and caller-relative status. Proposed only. |
+| Proposed SOC-06 authenticated self profile editing | 5 scenarios | New requirement covering editable fields, immutable fields, unique handles, invalid/conflicting updates and other-user denial. Proposed only. |
+
+Q009 records the proposed audience and field resolution until integration. G024 and G026–G028 preserve route, serialization, direction and client-support mismatches as implementation evidence. No application or runtime test was executed.
+
 ## Requirement and scenario index
 
-All entries have intended status **Existing accepted main-spec requirement**. Foundation entries below remain the original evidence index; the Step 2 addendum records the later auth source review. No entry is runtime verified. Decision and gap IDs refer to the separate registers and can evolve during later stages; requirement IDs here remain stable for handoffs.
+All entries in the index have intended status **Existing accepted main-spec requirement**. Foundation entries below remain the original evidence index; the Step 2 addendum records integrated auth coverage and the Step 3 addendum explicitly separates proposed coverage. No entry is runtime verified. Decision and gap IDs refer to the separate registers and can evolve during later stages; requirement IDs here remain stable for handoffs.
 
 ### user-auth-and-identity
 
