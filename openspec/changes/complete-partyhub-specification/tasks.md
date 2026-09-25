@@ -34,9 +34,9 @@ For every domain completion item below, record the change name and its strict va
 
 ## 5. Invitations and attendance
 
-- [ ] 5.1 Document invitation selection, creation, retention/removal, recipient eligibility and relevant visibility effects; verify private invitations preserve backend-enforced mutual-contact intent and removal/reinvite edge cases have explicit dispositions.
-- [ ] 5.2 Produce invitation/attendance transitions for accept, decline, join, leave and repeated actions; verify each row identifies prior/next state, actor, permissions and membership effect, preserving acceptance-through-attendance semantics.
-- [ ] 5.3 Map transition side effects to notification events and member/statistics views; verify each event has an originating action and intended recipients for Step 8 to reuse.
+- [x] 5.1 Document invitation selection, creation, retention/removal, recipient eligibility and relevant visibility effects; verify private invitations preserve backend-enforced mutual-contact intent and removal/reinvite edge cases have explicit dispositions.
+- [x] 5.2 Produce invitation/attendance transitions for accept, decline, join, leave and repeated actions; verify each row identifies prior/next state, actor, permissions and membership effect, preserving acceptance-through-attendance semantics.
+- [x] 5.3 Map transition side effects to notification events and member/statistics views; verify each event has an originating action and intended recipients for Step 8 to reuse.
 - [ ] 5.4 Complete the invitation/attendance specification update and handoff; verify accepted rules are integrated, edge-case decisions are linked, and source gaps remain separate from normative scenarios.
 
 ## 6. Discovery and maps

@@ -1,6 +1,6 @@
 # Initial implementation and documentation gaps
 
-Foundation snapshot: `9487ccb90bb438e24b3cfab547a5dc900b11aecb`, 2026-09-21; Step 2 refinement on 2026-09-23, Step 3 integration on 2026-09-25 and Step 4 source/planning review on 2026-09-25 with application source unchanged. These are source/configuration observations and specification/documentation conflicts. None is a runtime reproduction. Priorities are initial triage for later work: high = access/identity boundary, medium = behavior/compatibility, low = editorial/evidence hygiene. This register is not a complete security audit or a finding about a live deployment.
+Foundation snapshot: `9487ccb90bb438e24b3cfab547a5dc900b11aecb`, 2026-09-21; Step 2 refinement on 2026-09-23, Steps 3-4 integration on 2026-09-25 and Step 5 source/proposal review on 2026-09-25 with application source unchanged. These are source/configuration observations and specification/documentation conflicts. None is a runtime reproduction. Priorities are initial triage for later work: high = access/identity boundary, medium = behavior/compatibility, low = editorial/evidence hygiene. This register is not a complete security audit or a finding about a live deployment.
 
 Java paths below start at `src/main/java/at/htl/`; browser paths at `src/main/resources/META-INF/resources/`; Swift paths at `PartyHubiOS/PartyHubiOS/`. Complete surface ownership is in [inventory.md](inventory.md); requirement anchors are in [coverage.md](coverage.md).
 
@@ -62,10 +62,10 @@ Java paths below start at `src/main/java/at/htl/`; browser paths at `src/main/re
 
 ## G009 Private access checks are missing on several source paths
 
-- **Expected:** D007 and D009 establish private-party access and gallery-viewer boundaries; D008 has profile-specific wording.
+- **Expected:** D007 and D009 establish private-party access and gallery-viewer boundaries; D008 has profile-specific wording. The unapplied Group 5 child proposes that only pending invitations and current joined membership qualify within its invitation/attendance scope.
 - **Observed:** Step 2 traced [access rows 14,20-29,55-57](access-matrix.md#access-matrix). Legacy title/theme/date filters and sorting (`PartyRepository:411-445`) omit the visibility predicate used by default/new-filter paths. `attendParty:566` and `attendStatus:643` do not check visibility. Party media/location and user-media reads have no caller-based predicates. User-location update looks up an independently generated location entity ID using the caller user ID without checking its linked user (`UserResource:406`, `UserLocation`), so same-user ownership cannot be assumed from caller resolution alone.
-- **Disposition:** Missing checks confirmed in inspected source paths; runtime responses, data population and exploitability not exercised. D016/PARTY-04 now require branch-consistent party list/detail visibility; admission, media and location remain later owners. Location retained/privacy policy still Q002/Q006. **Priority:** high. **Owner:** bounded list/detail implementation, then Steps 5-7 and 10 specification owners.
-- **Next action:** Implement shared list/detail predicates separately. Preserve D007/D009/D016 while later groups specify admission, viewer uploads and location consent.
+- **Disposition:** Missing checks confirmed in inspected source paths; runtime responses, data population and exploitability not exercised. D016/PARTY-04 require branch-consistent party list/detail visibility. Group 5 proposes private join/status/projection rules but is not yet applied; media and location remain later owners. Location retained/privacy policy still Q002/Q006. **Priority:** high. **Owner:** bounded list/detail and Group 5 implementation, then Steps 6-7 and 10 owners.
+- **Next action:** Apply/review the Group 5 child before implementing pending-invitation private join and projection checks. Preserve D007/D009/D016 while later groups specify admission, viewer uploads and location consent.
 
 ## G010 Map requirements have implicit platform scope
 
@@ -118,10 +118,10 @@ Java paths below start at `src/main/java/at/htl/`; browser paths at `src/main/re
 
 ## G017 Mutual-contact enforcement is not evident in private-party invite creation
 
-- **Expected:** D005 requires the backend to reject private invites for non-mutual users.
-- **Observed:** `party/PartyRepository.java:204` creates/renews selected private invitations without accepted mutual-follow checks. Step 2 additionally traced `InvitationRepository.invite:35-90`: party/recipient existence and duplicate status are checked, but host identity, party visibility and mutual contact are not. Caller is the sender, which is not proof of host authority.
-- **Disposition:** Missing mutual checks confirmed in inspected creation paths; not a runtime reproduction. Direct-invite authority details remain Q010. **Priority:** high. **Owner:** Step 5, with Step 3 relationship definitions.
-- **Next action:** Preserve D005, reconcile direct-invite sender/host authority, and specify non-mutual/unauthorized rejection for later bounded implementation work.
+- **Expected:** D005 requires the backend to reject private invites for non-mutual users. The unapplied Group 5 child proposes stored-host authority and eligibility re-evaluation for issue/renew through every invitation path.
+- **Observed:** `party/PartyRepository.java:204` creates/renews selected private invitations without accepted mutual-follow checks. `InvitationRepository.invite:35-90` checks party/recipient existence and duplicate status, but not stored-host identity, party visibility or mutual contact. Caller-as-sender is not proof of host authority. Browser selection computes a mutual-contact intersection, while iOS loads only following users.
+- **Disposition:** Missing mutual/host checks and inconsistent client eligibility confirmed in inspected paths; not a runtime reproduction. Q010's proposed authority answer remains unaccepted until child apply. **Priority:** high. **Owner:** Group 5 bounded implementation, with Step 3 relationship definitions.
+- **Next action:** After the Group 5 child is applied, enforce stored-host and current mutual-contact checks for both party-selected and direct invitations, with non-mutual, self and unauthorized rejection tests.
 
 ## G018 Local realm bootstrap and documented demo credentials diverge
 
@@ -213,3 +213,24 @@ Java paths below start at `src/main/java/at/htl/`; browser paths at `src/main/re
 - **Observed:** Browser `addParty.js:518-526` loads detail/list with `authRequired: false`; its payload at `:1185-1206` omits capacity. iOS `PartyView.swift:166-210` lists through unauthenticated `URLSession` and removes local rows absent from that response. iOS create/update paths hard-code public visibility, `Standard` theme and empty selected users; update also substitutes times/ages for missing values (`PartyFormView:266-315`, `PartyDetailView:413-505`). Active create/update routes themselves are plural and bearer-authenticated.
 - **Disposition:** Viewer-context and destructive-default compatibility mismatch against accepted D016/PARTY-13; client reachability was source-inspected but not executed. **Priority:** high. **Owner:** bounded browser/iOS changes; discovery list behavior Step 6, invitation semantics Step 5, API wire contract Step 11/Q014.
 - **Next action:** Preserve unsupported fields or adopt agreed partial-update semantics, attach bearer identity to viewer-dependent reads, and test that editing one field does not expose, hide, or erase unrelated party state.
+
+## G031 Invitation and attendance paths disagree on authority, state and retry behavior
+
+- **Expected:** D005-D007 and the unapplied Group 5 child describe one stored-host-managed invitation per party/recipient and one atomic attendance transition, with current-state retries as no-ops and denied transitions leaving all state/events unchanged.
+- **Observed:** Direct invitations accept any authenticated sender; `selectedUsers` creates/renews without removing deselected rows; invitation accept/decline and party join/leave use separate repository paths; private join accepts any authenticated user; sender deletion removes the invitation while recipient deletion declines it; repeated join is a no-op but repeated leave reports missing state. Event creation and deduplication differ by entry path.
+- **Disposition:** Cross-path state/authorization mismatch and proposal implementation gap; no runtime transition was exercised. **Priority:** high. **Owner:** Group 5 bounded backend change; exact route/status behavior Step 11/Q014.
+- **Next action:** After child apply, implement one transactional invitation/attendance state machine and test host/recipient authority, selection removal, renewal, accept/join equivalence, decline/leave, retries and event deduplication.
+
+## G032 Invitation and attendance projections are too broad or internally inconsistent
+
+- **Expected:** The unapplied Group 5 child proposes self-scoped invitation lists/details, host-only invited identities/statuses/statistics, and bounded joined/own-status projections for authenticated party viewers.
+- **Observed:** Join status checks party existence but not private visibility. Invited members and invitation statistics are exposed to every authenticated party viewer. Statistics add the host to the accepted count despite no host invitation. Joined-member projection uses the general viewer predicate but response minimization was not runtime verified.
+- **Disposition:** Projection authorization/counting mismatch against the proposed contract; not yet an accepted main-spec violation until child apply. **Priority:** high. **Owner:** Group 5 bounded backend/API work.
+- **Next action:** Apply the child, then enforce actor-specific projection checks and derive statistics only from logical invitation rows, with host/viewer/unrelated-user response tests.
+
+## G033 Browser and iOS invitation payloads and state models disagree with the backend
+
+- **Expected:** Supported clients represent the same server-owned invitation/attendance state; platform-specific controls may differ, while exact wire migration remains Q014.
+- **Observed:** iOS invitation list decoding expects nested snake-case data while the backend list DTO is flat/camel-case; the invite sheet posts `party_id` where the backend DTO expects `partyId`, loads following rather than mutual contacts, and updates invited state locally. Browser selection uses plain fetch and retains old invitees. An iOS notification helper still references singular party/attendee routes.
+- **Disposition:** Cross-client schema, eligibility and synchronization mismatch; active runtime reachability and failures were not exercised. **Priority:** medium. **Owner:** Group 5 client reconciliation with Step 11/Q014 wire decisions; singular routes also G006.
+- **Next action:** After the domain contract is accepted and Q014 selects wire compatibility, align client DTOs/actions with the shared server state and add decode/request/refresh tests without requiring UI parity.
