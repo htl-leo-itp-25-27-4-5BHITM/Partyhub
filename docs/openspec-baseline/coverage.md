@@ -2,7 +2,7 @@
 
 Foundation snapshot: repository revision `9487ccb90bb438e24b3cfab547a5dc900b11aecb`, inspected 2026-09-21. See [runbook](runbook.md), [inventory](inventory.md), [decisions](decisions.md), [gaps](gaps.md) and [handoff](handoff.md).
 
-The foundation snapshot indexed **37 accepted requirements and 106 scenarios** in the six durable specifications. After the accepted Steps 2-4 integrations, the current main specs contain **44 accepted requirements and 172 scenarios**. Acceptance records normative coverage; it does not assert implementation compliance, complete product scope or completion of Steps 5-12. Requirement titles and scenario labels below reproduce the current main specs exactly.
+The foundation snapshot indexed **37 accepted requirements and 106 scenarios** in the six durable specifications. After the accepted Steps 2-5 integrations, the current main specs contain **46 accepted requirements and 200 scenarios**. Acceptance records normative coverage; it does not assert implementation compliance, complete product scope or completion of Steps 6-12. Requirement titles and scenario labels below reproduce the current main specs exactly.
 
 Platform scope below is a foundation classification grounded in the requirement text, archive context and source entry points. Where existing wording is ambiguous, its owner stage must reconcile it. In particular, browser auth does not establish the iOS auth contract, and iOS map controls are not automatically browser requirements.
 
@@ -12,11 +12,11 @@ Platform scope below is a foundation classification grounded in the requirement 
 |---|---:|---:|---|
 | [user-auth-and-identity](../../openspec/specs/user-auth-and-identity/spec.md) | 12 | 43 | 2 |
 | [social-and-notifications](../../openspec/specs/social-and-notifications/spec.md) | 6 | 35 | 3, 5, 8 |
-| [party-discovery-and-management](../../openspec/specs/party-discovery-and-management/spec.md) | 13 | 60 | 4–6 |
+| [party-discovery-and-management](../../openspec/specs/party-discovery-and-management/spec.md) | 15 | 88 | 4–6 |
 | [party-media-gallery](../../openspec/specs/party-media-gallery/spec.md) | 3 | 5 | 7 |
 | [map-radius-control](../../openspec/specs/map-radius-control/spec.md) | 3 | 7 | 6 (Purpose repair 12) |
 | [local-keycloak-environment](../../openspec/specs/local-keycloak-environment/spec.md) | 7 | 22 | 11 |
-| **Total** | **44** | **172** | **All assigned** |
+| **Total** | **46** | **200** | **All assigned** |
 
 ## Source and test evidence groups
 
@@ -132,7 +132,7 @@ Reviewed and integrated 2026-09-23 from source revision `9487ccb90bb438e24b3cfab
 | AUTH-06 | B-RESTORE/B-CLEAR/B-LOGOUT; sessionStorage/memory, legacy localStorage clearing. | Storage source-observed only; native Keychain is separately governed by AUTH-12. |
 | AUTH-07 | S-REJECT and environment JWT/roles declaration. | No real valid/expired/wrong-issuer token verification; test JWT disabled, bypass enabled. G002/G013. |
 | AUTH-08 | S-LINKED/S-MATCH/S-NEW; B-ME/N-ME success/failure paths. | Three resolver tests contain synthetic happy-path assertions, not executed. Numeric-subject G019, claim ambiguity G020/Q012; no onboarding-required UI/response found. Existing create-or-onboard alternative preserved. |
-| AUTH-09 | Matrix creation/membership/notification actor checks, plus the accepted object-authority denial boundary. | Actor resolution does not prove object authorization: G003/G009/G017/G024; profile/social policy D015 and remaining invitation/party policy Q010. |
+| AUTH-09 | Matrix creation/membership/notification actor checks, plus the accepted object-authority denial boundary. | Actor resolution does not prove object authorization: G003/G009/G017/G024/G031-G032; profile/social policy D015 and invitation/attendance policy D017. |
 | AUTH-10 | B1/N2/CR public issuer bootstrap and failure fallback. | Public configuration is accepted but does not authenticate a caller; deployment/profile drift remains G002/G018. |
 | AUTH-11 | N-LOGIN/N-CALLBACK/N-LINK success and failure paths. | Native PKCE/user-resolution contract is accepted; nonce mismatch remains G022 and runtime execution remains G013. |
 | AUTH-12 | N-RESTORE/N-REFRESH/N-API/N-LOGOUT lifecycle. | Native token-backed session contract is accepted; restoration/cleanup mismatch remains G023 and provider logout remains Q013. |
@@ -180,26 +180,26 @@ The child delta is synced into the main spec. The accepted baseline is now **44 
 | PARTY-12 atomic lifecycle validation | 10 scenarios | New requirement covers required fields, exact bounded values, cross-field rules, visibility default/rejection, metadata scope and all-or-nothing failures. Accepted. |
 | PARTY-13 shared lifecycle client contract | 5 scenarios | New requirement covers plural CRUD routes, bearer identity, field preservation, server-consistent failure and non-parity scope. Accepted. |
 
-Q003, Q004, Q010 and Q014 retain invitation status, admission enforcement, supplementary exposure and exact wire-contract ownership. D016 records the accepted Group 4 rules. G003/G006/G009/G029-G030 preserve authorization, query visibility, validation, route and client-payload mismatches. No application or runtime test was executed.
+At the Step 4 checkpoint, Q003/Q010 still retained invitation-state and supplementary-exposure ownership; Group 5 later resolves them through D017. Q004 and Q014 continue to retain admission enforcement and exact wire-contract ownership. D016 records the accepted Group 4 rules. G003/G006/G009/G029-G030 preserve authorization, query visibility, validation, route and client-payload mismatches. No application or runtime test was executed.
 
 ## Step 5 invitations and attendance review
 
-Reviewed 2026-09-25 from the unchanged application-source snapshot. [Invitation and attendance evidence](invitations-and-attendance.md) maps the two invitation write paths, invitation-state and attendance transitions, private-visibility effects, actor-scoped projections, event inputs, browser/iOS consumers and inspected tests. The bounded child [proposal](../../openspec/changes/document-invitations-and-attendance/proposal.md), [design](../../openspec/changes/document-invitations-and-attendance/design.md), [delta](../../openspec/changes/document-invitations-and-attendance/specs/party-discovery-and-management/spec.md) and [tasks](../../openspec/changes/document-invitations-and-attendance/tasks.md) are planning-complete with **0/7 tasks applied**.
+Reviewed and integrated 2026-09-25 from the unchanged application-source snapshot. [Invitation and attendance evidence](invitations-and-attendance.md) maps the two invitation write paths, invitation-state and attendance transitions, private-visibility effects, actor-scoped projections, event inputs, browser/iOS consumers and inspected tests. The bounded child [proposal](../../openspec/changes/document-invitations-and-attendance/proposal.md), [design](../../openspec/changes/document-invitations-and-attendance/design.md), [delta](../../openspec/changes/document-invitations-and-attendance/specs/party-discovery-and-management/spec.md) and [tasks](../../openspec/changes/document-invitations-and-attendance/tasks.md) define and verify the integrated scope with **7/7 tasks complete**.
 
-The child remains unapplied at the required proposal boundary. Accepted main-spec coverage therefore remains **44 requirements/172 scenarios**, with `party-discovery-and-management` at **13/60**. If later reviewed and synced exactly as proposed, the party capability becomes **15 requirements/88 scenarios** and the full baseline becomes **46 requirements/200 scenarios**.
+The child delta is synced into the main spec. Accepted main-spec coverage is now **46 requirements/200 scenarios**, with `party-discovery-and-management` at **15/88**.
 
-| Projected stable mapping | Proposed coverage after later integration | Planning disposition |
+| Stable mapping | Accepted coverage after integration | Disposition |
 |---|---:|---|
-| PARTY-06 private invitation authority and eligibility | 8 scenarios | Complete modified block preserves the original two scenarios and adds stored-host authority, self/missing denial, duplicate no-op, declined renewal and pending withdrawal. Proposed, not accepted. |
-| PARTY-07 attendance and acceptance | 9 scenarios | Complete modified block preserves the original two scenarios and adds public/private join, decline, invitation-action acceptance, retry and missing-party behavior. Proposed, not accepted. |
-| PARTY-14 actor-scoped invitation and attendance projections | 9 scenarios | New requirement proposes pending/accepted visibility, caller-relative lists/details, host-only invitation projections and viewer-safe joined/self projections. Proposed, not accepted. |
-| PARTY-15 consistent invitation and attendance events | 6 scenarios | New requirement proposes one event per committed transition and no event for denied/failed/no-op actions, while leaving delivery to Step 8. Proposed, not accepted. |
+| PARTY-06 private invitation authority and eligibility | 8 scenarios | Complete modified block preserves the original two scenarios and adds stored-host authority, self/missing denial, duplicate no-op, declined renewal and pending withdrawal. Accepted. |
+| PARTY-07 attendance and acceptance | 9 scenarios | Complete modified block preserves the original two scenarios and adds public/private join, decline, invitation-action acceptance, retry and missing-party behavior. Accepted. |
+| PARTY-14 actor-scoped invitation and attendance projections | 9 scenarios | New requirement covers pending/accepted visibility, caller-relative lists/details, host-only invitation projections and viewer-safe joined/self projections. Accepted. |
+| PARTY-15 consistent invitation and attendance events | 6 scenarios | New requirement covers one event per committed transition and no event for denied/failed/no-op actions, while leaving delivery to Step 8. Accepted. |
 
-Q003 and Q010 have explicit proposed answers in the child but remain unresolved until apply. Q004 remains intentionally unresolved because the evidence does not establish age/capacity admission enforcement. Q014 remains with Step 11. G009/G017/G031-G033 preserve source, authorization, projection and client compatibility gaps. No application or runtime test was executed, and Group 6 was not started.
+D017 resolves Q003 and Q010. Q004 remains intentionally unresolved because the evidence does not establish age/capacity admission enforcement. Q014 remains with Step 11. G009/G017/G031-G033 preserve source, authorization, projection and client compatibility gaps. No application or runtime test was executed, and Group 6 was not started.
 
 ## Requirement and scenario index
 
-All entries in the index have intended status **Existing accepted main-spec requirement**. Foundation entries below remain the original evidence index; the Steps 2-4 addenda record integrated coverage and the Step 5 addendum records planning-only projections. Proposed PARTY-14/PARTY-15 are intentionally absent from this accepted index until apply. No entry is runtime verified. Decision and gap IDs refer to the separate registers and can evolve during later stages; requirement IDs here remain stable for handoffs.
+All entries in the index have intended status **Existing accepted main-spec requirement**. Foundation entries below remain the original evidence index; the Steps 2-5 addenda record integrated coverage. No entry is runtime verified. Decision and gap IDs refer to the separate registers and can evolve during later stages; requirement IDs here remain stable for handoffs.
 
 ### user-auth-and-identity
 
@@ -573,7 +573,7 @@ Scenarios (3):
 - Runbook owner: Step 4; cross-surface reuse 6, 7 and 10.
 - Source evidence: [E07](#e07), [E09](#e09), [party lifecycle review](party-lifecycle.md). Default list/detail paths use the viewer set; legacy query branches and viewer-dependent client reads remain inconsistent.
 - Test evidence: api/party.http contains private-party request examples; no comprehensive actor/query-branch denial suite was run.
-- Accepted decision references: [D007](decisions.md), [D016](decisions.md). Follow-up gaps: [G009](gaps.md), [G013](gaps.md), [G030](gaps.md); invitation-state boundary [Q003](decisions.md).
+- Accepted decision references: [D007](decisions.md), [D016](decisions.md), [D017](decisions.md). Follow-up gaps: [G009](gaps.md), [G013](gaps.md), [G030](gaps.md).
 
 Scenarios (7):
 
@@ -611,31 +611,44 @@ Scenarios (9):
 
 **[Private party invitees are enforced as mutual contacts](../../openspec/specs/party-discovery-and-management/spec.md#requirement-private-party-invitees-are-enforced-as-mutual-contacts)**
 
-- Platform scope: Shared domain: backend with browser/iOS consumers; detailed client scope remains to be made explicit by the owner stage.
+- Platform scope: Shared backend invitation contract with browser/iOS consumers; clients may expose different controls.
 - Runbook owner: Step 5; lifecycle input 4.
-- Source evidence: [E05](#e05), [E04](#e04). Private-invite creation/renewal exists; mutual-contact enforcement is not established by the inspected path.
-- Test evidence: No matching non-mutual rejection test confirmed; named success cases in PartyRepositoryTest are insufficient to claim this requirement covered. All execution remains unverified.
-- Accepted decision references: [D005](decisions.md). Follow-up gaps: [G017](gaps.md).
+- Source evidence: [E05](#e05), [E04](#e04), [invitation/attendance review](invitations-and-attendance.md), [access rows 2-5](access-matrix.md#access-matrix). Creation/renewal exists, but stored-host authority, mutual-contact enforcement, selection withdrawal and consistent duplicate behavior are not established by source.
+- Test evidence: No inspected test establishes stored-host management, non-mutual/self rejection, one logical invitation, duplicate accepted behavior or pending withdrawal. All execution remains unverified.
+- Accepted decision references: [D005](decisions.md), [D017](decisions.md). Follow-up gaps: [G017](gaps.md), [G031](gaps.md), [G033](gaps.md).
 
-Scenarios (2):
+Scenarios (8):
 
 - [Host invites mutual contact to private party](../../openspec/specs/party-discovery-and-management/spec.md#scenario-host-invites-mutual-contact-to-private-party)
 - [Host invites non-mutual user to private party](../../openspec/specs/party-discovery-and-management/spec.md#scenario-host-invites-non-mutual-user-to-private-party)
+- [Non-host attempts to manage an invitation](../../openspec/specs/party-discovery-and-management/spec.md#scenario-non-host-attempts-to-manage-an-invitation)
+- [Host attempts to invite themselves](../../openspec/specs/party-discovery-and-management/spec.md#scenario-host-attempts-to-invite-themselves)
+- [Invitation target is missing](../../openspec/specs/party-discovery-and-management/spec.md#scenario-invitation-target-is-missing)
+- [Host repeats a current invitation](../../openspec/specs/party-discovery-and-management/spec.md#scenario-host-repeats-a-current-invitation)
+- [Host renews a declined invitation](../../openspec/specs/party-discovery-and-management/spec.md#scenario-host-renews-a-declined-invitation)
+- [Host withdraws a pending invitation](../../openspec/specs/party-discovery-and-management/spec.md#scenario-host-withdraws-a-pending-invitation)
 
 #### PARTY-07
 
 **[Invitation acceptance happens through party attendance](../../openspec/specs/party-discovery-and-management/spec.md#requirement-invitation-acceptance-happens-through-party-attendance)**
 
-- Platform scope: Shared domain: backend with browser/iOS consumers; detailed client scope remains to be made explicit by the owner stage.
+- Platform scope: Shared backend attendance contract with browser/iOS consumers; exact transport remains Q014.
 - Runbook owner: Step 5.
-- Source evidence: [E05](#e05). Join and leave change an existing invitation to ACCEPTED/DECLINED respectively; access checks, duplicate actions and UI integration remain unverified.
-- Test evidence: Invitation tests are candidate references; no confirmed test for this precise attendance-linked scenario pair in the foundation review. All execution remains unverified.
-- Accepted decision references: [D006](decisions.md). Follow-up gaps: [G009](gaps.md), [G013](gaps.md).
+- Source evidence: [E05](#e05), [invitation/attendance review](invitations-and-attendance.md), [access rows 6-7 and 20-22](access-matrix.md#access-matrix). Join/leave change an existing invitation to ACCEPTED/DECLINED, but private eligibility, atomicity and repeated-action behavior conflict or remain incomplete.
+- Test evidence: No inspected test establishes private join denial, public join/leave success, complete join/leave atomicity or retry event deduplication. All execution remains unverified.
+- Accepted decision references: [D006](decisions.md), [D017](decisions.md). Follow-up gaps: [G009](gaps.md), [G013](gaps.md), [G031](gaps.md), [G033](gaps.md); admission remains [Q004](decisions.md).
 
-Scenarios (2):
+Scenarios (9):
 
 - [Invited user joins a party](../../openspec/specs/party-discovery-and-management/spec.md#scenario-invited-user-joins-a-party)
 - [Invited user leaves a previously accepted party](../../openspec/specs/party-discovery-and-management/spec.md#scenario-invited-user-leaves-a-previously-accepted-party)
+- [Authenticated user joins a public party](../../openspec/specs/party-discovery-and-management/spec.md#scenario-authenticated-user-joins-a-public-party)
+- [User without a pending invitation joins a private party](../../openspec/specs/party-discovery-and-management/spec.md#scenario-user-without-a-pending-invitation-joins-a-private-party)
+- [Recipient declines a pending invitation](../../openspec/specs/party-discovery-and-management/spec.md#scenario-recipient-declines-a-pending-invitation)
+- [Recipient accepts through an invitation action](../../openspec/specs/party-discovery-and-management/spec.md#scenario-recipient-accepts-through-an-invitation-action)
+- [User repeats an accepted join](../../openspec/specs/party-discovery-and-management/spec.md#scenario-user-repeats-an-accepted-join)
+- [User repeats an absent leave or decline](../../openspec/specs/party-discovery-and-management/spec.md#scenario-user-repeats-an-absent-leave-or-decline)
+- [Attendance transition targets a missing party](../../openspec/specs/party-discovery-and-management/spec.md#scenario-attendance-transition-targets-a-missing-party)
 
 #### PARTY-08
 
@@ -712,7 +725,7 @@ Scenarios (2):
 **[Party lifecycle data is validated atomically](../../openspec/specs/party-discovery-and-management/spec.md#requirement-party-lifecycle-data-is-validated-atomically)**
 
 - Platform scope: Backend lifecycle validation shared by browser and iOS clients; admission-time eligibility remains outside this requirement.
-- Runbook owner: Step 4; admission dependency 5 and exact error-schema dependency 11.
+- Runbook owner: Step 4; admission policy remains Q004 and exact error-schema dependency remains Step 11.
 - Source evidence: [E07](#e07), [party lifecycle review](party-lifecycle.md), [access rows 15/17](access-matrix.md#access-matrix). Existing validation is partial and mutation side-effect atomicity is not comprehensively established.
 - Test evidence: No grouped boundary, cross-field or atomic-side-effect test suite was run. Existing resource/repository tests do not establish the complete contract.
 - Accepted decision references: [D016](decisions.md). Follow-up gaps: [G013](gaps.md), [G029](gaps.md); unresolved admission and response details [Q004](decisions.md), [Q014](decisions.md).
@@ -747,6 +760,47 @@ Scenarios (5):
 - [Client edits only supported fields](../../openspec/specs/party-discovery-and-management/spec.md#scenario-client-edits-only-supported-fields)
 - [Client receives a lifecycle failure](../../openspec/specs/party-discovery-and-management/spec.md#scenario-client-receives-a-lifecycle-failure)
 - [One client exposes additional party controls](../../openspec/specs/party-discovery-and-management/spec.md#scenario-one-client-exposes-additional-party-controls)
+
+#### PARTY-14
+
+**[Invitation and attendance projections are actor-scoped](../../openspec/specs/party-discovery-and-management/spec.md#requirement-invitation-and-attendance-projections-are-actor-scoped)**
+
+- Platform scope: Backend projection authorization shared by browser/iOS consumers; bounded response fields and exact envelopes remain Step 11/Q014.
+- Runbook owner: Step 5; profile and location boundaries remain Steps 3 and 10.
+- Source evidence: [E05](#e05), [invitation/attendance review](invitations-and-attendance.md), [access rows 3-5 and 22-25](access-matrix.md#access-matrix). Caller-relative invitation lists/details partially align; join status omits visibility, invited identities/statistics are too broad, and statistics synthesize host acceptance.
+- Test evidence: No inspected test establishes pending/declined/withdrawn visibility, host-only invitation projections, viewer-safe joined/self projections or correct host-free statistics. All execution remains unverified.
+- Accepted decision references: [D007](decisions.md), [D017](decisions.md). Follow-up gaps: [G009](gaps.md), [G013](gaps.md), [G032](gaps.md), [G033](gaps.md); exact schema remains [Q014](decisions.md).
+
+Scenarios (9):
+
+- [Pending recipient requests a private party](../../openspec/specs/party-discovery-and-management/spec.md#scenario-pending-recipient-requests-a-private-party)
+- [Declined or withdrawn recipient requests a private party](../../openspec/specs/party-discovery-and-management/spec.md#scenario-declined-or-withdrawn-recipient-requests-a-private-party)
+- [Accepted attendee requests a private party](../../openspec/specs/party-discovery-and-management/spec.md#scenario-accepted-attendee-requests-a-private-party)
+- [User lists invitations](../../openspec/specs/party-discovery-and-management/spec.md#scenario-user-lists-invitations)
+- [User requests invitation details](../../openspec/specs/party-discovery-and-management/spec.md#scenario-user-requests-invitation-details)
+- [Host requests invitation roster or statistics](../../openspec/specs/party-discovery-and-management/spec.md#scenario-host-requests-invitation-roster-or-statistics)
+- [Party viewer requests joined-member or own-attendance projection](../../openspec/specs/party-discovery-and-management/spec.md#scenario-party-viewer-requests-joined-member-or-own-attendance-projection)
+- [Non-host requests host-only invitation projection](../../openspec/specs/party-discovery-and-management/spec.md#scenario-non-host-requests-host-only-invitation-projection)
+- [Host opens invitation statistics](../../openspec/specs/party-discovery-and-management/spec.md#scenario-host-opens-invitation-statistics)
+
+#### PARTY-15
+
+**[Invitation and attendance transitions publish consistent domain events](../../openspec/specs/party-discovery-and-management/spec.md#requirement-invitation-and-attendance-transitions-publish-consistent-domain-events)**
+
+- Platform scope: Backend domain-event inputs consumed by later notification processing; channels, preferences, delivery, retry and cleanup remain Step 8.
+- Runbook owner: Step 5; delivery dependency 8.
+- Source evidence: [E05](#e05), [E06](#e06), [invitation/attendance review](invitations-and-attendance.md). Repositories create some invitation/attendance notifications, but event origin, recipient and no-op deduplication differ by entry path.
+- Test evidence: Existing invitation tests assert selected notification counts only; no inspected suite establishes one event per committed transition or zero events for denied/failed/no-op actions. All execution remains unverified.
+- Accepted decision references: [D012](decisions.md), [D017](decisions.md). Follow-up gaps: [G013](gaps.md), [G031](gaps.md); delivery policy remains [Q007](decisions.md).
+
+Scenarios (6):
+
+- [Host issues or renews an invitation](../../openspec/specs/party-discovery-and-management/spec.md#scenario-host-issues-or-renews-an-invitation)
+- [Host withdraws a pending invitation](../../openspec/specs/party-discovery-and-management/spec.md#scenario-host-withdraws-a-pending-invitation-1)
+- [Recipient accepts or joins](../../openspec/specs/party-discovery-and-management/spec.md#scenario-recipient-accepts-or-joins)
+- [Recipient declines an invitation](../../openspec/specs/party-discovery-and-management/spec.md#scenario-recipient-declines-an-invitation)
+- [Attendee leaves a party](../../openspec/specs/party-discovery-and-management/spec.md#scenario-attendee-leaves-a-party)
+- [Transition is denied or has no state change](../../openspec/specs/party-discovery-and-management/spec.md#scenario-transition-is-denied-or-has-no-state-change)
 
 ### party-media-gallery
 
@@ -959,6 +1013,6 @@ Scenarios (3):
 
 ## Coverage outside the existing baseline
 
-The 40 requirements do not by themselves specify every discovered surface. Profile editing/pictures, notification settings and delivery, QR login, extended location/calendar features, API validation/error contracts, storage and deployment details remain assigned in [inventory.md](inventory.md) and [runbook.md](runbook.md), with scope/contract gaps in [gaps.md](gaps.md). They have **no implied normative coverage** from a similarly named requirement. Steps 3–11 add or reconcile coverage through bounded domain changes; Step 12 checks complete inventory-to-requirement-to-scenario traceability.
+The 46 requirements do not by themselves specify every discovered surface. Profile pictures, notification settings and delivery, QR login, extended location/calendar features, API validation/error contracts, storage and deployment details remain assigned in [inventory.md](inventory.md) and [runbook.md](runbook.md), with scope/contract gaps in [gaps.md](gaps.md). They have **no implied normative coverage** from a similarly named requirement. Steps 6–11 add or reconcile coverage through bounded domain changes; Step 12 checks complete inventory-to-requirement-to-scenario traceability.
 
 Future domain updates should retain these identifiers or record a clear replacement mapping, add accepted requirement/scenario links after integration, state the exact observed implementation status, and identify the assertions and execution results supporting each coverage claim. Do not mark a domain complete solely because a proposal or test file exists.

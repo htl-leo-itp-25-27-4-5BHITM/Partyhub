@@ -62,10 +62,10 @@ Java paths below start at `src/main/java/at/htl/`; browser paths at `src/main/re
 
 ## G009 Private access checks are missing on several source paths
 
-- **Expected:** D007 and D009 establish private-party access and gallery-viewer boundaries; D008 has profile-specific wording. The unapplied Group 5 child proposes that only pending invitations and current joined membership qualify within its invitation/attendance scope.
+- **Expected:** D007/D017 and PARTY-14 establish private-party access and invitation/attendance viewer boundaries: pending invitations and current joined membership qualify, while declined/withdrawn invitations do not. D008 has profile-specific wording and D009 establishes gallery-viewer boundaries.
 - **Observed:** Step 2 traced [access rows 14,20-29,55-57](access-matrix.md#access-matrix). Legacy title/theme/date filters and sorting (`PartyRepository:411-445`) omit the visibility predicate used by default/new-filter paths. `attendParty:566` and `attendStatus:643` do not check visibility. Party media/location and user-media reads have no caller-based predicates. User-location update looks up an independently generated location entity ID using the caller user ID without checking its linked user (`UserResource:406`, `UserLocation`), so same-user ownership cannot be assumed from caller resolution alone.
-- **Disposition:** Missing checks confirmed in inspected source paths; runtime responses, data population and exploitability not exercised. D016/PARTY-04 require branch-consistent party list/detail visibility. Group 5 proposes private join/status/projection rules but is not yet applied; media and location remain later owners. Location retained/privacy policy still Q002/Q006. **Priority:** high. **Owner:** bounded list/detail and Group 5 implementation, then Steps 6-7 and 10 owners.
-- **Next action:** Apply/review the Group 5 child before implementing pending-invitation private join and projection checks. Preserve D007/D009/D016 while later groups specify admission, viewer uploads and location consent.
+- **Disposition:** Missing checks confirmed in inspected source paths; runtime responses, data population and exploitability not exercised. D016/PARTY-04 require branch-consistent party list/detail visibility, and D017/PARTY-07/PARTY-14 now require private join/status/projection checks. Media and location remain later owners. Location retained/privacy policy still Q002/Q006. **Priority:** high. **Owner:** bounded list/detail and invitation/attendance implementation, then Steps 6-7 and 10 owners.
+- **Next action:** Implement pending-invitation private join and actor-scoped projection checks in a separate application change. Preserve D007/D009/D016/D017 while later groups specify admission, viewer uploads and location consent.
 
 ## G010 Map requirements have implicit platform scope
 
@@ -118,10 +118,10 @@ Java paths below start at `src/main/java/at/htl/`; browser paths at `src/main/re
 
 ## G017 Mutual-contact enforcement is not evident in private-party invite creation
 
-- **Expected:** D005 requires the backend to reject private invites for non-mutual users. The unapplied Group 5 child proposes stored-host authority and eligibility re-evaluation for issue/renew through every invitation path.
+- **Expected:** D005/D017 and PARTY-06 require stored-host authority and current mutual-contact eligibility for private issue/renew through every invitation path.
 - **Observed:** `party/PartyRepository.java:204` creates/renews selected private invitations without accepted mutual-follow checks. `InvitationRepository.invite:35-90` checks party/recipient existence and duplicate status, but not stored-host identity, party visibility or mutual contact. Caller-as-sender is not proof of host authority. Browser selection computes a mutual-contact intersection, while iOS loads only following users.
-- **Disposition:** Missing mutual/host checks and inconsistent client eligibility confirmed in inspected paths; not a runtime reproduction. Q010's proposed authority answer remains unaccepted until child apply. **Priority:** high. **Owner:** Group 5 bounded implementation, with Step 3 relationship definitions.
-- **Next action:** After the Group 5 child is applied, enforce stored-host and current mutual-contact checks for both party-selected and direct invitations, with non-mutual, self and unauthorized rejection tests.
+- **Disposition:** Missing mutual/host checks and inconsistent client eligibility confirmed against accepted D017/PARTY-06; not a runtime reproduction. **Priority:** high. **Owner:** bounded invitation implementation, with Step 3 relationship definitions.
+- **Next action:** Enforce stored-host and current mutual-contact checks for both party-selected and direct invitations, with non-mutual, self and unauthorized rejection tests.
 
 ## G018 Local realm bootstrap and documented demo credentials diverge
 
@@ -216,21 +216,21 @@ Java paths below start at `src/main/java/at/htl/`; browser paths at `src/main/re
 
 ## G031 Invitation and attendance paths disagree on authority, state and retry behavior
 
-- **Expected:** D005-D007 and the unapplied Group 5 child describe one stored-host-managed invitation per party/recipient and one atomic attendance transition, with current-state retries as no-ops and denied transitions leaving all state/events unchanged.
+- **Expected:** D005-D007/D017 and PARTY-06/PARTY-07/PARTY-15 require one stored-host-managed invitation per party/recipient and one atomic attendance transition, with current-state retries as no-ops and denied transitions leaving all state/events unchanged.
 - **Observed:** Direct invitations accept any authenticated sender; `selectedUsers` creates/renews without removing deselected rows; invitation accept/decline and party join/leave use separate repository paths; private join accepts any authenticated user; sender deletion removes the invitation while recipient deletion declines it; repeated join is a no-op but repeated leave reports missing state. Event creation and deduplication differ by entry path.
-- **Disposition:** Cross-path state/authorization mismatch and proposal implementation gap; no runtime transition was exercised. **Priority:** high. **Owner:** Group 5 bounded backend change; exact route/status behavior Step 11/Q014.
-- **Next action:** After child apply, implement one transactional invitation/attendance state machine and test host/recipient authority, selection removal, renewal, accept/join equivalence, decline/leave, retries and event deduplication.
+- **Disposition:** Cross-path state/authorization mismatch against accepted Group 5 requirements; no runtime transition was exercised. **Priority:** high. **Owner:** bounded invitation/attendance backend change; exact route/status behavior Step 11/Q014.
+- **Next action:** Implement one transactional invitation/attendance state machine and test host/recipient authority, selection removal, renewal, accept/join equivalence, decline/leave, retries and event deduplication.
 
 ## G032 Invitation and attendance projections are too broad or internally inconsistent
 
-- **Expected:** The unapplied Group 5 child proposes self-scoped invitation lists/details, host-only invited identities/statuses/statistics, and bounded joined/own-status projections for authenticated party viewers.
+- **Expected:** D017/PARTY-14 require self-scoped invitation lists/details, host-only invited identities/statuses/statistics, and bounded joined/own-status projections for authenticated party viewers.
 - **Observed:** Join status checks party existence but not private visibility. Invited members and invitation statistics are exposed to every authenticated party viewer. Statistics add the host to the accepted count despite no host invitation. Joined-member projection uses the general viewer predicate but response minimization was not runtime verified.
-- **Disposition:** Projection authorization/counting mismatch against the proposed contract; not yet an accepted main-spec violation until child apply. **Priority:** high. **Owner:** Group 5 bounded backend/API work.
-- **Next action:** Apply the child, then enforce actor-specific projection checks and derive statistics only from logical invitation rows, with host/viewer/unrelated-user response tests.
+- **Disposition:** Projection authorization/counting mismatch against the accepted contract. **Priority:** high. **Owner:** bounded invitation/attendance backend/API work.
+- **Next action:** Enforce actor-specific projection checks and derive statistics only from logical invitation rows, with host/viewer/unrelated-user response tests.
 
 ## G033 Browser and iOS invitation payloads and state models disagree with the backend
 
 - **Expected:** Supported clients represent the same server-owned invitation/attendance state; platform-specific controls may differ, while exact wire migration remains Q014.
 - **Observed:** iOS invitation list decoding expects nested snake-case data while the backend list DTO is flat/camel-case; the invite sheet posts `party_id` where the backend DTO expects `partyId`, loads following rather than mutual contacts, and updates invited state locally. Browser selection uses plain fetch and retains old invitees. An iOS notification helper still references singular party/attendee routes.
-- **Disposition:** Cross-client schema, eligibility and synchronization mismatch; active runtime reachability and failures were not exercised. **Priority:** medium. **Owner:** Group 5 client reconciliation with Step 11/Q014 wire decisions; singular routes also G006.
+- **Disposition:** Cross-client schema, eligibility and synchronization mismatch; active runtime reachability and failures were not exercised. **Priority:** medium. **Owner:** bounded invitation client reconciliation with Step 11/Q014 wire decisions; singular routes also G006.
 - **Next action:** After the domain contract is accepted and Q014 selects wire compatibility, align client DTOs/actions with the shared server state and add decode/request/refresh tests without requiring UI parity.

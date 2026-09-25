@@ -10,7 +10,7 @@ Step 3 source review began 2026-09-23 and integration completed 2026-09-25, with
 
 Step 4 source review and integration completed 2026-09-25 with application source still unchanged: [party-lifecycle.md](party-lifecycle.md) maps CRUD actors, lifecycle fields/validation, client routes/payloads and test evidence. The bounded `document-party-lifecycle` child is integrated into the main party spec; G003/G006/G009 and G029-G030 retain implementation discrepancies.
 
-Step 5 source review and proposal planning completed 2026-09-25 with application source still unchanged: [invitations-and-attendance.md](invitations-and-attendance.md) maps invitation selection/management, attendance transitions, projection audiences, events and tests. The bounded `document-invitations-and-attendance` child is planning-complete but unapplied; G009/G017/G031-G033 retain source and client discrepancies.
+Step 5 source review and integration completed 2026-09-25 with application source still unchanged: [invitations-and-attendance.md](invitations-and-attendance.md) maps invitation selection/management, attendance transitions, projection audiences, events and tests. The bounded `document-invitations-and-attendance` child is integrated into the main party spec; G009/G017/G031-G033 retain source and client discrepancies.
 
 ## Capability register and platform scope
 
@@ -19,7 +19,7 @@ Step 5 source review and proposal planning completed 2026-09-25 with application
 | CAP-AUTH | `user-auth-and-identity`; browser/native identity and public bootstrap | Backend, browser, iOS, Keycloak | 2 | AUTH-01-AUTH-12 accepted; bypass and native source mismatches remain G002/G019-G023. |
 | CAP-SOCIAL | `social-and-notifications`; profile editing/discovery | Backend, browser, iOS | 3 | SOC-01-SOC-06 accepted; bounded field/audience and directed follow lifecycle integrated, with G024/G026-G028 retained. |
 | CAP-PARTY | `party-discovery-and-management`; host lifecycle | Backend, browser, iOS | 4 | PARTY-03-PARTY-05/PARTY-12-PARTY-13 accepted and integrated; G003/G006/G009/G029-G030 retained. |
-| CAP-ATTENDANCE | Invitation and attendance rules within party/social capabilities | Backend, browser, iOS | 5 | Evidence review complete; child proposal defines edge transitions, projections and event inputs but remains unapplied. G009/G017/G031-G033 retain implementation/client gaps. |
+| CAP-ATTENDANCE | Invitation and attendance rules within party/social capabilities | Backend, browser, iOS | 5 | PARTY-06/PARTY-07/PARTY-14/PARTY-15 accepted and integrated; G009/G017/G031-G033 retain implementation/client gaps. |
 | CAP-DISCOVERY | `party-discovery-and-management`; queries and map filters | Backend, browser, iOS | 6 | Shared visibility; later filter requirements have iOS provenance. |
 | CAP-RADIUS | `map-radius-control` | iOS | 6 | Existing requirements; Purpose placeholder tracked separately for Step 12. |
 | CAP-MEDIA | `party-media-gallery`; profile-picture and storage lifecycle | Backend, browser, iOS, filesystem | 7 | Existing gallery intent; platform support and profile-picture contract partial. |
@@ -41,7 +41,7 @@ CAP IDs are inventory labels, not new OpenSpec capability names. Every endpoint/
 | Keycloak subject | External identity linked through the PartyHub user's Keycloak ID (D003). |
 | Follow request | A directed request that becomes an accepted one-way follow (D004). |
 | Mutual contact | Two users with accepted follows in both directions (D004-D005). |
-| Invitee | A party invitation recipient; detailed revocation/decline visibility remains Q003. |
+| Invitee | A party invitation recipient; D017/PARTY-14 make pending invitations current visibility grants, while declined/withdrawn invitations do not qualify without another role. |
 | Attendee / joined user | A user linked to party membership; joining/attendance accepts an invitation when applicable (D006). |
 | Visible party | Public party, or a private party available under host/invitee/joined-user rules (D007); profile lists have D008 wording. |
 | Gallery viewer | User with party access; upload target is D009, with anonymous/public-viewer identity unresolved in Q005. |
