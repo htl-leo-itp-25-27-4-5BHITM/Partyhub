@@ -30,7 +30,7 @@ For every domain completion item below, record the change name and its strict va
 - [x] 4.1 Capture create/read/update/delete ownership and visibility contracts; verify host, invitee, attendee, unrelated-user and anonymous cases are represented and the observed update-ownership gap is recorded separately.
 - [x] 4.2 Document party DTO/model fields, location/theme/time/fee/age/capacity constraints and validation failures; verify stored metadata is distinguished from enforced admission rules and unsupported assumptions have decision IDs.
 - [x] 4.3 Compare browser/iOS party methods, routes and payloads with backend resource contracts; verify stale singular routes or wrong methods are recorded with exact call-site evidence and bounded remediation scope.
-- [ ] 4.4 Complete the party-lifecycle specification update and handoff; verify accepted requirements are integrated into `party-discovery-and-management` and the evidence/access matrix reflects the final contract.
+- [x] 4.4 Complete the party-lifecycle specification update and handoff; verify accepted requirements are integrated into `party-discovery-and-management` and the evidence/access matrix reflects the final contract.
 
 ## 5. Invitations and attendance
 

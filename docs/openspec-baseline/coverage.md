@@ -2,7 +2,7 @@
 
 Foundation snapshot: repository revision `9487ccb90bb438e24b3cfab547a5dc900b11aecb`, inspected 2026-09-21. See [runbook](runbook.md), [inventory](inventory.md), [decisions](decisions.md), [gaps](gaps.md) and [handoff](handoff.md).
 
-The foundation snapshot indexed **37 accepted requirements and 106 scenarios** in the six durable specifications. After the accepted Step 2 identity and Step 3 profiles/social integrations, the current main specs contain **42 accepted requirements and 145 scenarios**. Acceptance records normative coverage; it does not assert implementation compliance, complete product scope or completion of Steps 4–12. Requirement titles and scenario labels below reproduce the current main specs exactly.
+The foundation snapshot indexed **37 accepted requirements and 106 scenarios** in the six durable specifications. After the accepted Steps 2-4 integrations, the current main specs contain **44 accepted requirements and 172 scenarios**. Acceptance records normative coverage; it does not assert implementation compliance, complete product scope or completion of Steps 5-12. Requirement titles and scenario labels below reproduce the current main specs exactly.
 
 Platform scope below is a foundation classification grounded in the requirement text, archive context and source entry points. Where existing wording is ambiguous, its owner stage must reconcile it. In particular, browser auth does not establish the iOS auth contract, and iOS map controls are not automatically browser requirements.
 
@@ -12,11 +12,11 @@ Platform scope below is a foundation classification grounded in the requirement 
 |---|---:|---:|---|
 | [user-auth-and-identity](../../openspec/specs/user-auth-and-identity/spec.md) | 12 | 43 | 2 |
 | [social-and-notifications](../../openspec/specs/social-and-notifications/spec.md) | 6 | 35 | 3, 5, 8 |
-| [party-discovery-and-management](../../openspec/specs/party-discovery-and-management/spec.md) | 11 | 33 | 4–6 |
+| [party-discovery-and-management](../../openspec/specs/party-discovery-and-management/spec.md) | 13 | 60 | 4–6 |
 | [party-media-gallery](../../openspec/specs/party-media-gallery/spec.md) | 3 | 5 | 7 |
 | [map-radius-control](../../openspec/specs/map-radius-control/spec.md) | 3 | 7 | 6 (Purpose repair 12) |
 | [local-keycloak-environment](../../openspec/specs/local-keycloak-environment/spec.md) | 7 | 22 | 11 |
-| **Total** | **42** | **145** | **All assigned** |
+| **Total** | **44** | **172** | **All assigned** |
 
 ## Source and test evidence groups
 
@@ -153,7 +153,7 @@ The child change passes strict validation and is integrated into the main identi
 
 Reviewed 2026-09-23 and integrated 2026-09-25 from the unchanged application-source snapshot. [Profiles and social evidence](profiles-and-social.md) maps profile fields, client scope, profile-party visibility and the complete directed follow transition table. The bounded child [proposal](../../openspec/changes/document-profiles-and-social-relationships/proposal.md), [design](../../openspec/changes/document-profiles-and-social-relationships/design.md), [delta](../../openspec/changes/document-profiles-and-social-relationships/specs/social-and-notifications/spec.md) and [tasks](../../openspec/changes/document-profiles-and-social-relationships/tasks.md) define and verify the integrated scope.
 
-The child delta is synced into the main spec. The accepted baseline is now **42 requirements/145 scenarios**, with `social-and-notifications` at **6/35**.
+The child delta is synced into the main spec. At the Step 3 checkpoint, the accepted baseline contained **42 requirements/145 scenarios**, with `social-and-notifications` at **6/35**.
 
 | Stable mapping | Accepted coverage after integration | Disposition |
 |---|---:|---|
@@ -168,23 +168,23 @@ Q009 is resolved for normative profile/social access and fields by SOC-01/SOC-04
 
 ## Step 4 party lifecycle review
 
-Reviewed 2026-09-25 from the unchanged application-source snapshot. [Party lifecycle evidence](party-lifecycle.md) maps CRUD actors, fields and validation, browser/iOS routes and payloads, and the inspected test assertions. The bounded child [proposal](../../openspec/changes/document-party-lifecycle/proposal.md), [design](../../openspec/changes/document-party-lifecycle/design.md), [delta](../../openspec/changes/document-party-lifecycle/specs/party-discovery-and-management/spec.md) and [tasks](../../openspec/changes/document-party-lifecycle/tasks.md) are planning-complete and pass strict validation.
+Reviewed and integrated 2026-09-25 from the unchanged application-source snapshot. [Party lifecycle evidence](party-lifecycle.md) maps CRUD actors, fields and validation, browser/iOS routes and payloads, and the inspected test assertions. The bounded child [proposal](../../openspec/changes/document-party-lifecycle/proposal.md), [design](../../openspec/changes/document-party-lifecycle/design.md), [delta](../../openspec/changes/document-party-lifecycle/specs/party-discovery-and-management/spec.md) and [tasks](../../openspec/changes/document-party-lifecycle/tasks.md) define and verify the integrated scope.
 
-The child has not been applied or synced. The accepted baseline therefore remains **42 requirements/145 scenarios**, with `party-discovery-and-management` at **11/33**. If accepted in a later apply task, the complete delta projects the party spec at **13/60** and the full baseline at **44/172**.
+The child delta is synced into the main spec. The accepted baseline is now **44 requirements/172 scenarios**, with `party-discovery-and-management` at **13/60**.
 
-| Stable mapping | Proposed full coverage after integration | Disposition at this checkpoint |
+| Stable mapping | Accepted coverage after integration | Disposition |
 |---|---:|---|
-| PARTY-03 party detail context | 3 scenarios | Full modified block preserves both original scenarios and adds absent optional-field handling. Proposed only. |
-| PARTY-04 private visibility | 7 scenarios | Full modified block preserves non-invited denial and adds anonymous/public, host, invitee, attendee and query-branch consistency cases. Proposed only. |
-| PARTY-05 host management | 9 scenarios | Full modified block preserves the original four scenarios and adds authenticated actor, immutable host, denial and missing-party behavior. Proposed only. |
-| Proposed PARTY-12 atomic lifecycle validation | 10 scenarios | New requirement covers required fields, exact bounded values, cross-field rules, visibility default/rejection, metadata scope and all-or-nothing failures. Proposed only. |
-| Proposed PARTY-13 shared lifecycle client contract | 5 scenarios | New requirement covers plural CRUD routes, bearer identity, field preservation, server-consistent failure and non-parity scope. Proposed only. |
+| PARTY-03 party detail context | 3 scenarios | Full modified block preserves both original scenarios and adds absent optional-field handling. Accepted. |
+| PARTY-04 private visibility | 7 scenarios | Full modified block preserves non-invited denial and adds anonymous/public, host, invitee, attendee and query-branch consistency cases. Accepted. |
+| PARTY-05 host management | 9 scenarios | Full modified block preserves the original four scenarios and adds authenticated actor, immutable host, denial and missing-party behavior. Accepted. |
+| PARTY-12 atomic lifecycle validation | 10 scenarios | New requirement covers required fields, exact bounded values, cross-field rules, visibility default/rejection, metadata scope and all-or-nothing failures. Accepted. |
+| PARTY-13 shared lifecycle client contract | 5 scenarios | New requirement covers plural CRUD routes, bearer identity, field preservation, server-consistent failure and non-parity scope. Accepted. |
 
-Q003, Q004, Q010 and Q014 retain invitation status, admission enforcement, supplementary exposure and exact wire-contract ownership. G003/G006/G009/G029-G030 preserve authorization, query visibility, validation, route and client-payload mismatches. No application or runtime test was executed.
+Q003, Q004, Q010 and Q014 retain invitation status, admission enforcement, supplementary exposure and exact wire-contract ownership. D016 records the accepted Group 4 rules. G003/G006/G009/G029-G030 preserve authorization, query visibility, validation, route and client-payload mismatches. No application or runtime test was executed.
 
 ## Requirement and scenario index
 
-All entries in the index have intended status **Existing accepted main-spec requirement**. Foundation entries below remain the original evidence index; the Step 2 and Step 3 addenda record integrated coverage, while the Step 4 addendum explicitly separates proposed coverage. No entry is runtime verified. Decision and gap IDs refer to the separate registers and can evolve during later stages; requirement IDs here remain stable for handoffs.
+All entries in the index have intended status **Existing accepted main-spec requirement**. Foundation entries below remain the original evidence index; the Steps 2-4 addenda record integrated coverage. No entry is runtime verified. Decision and gap IDs refer to the separate registers and can evolve during later stages; requirement IDs here remain stable for handoffs.
 
 ### user-auth-and-identity
 
@@ -538,16 +538,17 @@ Scenarios (2):
 
 **[Party details expose the selected party context](../../openspec/specs/party-discovery-and-management/spec.md#requirement-party-details-expose-the-selected-party-context)**
 
-- Platform scope: Shared domain: backend with browser/iOS consumers; detailed client scope remains to be made explicit by the owner stage.
+- Platform scope: Shared party-detail contract for backend with browser/iOS consumers; optional fields remain optional and must not be invented by clients.
 - Runbook owner: Step 4; navigation reuse 6.
-- Source evidence: [E07](#e07). Detail route and both clients' detail entry points exist; metadata completeness and access/error states are unverified.
-- Test evidence: Party resource/repository test files are candidates; no matching map-to-detail navigation or full metadata UI test identified. All execution remains unverified.
-- Accepted decision references: [D007](decisions.md). Follow-up gaps: [G009](gaps.md), [G013](gaps.md).
+- Source evidence: [E07](#e07), [party lifecycle review](party-lifecycle.md). Detail routes and both clients' detail entry points exist; field absence and client preservation are not implemented consistently.
+- Test evidence: Party resource/repository tests do not cover map-to-detail navigation, complete lifecycle metadata, optional-field absence or client preservation. All execution remains unverified.
+- Accepted decision references: [D007](decisions.md), [D016](decisions.md). Follow-up gaps: [G009](gaps.md), [G013](gaps.md), [G030](gaps.md).
 
-Scenarios (2):
+Scenarios (3):
 
 - [User opens party details from the map](../../openspec/specs/party-discovery-and-management/spec.md#scenario-user-opens-party-details-from-the-map)
 - [Party detail metadata is shown](../../openspec/specs/party-discovery-and-management/spec.md#scenario-party-detail-metadata-is-shown)
+- [Party detail field is absent](../../openspec/specs/party-discovery-and-management/spec.md#scenario-party-detail-field-is-absent)
 
 #### PARTY-04
 
@@ -555,30 +556,41 @@ Scenarios (2):
 
 - Platform scope: Backend visibility contract shared by browser/iOS and direct API callers.
 - Runbook owner: Step 4; cross-surface reuse 6, 7 and 10.
-- Source evidence: [E07](#e07), [E09](#e09). Detail route calls visibility-aware lookup; media/location/filter/profile paths need separate review and cannot inherit a compliance claim.
-- Test evidence: api/party.http contains private-party request examples; no evidence of executed or comprehensive cross-surface denial tests. All execution remains unverified.
-- Accepted decision references: [D007](decisions.md). Follow-up gaps: [G009](gaps.md), [G013](gaps.md).
+- Source evidence: [E07](#e07), [E09](#e09), [party lifecycle review](party-lifecycle.md). Default list/detail paths use the viewer set; legacy query branches and viewer-dependent client reads remain inconsistent.
+- Test evidence: api/party.http contains private-party request examples; no comprehensive actor/query-branch denial suite was run.
+- Accepted decision references: [D007](decisions.md), [D016](decisions.md). Follow-up gaps: [G009](gaps.md), [G013](gaps.md), [G030](gaps.md); invitation-state boundary [Q003](decisions.md).
 
-Scenarios (1):
+Scenarios (7):
 
+- [Anonymous user requests a public party](../../openspec/specs/party-discovery-and-management/spec.md#scenario-anonymous-user-requests-a-public-party)
+- [Anonymous user requests a private party](../../openspec/specs/party-discovery-and-management/spec.md#scenario-anonymous-user-requests-a-private-party)
+- [Host requests a private party](../../openspec/specs/party-discovery-and-management/spec.md#scenario-host-requests-a-private-party)
+- [Invited user requests a private party](../../openspec/specs/party-discovery-and-management/spec.md#scenario-invited-user-requests-a-private-party)
+- [Joined user requests a private party](../../openspec/specs/party-discovery-and-management/spec.md#scenario-joined-user-requests-a-private-party)
 - [Non-invited user requests a private party](../../openspec/specs/party-discovery-and-management/spec.md#scenario-non-invited-user-requests-a-private-party)
+- [Alternate list branch is used](../../openspec/specs/party-discovery-and-management/spec.md#scenario-alternate-list-branch-is-used)
 
 #### PARTY-05
 
 **[Users can create and manage parties](../../openspec/specs/party-discovery-and-management/spec.md#requirement-users-can-create-and-manage-parties)**
 
-- Platform scope: Shared domain: backend with browser/iOS consumers; detailed client scope remains to be made explicit by the owner stage.
+- Platform scope: Shared backend lifecycle contract with browser/iOS consumers; client operation details continue in PARTY-13.
 - Runbook owner: Step 4; cancellation notification dependency 8.
-- Source evidence: [E07](#e07). Create/update/delete code exists; inspected update path replaces host without first checking ownership, conflicting with accepted host-only management.
-- Test evidence: E07 owner/non-owner deletion assertions are relevant only to deletion; they do not cover update ownership, every field or cancellation recipients. All execution remains unverified.
-- Accepted decision references: [D007](decisions.md). Follow-up gaps: [G003](gaps.md), [G006](gaps.md), [G013](gaps.md).
+- Source evidence: [E07](#e07), [party lifecycle review](party-lifecycle.md), [access rows 15/17/18](access-matrix.md#access-matrix). Create derives the caller as host and delete checks ownership; update still permits takeover in source.
+- Test evidence: Owner/non-owner deletion and anonymous mutation assertions do not cover non-host update denial, immutable ownership, every lifecycle field or cancellation recipients. All execution remains unverified.
+- Accepted decision references: [D001](decisions.md), [D007](decisions.md), [D016](decisions.md). Follow-up gaps: [G003](gaps.md), [G006](gaps.md), [G013](gaps.md), [G029](gaps.md), [G030](gaps.md).
 
-Scenarios (4):
+Scenarios (9):
 
 - [Host creates a party](../../openspec/specs/party-discovery-and-management/spec.md#scenario-host-creates-a-party)
+- [Create payload supplies another host](../../openspec/specs/party-discovery-and-management/spec.md#scenario-create-payload-supplies-another-host)
+- [Anonymous user attempts to create a party](../../openspec/specs/party-discovery-and-management/spec.md#scenario-anonymous-user-attempts-to-create-a-party)
 - [Host submits party attributes](../../openspec/specs/party-discovery-and-management/spec.md#scenario-host-submits-party-attributes)
 - [Host edits a party](../../openspec/specs/party-discovery-and-management/spec.md#scenario-host-edits-a-party)
+- [Non-host attempts to edit a party](../../openspec/specs/party-discovery-and-management/spec.md#scenario-non-host-attempts-to-edit-a-party)
 - [Host deletes a party](../../openspec/specs/party-discovery-and-management/spec.md#scenario-host-deletes-a-party)
+- [Non-host attempts to delete a party](../../openspec/specs/party-discovery-and-management/spec.md#scenario-non-host-attempts-to-delete-a-party)
+- [Lifecycle mutation targets a missing party](../../openspec/specs/party-discovery-and-management/spec.md#scenario-lifecycle-mutation-targets-a-missing-party)
 
 #### PARTY-06
 
@@ -679,6 +691,47 @@ Scenarios (2):
 
 - [Party has theme metadata](../../openspec/specs/party-discovery-and-management/spec.md#scenario-party-has-theme-metadata)
 - [Party lacks theme metadata](../../openspec/specs/party-discovery-and-management/spec.md#scenario-party-lacks-theme-metadata)
+
+#### PARTY-12
+
+**[Party lifecycle data is validated atomically](../../openspec/specs/party-discovery-and-management/spec.md#requirement-party-lifecycle-data-is-validated-atomically)**
+
+- Platform scope: Backend lifecycle validation shared by browser and iOS clients; admission-time eligibility remains outside this requirement.
+- Runbook owner: Step 4; admission dependency 5 and exact error-schema dependency 11.
+- Source evidence: [E07](#e07), [party lifecycle review](party-lifecycle.md), [access rows 15/17](access-matrix.md#access-matrix). Existing validation is partial and mutation side-effect atomicity is not comprehensively established.
+- Test evidence: No grouped boundary, cross-field or atomic-side-effect test suite was run. Existing resource/repository tests do not establish the complete contract.
+- Accepted decision references: [D016](decisions.md). Follow-up gaps: [G013](gaps.md), [G029](gaps.md); unresolved admission and response details [Q004](decisions.md), [Q014](decisions.md).
+
+Scenarios (10):
+
+- [Required create data is missing](../../openspec/specs/party-discovery-and-management/spec.md#scenario-required-create-data-is-missing)
+- [Title is invalid](../../openspec/specs/party-discovery-and-management/spec.md#scenario-title-is-invalid)
+- [Optional text exceeds its boundary](../../openspec/specs/party-discovery-and-management/spec.md#scenario-optional-text-exceeds-its-boundary)
+- [Time range is invalid](../../openspec/specs/party-discovery-and-management/spec.md#scenario-time-range-is-invalid)
+- [Location coordinates are incomplete or outside valid ranges](../../openspec/specs/party-discovery-and-management/spec.md#scenario-location-coordinates-are-incomplete-or-outside-valid-ranges)
+- [Fee or capacity is outside its accepted range](../../openspec/specs/party-discovery-and-management/spec.md#scenario-fee-or-capacity-is-outside-its-accepted-range)
+- [Age metadata is invalid](../../openspec/specs/party-discovery-and-management/spec.md#scenario-age-metadata-is-invalid)
+- [Visibility is omitted or unsupported](../../openspec/specs/party-discovery-and-management/spec.md#scenario-visibility-is-omitted-or-unsupported)
+- [Age and capacity metadata is stored](../../openspec/specs/party-discovery-and-management/spec.md#scenario-age-and-capacity-metadata-is-stored)
+- [Validation fails during update](../../openspec/specs/party-discovery-and-management/spec.md#scenario-validation-fails-during-update)
+
+#### PARTY-13
+
+**[Browser and iOS clients honor the shared party lifecycle contract](../../openspec/specs/party-discovery-and-management/spec.md#requirement-browser-and-ios-clients-honor-the-shared-party-lifecycle-contract)**
+
+- Platform scope: Shared browser/iOS API behavior; this requirement does not impose UI feature parity.
+- Runbook owner: Step 4; API compatibility dependency 11 and discovery/invitation dependencies 6/5.
+- Source evidence: [E07](#e07), [party lifecycle review](party-lifecycle.md). Canonical backend routes exist, while active and legacy client helpers still contain viewer-identity, method, path and field-preservation discrepancies.
+- Test evidence: No cross-client canonical-route, bearer-identity, field-preservation or failure-consistency tests were run.
+- Accepted decision references: [D001](decisions.md), [D016](decisions.md). Follow-up gaps: [G006](gaps.md), [G013](gaps.md), [G030](gaps.md); exact schema and migration work remains [Q014](decisions.md).
+
+Scenarios (5):
+
+- [Client performs a canonical lifecycle request](../../openspec/specs/party-discovery-and-management/spec.md#scenario-client-performs-a-canonical-lifecycle-request)
+- [Client performs an authenticated lifecycle request](../../openspec/specs/party-discovery-and-management/spec.md#scenario-client-performs-an-authenticated-lifecycle-request)
+- [Client edits only supported fields](../../openspec/specs/party-discovery-and-management/spec.md#scenario-client-edits-only-supported-fields)
+- [Client receives a lifecycle failure](../../openspec/specs/party-discovery-and-management/spec.md#scenario-client-receives-a-lifecycle-failure)
+- [One client exposes additional party controls](../../openspec/specs/party-discovery-and-management/spec.md#scenario-one-client-exposes-additional-party-controls)
 
 ### party-media-gallery
 

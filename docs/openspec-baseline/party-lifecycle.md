@@ -1,29 +1,29 @@
-# Party lifecycle evidence and proposed contract
+# Party lifecycle evidence and contract
 
-Group 4 review, 2026-09-25, against application-source snapshot `9487ccb90bb438e24b3cfab547a5dc900b11aecb` from repository checkpoint `c4e19b8505fd185075cb3bd94802aaae7751f418`. This document separates accepted D001/D007-D008 behavior, source observations, and the unapplied [document-party-lifecycle proposal](../../openspec/changes/document-party-lifecycle/proposal.md). No application, API, browser, iOS, database, or runtime test was executed.
+Group 4 review and integration, 2026-09-25, against application-source snapshot `9487ccb90bb438e24b3cfab547a5dc900b11aecb`, applied from proposal checkpoint `e9df2e767547855aef15f6dcf9a63a1f813c579e`. This document separates accepted D001/D007-D008/D016 behavior from source observations. The [document-party-lifecycle proposal](../../openspec/changes/document-party-lifecycle/proposal.md) is applied and synced without application changes. No application, API, browser, iOS, database, or runtime test was executed.
 
 ## Scope and stable boundaries
 
 - Group 4 owns party create/read/update/delete authorization, party fields and validation, and browser/iOS lifecycle compatibility.
 - D001 supplies the authenticated PartyHub actor. D007 supplies public/private viewer roles and host-only management. D008 preserves the profile-specific party-list rule.
 - Invitation status/revocation and join/leave transitions remain Q003 and Group 5. Age/capacity admission enforcement remains Q004 and Group 5. Roster, invitation-detail, statistics and `can-edit` exposure remain Q010. Exact response envelopes, status codes and update wire semantics remain Q014 and Group 11.
-- The proposed child changes only `party-discovery-and-management`. It preserves AUTH-01-AUTH-12, SOC-01-SOC-06, the invitation/attendance requirements, and all discovery/map requirements.
+- The integrated child changes only `party-discovery-and-management`. It preserves AUTH-01-AUTH-12, SOC-01-SOC-06, the invitation/attendance requirements, and all discovery/map requirements.
 
 ## Lifecycle actor matrix
 
-| Operation | Anonymous | Authenticated host | Qualifying invitee | Joined attendee | Unrelated authenticated user | Observed source / proposed disposition |
+| Operation | Anonymous | Authenticated host | Qualifying invitee | Joined attendee | Unrelated authenticated user | Observed source / accepted disposition |
 |---|---|---|---|---|---|---|
-| List/read public party | Allow | Allow | Allow | Allow | Allow | Default list and detail paths allow public access. Proposed contract retains this. |
-| List/read private party | Deny | Allow | Allow under Q003 invitation-state rules | Allow | Deny | Default list/detail use host/invitation/member predicates; legacy filter/sort branches omit them (G009). Proposed contract applies one viewer predicate to every list/detail branch. |
-| Create party | Deny | Allow as authenticated creator | Allow as authenticated creator | Allow as authenticated creator | Allow as authenticated creator | Resource is authenticated and repository assigns caller as host. Proposed contract makes payload host identifiers non-authoritative. |
-| Update party | Deny | Allow | Deny unless also stored host | Deny unless also stored host | Deny | Resource authenticates, but repository overwrites host with caller without comparing stored host (G003). Proposed contract denies before mutation and preserves host. |
-| Delete party | Deny | Allow | Deny unless also stored host | Deny unless also stored host | Deny | Repository checks stored host; resource tests contain owner 204/non-owner 403 assertions. Proposed contract preserves the host-only rule without fixing exact status policy here. |
+| List/read public party | Allow | Allow | Allow | Allow | Allow | Default list and detail paths allow public access. The accepted contract retains this. |
+| List/read private party | Deny | Allow | Allow under Q003 invitation-state rules | Allow | Deny | Default list/detail use host/invitation/member predicates; legacy filter/sort branches omit them (G009). The accepted contract applies one viewer predicate to every list/detail branch. |
+| Create party | Deny | Allow as authenticated creator | Allow as authenticated creator | Allow as authenticated creator | Allow as authenticated creator | Resource is authenticated and repository assigns caller as host. The accepted contract makes payload host identifiers non-authoritative. |
+| Update party | Deny | Allow | Deny unless also stored host | Deny unless also stored host | Deny | Resource authenticates, but repository overwrites host with caller without comparing stored host (G003). The accepted contract denies before mutation and preserves host. |
+| Delete party | Deny | Allow | Deny unless also stored host | Deny unless also stored host | Deny | Repository checks stored host; resource tests contain owner 204/non-owner 403 assertions. The accepted contract preserves the host-only rule without fixing exact status policy here. |
 
 Sources: [PartyResource](../../src/main/java/at/htl/party/PartyResource.java):47-173, [PartyRepository](../../src/main/java/at/htl/party/PartyRepository.java):59-201 and 411-466, and [access rows 14-18](access-matrix.md#access-matrix).
 
 ## Field and validation matrix
 
-| Field | Stored / transported evidence | Observed constraints and client behavior | Proposed lifecycle rule |
+| Field | Stored / transported evidence | Observed constraints and client behavior | Accepted lifecycle rule |
 |---|---|---|---|
 | Host | `Party.host_user`; absent from `PartyCreateDto` | Create derives caller. Update currently assigns caller without stored-host check. | Derived from authenticated creator, immutable through lifecycle payloads. |
 | Title | Entity and DTO; browser/iOS forms | DTO has size 2-100 and `ValidPartyName`; required annotations use validation groups that resource `@Valid` does not select. Browser checks nonblank; iOS substitutes `New Party`. | Required, 2-100 characters, accepted party-name character policy; invalid mutation fails atomically. |
@@ -40,7 +40,7 @@ Sources: [PartyResource](../../src/main/java/at/htl/party/PartyResource.java):47
 
 Sources: [Party model](../../src/main/java/at/htl/party/Party.java), [PartyCreateDto](../../src/main/java/at/htl/party/PartyCreateDto.java), [Location](../../src/main/java/at/htl/location/Location.java), [party-name validator](../../src/main/java/at/htl/validation/ValidPartyNameValidator.java), [browser form](../../src/main/resources/META-INF/resources/addParty/addParty.js), and [iOS form](../../PartyHubiOS/PartyHubiOS/PartyView/PartyFormView.swift).
 
-The proposal makes create/update validation atomic before party, ownership, invitation, or notification changes. Exact payload error envelopes and PUT replacement-versus-partial semantics remain Q014 rather than being inferred from the current repository assignments.
+The accepted contract makes create/update validation atomic before party, ownership, invitation, or notification changes. Exact payload error envelopes and PUT replacement-versus-partial semantics remain Q014 rather than being inferred from the current repository assignments.
 
 ## Client and route compatibility
 
@@ -56,7 +56,7 @@ The proposal makes create/update validation atomic before party, ownership, invi
 | iOS delete `PartyView.swift:271-298` | `DELETE /api/parties/{id}` | Shared bearer API client; local state removed only after success. | Canonical operation and failure-state shape. |
 | iOS notification polling `Partynotificationsystem.swift:389-432` | `GET /api/party/{id}/attendees` and `GET /api/party/{id}` | Bearer supplied, but no matching singular backend resources were inventoried. | G006; invitation/notification purpose remains Groups 5/8 while party read uses canonical plural route. |
 
-The proposed client rule defines common API behavior without requiring identical browser/iOS controls. It requires server-consistent failures and preservation of fields outside a client's editing surface. Route aliasing, response schemas, HTTP status selection, and partial-versus-replacement update mechanics remain Group 11/Q014.
+The accepted client rule defines common API behavior without requiring identical browser/iOS controls. It requires server-consistent failures and preservation of fields outside a client's editing surface. Route aliasing, response schemas, HTTP status selection, and partial-versus-replacement update mechanics remain Group 11/Q014.
 
 ## Test evidence and limitations
 
@@ -65,6 +65,6 @@ The proposed client rule defines common API behavior without requiring identical
 - No inspected test establishes non-host update denial, immutable ownership, grouped validation activation, cross-field validation, geographic bounds, unsupported-visibility rejection, every visibility query branch, or both clients' payload preservation.
 - Tests were read but not run. The test profile's authentication setup does not prove real Keycloak bearer validation; G013 remains applicable.
 
-## Proposal-boundary result
+## Integration result
 
-The [proposal](../../openspec/changes/document-party-lifecycle/proposal.md), [design](../../openspec/changes/document-party-lifecycle/design.md), [delta](../../openspec/changes/document-party-lifecycle/specs/party-discovery-and-management/spec.md), and [tasks](../../openspec/changes/document-party-lifecycle/tasks.md) are planning-complete. The delta modifies PARTY-03 through PARTY-05 and proposes PARTY-12 atomic lifecycle validation plus PARTY-13 shared client/API behavior. Until a later explicit apply/sync task, the accepted main spec remains **11 requirements/33 scenarios**; the projected integrated party spec is **13/60**, and the projected full baseline is **44/172**.
+The [proposal](../../openspec/changes/document-party-lifecycle/proposal.md), [design](../../openspec/changes/document-party-lifecycle/design.md), [delta](../../openspec/changes/document-party-lifecycle/specs/party-discovery-and-management/spec.md), and [tasks](../../openspec/changes/document-party-lifecycle/tasks.md) are applied and synced with **7/7 tasks complete**. The main spec now contains **13 requirements/60 scenarios**: PARTY-03 through PARTY-05 are updated, PARTY-12 defines atomic lifecycle validation, and PARTY-13 defines shared client/API behavior. The full accepted baseline is **44/172**.

@@ -22,8 +22,8 @@ Java paths below start at `src/main/java/at/htl/`; browser paths at `src/main/re
 
 - **Expected:** D007 limits party management to its host.
 - **Observed:** `party/PartyResource.java:158` resolves an authenticated caller; `party/PartyRepository.java:147` finds that user, changes party fields and sets `host_user` to the caller without first comparing the existing host. No runtime exploit test was run.
-- **Disposition:** Observed implementation conflict against D007 and the proposed Group 4 immutable-host/atomic-denial contract. **Priority:** high. **Owner:** Group 4 integration, then a bounded implementation change.
-- **Next action:** Apply/review the child contract, then implement and test non-host denial, unchanged fields and unchanged host in a separate application change.
+- **Disposition:** Observed implementation conflict against accepted D007/D016/PARTY-05. **Priority:** high. **Owner:** bounded implementation change; API verification Step 11.
+- **Next action:** Implement and test non-host denial, unchanged fields and unchanged host in a separate application change.
 
 ## G004 README API and package descriptions differ from source
 
@@ -43,7 +43,7 @@ Java paths below start at `src/main/java/at/htl/`; browser paths at `src/main/re
 
 - **Expected:** Browser/iOS operations use the backend's documented method/path contract.
 - **Observed:** Browser `backend-functions.js:76` filters via POST while the list/filter resource uses GET; `backend-functions.js:110` uses POST on `/api/party/{id}` while updates use PUT `/api/parties/{id}`. Swift `Partynotificationsystem.swift:390` and `:419` contain singular polling paths. `PartyView/PartyDetailView.swift:339` is a debug simulation path; regular editing at `:472` already uses PUT on the plural route. iOS calls to `/api/users/{id}/device-token` also differ from both backend `/api/users/device-token` and `/api/parties/device-token` routes.
-- **Disposition:** Observed call-site compatibility gap; reachability/user impact remains unverified. The Group 4 child proposes the plural lifecycle routes without selecting a redirect/removal migration. **Priority:** medium. **Owner:** later implementation; notifications Step 8, API matrix/Q014 Step 11.
+- **Disposition:** Observed call-site compatibility gap against accepted D016/PARTY-13; reachability/user impact remains unverified. The accepted contract does not select a redirect/removal migration. **Priority:** medium. **Owner:** later implementation; notifications Step 8, API matrix/Q014 Step 11.
 - **Next action:** Trace active callers, then replace or explicitly migrate each wrong method/path without assuming every legacy helper is reachable.
 
 ## G007 QR generation and exchange describe different payload flows
@@ -64,8 +64,8 @@ Java paths below start at `src/main/java/at/htl/`; browser paths at `src/main/re
 
 - **Expected:** D007 and D009 establish private-party access and gallery-viewer boundaries; D008 has profile-specific wording.
 - **Observed:** Step 2 traced [access rows 14,20-29,55-57](access-matrix.md#access-matrix). Legacy title/theme/date filters and sorting (`PartyRepository:411-445`) omit the visibility predicate used by default/new-filter paths. `attendParty:566` and `attendStatus:643` do not check visibility. Party media/location and user-media reads have no caller-based predicates. User-location update looks up an independently generated location entity ID using the caller user ID without checking its linked user (`UserResource:406`, `UserLocation`), so same-user ownership cannot be assumed from caller resolution alone.
-- **Disposition:** Missing checks confirmed in inspected source paths; runtime responses, data population and exploitability not exercised. The Group 4 child proposes branch-consistent party list/detail visibility; admission, media and location remain later owners. Location retained/privacy policy still Q002/Q006. **Priority:** high. **Owner:** Group 4 integration, then Steps 5-7 and 10 implementation/specification owners.
-- **Next action:** Apply/review the lifecycle visibility contract, then implement shared list/detail predicates separately. Preserve D007/D009 while later groups specify admission, viewer uploads and location consent.
+- **Disposition:** Missing checks confirmed in inspected source paths; runtime responses, data population and exploitability not exercised. D016/PARTY-04 now require branch-consistent party list/detail visibility; admission, media and location remain later owners. Location retained/privacy policy still Q002/Q006. **Priority:** high. **Owner:** bounded list/detail implementation, then Steps 5-7 and 10 specification owners.
+- **Next action:** Implement shared list/detail predicates separately. Preserve D007/D009/D016 while later groups specify admission, viewer uploads and location consent.
 
 ## G010 Map requirements have implicit platform scope
 
@@ -202,14 +202,14 @@ Java paths below start at `src/main/java/at/htl/`; browser paths at `src/main/re
 
 ## G029 Party lifecycle validation is incomplete and inconsistently activated
 
-- **Expected:** The proposed Group 4 contract validates required fields, individual bounds and cross-field invariants before any create/update side effect; unsupported visibility does not silently change meaning.
+- **Expected:** D016/PARTY-12 validate required fields, individual bounds and cross-field invariants before any create/update side effect; unsupported visibility does not silently change meaning.
 - **Observed:** `PartyCreateDto:11-59` declares several size/range rules, but title/start required annotations use `OnCreate`/`OnUpdate` groups while `PartyResource:128/165` applies plain `@Valid`. No DTO constraint enforces end after start, min age at most max age, coordinate pairing/ranges or a `PUBLIC`/`PRIVATE` enum. `PartyRepository.normalizeVisibility` maps blank and every unknown value except case-insensitive private to public; nullable coordinate values are passed into primitive setters. Browser validation covers only a subset and iOS substitutes defaults.
-- **Disposition:** Source validation/atomicity mismatch against the proposed child; not a runtime reproduction. **Priority:** high. **Owner:** Group 4 integration, then bounded backend/client implementation; exact error schema Step 11/Q014.
-- **Next action:** After specification integration, implement server-side grouped and cross-field validation with atomic rejection and targeted create/update tests; keep client checks supplemental.
+- **Disposition:** Source validation/atomicity mismatch against accepted D016/PARTY-12; not a runtime reproduction. **Priority:** high. **Owner:** bounded backend/client implementation; exact error schema Step 11/Q014.
+- **Next action:** Implement server-side grouped and cross-field validation with atomic rejection and targeted create/update tests; keep client checks supplemental.
 
 ## G030 Party clients can omit identity or overwrite lifecycle fields
 
-- **Expected:** Viewer-dependent reads carry bearer identity, and editing a supported subset preserves other valid stored fields.
+- **Expected:** D016/PARTY-13 require viewer-dependent reads to carry bearer identity and supported-subset edits to preserve other valid stored fields.
 - **Observed:** Browser `addParty.js:518-526` loads detail/list with `authRequired: false`; its payload at `:1185-1206` omits capacity. iOS `PartyView.swift:166-210` lists through unauthenticated `URLSession` and removes local rows absent from that response. iOS create/update paths hard-code public visibility, `Standard` theme and empty selected users; update also substitutes times/ages for missing values (`PartyFormView:266-315`, `PartyDetailView:413-505`). Active create/update routes themselves are plural and bearer-authenticated.
-- **Disposition:** Viewer-context and destructive-default compatibility mismatch against the proposed Group 4 client contract; client reachability was source-inspected but not executed. **Priority:** high. **Owner:** Group 4 integration, then bounded browser/iOS changes; discovery list behavior Step 6, invitation semantics Step 5, API wire contract Step 11/Q014.
+- **Disposition:** Viewer-context and destructive-default compatibility mismatch against accepted D016/PARTY-13; client reachability was source-inspected but not executed. **Priority:** high. **Owner:** bounded browser/iOS changes; discovery list behavior Step 6, invitation semantics Step 5, API wire contract Step 11/Q014.
 - **Next action:** Preserve unsupported fields or adopt agreed partial-update semantics, attach bearer identity to viewer-dependent reads, and test that editing one field does not expose, hide, or erase unrelated party state.

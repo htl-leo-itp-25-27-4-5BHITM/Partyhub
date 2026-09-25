@@ -9,18 +9,18 @@ This is the entry point for executing [complete-partyhub-specification](../../op
 3. Use [inventory.md](inventory.md) to find source surfaces and ownership, [coverage.md](coverage.md) for requirements/scenarios/evidence, [decisions.md](decisions.md) for accepted rules and unresolved questions, and [gaps.md](gaps.md) for discrepancies.
 4. Work only on the requested group. Update these records and the checklist before stopping.
 
-Authentication evidence: [browser/iOS flows](authentication.md), [all 58 endpoint access rows](access-matrix.md), [JWT/bypass environments](auth-environments.md). Group 2 used the [bounded auth proposal](../../openspec/changes/document-authentication-and-identity/proposal.md), its [design](../../openspec/changes/document-authentication-and-identity/design.md), [delta](../../openspec/changes/document-authentication-and-identity/specs/user-auth-and-identity/spec.md) and [documentation tasks](../../openspec/changes/document-authentication-and-identity/tasks.md).
+Authentication evidence: [browser/iOS flows](authentication.md), [all 58 endpoint access rows](access-matrix.md), [JWT/bypass environments](auth-environments.md). Group 2 used [document-authentication-and-identity](../../openspec/changes/document-authentication-and-identity/proposal.md); it is applied, synced and active with all eight child tasks complete.
 
-Profiles/social evidence: [profile fields, client scope and follow transitions](profiles-and-social.md). Group 3 used [document-profiles-and-social-relationships](../../openspec/changes/document-profiles-and-social-relationships/proposal.md), its [design](../../openspec/changes/document-profiles-and-social-relationships/design.md), [delta](../../openspec/changes/document-profiles-and-social-relationships/specs/social-and-notifications/spec.md) and [documentation tasks](../../openspec/changes/document-profiles-and-social-relationships/tasks.md). The child is applied and synced.
+Profiles/social evidence: [profile fields, client scope and follow transitions](profiles-and-social.md). Group 3 used [document-profiles-and-social-relationships](../../openspec/changes/document-profiles-and-social-relationships/proposal.md); it is applied, synced and active with all seven child tasks complete.
 
-Party lifecycle evidence: [CRUD actors, fields, validation and client compatibility](party-lifecycle.md). Group 4 has reached the required proposal boundary with [document-party-lifecycle](../../openspec/changes/document-party-lifecycle/proposal.md), its [design](../../openspec/changes/document-party-lifecycle/design.md), [delta](../../openspec/changes/document-party-lifecycle/specs/party-discovery-and-management/spec.md) and [documentation tasks](../../openspec/changes/document-party-lifecycle/tasks.md). The next permitted task applies that child to finish umbrella item 4.4; Group 5 must remain untouched.
+Party lifecycle evidence: [CRUD actors, fields, validation and client compatibility](party-lifecycle.md). Group 4 used [document-party-lifecycle](../../openspec/changes/document-party-lifecycle/proposal.md), its [design](../../openspec/changes/document-party-lifecycle/design.md), [delta](../../openspec/changes/document-party-lifecycle/specs/party-discovery-and-management/spec.md) and [tasks](../../openspec/changes/document-party-lifecycle/tasks.md). It is applied and synced with all seven child tasks complete. The next permitted work package is Group 5; Group 6 and later remain untouched.
 
 ## Snapshot and boundaries
 
 - Foundation inspected revision: `9487ccb90bb438e24b3cfab547a5dc900b11aecb`, 2026-09-21.
 - Starting durable baseline: 6 capabilities, 37 requirements, 106 scenarios.
-- Latest review: same application-source revision, Group 4 items 4.1-4.3 completed at the proposal boundary on 2026-09-25. Its child is planning-complete and strictly valid, but no party delta has been applied or synced; the main party spec and application code/configuration/data remain unchanged in this checkpoint.
-- Product deltas are intentionally absent from this documentation umbrella (`skip_specs: true`). Actual domain changes use the normal proposal/integration workflow.
+- Latest review: the Group 4 child was applied and synced on 2026-09-25 from proposal checkpoint `e9df2e767547855aef15f6dcf9a63a1f813c579e`. Only the main party specification and documentation records changed; application code, configuration and data did not.
+- Product deltas are intentionally absent from the documentation umbrella (`skip_specs: true`). Actual domain changes use the normal proposal/integration workflow.
 - Source and test-file inspection do not prove runtime behavior. No application, API, UI, deployment or database tests were run in the foundation or Groups 2-4 documentation reviews.
 - Existing main-spec validation issue: `map-radius-control` has a placeholder Purpose; [G012](gaps.md#g012-radius-purpose-placeholder) belongs to Step 12.
 
@@ -29,10 +29,10 @@ Party lifecycle evidence: [CRUD actors, fields, validation and client compatibil
 | Step | Work package | Depends on | Status | Domain change / next action |
 |---|---|---|---|---|
 | 1 | Foundation and durable handoff | None | Complete | Items 1.1-1.5 remain complete; evidence package retained and extended. |
-| 2 | Authentication and identity | 1 | Complete | 2.1-2.4 complete; `document-authentication-and-identity` integrated and synced, all 8 child tasks complete, strict child/identity validation passes. Child remains active and unarchived. |
-| 3 | Profiles and social relationships | 2 | Complete | 3.1-3.3 complete; `document-profiles-and-social-relationships` integrated and synced, all 7 child tasks complete, strict child/social validation passes. Child remains active and unarchived. |
-| 4 | Party lifecycle | 2 | In progress: proposal boundary | 4.1-4.3 complete. Child planning is complete with 0/7 apply tasks; a later apply/sync task must complete 4.4. |
-| 5 | Invitations and attendance | 3, 4 | Not started | Invitation/membership transitions and events. |
+| 2 | Authentication and identity | 1 | Complete | 2.1-2.4 complete; child applied and synced, 8/8 tasks, strict child/identity validation passes. |
+| 3 | Profiles and social relationships | 2 | Complete | 3.1-3.3 complete; child applied and synced, 7/7 tasks, strict child/social validation passes. |
+| 4 | Party lifecycle | 2 | Complete | 4.1-4.4 complete; child applied and synced, 7/7 tasks, strict child/party validation passes. |
+| 5 | Invitations and attendance | 3, 4 | Not started | Next: invitation/membership transitions and events, using the separate-domain workflow boundary if a delta is needed. |
 | 6 | Discovery and maps | 2, 4 | Not started | Shared discovery and explicitly scoped iOS map controls. |
 | 7 | Media and profile pictures | 2, 4, 5 | Not started | Upload/view permissions, platform support and storage lifecycle. |
 | 8 | Notifications and preferences | 3, 4, 5 | Not started | Event/recipient/channel matrix and settings/delivery contracts. |
@@ -41,9 +41,9 @@ Party lifecycle evidence: [CRUD actors, fields, validation and client compatibil
 | 11 | Runtime and quality contracts | 2-10 | Not started | Environments, API compatibility, persistence, validation and quality evidence. |
 | 12 | Consolidation and acceptance | 1-11 | Not started | Integrate accepted changes, resolve documentation drift and pass all strict spec checks. |
 
-Two domain changes have been applied and synced: `document-authentication-and-identity` and `document-profiles-and-social-relationships`. Both remain active and unarchived. One domain change is proposed but unapplied: `document-party-lifecycle`. The accepted baseline remains 42 requirements/145 scenarios, including AUTH-01-AUTH-12 at 12/43, SOC-01-SOC-06 at 6/35 and party coverage at 11/33. The proposed integrated counts are 44/172 overall and 13/60 for the party spec. Acceptance records contracts; gap records and the unrun-test record prevent them from being read as implementation conformance.
+Three domain changes have been applied and synced: `document-authentication-and-identity`, `document-profiles-and-social-relationships` and `document-party-lifecycle`. All remain active and unarchived. The accepted baseline is now **6 capabilities, 44 requirements and 172 scenarios**, including AUTH-01-AUTH-12 at 12/43, SOC-01-SOC-06 at 6/35 and PARTY-01-PARTY-13 at 13/60. Acceptance records contracts; gap records and the unrun-test record prevent them from being read as implementation conformance.
 
-Current progress: **15 of 46 checklist items complete**; **31 remain**. Foundation 1.1-1.5, authentication 2.1-2.4, profiles/social 3.1-3.3 and party lifecycle 4.1-4.3 are complete. Item 4.4 remains open at the proposal boundary; Groups 5-12 have not started. G001-G030 preserve observed gaps; Q009 is resolved by D015, while Q001-Q008 and Q010-Q014 retain their later owners.
+Current progress: **16 of 46 checklist items complete**; **30 remain**. Foundation 1.1-1.5, authentication 2.1-2.4, profiles/social 3.1-3.3 and party lifecycle 4.1-4.4 are complete. Groups 5-12 have not started. G001-G030 remain stable; Group 4 specifically preserves G003, G006, G009, G029 and G030. Q009 is resolved by D015, while Q001-Q008 and Q010-Q014 retain their later owners; Q003, Q004, Q010 and Q014 remain material inputs to Group 5 or later work.
 
 ## Recording rules
 

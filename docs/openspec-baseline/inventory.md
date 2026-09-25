@@ -8,7 +8,7 @@ Step 2 addendum, 2026-09-23, unchanged source revision: [authentication.md](auth
 
 Step 3 source review began 2026-09-23 and integration completed 2026-09-25, with application source still unchanged: [profiles-and-social.md](profiles-and-social.md) maps profile fields/audiences, browser/iOS support, access rows 36-54/57 and the directed follow lifecycle. The bounded `document-profiles-and-social-relationships` child is integrated into the main social spec; implementation mismatches remain G024/G026-G028.
 
-Step 4 source/planning review completed 2026-09-25 at the proposal boundary, with application source still unchanged: [party-lifecycle.md](party-lifecycle.md) maps CRUD actors, lifecycle fields/validation, client routes/payloads and test evidence. The bounded `document-party-lifecycle` child is planning-complete but unapplied; accepted main-spec coverage remains unchanged until a later apply/sync task. G003/G006/G009 and G029-G030 retain implementation discrepancies.
+Step 4 source review and integration completed 2026-09-25 with application source still unchanged: [party-lifecycle.md](party-lifecycle.md) maps CRUD actors, lifecycle fields/validation, client routes/payloads and test evidence. The bounded `document-party-lifecycle` child is integrated into the main party spec; G003/G006/G009 and G029-G030 retain implementation discrepancies.
 
 ## Capability register and platform scope
 
@@ -16,7 +16,7 @@ Step 4 source/planning review completed 2026-09-25 at the proposal boundary, wit
 |---|---|---|---|---|
 | CAP-AUTH | `user-auth-and-identity`; browser/native identity and public bootstrap | Backend, browser, iOS, Keycloak | 2 | AUTH-01-AUTH-12 accepted; bypass and native source mismatches remain G002/G019-G023. |
 | CAP-SOCIAL | `social-and-notifications`; profile editing/discovery | Backend, browser, iOS | 3 | SOC-01-SOC-06 accepted; bounded field/audience and directed follow lifecycle integrated, with G024/G026-G028 retained. |
-| CAP-PARTY | `party-discovery-and-management`; host lifecycle | Backend, browser, iOS | 4 | CRUD, field, validation and client compatibility evidence complete; bounded child proposed, unapplied, with G003/G006/G009/G029-G030 retained. |
+| CAP-PARTY | `party-discovery-and-management`; host lifecycle | Backend, browser, iOS | 4 | PARTY-03-PARTY-05/PARTY-12-PARTY-13 accepted and integrated; G003/G006/G009/G029-G030 retained. |
 | CAP-ATTENDANCE | Invitation and attendance rules within party/social capabilities | Backend, browser, iOS | 5 | Existing acceptance/mutual-contact rules; edge transitions need review. |
 | CAP-DISCOVERY | `party-discovery-and-management`; queries and map filters | Backend, browser, iOS | 6 | Shared visibility; later filter requirements have iOS provenance. |
 | CAP-RADIUS | `map-radius-control` | iOS | 6 | Existing requirements; Purpose placeholder tracked separately for Step 12. |
