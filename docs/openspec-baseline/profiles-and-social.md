@@ -1,6 +1,6 @@
 # Profiles and social relationships review
 
-Group 3 source review, 2026-09-23. The checkpoint starts at `6866f3fed3d6a438d3e6a9463a1e6b14da88419f`; application source remains the foundation source snapshot from `9487ccb90bb438e24b3cfab547a5dc900b11aecb`. This document separates the accepted SOC-01-SOC-04 baseline from observed source and the bounded target proposed by `document-profiles-and-social-relationships`. No application source, configuration or data is changed here.
+Group 3 source review began 2026-09-23 and specification integration completed 2026-09-25. The proposal checkpoint starts at `6866f3fed3d6a438d3e6a9463a1e6b14da88419f`; application source remains the foundation source snapshot from `9487ccb90bb438e24b3cfab547a5dc900b11aecb`. This document separates accepted SOC-01-SOC-06 behavior from observed source after integrating `document-profiles-and-social-relationships`. No application source, configuration or data is changed here.
 
 Read this with [coverage](coverage.md), [access matrix](access-matrix.md), [decisions](decisions.md), [gaps](gaps.md) and the accepted [social-and-notifications spec](../../openspec/specs/social-and-notifications/spec.md). Profile-picture file validation/storage belongs to Step 7, notification delivery belongs to Step 8, and final API schemas/statuses belong to Step 11.
 
@@ -18,9 +18,9 @@ Read this with [coverage](coverage.md), [access matrix](access-matrix.md), [deci
 
 ## Profile field contract
 
-The current REST reads serialize the `User` entity directly. That can expose fields that browser screens do not render, so raw source output is not treated as the intended profile contract. The bounded target below resolves Q009 conservatively and remains proposed until the child change is applied.
+The current REST reads serialize the `User` entity directly. That can expose fields that browser screens do not render, so raw source output is not treated as the intended profile contract. The bounded contract below resolves Q009 through accepted SOC-04-SOC-06 while keeping source mismatches in G026-G027.
 
-| Field / surface | Observed source | Proposed profile disposition |
+| Field / surface | Observed source | Accepted profile disposition |
 |---|---|---|
 | `id` | Generated database identifier used by routes and clients. | Stable profile reference in self and cross-user projections; never authentication evidence. |
 | `displayName` | Stored, rendered by both clients, browser-editable. | Cross-user profile/search display field; authenticated self may edit it. |
@@ -36,17 +36,17 @@ The current REST reads serialize the `User` entity directly. That can expose fie
 | Pending follow requests | Open path-ID endpoint returns requesters for any target. | Private inbox visible only to the authenticated recipient; it is not cross-user profile context. |
 | Hosted parties | Browser fetches the general party list and filters it by host. | Self sees their visible/hosted context; another authenticated viewer sees the target's public parties plus private parties to which that viewer was invited, preserving D008. |
 
-The proposed cross-user/search projection is limited to `id`, `displayName`, `distinctName`, `biography`, profile-picture reference/placeholder and accepted follower/following counts. Email, phone number, provider username, Keycloak subject and device token are excluded. Profile-picture transport remains Step 7.
+The accepted cross-user/search projection is limited to `id`, `displayName`, `distinctName`, `biography`, profile-picture reference/placeholder and accepted follower/following counts. Email, phone number, provider username, Keycloak subject and device token are excluded. Profile-picture transport remains Step 7.
 
 ## Access and client scope
 
-| Operation | Accepted/proposed intended access | Observed behavior and disposition |
+| Operation | Accepted intended access | Observed behavior and disposition |
 |---|---|---|
-| Search/list profiles | Proposed authenticated-user access returning the bounded search projection; case-insensitive `distinctName` search is the minimum supported query. | Rows 37/39 are open and serialize full entities; row 40 exposes exact provider-username lookup. G026. |
-| Read another profile | Proposed authenticated-user access to the bounded cross-user projection. | Row 38 is open and returns the entity. Browser supports ID/handle profiles; iOS has no other-user profile navigation. G026/G028. |
+| Search/list profiles | Authenticated-user access returning the bounded search projection; case-insensitive `distinctName` search is the minimum supported query. | Rows 37/39 are open and serialize full entities; row 40 exposes exact provider-username lookup. G026. |
+| Read another profile | Authenticated-user access to the bounded cross-user projection. | Row 38 is open and returns the entity. Browser supports ID/handle profiles; iOS has no other-user profile navigation. G026/G028. |
 | Read own profile | AUTH-01/08 authenticated self, including private editable fields but excluding internal credentials/delivery tokens. | `/me` and ID reads return the same entity shape. G026. |
-| Edit profile text | Authenticated self only; proposed editable fields are display name, distinct handle, email, phone and biography. Provider username, Keycloak link, device token and database ID are not profile-editable. | Row 44 correctly compares the token-resolved user with the path ID, but server-side field validation/handle uniqueness are incomplete. G026. |
-| Read accepted counts/lists | Proposed authenticated profile viewers; listed users use the bounded cross-user projection. | Rows 42/43/48/49 are open and return counts or raw users. G026. |
+| Edit profile text | Authenticated self only; editable fields are display name, distinct handle, email, phone and biography. Provider username, Keycloak link, device token and database ID are not profile-editable. | Row 44 correctly compares the token-resolved user with the path ID, but server-side field validation/handle uniqueness are incomplete. G026. |
+| Read accepted counts/lists | Authenticated profile viewers; listed users use the bounded cross-user projection. | Rows 42/43/48/49 are open and return counts or raw users. G026. |
 | Read pending requests | Authenticated recipient only. | Row 50 accepts any path ID without authentication/self check. G027. |
 | Read relationship status | Authenticated caller may inspect their own directed relationship with a target. | Row 51 permits arbitrary pair queries. G027. |
 | Send/accept/reject/remove | Actor comes only from validated identity; target/path identifiers select the other user or relationship and never replace the actor. | Rows 52-54 ignore one or more path values. Existing browser happy paths happen to align for send/accept/unfollow, while incoming-request dismissal uses the wrong direction. G024/G027. |
@@ -80,4 +80,4 @@ Mutual contact is false for zero, one or pending directions. It becomes true onl
 - `FollowRepositoryTest` asserts several repository outcomes, including duplicate conflict, one-way acceptance and two acceptance notifications. It does not cover self-follow, unauthorized acceptance, crossed requests, recipient rejection/removal, repeated removal or preservation of the reverse direction.
 - Existing resource tests mostly assert anonymous 401/not-found shapes and use synthetic/bypass authentication elsewhere. HTTPYac files use `X-User-Id`; they do not verify the accepted bearer identity boundary.
 - No backend tests, browser flows, iOS flows, database, Keycloak or HTTPYac requests were executed for Group 3.
-- The target field/access and transition contract remains proposed until the child change is reviewed and applied. Application mismatches remain gaps rather than implementation tasks in this documentation stage.
+- The field/access and transition contract is accepted in SOC-01/SOC-04-SOC-06. Application mismatches remain gaps rather than implementation tasks in this documentation stage.

@@ -6,14 +6,14 @@ Foundation enumeration check: all 60 tracked main Java files, 28 Java test/suppo
 
 Step 2 addendum, 2026-09-23, unchanged source revision: [authentication.md](authentication.md) traces browser/native flows, [access-matrix.md](access-matrix.md) audits all 58 endpoint identities and repository predicates, and [auth-environments.md](auth-environments.md) separates JWT and bypass declarations. Those documents supersede foundation notes that defer the access audit; endpoint IDs/ownership below are unchanged. Native LoginView has one sign-in entry (provider may offer registration); standalone browser register HTML/JS are empty, with active registration redirects in start/login pages. These refinements do not remove either surface from inventory.
 
-Step 3 addendum, 2026-09-23, application source still unchanged: [profiles-and-social.md](profiles-and-social.md) maps profile fields/audiences, browser/iOS support, access rows 36-54/57 and the directed follow lifecycle. The bounded `document-profiles-and-social-relationships` child change is planning-complete but not integrated; proposed profile/social behavior remains outside accepted counts until a later apply/sync request.
+Step 3 source review began 2026-09-23 and integration completed 2026-09-25, with application source still unchanged: [profiles-and-social.md](profiles-and-social.md) maps profile fields/audiences, browser/iOS support, access rows 36-54/57 and the directed follow lifecycle. The bounded `document-profiles-and-social-relationships` child is integrated into the main social spec; implementation mismatches remain G024/G026-G028.
 
 ## Capability register and platform scope
 
 | Inventory ID | Existing capability or review area | Platforms / environments | Owner steps | Baseline disposition |
 |---|---|---|---|---|
 | CAP-AUTH | `user-auth-and-identity`; browser/native identity and public bootstrap | Backend, browser, iOS, Keycloak | 2 | AUTH-01-AUTH-12 accepted; bypass and native source mismatches remain G002/G019-G023. |
-| CAP-SOCIAL | `social-and-notifications`; profile editing/discovery | Backend, browser, iOS | 3 | SOC-01-SOC-04 accepted; bounded field/audience and follow-lifecycle delta proposed, with G024/G026-G028 retained. |
+| CAP-SOCIAL | `social-and-notifications`; profile editing/discovery | Backend, browser, iOS | 3 | SOC-01-SOC-06 accepted; bounded field/audience and directed follow lifecycle integrated, with G024/G026-G028 retained. |
 | CAP-PARTY | `party-discovery-and-management`; host lifecycle | Backend, browser, iOS | 4 | Existing lifecycle/visibility intent; detailed fields and enforcement incomplete. |
 | CAP-ATTENDANCE | Invitation and attendance rules within party/social capabilities | Backend, browser, iOS | 5 | Existing acceptance/mutual-contact rules; edge transitions need review. |
 | CAP-DISCOVERY | `party-discovery-and-management`; queries and map filters | Backend, browser, iOS | 6 | Shared visibility; later filter requirements have iOS provenance. |

@@ -2,7 +2,7 @@
 
 Foundation snapshot: repository revision `9487ccb90bb438e24b3cfab547a5dc900b11aecb`, inspected 2026-09-21. See [runbook](runbook.md), [inventory](inventory.md), [decisions](decisions.md), [gaps](gaps.md) and [handoff](handoff.md).
 
-The foundation snapshot indexed **37 accepted requirements and 106 scenarios** in the six durable specifications. After the accepted Step 2 identity integration, the current main specs contain **40 accepted requirements and 122 scenarios**. Acceptance records normative coverage; it does not assert implementation compliance, complete product scope or completion of Steps 3–12. Requirement titles and scenario labels below reproduce the current main specs exactly.
+The foundation snapshot indexed **37 accepted requirements and 106 scenarios** in the six durable specifications. After the accepted Step 2 identity and Step 3 profiles/social integrations, the current main specs contain **42 accepted requirements and 145 scenarios**. Acceptance records normative coverage; it does not assert implementation compliance, complete product scope or completion of Steps 4–12. Requirement titles and scenario labels below reproduce the current main specs exactly.
 
 Platform scope below is a foundation classification grounded in the requirement text, archive context and source entry points. Where existing wording is ambiguous, its owner stage must reconcile it. In particular, browser auth does not establish the iOS auth contract, and iOS map controls are not automatically browser requirements.
 
@@ -11,12 +11,12 @@ Platform scope below is a foundation classification grounded in the requirement 
 | Capability | Requirements | Scenarios | Main owner stage |
 |---|---:|---:|---|
 | [user-auth-and-identity](../../openspec/specs/user-auth-and-identity/spec.md) | 12 | 43 | 2 |
-| [social-and-notifications](../../openspec/specs/social-and-notifications/spec.md) | 4 | 12 | 3, 5, 8 |
+| [social-and-notifications](../../openspec/specs/social-and-notifications/spec.md) | 6 | 35 | 3, 5, 8 |
 | [party-discovery-and-management](../../openspec/specs/party-discovery-and-management/spec.md) | 11 | 33 | 4–6 |
 | [party-media-gallery](../../openspec/specs/party-media-gallery/spec.md) | 3 | 5 | 7 |
 | [map-radius-control](../../openspec/specs/map-radius-control/spec.md) | 3 | 7 | 6 (Purpose repair 12) |
 | [local-keycloak-environment](../../openspec/specs/local-keycloak-environment/spec.md) | 7 | 22 | 11 |
-| **Total** | **40** | **122** | **All assigned** |
+| **Total** | **42** | **145** | **All assigned** |
 
 ## Source and test evidence groups
 
@@ -132,7 +132,7 @@ Reviewed and integrated 2026-09-23 from source revision `9487ccb90bb438e24b3cfab
 | AUTH-06 | B-RESTORE/B-CLEAR/B-LOGOUT; sessionStorage/memory, legacy localStorage clearing. | Storage source-observed only; native Keychain is separately governed by AUTH-12. |
 | AUTH-07 | S-REJECT and environment JWT/roles declaration. | No real valid/expired/wrong-issuer token verification; test JWT disabled, bypass enabled. G002/G013. |
 | AUTH-08 | S-LINKED/S-MATCH/S-NEW; B-ME/N-ME success/failure paths. | Three resolver tests contain synthetic happy-path assertions, not executed. Numeric-subject G019, claim ambiguity G020/Q012; no onboarding-required UI/response found. Existing create-or-onboard alternative preserved. |
-| AUTH-09 | Matrix creation/membership/notification actor checks, plus the accepted object-authority denial boundary. | Actor resolution does not prove object authorization: G003/G009/G017/G024; domain policy Q009/Q010. |
+| AUTH-09 | Matrix creation/membership/notification actor checks, plus the accepted object-authority denial boundary. | Actor resolution does not prove object authorization: G003/G009/G017/G024; profile/social policy D015 and remaining invitation/party policy Q010. |
 | AUTH-10 | B1/N2/CR public issuer bootstrap and failure fallback. | Public configuration is accepted but does not authenticate a caller; deployment/profile drift remains G002/G018. |
 | AUTH-11 | N-LOGIN/N-CALLBACK/N-LINK success and failure paths. | Native PKCE/user-resolution contract is accepted; nonce mismatch remains G022 and runtime execution remains G013. |
 | AUTH-12 | N-RESTORE/N-REFRESH/N-API/N-LOGOUT lifecycle. | Native token-backed session contract is accepted; restoration/cleanup mismatch remains G023 and provider logout remains Q013. |
@@ -147,28 +147,28 @@ Native login/callback/storage/refresh/logout and public issuer bootstrap are acc
 | AUTH-11 | [Native login](../../openspec/specs/user-auth-and-identity/spec.md#requirement-ios-login-uses-keycloak-authorization-code-with-pkce), 7 scenarios; N1-N3/S1 evidence, G022. |
 | AUTH-12 | [Native session](../../openspec/specs/user-auth-and-identity/spec.md#requirement-ios-manages-a-token-backed-local-session), 6 scenarios; N1-N3 evidence, G023. |
 
-The child change passes strict validation and is integrated into the main identity spec. Authentication now contains 12 requirements/43 scenarios and the full main baseline contains 40/122.
+The child change passes strict validation and is integrated into the main identity spec. At the Step 2 checkpoint, authentication contained 12 requirements/43 scenarios and the full main baseline contained 40/122.
 
 ## Step 3 profiles and social review
 
-Reviewed 2026-09-23 from the unchanged application-source snapshot. [Profiles and social evidence](profiles-and-social.md) maps profile fields, client scope, profile-party visibility and the complete directed follow transition table. The bounded child [proposal](../../openspec/changes/document-profiles-and-social-relationships/proposal.md), [design](../../openspec/changes/document-profiles-and-social-relationships/design.md), [delta](../../openspec/changes/document-profiles-and-social-relationships/specs/social-and-notifications/spec.md) and [tasks](../../openspec/changes/document-profiles-and-social-relationships/tasks.md) are planning-complete and pass strict validation.
+Reviewed 2026-09-23 and integrated 2026-09-25 from the unchanged application-source snapshot. [Profiles and social evidence](profiles-and-social.md) maps profile fields, client scope, profile-party visibility and the complete directed follow transition table. The bounded child [proposal](../../openspec/changes/document-profiles-and-social-relationships/proposal.md), [design](../../openspec/changes/document-profiles-and-social-relationships/design.md), [delta](../../openspec/changes/document-profiles-and-social-relationships/specs/social-and-notifications/spec.md) and [tasks](../../openspec/changes/document-profiles-and-social-relationships/tasks.md) define and verify the integrated scope.
 
-The child has not been applied or synced. The accepted baseline therefore remains **40 requirements/122 scenarios**, with `social-and-notifications` at **4/12**. If accepted in a later apply task, the complete delta projects `social-and-notifications` at **6/35** and the full baseline at **42/145**.
+The child delta is synced into the main spec. The accepted baseline is now **42 requirements/145 scenarios**, with `social-and-notifications` at **6/35**.
 
-| Stable mapping | Proposed full coverage after integration | Disposition at this checkpoint |
+| Stable mapping | Accepted coverage after integration | Disposition |
 |---|---:|---|
-| SOC-01 follow-request model | 12 scenarios | Full modified block preserves the original 3 scenarios and adds self, duplicate, actor, cancellation, rejection and removal transitions. Proposed only. |
+| SOC-01 follow-request model | 12 scenarios | Full modified block preserves the original 3 scenarios and adds self, duplicate, actor, cancellation, rejection and removal transitions. Accepted. |
 | SOC-02 mutual-contact invitation eligibility | 2 scenarios | Unchanged and omitted from the delta. Existing accepted coverage remains authoritative. |
 | SOC-03 notification center | 4 scenarios | Unchanged and omitted from the delta. Step 8 still owns event/delivery detail. |
-| SOC-04 profile discovery and party context | 6 scenarios | Full modified block preserves the original 3 scenarios and adds own-party context, anonymous denial and client-scope behavior. Proposed only. |
-| Proposed SOC-05 bounded profile/social projections | 6 scenarios | New requirement covering authenticated reads, cross-user/self fields, internal-field exclusion, private pending inbox and caller-relative status. Proposed only. |
-| Proposed SOC-06 authenticated self profile editing | 5 scenarios | New requirement covering editable fields, immutable fields, unique handles, invalid/conflicting updates and other-user denial. Proposed only. |
+| SOC-04 profile discovery and party context | 6 scenarios | Full modified block preserves the original 3 scenarios and adds own-party context, anonymous denial and client-scope behavior. Accepted. |
+| SOC-05 bounded profile/social projections | 6 scenarios | New requirement covers authenticated reads, cross-user/self fields, internal-field exclusion, private pending inbox and caller-relative status. Accepted. |
+| SOC-06 authenticated self profile editing | 5 scenarios | New requirement covers editable fields, immutable fields, unique handles, invalid/conflicting updates and other-user denial. Accepted. |
 
-Q009 records the proposed audience and field resolution until integration. G024 and G026–G028 preserve route, serialization, direction and client-support mismatches as implementation evidence. No application or runtime test was executed.
+Q009 is resolved for normative profile/social access and fields by SOC-01/SOC-04/SOC-05/SOC-06. Exact route/schema compatibility and picture serving remain assigned to Steps 11 and 7. G024 and G026–G028 preserve route, serialization, direction and client-support mismatches as implementation evidence. No application or runtime test was executed.
 
 ## Requirement and scenario index
 
-All entries in the index have intended status **Existing accepted main-spec requirement**. Foundation entries below remain the original evidence index; the Step 2 addendum records integrated auth coverage and the Step 3 addendum explicitly separates proposed coverage. No entry is runtime verified. Decision and gap IDs refer to the separate registers and can evolve during later stages; requirement IDs here remain stable for handoffs.
+All entries in the index have intended status **Existing accepted main-spec requirement**. Foundation entries below remain the original evidence index; the Step 2 and Step 3 addenda record integrated coverage. No entry is runtime verified. Decision and gap IDs refer to the separate registers and can evolve during later stages; requirement IDs here remain stable for handoffs.
 
 ### user-auth-and-identity
 
@@ -377,23 +377,32 @@ Scenarios (6):
 
 **[Social relationships use a follow-request model](../../openspec/specs/social-and-notifications/spec.md#requirement-social-relationships-use-a-follow-request-model)**
 
-- Platform scope: Shared domain: backend with browser/iOS consumers; detailed client scope remains to be made explicit by the owner stage.
+- Platform scope: Shared backend relationship contract. The browser supplies the observed cross-user controls; the accepted iOS minimum does not require matching social UI.
 - Runbook owner: Step 3.
-- Source evidence: [E04](#e04). Pending and accepted one-way relationship code is present; both-direction mutual evaluation and client transitions need review.
-- Test evidence: E04's inspected follow tests provide partial request/acceptance assertions; no full two-direction mutual-contact scenario test confirmed. All execution remains unverified.
-- Accepted decision references: [D004](decisions.md). Follow-up gaps: [G013](gaps.md).
+- Source evidence: [E04](#e04) and [profiles/social review](profiles-and-social.md). Pending and accepted directed rows exist; missing actor, duplicate and removal behavior remains recorded separately.
+- Test evidence: E04's inspected follow tests provide partial request/acceptance assertions; no complete transition-table or two-direction mutual-contact suite was run.
+- Accepted decision references: [D004](decisions.md), [D015](decisions.md). Follow-up gaps: [G013](gaps.md), [G024](gaps.md), [G027](gaps.md), [G028](gaps.md).
 
-Scenarios (3):
+Scenarios (12):
 
 - [User initiates a follow](../../openspec/specs/social-and-notifications/spec.md#scenario-user-initiates-a-follow)
 - [Recipient accepts a follow request](../../openspec/specs/social-and-notifications/spec.md#scenario-recipient-accepts-a-follow-request)
 - [Mutual contact is evaluated](../../openspec/specs/social-and-notifications/spec.md#scenario-mutual-contact-is-evaluated)
+- [User attempts to follow themselves](../../openspec/specs/social-and-notifications/spec.md#scenario-user-attempts-to-follow-themselves)
+- [Pending request is repeated](../../openspec/specs/social-and-notifications/spec.md#scenario-pending-request-is-repeated)
+- [Accepted request is repeated](../../openspec/specs/social-and-notifications/spec.md#scenario-accepted-request-is-repeated)
+- [Non-recipient attempts acceptance](../../openspec/specs/social-and-notifications/spec.md#scenario-non-recipient-attempts-acceptance)
+- [Requester cancels a pending request](../../openspec/specs/social-and-notifications/spec.md#scenario-requester-cancels-a-pending-request)
+- [Recipient rejects a pending request](../../openspec/specs/social-and-notifications/spec.md#scenario-recipient-rejects-a-pending-request)
+- [Follower stops following](../../openspec/specs/social-and-notifications/spec.md#scenario-follower-stops-following)
+- [Recipient removes a follower](../../openspec/specs/social-and-notifications/spec.md#scenario-recipient-removes-a-follower)
+- [One direction is removed from a mutual contact](../../openspec/specs/social-and-notifications/spec.md#scenario-one-direction-is-removed-from-a-mutual-contact)
 
 #### SOC-02
 
 **[Private party invitations are limited to mutual contacts](../../openspec/specs/social-and-notifications/spec.md#requirement-private-party-invitations-are-limited-to-mutual-contacts)**
 
-- Platform scope: Shared domain: backend with browser/iOS consumers; detailed client scope remains to be made explicit by the owner stage.
+- Platform scope: Shared domain: backend with browser/iOS consumers; detailed invitation client scope remains with Step 5.
 - Runbook owner: Step 5; selector/social input 3.
 - Source evidence: [E04](#e04), [E05](#e05). Accepted mutual-contact restriction is preserved as intent; no mutual-follow check is visible in the inspected private invitation creation path.
 - Test evidence: No matching non-mutual rejection test confirmed; existing successful-invite tests do not establish eligibility enforcement. All execution remains unverified.
@@ -408,7 +417,7 @@ Scenarios (2):
 
 **[Notification center is the primary action surface for invites and follow requests](../../openspec/specs/social-and-notifications/spec.md#requirement-notification-center-is-the-primary-action-surface-for-invites-and-follow-requests)**
 
-- Platform scope: Shared domain: backend with browser/iOS consumers; detailed client scope remains to be made explicit by the owner stage.
+- Platform scope: Shared domain: backend with browser/iOS consumers; detailed event, channel and delivery scope remains with Step 8.
 - Runbook owner: Step 8; event inputs 3–5.
 - Source evidence: [E06](#e06), [E05](#e05). Both clients expose notification surfaces and backend read/delete/event code exists; all events/actions and delivery are unverified.
 - Test evidence: E06 read-state and wrong-user assertions are partial evidence; deletion status alone does not establish persistence, and client action flows remain untested. All execution remains unverified.
@@ -425,17 +434,57 @@ Scenarios (4):
 
 **[Profiles support social discovery and party context](../../openspec/specs/social-and-notifications/spec.md#requirement-profiles-support-social-discovery-and-party-context)**
 
-- Platform scope: Shared domain: backend with browser/iOS consumers; detailed client scope remains to be made explicit by the owner stage.
-- Runbook owner: Step 3; visibility dependency 4.
-- Source evidence: [E04](#e04), [E07](#e07). Search/profile consumers exist; profile-created party filtering needs explicit cross-surface visibility review.
-- Test evidence: UserResourceTest and api/user.http are candidate references only; no matching profile-created-private-party visibility/UI test confirmed. All execution remains unverified.
-- Accepted decision references: [D008](decisions.md). Follow-up gaps: [G009](gaps.md), [G013](gaps.md).
+- Platform scope: Browser search, cross-user profiles, social actions and party context; iOS authenticated self profile and accepted counts; shared backend contract.
+- Runbook owner: Step 3; party-visibility dependency 4.
+- Source evidence: [E04](#e04), [E07](#e07), [profiles/social review](profiles-and-social.md). Browser and iOS support differ; profile party context retains D008 without granting extra private access.
+- Test evidence: UserResourceTest and api/user.http are candidate references only; no profile-created-private-party visibility or client UI flow was run.
+- Accepted decision references: [D008](decisions.md), [D015](decisions.md). Follow-up gaps: [G009](gaps.md), [G013](gaps.md), [G026](gaps.md), [G028](gaps.md).
 
-Scenarios (3):
+Scenarios (6):
 
 - [User searches for another user](../../openspec/specs/social-and-notifications/spec.md#scenario-user-searches-for-another-user)
 - [User views another profile](../../openspec/specs/social-and-notifications/spec.md#scenario-user-views-another-profile)
 - [Profile-created parties are listed](../../openspec/specs/social-and-notifications/spec.md#scenario-profile-created-parties-are-listed)
+- [User views their own created parties](../../openspec/specs/social-and-notifications/spec.md#scenario-user-views-their-own-created-parties)
+- [Anonymous caller requests profile discovery](../../openspec/specs/social-and-notifications/spec.md#scenario-anonymous-caller-requests-profile-discovery)
+- [iOS user opens their own profile](../../openspec/specs/social-and-notifications/spec.md#scenario-ios-user-opens-their-own-profile)
+
+#### SOC-05
+
+**[Profile and social reads use audience-specific projections](../../openspec/specs/social-and-notifications/spec.md#requirement-profile-and-social-reads-use-audience-specific-projections)**
+
+- Platform scope: Shared authenticated backend contract for browser and iOS consumers; iOS is required only to consume its accepted self-profile minimum.
+- Runbook owner: Step 3; profile-picture transport 7 and API schemas 11.
+- Source evidence: [E04](#e04), [profiles/social review](profiles-and-social.md), [access matrix](access-matrix.md#access-matrix). Current routes are open/raw or arbitrary-pair in several cases.
+- Test evidence: No response-projection, pending-inbox isolation or caller-relative status test was run.
+- Accepted decision references: [D015](decisions.md). Follow-up gaps: [G013](gaps.md), [G026](gaps.md), [G027](gaps.md).
+
+Scenarios (6):
+
+- [Search returns a bounded profile summary](../../openspec/specs/social-and-notifications/spec.md#scenario-search-returns-a-bounded-profile-summary)
+- [Cross-user profile is returned](../../openspec/specs/social-and-notifications/spec.md#scenario-cross-user-profile-is-returned)
+- [Self profile is returned](../../openspec/specs/social-and-notifications/spec.md#scenario-self-profile-is-returned)
+- [Accepted follow list is returned](../../openspec/specs/social-and-notifications/spec.md#scenario-accepted-follow-list-is-returned)
+- [Pending follow requests are read](../../openspec/specs/social-and-notifications/spec.md#scenario-pending-follow-requests-are-read)
+- [Relationship status is read](../../openspec/specs/social-and-notifications/spec.md#scenario-relationship-status-is-read)
+
+#### SOC-06
+
+**[Authenticated users manage only their own editable profile](../../openspec/specs/social-and-notifications/spec.md#requirement-authenticated-users-manage-only-their-own-editable-profile)**
+
+- Platform scope: Shared backend self-update contract; browser supplies the observed text-edit surface. No iOS text-edit parity is required by this group.
+- Runbook owner: Step 3; validation/status schema details 11 and picture lifecycle 7.
+- Source evidence: [E04](#e04), [profiles/social review](profiles-and-social.md), [access matrix](access-matrix.md#access-matrix). Source has a self path check but broad DTO handling and no established unique-handle constraint.
+- Test evidence: No other-user, internal-field, duplicate-handle or atomic validation-failure test was run.
+- Accepted decision references: [D015](decisions.md). Follow-up gaps: [G013](gaps.md), [G026](gaps.md), [G028](gaps.md).
+
+Scenarios (5):
+
+- [User updates their editable profile fields](../../openspec/specs/social-and-notifications/spec.md#scenario-user-updates-their-editable-profile-fields)
+- [User attempts to update another profile](../../openspec/specs/social-and-notifications/spec.md#scenario-user-attempts-to-update-another-profile)
+- [Update includes an internal or immutable field](../../openspec/specs/social-and-notifications/spec.md#scenario-update-includes-an-internal-or-immutable-field)
+- [Distinct handle conflicts with another profile](../../openspec/specs/social-and-notifications/spec.md#scenario-distinct-handle-conflicts-with-another-profile)
+- [Profile update fails validation](../../openspec/specs/social-and-notifications/spec.md#scenario-profile-update-fails-validation)
 
 ### party-discovery-and-management
 
