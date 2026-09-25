@@ -41,8 +41,8 @@ For every domain completion item below, record the change name and its strict va
 
 ## 6. Discovery and maps
 
-- [ ] 6.1 Document visible-party queries, search, pagination, filter combination and time/metadata boundaries; verify client/server responsibility and public/private result eligibility are explicit for browser and iOS.
-- [ ] 6.2 Reconcile iOS filter/radius controls with archived decisions and current main specs; verify platform scope, finite/unlimited radius, unavailable location and filter-reset scenarios are defined without imposing iOS UI mechanics on the browser.
+- [x] 6.1 Document visible-party queries, search, pagination, filter combination and time/metadata boundaries; verify client/server responsibility and public/private result eligibility are explicit for browser and iOS.
+- [x] 6.2 Reconcile iOS filter/radius controls with archived decisions and current main specs; verify platform scope, finite/unlimited radius, unavailable location and filter-reset scenarios are defined without imposing iOS UI mechanics on the browser.
 - [ ] 6.3 Complete discovery and radius requirement updates and handoff; verify accepted deltas are integrated, conflicting filter wording has been resolved, and the separate main-spec Purpose repair remains tracked for Step 12.
 
 ## 7. Media and profile pictures

@@ -12,6 +12,8 @@ Step 4 source review and integration completed 2026-09-25 with application sourc
 
 Step 5 source review and integration completed 2026-09-25 with application source still unchanged: [invitations-and-attendance.md](invitations-and-attendance.md) maps invitation selection/management, attendance transitions, projection audiences, events and tests. The bounded `document-invitations-and-attendance` child is integrated into the main party spec; G009/G017/G031-G033 retain source and client discrepancies.
 
+Step 6 source review and proposal planning completed 2026-09-25 with application source still unchanged: [discovery-and-maps.md](discovery-and-maps.md) maps visible query composition, browser/iOS responsibility, iOS filter boundaries and radius transitions. The bounded `document-discovery-and-maps` child is planning-complete but unapplied; G009/G030/G034-G035 retain source/client discrepancies and G012 remains Step 12.
+
 ## Capability register and platform scope
 
 | Inventory ID | Existing capability or review area | Platforms / environments | Owner steps | Baseline disposition |
@@ -20,8 +22,8 @@ Step 5 source review and integration completed 2026-09-25 with application sourc
 | CAP-SOCIAL | `social-and-notifications`; profile editing/discovery | Backend, browser, iOS | 3 | SOC-01-SOC-06 accepted; bounded field/audience and directed follow lifecycle integrated, with G024/G026-G028 retained. |
 | CAP-PARTY | `party-discovery-and-management`; host lifecycle | Backend, browser, iOS | 4 | PARTY-03-PARTY-05/PARTY-12-PARTY-13 accepted and integrated; G003/G006/G009/G029-G030 retained. |
 | CAP-ATTENDANCE | Invitation and attendance rules within party/social capabilities | Backend, browser, iOS | 5 | PARTY-06/PARTY-07/PARTY-14/PARTY-15 accepted and integrated; G009/G017/G031-G033 retain implementation/client gaps. |
-| CAP-DISCOVERY | `party-discovery-and-management`; queries and map filters | Backend, browser, iOS | 6 | Shared visibility; later filter requirements have iOS provenance. |
-| CAP-RADIUS | `map-radius-control` | iOS | 6 | Existing requirements; Purpose placeholder tracked separately for Step 12. |
+| CAP-DISCOVERY | `party-discovery-and-management`; queries and map filters | Backend, browser, iOS | 6 | Shared visibility is accepted. `document-discovery-and-maps` proposes PARTY-16 query composition and explicit iOS scope for PARTY-08-PARTY-11; unapplied at the Group 6 proposal boundary. |
+| CAP-RADIUS | `map-radius-control` | iOS | 6 | Existing requirements remain accepted; the child proposes finite/unlimited/location/reset details. Purpose placeholder stays Step 12. |
 | CAP-MEDIA | `party-media-gallery`; profile-picture and storage lifecycle | Backend, browser, iOS, filesystem | 7 | Existing gallery intent; platform support and profile-picture contract partial. |
 | CAP-NOTIFY | `social-and-notifications`; notification settings/delivery | Backend, browser, iOS, email/push adapters | 8 | Existing notification center intent; channel/preferences contracts incomplete. |
 | CAP-QR | QR/mobile login | Backend and potential deep-link consumers | 9 | Observed surface; no dedicated main spec and retained target unresolved (Q001). |
@@ -190,10 +192,10 @@ Owner step key: 2 auth/identity, 3 profiles/social, 4 party lifecycle, 5 invitat
 | `src/main/java/at/htl/notificationsettings/UserNotificationSettingsRepository.java:12` | repository/service | Find/persist/save user notification settings. | 8 |
 | `src/main/java/at/htl/notificationsettings/UserNotificationSettings.java:6` | entity | Notification settings state. | 8 |
 | `src/main/java/at/htl/notificationsettings/NotificationSettingsDto.java:3` | DTO | Notification settings projection/update payload. | 8 |
-| `src/main/java/at/htl/party/PartyRepository.java:33` | repository/service | Party CRUD, filtering, visibility, invite/member/stat transitions, notification side effects. | 4, 5, 6, 8 |
+| `src/main/java/at/htl/party/PartyRepository.java:33` | repository/service | Party CRUD, filtering, visibility, invite/member/stat transitions, notification side effects. Group 6 reviewed default, legacy, new-filter, distance and pagination paths; G009/G034 retain branch differences. | 4, 5, 6, 8 |
 | `src/main/java/at/htl/party/Party.java:17` | entity | Party aggregate. | 4, 5, 6, 7, 10 |
 | `src/main/java/at/htl/party/PartyCreateDto.java:11` | DTO/validation target | Party create/update payload with validation annotations. | 4, 11 |
-| `src/main/java/at/htl/party/FilterParams.java:6` | DTO/helper | Party filter inputs and helper methods. | 6 |
+| `src/main/java/at/htl/party/FilterParams.java:6` | DTO/helper | Party filter inputs, validation and helper methods; Group 6 evidence is in `discovery-and-maps.md`. | 6 |
 | `src/main/java/at/htl/party/InvitationStatsDto.java:3` | DTO | Invitation stats projection. | 5 |
 | `src/main/java/at/htl/party/InvitedMemberDto.java:3` | DTO | Member projection for invited/joined views. | 5 |
 | `src/main/java/at/htl/profile_picture/ProfilePicture.java:6` | entity | Profile picture record. | 7 |
@@ -275,8 +277,8 @@ All paths in this table are relative to `src/main/resources/META-INF/resources/`
 
 | Exact files | Observed surface | Capability / primary step | Cross-checks |
 |---|---|---|---|
-| `index.html`, `index.js` | Main party map, discovery/filter selection and detail navigation; browser geolocation | Party / **6** | Extensions 10; API/runtime 11 |
-| `listPartys/listPartys.html`, `listPartys/listPartys.js` | Party list and search/filter/detail entry | Party / **6** | 4, 11 |
+| `index.html`, `index.js` | Main party map, local 14-day presentation and detail navigation; browser geolocation. Group 6 confirms no iOS-filter parity requirement. | Party / **6** | Extensions 10; API/runtime 11 |
+| `listPartys/listPartys.html`, `listPartys/listPartys.js` | Party list and local public/private/invited/hosted/free filter, search, sort and detail entry over the fetched visible set. | Party / **6** | 4, 11 |
 | `addParty/addParty.html`, `addParty/addParty.js` | Party create/edit form and invite selection | Party / **4** | 3, 5 |
 | `advancedPartyInfos/advancedPartyInfos.html`, `advancedPartyInfos/advancedPartyInfos.js` | Party details, join/leave, host/member/invitation displays and gallery link | Party / **4** | 5, 7 |
 | `profile/profile.html`, `profile/profile.js` | Profile, hosted/participating party views, follow controls and QR generation | Profile + Social / **3** | 4, 6, 7, QR 9 |
@@ -325,7 +327,7 @@ All paths below are relative to `PartyHubiOS/PartyHubiOS/` and have iOS scope. E
 | `PartyView/PartyDetailView.swift`, `PartyView/PartyDetailsSection.swift` | Detail and date-time display, ownership/edit actions, attendance, photos, location, calendar/share and visit integration | Party / **4** | 5, 7, 10 |
 | `PartyView/AttendanceSection.swift`, `PartyView/InviteUsersView.swift` | Attendance display and invited-user selection/request helper | Party / **5** | Social 3 |
 | `Map/InvitationsView.swift`, `Map/InvitationsViewModel.swift` | Received invitations and accept/decline via join/leave calls | Party / **5** | Social 8 |
-| `Map/MapView.swift`, `Map/PartyMapFilter.swift`, `Map/MapClustering.swift`, `Map/ClusterPin.swift` | Party discovery map, combination/time/fee/distance filter state, clustering/badges; ClusterPin retains a deprecated old component | Party + Radius / **6** | Extensions 10; deprecated component disposition 12 |
+| `Map/MapView.swift`, `Map/PartyMapFilter.swift`, `Map/MapClustering.swift`, `Map/ClusterPin.swift` | iOS party discovery map, AND-composed time/theme/fee/age/search and finite/unlimited distance state, reset, clustering, summary and radius UI; the 5 km circle/camera mismatch is G035. | Party + Radius / **6** | Extensions 10; deprecated component disposition 12 |
 | `PartyView/AttendeeFilter.swift`, `Map/PartyAttendeeMapView.swift`, `Map/UserLocationListView.swift`, `Map/UserLocationViewModel.swift`, `Map/LocationSection.swift` | Attendee filter/maps/lists, user location fetch/update and location presentation | Extensions / **10** | Party visibility 4/5; Auth 2 |
 | `GeoTimeTracking/LocationManager.swift`, `GeoTimeTracking/LocationDisplayHelper.swift`, `GeoTimeTracking/TimeEntry.swift`, `GeoTimeTracking/TimeTrackingView.swift`, `PartyView/PastVisitsSection.swift` | CoreLocation/geofences, background current location, SwiftData visit/time records, time tracking and past visits | Extensions / **10** | Runtime/privacy decisions 11 |
 | `CalendarService.swift` | EventKit permission and event create/update/delete mappings in UserDefaults; party deep link | Extensions / **10** | Party lifecycle 4; runtime/privacy 11 |
