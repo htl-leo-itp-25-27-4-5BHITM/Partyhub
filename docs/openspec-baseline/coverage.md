@@ -74,9 +74,9 @@ Test evidence: `NotificationRepositoryTest.testMarkAsRead_success` asserts store
 
 **Party visibility, discovery, detail and lifecycle.** [src/main/java/at/htl/party/PartyResource.java](../../src/main/java/at/htl/party/PartyResource.java); [src/main/java/at/htl/party/PartyRepository.java](../../src/main/java/at/htl/party/PartyRepository.java); [src/main/java/at/htl/party/PartyCreateDto.java](../../src/main/java/at/htl/party/PartyCreateDto.java); [src/main/resources/META-INF/resources/index.js](../../src/main/resources/META-INF/resources/index.js); [src/main/resources/META-INF/resources/advancedPartyInfos/advancedPartyInfos.js](../../src/main/resources/META-INF/resources/advancedPartyInfos/advancedPartyInfos.js); [src/main/resources/META-INF/resources/backend-functions.js](../../src/main/resources/META-INF/resources/backend-functions.js); [PartyHubiOS/PartyHubiOS/PartyView/PartyDetailView.swift](../../PartyHubiOS/PartyHubiOS/PartyView/PartyDetailView.swift); [src/test/java/at/htl/resource/PartyResourceTest.java](../../src/test/java/at/htl/resource/PartyResourceTest.java); [src/test/java/at/htl/repository/PartyRepositoryTest.java](../../src/test/java/at/htl/repository/PartyRepositoryTest.java); [api/party.http](../../api/party.http).
 
-Observed: `getPartiesByUser` distinguishes public, hosted, invited and joined results; the detail route calls `getPartyByIdIfVisible`. Other filtered/media/location paths need separate review. `updateParty` sets the caller as host without first checking the existing host; the source therefore cannot be treated as complete host-management compliance.
+Observed: `getPartiesByUser` distinguishes public, hosted, invited and joined results; the detail route calls `getPartyByIdIfVisible`. Legacy search/theme/date/sort branches omit that viewer predicate. Create derives the host from the caller, delete checks the stored host, and update sets the caller as host without first checking the existing host. DTO validation has range/length annotations but grouped required rules and cross-field/location constraints are incomplete. Browser/iOS lifecycle callers have the route, authentication and field-preservation differences recorded in [party-lifecycle.md](party-lifecycle.md).
 
-Test evidence: `PartyResourceTest.testDeleteParty_owner` and `testDeleteParty_notOwner` assert 204/403 under `@TestSecurity`; this only evidences deletion assertions. HTTPYac sections name public/private/visible-party examples but are not UI tests and were not executed. Other party tests are candidates pending detailed assertion mapping.
+Test evidence: `PartyResourceTest.testDeleteParty_owner` and `testDeleteParty_notOwner` assert 204/403 under `@TestSecurity`; anonymous mutation and missing-party assertions also exist. Repository tests cover visibility normalization, selected private invitees and update/cancellation success cases. No inspected test establishes non-host update denial, immutable ownership, complete validation, every visibility branch, or client field preservation; none was run.
 
 ### E08
 
@@ -166,9 +166,25 @@ The child delta is synced into the main spec. The accepted baseline is now **42 
 
 Q009 is resolved for normative profile/social access and fields by SOC-01/SOC-04/SOC-05/SOC-06. Exact route/schema compatibility and picture serving remain assigned to Steps 11 and 7. G024 and G026–G028 preserve route, serialization, direction and client-support mismatches as implementation evidence. No application or runtime test was executed.
 
+## Step 4 party lifecycle review
+
+Reviewed 2026-09-25 from the unchanged application-source snapshot. [Party lifecycle evidence](party-lifecycle.md) maps CRUD actors, fields and validation, browser/iOS routes and payloads, and the inspected test assertions. The bounded child [proposal](../../openspec/changes/document-party-lifecycle/proposal.md), [design](../../openspec/changes/document-party-lifecycle/design.md), [delta](../../openspec/changes/document-party-lifecycle/specs/party-discovery-and-management/spec.md) and [tasks](../../openspec/changes/document-party-lifecycle/tasks.md) are planning-complete and pass strict validation.
+
+The child has not been applied or synced. The accepted baseline therefore remains **42 requirements/145 scenarios**, with `party-discovery-and-management` at **11/33**. If accepted in a later apply task, the complete delta projects the party spec at **13/60** and the full baseline at **44/172**.
+
+| Stable mapping | Proposed full coverage after integration | Disposition at this checkpoint |
+|---|---:|---|
+| PARTY-03 party detail context | 3 scenarios | Full modified block preserves both original scenarios and adds absent optional-field handling. Proposed only. |
+| PARTY-04 private visibility | 7 scenarios | Full modified block preserves non-invited denial and adds anonymous/public, host, invitee, attendee and query-branch consistency cases. Proposed only. |
+| PARTY-05 host management | 9 scenarios | Full modified block preserves the original four scenarios and adds authenticated actor, immutable host, denial and missing-party behavior. Proposed only. |
+| Proposed PARTY-12 atomic lifecycle validation | 10 scenarios | New requirement covers required fields, exact bounded values, cross-field rules, visibility default/rejection, metadata scope and all-or-nothing failures. Proposed only. |
+| Proposed PARTY-13 shared lifecycle client contract | 5 scenarios | New requirement covers plural CRUD routes, bearer identity, field preservation, server-consistent failure and non-parity scope. Proposed only. |
+
+Q003, Q004, Q010 and Q014 retain invitation status, admission enforcement, supplementary exposure and exact wire-contract ownership. G003/G006/G009/G029-G030 preserve authorization, query visibility, validation, route and client-payload mismatches. No application or runtime test was executed.
+
 ## Requirement and scenario index
 
-All entries in the index have intended status **Existing accepted main-spec requirement**. Foundation entries below remain the original evidence index; the Step 2 and Step 3 addenda record integrated coverage. No entry is runtime verified. Decision and gap IDs refer to the separate registers and can evolve during later stages; requirement IDs here remain stable for handoffs.
+All entries in the index have intended status **Existing accepted main-spec requirement**. Foundation entries below remain the original evidence index; the Step 2 and Step 3 addenda record integrated coverage, while the Step 4 addendum explicitly separates proposed coverage. No entry is runtime verified. Decision and gap IDs refer to the separate registers and can evolve during later stages; requirement IDs here remain stable for handoffs.
 
 ### user-auth-and-identity
 
