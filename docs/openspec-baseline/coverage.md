@@ -2,7 +2,7 @@
 
 Foundation snapshot: repository revision `9487ccb90bb438e24b3cfab547a5dc900b11aecb`, inspected 2026-09-21. See [runbook](runbook.md), [inventory](inventory.md), [decisions](decisions.md), [gaps](gaps.md) and [handoff](handoff.md).
 
-The foundation snapshot indexed **37 accepted requirements and 106 scenarios** in the six durable specifications. After the accepted Steps 2-6 integrations, the current main specs contain **47 accepted requirements and 212 scenarios**. `document-discovery-and-maps` is applied and synced, so PARTY-16 and the reviewed PARTY-08-PARTY-11/RADIUS-01-RADIUS-03 wording are accepted coverage. Acceptance records normative coverage; it does not assert implementation compliance, complete product scope or completion of Steps 7-12. Requirement titles and scenario labels below reproduce the current main specs exactly.
+The foundation snapshot indexed **37 accepted requirements and 106 scenarios** in the six durable specifications. After the accepted Steps 2-7 integrations, the current main specs contain **48 accepted requirements and 235 scenarios**. `document-media-and-profile-pictures` is applied and synced, so MEDIA-01-MEDIA-03 and SOC-07 are accepted coverage. Acceptance records normative coverage; it does not assert implementation compliance, complete product scope or completion of Steps 8-12. Requirement titles and scenario labels below reproduce the current main specs exactly.
 
 Platform scope below is a foundation classification grounded in the requirement text, archive context and source entry points. Where existing wording is ambiguous, its owner stage must reconcile it. In particular, browser auth does not establish the iOS auth contract, and iOS map controls are not automatically browser requirements.
 
@@ -11,12 +11,12 @@ Platform scope below is a foundation classification grounded in the requirement 
 | Capability | Requirements | Scenarios | Main owner stage |
 |---|---:|---:|---|
 | [user-auth-and-identity](../../openspec/specs/user-auth-and-identity/spec.md) | 12 | 43 | 2 |
-| [social-and-notifications](../../openspec/specs/social-and-notifications/spec.md) | 6 | 35 | 3, 5, 8 |
+| [social-and-notifications](../../openspec/specs/social-and-notifications/spec.md) | 7 | 43 | 3, 5, 7, 8 |
 | [party-discovery-and-management](../../openspec/specs/party-discovery-and-management/spec.md) | 16 | 97 | 4–6 |
-| [party-media-gallery](../../openspec/specs/party-media-gallery/spec.md) | 3 | 5 | 7 |
+| [party-media-gallery](../../openspec/specs/party-media-gallery/spec.md) | 3 | 20 | 7 |
 | [map-radius-control](../../openspec/specs/map-radius-control/spec.md) | 3 | 10 | 6 (Purpose repair 12) |
 | [local-keycloak-environment](../../openspec/specs/local-keycloak-environment/spec.md) | 7 | 22 | 11 |
-| **Total** | **47** | **212** | **All assigned** |
+| **Total** | **48** | **235** | **All assigned** |
 
 ## Source and test evidence groups
 
@@ -90,9 +90,9 @@ Test evidence: No matching automated iOS map interaction/filter/radius scenario 
 
 **Party media.** [src/main/java/at/htl/media/MediaRepository.java](../../src/main/java/at/htl/media/MediaRepository.java); [src/main/java/at/htl/party/PartyResource.java](../../src/main/java/at/htl/party/PartyResource.java); [src/main/resources/META-INF/resources/gallery/gallery.js](../../src/main/resources/META-INF/resources/gallery/gallery.js); [PartyHubiOS/PartyHubiOS/Photo/PhotoView.swift](../../PartyHubiOS/PartyHubiOS/Photo/PhotoView.swift); [PartyHubiOS/PartyHubiOS/Photo/PartyBilderView.swift](../../PartyHubiOS/PartyHubiOS/Photo/PartyBilderView.swift); [PartyHubiOS/PartyHubiOS/PartyView/PhotosSection.swift](../../PartyHubiOS/PartyHubiOS/PartyView/PhotosSection.swift); [src/test/java/at/htl/repository/MediaRepositoryTest.java](../../src/test/java/at/htl/repository/MediaRepositoryTest.java); [api/media.http](../../api/media.http).
 
-Observed: Browser gallery code loads media and renders empty/error states; its inspected flow is read-only. iOS photo files are separate UI/local-storage entry points, not verified backend gallery uploads. Repository upload validates file input/type/size and writes files without an inspected party-visibility check or an end-time gate; listing/serving also need an access audit.
+Observed: Browser gallery code loads media and renders empty/error states; its inspected flow is read-only and references an unexposed `/api/media/{id}` serving route. iOS party-photo files use local document storage rather than the backend gallery. Repository upload validates file input, declared JPEG/PNG/GIF/WebP type and a 5 MiB maximum without a Viewer check or end-time gate, and persists metadata before the filesystem move. Gallery/user-media reads do not apply party visibility. Profile-picture routes are open for reads; self-upload lacks equivalent backend type/size validation and removes old metadata before replacement succeeds. See [media and profile-picture review](media-and-profile-pictures.md) and G036-G039.
 
-Test evidence: `MediaRepositoryTest.testGetMediaByParty_empty` and `testGetMediaByParty_withData` assert empty/list contents, not gallery UI or viewer authorization. `api/media.http` contains list requests. No matching upload-authorization/UI scenario test was confirmed; none was run.
+Test evidence: `MediaRepositoryTest.testGetMediaByParty_empty` and `testGetMediaByParty_withData` assert empty/list contents, not gallery UI or Viewer authorization. `api/media.http` contains list requests. No inspected test establishes normal-JWT private-media denial, an exposed item route, upload atomicity, profile validation/replacement preservation, or browser/iOS synchronization; none was run.
 
 ### E10
 
@@ -199,7 +199,7 @@ D017 resolves Q003 and Q010. Q004 remains intentionally unresolved because the e
 
 ## Requirement and scenario index
 
-All entries in the index have intended status **Existing accepted main-spec requirement**. Foundation entries below remain the original evidence index; the Steps 2-6 addenda record integrated coverage. No entry is runtime verified. Decision and gap IDs refer to the separate registers and can evolve during later stages; requirement IDs here remain stable for handoffs.
+All entries in the index have intended status **Existing accepted main-spec requirement**. Foundation entries below remain the original evidence index; the Steps 2-7 addenda record integrated coverage. No entry is runtime verified. Decision and gap IDs refer to the separate registers and can evolve during later stages; requirement IDs here remain stable for handoffs.
 
 ### user-auth-and-identity
 
@@ -517,6 +517,27 @@ Scenarios (5):
 - [Distinct handle conflicts with another profile](../../openspec/specs/social-and-notifications/spec.md#scenario-distinct-handle-conflicts-with-another-profile)
 - [Profile update fails validation](../../openspec/specs/social-and-notifications/spec.md#scenario-profile-update-fails-validation)
 
+#### SOC-07
+
+**[Profile pictures are authenticated profile content and self-managed](../../openspec/specs/social-and-notifications/spec.md#requirement-profile-pictures-are-authenticated-profile-content-and-self-managed)**
+
+- Platform scope: Shared authenticated backend contract with browser/iOS profile-picture consumers; client controls may differ.
+- Runbook owner: Step 7; physical retention and exact API transport remain Step 11.
+- Source evidence: [E09](#e09), [media/profile review](media-and-profile-pictures.md), [access rows 45-47](access-matrix.md#access-matrix). Reads are open, backend validation/replacement consistency is incomplete, and current clients do not consistently deliver bearer-authenticated image bytes or the SVG fallback.
+- Test evidence: No anonymous/authenticated picture-read, cross-user upload, content/size validation, replacement-failure preservation or cache-refresh scenario was run.
+- Accepted decision references: [D015](decisions.md), [D019](decisions.md). Follow-up gaps: [G039](gaps.md), [G013](gaps.md); retention [Q006](decisions.md), transport [Q014](decisions.md).
+
+Scenarios (8):
+
+- [Authenticated viewer requests a custom profile picture](../../openspec/specs/social-and-notifications/spec.md#scenario-authenticated-viewer-requests-a-custom-profile-picture)
+- [Profile has no usable custom picture](../../openspec/specs/social-and-notifications/spec.md#scenario-profile-has-no-usable-custom-picture)
+- [Anonymous caller requests profile-picture content](../../openspec/specs/social-and-notifications/spec.md#scenario-anonymous-caller-requests-profile-picture-content)
+- [Profile owner uploads a valid picture](../../openspec/specs/social-and-notifications/spec.md#scenario-profile-owner-uploads-a-valid-picture)
+- [User uploads a picture for another profile](../../openspec/specs/social-and-notifications/spec.md#scenario-user-uploads-a-picture-for-another-profile)
+- [Profile-picture upload is invalid](../../openspec/specs/social-and-notifications/spec.md#scenario-profile-picture-upload-is-invalid)
+- [Profile-picture replacement fails](../../openspec/specs/social-and-notifications/spec.md#scenario-profile-picture-replacement-fails)
+- [Client refreshes a replaced profile picture](../../openspec/specs/social-and-notifications/spec.md#scenario-client-refreshes-a-replaced-profile-picture)
+
 ### party-discovery-and-management
 
 #### PARTY-01
@@ -830,30 +851,39 @@ Scenarios (8):
 
 **[Party galleries support media viewing in the current brownfield system](../../openspec/specs/party-media-gallery/spec.md#requirement-party-galleries-support-media-viewing-in-the-current-brownfield-system)**
 
-- Platform scope: Shared gallery domain; browser implementation observed, iOS support requires Step 7 classification.
+- Platform scope: Shared server-backed gallery domain; browser implementation observed, iOS party-photo state currently local-only.
 - Runbook owner: Step 7.
-- Source evidence: [E09](#e09). Browser loading and empty-gallery rendering exist; backend viewer access and iOS parity are not verified.
+- Source evidence: [E09](#e09), [media/profile review](media-and-profile-pictures.md), [access rows 29/57](access-matrix.md#access-matrix). Browser loading and empty-gallery rendering exist; backend Viewer access and item serving do not conform, and iOS local photos are not shared media.
 - Test evidence: E09 repository list-content/empty tests are partial data evidence, not UI or authorization coverage. All execution remains unverified.
-- Accepted decision references: [D009](decisions.md). Follow-up gaps: [G009](gaps.md), [G014](gaps.md), [G013](gaps.md).
+- Accepted decision references: [D009](decisions.md), [D019](decisions.md). Follow-up gaps: [G009](gaps.md), [G036](gaps.md), [G013](gaps.md).
 
-Scenarios (2):
+Scenarios (8):
 
 - [User opens a party gallery](../../openspec/specs/party-media-gallery/spec.md#scenario-user-opens-a-party-gallery)
+- [Anonymous caller opens a public-party gallery](../../openspec/specs/party-media-gallery/spec.md#scenario-anonymous-caller-opens-a-public-party-gallery)
+- [Authenticated viewer opens a private-party gallery](../../openspec/specs/party-media-gallery/spec.md#scenario-authenticated-viewer-opens-a-private-party-gallery)
+- [Caller without private-party access requests media](../../openspec/specs/party-media-gallery/spec.md#scenario-caller-without-private-party-access-requests-media)
 - [Party has no media](../../openspec/specs/party-media-gallery/spec.md#scenario-party-has-no-media)
+- [Viewer requests an individual media item](../../openspec/specs/party-media-gallery/spec.md#scenario-viewer-requests-an-individual-media-item)
+- [Media or backing image is unavailable](../../openspec/specs/party-media-gallery/spec.md#scenario-media-or-backing-image-is-unavailable)
+- [User media projection is requested](../../openspec/specs/party-media-gallery/spec.md#scenario-user-media-projection-is-requested)
 
 #### MEDIA-02
 
 **[Party gallery upload is target behavior for the user interface](../../openspec/specs/party-media-gallery/spec.md#requirement-party-gallery-upload-is-target-behavior-for-the-user-interface)**
 
-- Platform scope: Target gallery UI behavior; per-client delivery status unverified.
+- Platform scope: Shared server gallery contract with explicit browser server-backed and iOS local-only evidence; no control parity requirement.
 - Runbook owner: Step 7.
-- Source evidence: [E09](#e09). The accepted target remains UI upload; inspected browser flow is read-only and iOS photo surfaces are not proof of backend upload.
+- Source evidence: [E09](#e09), [media/profile review](media-and-profile-pictures.md). The accepted target remains UI upload; inspected browser flow is server-backed read-only and iOS photo surfaces store local files only.
 - Test evidence: No matching automated gallery UI upload scenario test identified. All execution remains unverified.
-- Accepted decision references: [D009](decisions.md). Follow-up gaps: [G014](gaps.md), [G013](gaps.md).
+- Accepted decision references: [D009](decisions.md), [D019](decisions.md). Follow-up gaps: [G014](gaps.md), [G038](gaps.md), [G013](gaps.md).
 
-Scenarios (1):
+Scenarios (4):
 
 - [Gallery upload capability is described for future work](../../openspec/specs/party-media-gallery/spec.md#scenario-gallery-upload-capability-is-described-for-future-work)
+- [Browser opens the shared gallery](../../openspec/specs/party-media-gallery/spec.md#scenario-browser-opens-the-shared-gallery)
+- [Client gallery load fails](../../openspec/specs/party-media-gallery/spec.md#scenario-client-gallery-load-fails)
+- [iOS stores photos only on the device](../../openspec/specs/party-media-gallery/spec.md#scenario-ios-stores-photos-only-on-the-device)
 
 #### MEDIA-03
 
@@ -861,14 +891,20 @@ Scenarios (1):
 
 - Platform scope: Backend gallery upload policy with browser/iOS consumers.
 - Runbook owner: Step 7.
-- Source evidence: [E09](#e09). Upload has no observed end-time gate, but the inspected method lacks viewer-visibility enforcement; neither fact changes accepted policy.
+- Source evidence: [E09](#e09), [media/profile review](media-and-profile-pictures.md), [access row 26](access-matrix.md#access-matrix). Upload has no observed end-time gate, but the inspected method lacks Viewer enforcement and consistent file/metadata publication.
 - Test evidence: No matching allow-viewer/deny-nonviewer upload authorization test confirmed. All execution remains unverified.
-- Accepted decision references: [D009](decisions.md). Follow-up gaps: [G009](gaps.md), [G014](gaps.md), [G013](gaps.md).
+- Accepted decision references: [D009](decisions.md), [D019](decisions.md). Follow-up gaps: [G009](gaps.md), [G037](gaps.md), [G013](gaps.md); retention [Q006](decisions.md).
 
-Scenarios (2):
+Scenarios (8):
 
 - [Party viewer uploads a photo](../../openspec/specs/party-media-gallery/spec.md#scenario-party-viewer-uploads-a-photo)
+- [Anonymous public-party viewer uploads a photo](../../openspec/specs/party-media-gallery/spec.md#scenario-anonymous-public-party-viewer-uploads-a-photo)
 - [User without party access uploads a photo](../../openspec/specs/party-media-gallery/spec.md#scenario-user-without-party-access-uploads-a-photo)
+- [Upload contains no image](../../openspec/specs/party-media-gallery/spec.md#scenario-upload-contains-no-image)
+- [Upload uses an unsupported image type](../../openspec/specs/party-media-gallery/spec.md#scenario-upload-uses-an-unsupported-image-type)
+- [Upload exceeds the file-size boundary](../../openspec/specs/party-media-gallery/spec.md#scenario-upload-exceeds-the-file-size-boundary)
+- [Valid upload uses an unsafe client filename](../../openspec/specs/party-media-gallery/spec.md#scenario-valid-upload-uses-an-unsafe-client-filename)
+- [Gallery image storage fails](../../openspec/specs/party-media-gallery/spec.md#scenario-gallery-image-storage-fails)
 
 ### map-radius-control
 
@@ -1040,10 +1076,16 @@ Scenarios (3):
 
 `document-discovery-and-maps` is applied, synced and strict-valid. Its [party delta](../../openspec/changes/document-discovery-and-maps/specs/party-discovery-and-management/spec.md) added PARTY-16 with 8 scenarios, retained PARTY-08/PARTY-09 at 5/4 scenarios, expanded PARTY-10 from 7 to 8, and retained PARTY-11 at 2 with strict missing-theme AND behavior. Its [radius delta](../../openspec/changes/document-discovery-and-maps/specs/map-radius-control/spec.md) established RADIUS-01/RADIUS-02/RADIUS-03 at 3/1/6 scenarios.
 
-Accepted `party-discovery-and-management` coverage is **16 requirements/97 scenarios**, `map-radius-control` is **3 requirements/10 scenarios**, and the full baseline is **47 requirements/212 scenarios**. D018 and the resolved Q008 record the accepted filter/query/radius boundaries. G010/G011 are resolved specification ambiguities; G009/G030/G034/G035 retain implementation/client mismatches and G012 remains the Step 12 Purpose correction.
+At the Step 6 checkpoint, accepted `party-discovery-and-management` coverage was **16 requirements/97 scenarios**, `map-radius-control` was **3 requirements/10 scenarios**, and the full baseline was **47 requirements/212 scenarios**. Group 7 later extends the full accepted baseline to 48/235 without changing those party/radius blocks.
+
+## Step 7 media and profile-picture review
+
+`document-media-and-profile-pictures` is applied, synced and strict-valid with 9/9 tasks complete. Its [media delta](../../openspec/changes/document-media-and-profile-pictures/specs/party-media-gallery/spec.md) keeps 3 media requirements and expands their coverage from 5 to 20 scenarios. Its [social delta](../../openspec/changes/document-media-and-profile-pictures/specs/social-and-notifications/spec.md) adds SOC-07 with 8 scenarios. The [evidence review](media-and-profile-pictures.md) separates server-backed browser media, iOS local-only photos, current backend behavior and profile-picture handling.
+
+Accepted main-spec coverage is **48 requirements/235 scenarios**: media is 3/20 and social is 7/43. D019 resolves Q005 by retaining anonymous public-gallery viewing while requiring authenticated Viewer identity for upload, and accepts SOC-07's profile-picture boundary. G036-G039 retain observed access, serving, consistency and client mismatches; physical cleanup/retention remains Q006/Step 11 and exact routes/status/envelopes remain Q014/Step 11.
 
 ## Coverage outside the existing baseline
 
-The 47 accepted requirements do not by themselves specify every discovered surface. Profile pictures, notification settings and delivery, QR login, extended location/calendar features, API validation/error contracts, storage and deployment details remain assigned in [inventory.md](inventory.md) and [runbook.md](runbook.md), with scope/contract gaps in [gaps.md](gaps.md). They have **no implied normative coverage** from a similarly named requirement. Steps 7–11 add or reconcile coverage through bounded domain changes; Step 12 checks complete inventory-to-requirement-to-scenario traceability.
+The 48 accepted requirements do not by themselves specify every discovered surface. Notification settings and delivery, QR login, extended location/calendar features, exact API validation/error contracts, physical storage retention and deployment details remain assigned in [inventory.md](inventory.md) and [runbook.md](runbook.md), with scope/contract gaps in [gaps.md](gaps.md). They have **no implied normative coverage** from a similarly named requirement. Steps 8–11 add or reconcile coverage through bounded domain changes; Step 12 checks complete inventory-to-requirement-to-scenario traceability.
 
 Future domain updates should retain these identifiers or record a clear replacement mapping, add accepted requirement/scenario links after integration, state the exact observed implementation status, and identify the assertions and execution results supporting each coverage claim. Do not mark a domain complete solely because a proposal or test file exists.

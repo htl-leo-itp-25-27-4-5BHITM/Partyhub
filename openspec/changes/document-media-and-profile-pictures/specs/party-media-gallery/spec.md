@@ -1,9 +1,7 @@
-# party-media-gallery Specification
+# Spec Delta
 
-## Purpose
-Defines PartyHub's party gallery behavior, including viewing stored media, empty-gallery states, and the target rule that any user who can view a party may upload photos at any time.
+## MODIFIED Requirements
 
-## Requirements
 ### Requirement: Party galleries support media viewing in the current brownfield system
 The system SHALL expose a party's server-backed media list and individual media content only through the same party Viewer boundary used for party details. Anonymous callers MAY view public-party media; private-party media SHALL require an authenticated host, pending invitee, or joined attendee. Media and user-media projections SHALL NOT reveal items from a party the caller cannot view.
 

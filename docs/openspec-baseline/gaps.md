@@ -1,6 +1,6 @@
 # Initial implementation and documentation gaps
 
-Foundation snapshot: `9487ccb90bb438e24b3cfab547a5dc900b11aecb`, 2026-09-21; Step 2 refinement on 2026-09-23 and Steps 3-6 integration on 2026-09-25 with application source unchanged. These are source/configuration observations and specification/documentation conflicts. None is a runtime reproduction. Priorities are initial triage for later work: high = access/identity boundary, medium = behavior/compatibility, low = editorial/evidence hygiene. This register is not a complete security audit or a finding about a live deployment.
+Foundation snapshot: `9487ccb90bb438e24b3cfab547a5dc900b11aecb`, 2026-09-21; Step 2 refinement on 2026-09-23, Steps 3-6 integration on 2026-09-25 and Group 7 integration on 2026-09-28 with application source unchanged. These are source/configuration observations and specification/documentation conflicts. None is a runtime reproduction. Priorities are initial triage for later work: high = access/identity boundary, medium = behavior/compatibility, low = editorial/evidence hygiene. This register is not a complete security audit or a finding about a live deployment.
 
 Java paths below start at `src/main/java/at/htl/`; browser paths at `src/main/resources/META-INF/resources/`; Swift paths at `PartyHubiOS/PartyHubiOS/`. Complete surface ownership is in [inventory.md](inventory.md); requirement anchors are in [coverage.md](coverage.md).
 
@@ -99,8 +99,8 @@ Java paths below start at `src/main/java/at/htl/`; browser paths at `src/main/re
 
 - **Expected:** D009 permits party viewers to upload at any time and distinguishes accepted upload target from historical browser read-only behavior.
 - **Observed:** Backend uploads exist. The inspected browser `gallery/gallery.html` and `gallery.js` provide a grid/modal view without upload controls, and reference `/api/media/{id}` images without a matching Java REST resource in the inventory. Swift `Photo/PartyBilderView.swift` stores images in local documents; backend-gallery parity is not established. Media upload identity/access, profile upload constraints and URL serving need exact domain review. See `media/MediaRepository.java:112` and `user/UserResource.java:265`.
-- **Disposition:** Platform support/access/validation gap candidate; Q005 covers public-viewer identity ambiguity. **Priority:** medium. **Owner:** Step 7.
-- **Next action:** Record actual active UI support, upload validation and viewer identity for each client before changing any normative requirement.
+- **Disposition:** Resolved specification ambiguity. Group 7 integrated server-backed shared state, authenticated Viewer upload and honest local-only client state through D019/MEDIA-01-MEDIA-03/SOC-07. G036-G039 retain the concrete implementation gaps. **Priority:** resolved. **Owner:** completed Step 7.
+- **Next action:** Address G036-G039 in bounded implementation changes without inventing UI parity or retention policy.
 
 ## G015 README setup command points to a missing script
 
@@ -248,3 +248,31 @@ Java paths below start at `src/main/java/at/htl/`; browser paths at `src/main/re
 - **Observed:** `MapView.shouldShowSearchRadiusCircle` and `shouldAutoFocusForDistanceFilter` exclude both unlimited and the 5 km finite option. Filtering still applies 5 km, but the circle and radius-focused camera do not. Other finite values render/focus; unavailable location resets to unlimited and disables the slider.
 - **Disposition:** iOS source mismatch against accepted finite-radius visualization; source inspection only, no SwiftUI flow or build executed. **Priority:** medium. **Owner:** bounded iOS map implementation.
 - **Next action:** Make every finite selection drive the same filter/circle/camera state contract and add tests or UI verification for 5 km, another finite value, unlimited, reset and location loss.
+
+## G036 Party media serving and projections bypass or lack the Viewer boundary
+
+- **Expected:** D007/D009/D017/D019 and MEDIA-01 require private party content to remain within the host, pending-invitee and joined-attendee Viewer boundary for gallery lists, individual bytes and user-media projections while retaining anonymous public-party viewing.
+- **Observed:** Party gallery list and user-media routes are open and repository queries apply no caller/party visibility predicate. Media byte helpers also contain no caller check, and no inventoried Java REST resource exposes the browser's `/api/media/{id}` URL.
+- **Disposition:** Source access/serving mismatch and missing surface against accepted MEDIA-01, not a runtime exploit reproduction. **Priority:** high. **Owner:** bounded media backend/API implementation; exact route/status/envelope Step 11/Q014.
+- **Next action:** Implement one Viewer check for list/item/user projections and an authorized item-serving surface, then test anonymous public, each private Viewer role, unrelated caller, missing record and missing file with normal bearer identity.
+
+## G037 Gallery upload validation and persistence are not one consistent operation
+
+- **Expected:** D001/D009/D019 and MEDIA-03 require authenticated Viewer upload at any party time, non-empty JPEG/PNG/GIF/WebP up to 5 MiB, a server-owned safe reference and no usable record whose accepted backing file was not stored.
+- **Observed:** The route is authenticated and derives the caller but does not check Viewer eligibility. Repository validation uses declared media type and size, sanitizes the client filename, persists metadata before moving the file, and exposes no reviewed compensation for a move failure. No delete endpoint or accepted physical cleanup policy was found.
+- **Disposition:** Authorization, content-validation and logical consistency mismatch against accepted MEDIA-03; no failed move or malicious upload was executed. Physical retention remains Q006 rather than an implied immediate-delete rule. **Priority:** high. **Owner:** bounded media upload implementation; storage lifecycle Step 11.
+- **Next action:** Enforce Viewer eligibility and server-side content validation before side effects, make file/metadata publication failure-consistent, and test anonymous/non-Viewer/invalid/oversize/unsafe-name/storage-failure cases without adding unapproved deletion semantics.
+
+## G038 Browser and iOS party-photo state represent different stores
+
+- **Expected:** D019/MEDIA-02 distinguish the shared server gallery from device-local photos. Clients may expose different controls, but local files cannot be presented as uploaded PartyHub media.
+- **Observed:** Browser gallery reads backend media into a grid/modal and has no inspected upload control. iOS `PartyBilderView` and related party-detail photo code copy/remove local document files and do not use the backend gallery; another photo screen uses fixed demo content.
+- **Disposition:** Client support/state mismatch against accepted MEDIA-02, not proof that platform UI parity is required. **Priority:** medium. **Owner:** bounded browser/iOS media work.
+- **Next action:** Keep local iOS state explicitly local, add server synchronization only through an approved client change, and verify shared refresh/empty/error states separately on each supported client.
+
+## G039 Profile-picture reads, validation and replacement conflict with the profile contract
+
+- **Expected:** D001/D015/D019 and SOC-05-SOC-07 place picture content under authenticated profile viewing, permit only Self replacement, validate non-empty JPEG/PNG/GIF/WebP up to 5 MiB, provide a stable placeholder/reference and preserve the current usable picture on replacement failure.
+- **Observed:** Profile-picture and filename reads are open. Browser and iOS perform direct image calls; iOS can reject the server SVG placeholder as undecodable image content. Upload is self-authenticated, but the backend lacks a common type/size/content boundary, deletes the old metadata row before the new file move succeeds, and does not establish physical old-file cleanup. Browser client checks broad `image/*`/5 MiB while iOS sends JPEG.
+- **Disposition:** Access, validation, fallback, cache and failure-consistency mismatch against accepted SOC-07; source inspection only. Physical retention stays Q006. **Priority:** high. **Owner:** bounded profile/media backend and client work; lifecycle/API Step 11.
+- **Next action:** Require authenticated reads, implement a client-compatible placeholder and refresh reference, validate on the server, preserve the prior logical picture on failure, and test Self/other/anonymous/invalid/storage-failure/cache-refresh cases.

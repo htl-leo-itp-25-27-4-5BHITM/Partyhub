@@ -14,17 +14,19 @@ Step 5 source review and integration completed 2026-09-25 with application sourc
 
 Step 6 source review and integration completed 2026-09-25 with application source still unchanged: [discovery-and-maps.md](discovery-and-maps.md) maps accepted visible query composition, browser/iOS responsibility, iOS filter boundaries and radius transitions. The bounded `document-discovery-and-maps` child is applied and synced; G009/G030/G034-G035 retain source/client discrepancies and G012 remains Step 12.
 
+Step 7 source review and integration completed 2026-09-28 with application source still unchanged: [media-and-profile-pictures.md](media-and-profile-pictures.md) maps gallery list/item/user-media access, server/local client state, upload validation/storage consistency and profile-picture replacement. The bounded `document-media-and-profile-pictures` child is applied and synced; D019 resolves Q005 while G036-G039 retain source/client discrepancies and Q006/Q014 remain Step 11.
+
 ## Capability register and platform scope
 
 | Inventory ID | Existing capability or review area | Platforms / environments | Owner steps | Baseline disposition |
 |---|---|---|---|---|
 | CAP-AUTH | `user-auth-and-identity`; browser/native identity and public bootstrap | Backend, browser, iOS, Keycloak | 2 | AUTH-01-AUTH-12 accepted; bypass and native source mismatches remain G002/G019-G023. |
-| CAP-SOCIAL | `social-and-notifications`; profile editing/discovery | Backend, browser, iOS | 3 | SOC-01-SOC-06 accepted; bounded field/audience and directed follow lifecycle integrated, with G024/G026-G028 retained. |
+| CAP-SOCIAL | `social-and-notifications`; profile editing/discovery | Backend, browser, iOS | 3, 7 | SOC-01-SOC-07 accepted; profile-picture access/replacement added, with G024/G026-G028/G039 retained. |
 | CAP-PARTY | `party-discovery-and-management`; host lifecycle | Backend, browser, iOS | 4 | PARTY-03-PARTY-05/PARTY-12-PARTY-13 accepted and integrated; G003/G006/G009/G029-G030 retained. |
 | CAP-ATTENDANCE | Invitation and attendance rules within party/social capabilities | Backend, browser, iOS | 5 | PARTY-06/PARTY-07/PARTY-14/PARTY-15 accepted and integrated; G009/G017/G031-G033 retain implementation/client gaps. |
 | CAP-DISCOVERY | `party-discovery-and-management`; queries and map filters | Backend, browser, iOS | 6 | PARTY-16 accepts shared visibility-first query composition; PARTY-08-PARTY-11 explicitly govern iOS map filters under D018. G009/G030/G034-G035 retain implementation differences. |
 | CAP-RADIUS | `map-radius-control` | iOS | 6 | Existing requirements remain accepted; the child proposes finite/unlimited/location/reset details. Purpose placeholder stays Step 12. |
-| CAP-MEDIA | `party-media-gallery`; profile-picture and storage lifecycle | Backend, browser, iOS, filesystem | 7 | Existing gallery intent; platform support and profile-picture contract partial. |
+| CAP-MEDIA | `party-media-gallery`; profile-picture and storage lifecycle | Backend, browser, iOS, filesystem | 7 | MEDIA-01-MEDIA-03 and SOC-07 accepted; G036-G039 retain implementation gaps, while physical retention remains Q006/Step 11. |
 | CAP-NOTIFY | `social-and-notifications`; notification settings/delivery | Backend, browser, iOS, email/push adapters | 8 | Existing notification center intent; channel/preferences contracts incomplete. |
 | CAP-QR | QR/mobile login | Backend and potential deep-link consumers | 9 | Observed surface; no dedicated main spec and retained target unresolved (Q001). |
 | CAP-EXT | User/attendee locations, visits/time tracking, calendar | Backend, browser, iOS / device permissions | 10 | Observed extensions; excluded from core discovery only, not globally removed (D010, Q002). |
@@ -46,7 +48,7 @@ CAP IDs are inventory labels, not new OpenSpec capability names. Every endpoint/
 | Invitee | A party invitation recipient; D017/PARTY-14 make pending invitations current visibility grants, while declined/withdrawn invitations do not qualify without another role. |
 | Attendee / joined user | A user linked to party membership; joining/attendance accepts an invitation when applicable (D006). |
 | Visible party | Public party, or a private party available under host/invitee/joined-user rules (D007); profile lists have D008 wording. |
-| Gallery viewer | User with party access; upload target is D009, with anonymous/public-viewer identity unresolved in Q005. |
+| Gallery viewer | Caller that meets the party Viewer predicate. D019 permits anonymous public-gallery reads but requires an authenticated Viewer for upload. |
 | Notification | Persisted in-app event record; delivery channels and preference guarantees need Step 8 review. |
 | Location | Party venue/address coordinates; distinct from a user's current/live location. |
 | Radius / distance filter | Client discovery constraint with explicit iOS control requirements; it is not automatic authorization to expose live attendee positions. |

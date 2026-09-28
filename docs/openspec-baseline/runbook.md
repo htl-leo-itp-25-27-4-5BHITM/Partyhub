@@ -17,15 +17,17 @@ Party lifecycle evidence: [CRUD actors, fields, validation and client compatibil
 
 Invitation and attendance evidence: [selection, transitions, projections and event inputs](invitations-and-attendance.md). Group 5 used [document-invitations-and-attendance](../../openspec/changes/document-invitations-and-attendance/proposal.md), its [design](../../openspec/changes/document-invitations-and-attendance/design.md), [delta](../../openspec/changes/document-invitations-and-attendance/specs/party-discovery-and-management/spec.md) and [tasks](../../openspec/changes/document-invitations-and-attendance/tasks.md). It is applied and synced with all seven child tasks complete.
 
-Discovery and maps evidence: [visible-query ownership, client filters and radius states](discovery-and-maps.md). Group 6 used the applied and synced [document-discovery-and-maps](../../openspec/changes/document-discovery-and-maps/proposal.md), its [design](../../openspec/changes/document-discovery-and-maps/design.md), [party delta](../../openspec/changes/document-discovery-and-maps/specs/party-discovery-and-management/spec.md), [radius delta](../../openspec/changes/document-discovery-and-maps/specs/map-radius-control/spec.md) and [tasks](../../openspec/changes/document-discovery-and-maps/tasks.md). Items 6.1-6.3 and all seven child tasks are complete. Group 7 has not started.
+Discovery and maps evidence: [visible-query ownership, client filters and radius states](discovery-and-maps.md). Group 6 used the applied and synced [document-discovery-and-maps](../../openspec/changes/document-discovery-and-maps/proposal.md), its [design](../../openspec/changes/document-discovery-and-maps/design.md), [party delta](../../openspec/changes/document-discovery-and-maps/specs/party-discovery-and-management/spec.md), [radius delta](../../openspec/changes/document-discovery-and-maps/specs/map-radius-control/spec.md) and [tasks](../../openspec/changes/document-discovery-and-maps/tasks.md). Items 6.1-6.3 and all seven child tasks are complete.
+
+Media/profile-picture evidence: [gallery access, client state, upload validation and replacement](media-and-profile-pictures.md). Group 7 used the applied and synced [document-media-and-profile-pictures](../../openspec/changes/document-media-and-profile-pictures/proposal.md), its [design](../../openspec/changes/document-media-and-profile-pictures/design.md), [media delta](../../openspec/changes/document-media-and-profile-pictures/specs/party-media-gallery/spec.md), [social delta](../../openspec/changes/document-media-and-profile-pictures/specs/social-and-notifications/spec.md) and [tasks](../../openspec/changes/document-media-and-profile-pictures/tasks.md). Items 7.1-7.3 and all nine child tasks are complete. Group 8 has not started.
 
 ## Snapshot and boundaries
 
 - Foundation inspected revision: `9487ccb90bb438e24b3cfab547a5dc900b11aecb`, 2026-09-21.
 - Starting durable baseline: 6 capabilities, 37 requirements, 106 scenarios.
-- Latest review: Group 6 source review, child apply and main-spec sync completed on 2026-09-25 from checkpoint `5287ac8e4a4d54b0e50c528689ceea1b48eab07f`. Accepted coverage is 47 requirements/212 scenarios. Only specification and documentation records changed; application code, configuration and data did not.
+- Latest review: Group 7 source review, child apply and main-spec sync completed on 2026-09-28 from checkpoint `2870e2c9d996b5f3bd7940e9cca7909ef220078f`. Accepted main-spec coverage is 48 requirements/235 scenarios. Only proposal/specification and documentation records changed; application code, configuration and data did not.
 - Product deltas are intentionally absent from the documentation umbrella (`skip_specs: true`). Actual domain changes use the normal proposal/integration workflow.
-- Source and test-file inspection do not prove runtime behavior. No application, API, UI, deployment or database tests were run in the foundation or Groups 2-6 documentation reviews.
+- Source and test-file inspection do not prove runtime behavior. No application, API, UI, deployment or database tests were run in the foundation or Groups 2-7 documentation reviews.
 - Existing main-spec validation issue: `map-radius-control` has a placeholder Purpose; [G012](gaps.md#g012-radius-purpose-placeholder) belongs to Step 12.
 
 ## Progress
@@ -38,16 +40,16 @@ Discovery and maps evidence: [visible-query ownership, client filters and radius
 | 4 | Party lifecycle | 2 | Complete | 4.1-4.4 complete; child applied and synced, 7/7 tasks, strict child/party validation passes. |
 | 5 | Invitations and attendance | 3, 4 | Complete | 5.1-5.4 complete; child applied and synced, 7/7 tasks, strict child/party validation passes. |
 | 6 | Discovery and maps | 2, 4 | Complete | 6.1-6.3 complete; child applied and synced, 7/7 tasks; radius Purpose remains Step 12/G012. |
-| 7 | Media and profile pictures | 2, 4, 5 | Not started | Upload/view permissions, platform support and storage lifecycle. |
+| 7 | Media and profile pictures | 2, 4, 5 | Complete | 7.1-7.3 complete; child applied and synced, 9/9 tasks; retention/deletion remains Step 11/Q006. |
 | 8 | Notifications and preferences | 3, 4, 5 | Not started | Event/recipient/channel matrix and settings/delivery contracts. |
 | 9 | QR login | 2 | Not started | Retained-flow decision and identity/expiry/reuse contract. |
 | 10 | Extended client features | 2, 5, 6 | Not started | Explicit scope for live locations, visits/time tracking and calendar integration. |
 | 11 | Runtime and quality contracts | 2-10 | Not started | Environments, API compatibility, persistence, validation and quality evidence. |
 | 12 | Consolidation and acceptance | 1-11 | Not started | Integrate accepted changes, resolve documentation drift and pass all strict spec checks. |
 
-Five domain changes have been applied and synced: `document-authentication-and-identity`, `document-profiles-and-social-relationships`, `document-party-lifecycle`, `document-invitations-and-attendance` and `document-discovery-and-maps`. All remain active and unarchived. The accepted baseline is **6 capabilities, 47 requirements and 212 scenarios**, including AUTH-01-AUTH-12 at 12/43, SOC-01-SOC-06 at 6/35, PARTY-01-PARTY-16 at 16/97 and RADIUS-01-RADIUS-03 at 3/10. Acceptance records contracts; gap records and the unrun-test record prevent them from being read as implementation conformance.
+Six domain changes have been applied and synced: `document-authentication-and-identity`, `document-profiles-and-social-relationships`, `document-party-lifecycle`, `document-invitations-and-attendance`, `document-discovery-and-maps` and `document-media-and-profile-pictures`. All remain active and unarchived. The accepted baseline is **6 capabilities, 48 requirements and 235 scenarios**, including AUTH-01-AUTH-12 at 12/43, SOC-01-SOC-07 at 7/43, PARTY-01-PARTY-16 at 16/97, MEDIA-01-MEDIA-03 at 3/20 and RADIUS-01-RADIUS-03 at 3/10. Acceptance records contracts; gap records and the unrun-test record prevent them from being read as implementation conformance.
 
-Current progress: **23 of 46 checklist items complete**; **23 remain**. Foundation 1.1-1.5 and Groups 2-6 are complete. Groups 7-12 remain open. G001-G035 are stable; G010/G011 are resolved specification ambiguities, G009/G030/G034-G035 retain discovery implementation differences and G012 remains the Step 12 Purpose correction. Q008 is resolved by D018; Q004 and Q014 retain their later boundaries.
+Current progress: **26 of 46 checklist items complete**; **20 remain**. Foundation 1.1-1.5 and Groups 2-7 are complete. Groups 8-12 have not started. G001-G039 are stable; G010/G011 are resolved specification ambiguities, G036-G039 retain Group 7 implementation differences and G012 remains the Step 12 Purpose correction. Q005 is resolved by D019; Q006 and Q014 retain their later boundaries.
 
 ## Recording rules
 

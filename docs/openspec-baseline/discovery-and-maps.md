@@ -67,9 +67,9 @@ The [proposal](../../openspec/changes/document-discovery-and-maps/proposal.md), 
 - PARTY-10 expands from 7 to 8 scenarios by making unlimited distance explicit while preserving all existing scenario names.
 - PARTY-11 retains 2 scenarios and resolves the missing-theme wording in favor of strict AND composition.
 - RADIUS-01 expands from 2 to 3 scenarios, RADIUS-02 retains 1, and RADIUS-03 expands from 4 to 6.
-- The party capability is **16 requirements/97 scenarios**, radius is **3 requirements/10 scenarios**, and the full baseline is **47 requirements/212 scenarios**.
+- At the Step 6 checkpoint, the party capability was **16 requirements/97 scenarios**, radius was **3 requirements/10 scenarios**, and the full baseline was **47 requirements/212 scenarios**. Group 7 later extends the total to 48/235 without changing these blocks.
 
-Accepted coverage is **6 capabilities, 47 requirements and 212 scenarios**. D018/PARTY-16 and the reviewed filter/radius wording are integrated; AUTH-01-AUTH-12, SOC-01-SOC-06 and PARTY-01-PARTY-07/PARTY-12-PARTY-15 remain unchanged.
+At the Step 6 checkpoint, accepted coverage was **6 capabilities, 47 requirements and 212 scenarios**. D018/PARTY-16 and the reviewed filter/radius wording are integrated; Group 7 later adds SOC-07 and expands MEDIA-01-MEDIA-03 without changing these discovery/radius requirements.
 
 ## Remaining work
 

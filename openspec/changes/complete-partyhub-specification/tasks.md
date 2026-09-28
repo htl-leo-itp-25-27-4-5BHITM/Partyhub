@@ -47,9 +47,9 @@ For every domain completion item below, record the change name and its strict va
 
 ## 7. Media and profile pictures
 
-- [ ] 7.1 Document gallery/profile-picture viewing, upload and client support; verify accepted gallery rules allow party viewers to upload at any time and actual UI support is evidenced separately for each client.
-- [ ] 7.2 Capture upload validation, access to media URLs, storage paths, replacement/deletion behavior and empty/error states; verify private-party authorization and file-size/type discrepancies have evidence and dispositions.
-- [ ] 7.3 Complete media/profile-picture specification updates and handoff; verify accepted deltas are integrated and the access matrix plus data-lifecycle records cover upload, serving and removal paths.
+- [x] 7.1 Document gallery/profile-picture viewing, upload and client support; verify accepted gallery rules allow party viewers to upload at any time and actual UI support is evidenced separately for each client.
+- [x] 7.2 Capture upload validation, access to media URLs, storage paths, replacement/deletion behavior and empty/error states; verify private-party authorization and file-size/type discrepancies have evidence and dispositions.
+- [x] 7.3 Complete media/profile-picture specification updates and handoff; verify accepted deltas are integrated and the access matrix plus data-lifecycle records cover upload, serving and removal paths.
 
 ## 8. Notifications and preferences
 
