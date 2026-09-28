@@ -2,7 +2,7 @@
 
 Foundation snapshot: repository revision `9487ccb90bb438e24b3cfab547a5dc900b11aecb`, inspected 2026-09-21. See [runbook](runbook.md), [inventory](inventory.md), [decisions](decisions.md), [gaps](gaps.md) and [handoff](handoff.md).
 
-The foundation snapshot indexed **37 accepted requirements and 106 scenarios** in the six durable specifications. After the accepted Steps 2-5 integrations, the current main specs contain **46 accepted requirements and 200 scenarios**. Group 6 planning proposes **47 requirements and 212 scenarios**, but `document-discovery-and-maps` is unapplied, so those projected counts and PARTY-16 are not accepted coverage. Acceptance records normative coverage; it does not assert implementation compliance, complete product scope or completion of Steps 6-12. Requirement titles and scenario labels below reproduce the current main specs exactly.
+The foundation snapshot indexed **37 accepted requirements and 106 scenarios** in the six durable specifications. After the accepted Steps 2-6 integrations, the current main specs contain **47 accepted requirements and 212 scenarios**. `document-discovery-and-maps` is applied and synced, so PARTY-16 and the reviewed PARTY-08-PARTY-11/RADIUS-01-RADIUS-03 wording are accepted coverage. Acceptance records normative coverage; it does not assert implementation compliance, complete product scope or completion of Steps 7-12. Requirement titles and scenario labels below reproduce the current main specs exactly.
 
 Platform scope below is a foundation classification grounded in the requirement text, archive context and source entry points. Where existing wording is ambiguous, its owner stage must reconcile it. In particular, browser auth does not establish the iOS auth contract, and iOS map controls are not automatically browser requirements.
 
@@ -12,11 +12,11 @@ Platform scope below is a foundation classification grounded in the requirement 
 |---|---:|---:|---|
 | [user-auth-and-identity](../../openspec/specs/user-auth-and-identity/spec.md) | 12 | 43 | 2 |
 | [social-and-notifications](../../openspec/specs/social-and-notifications/spec.md) | 6 | 35 | 3, 5, 8 |
-| [party-discovery-and-management](../../openspec/specs/party-discovery-and-management/spec.md) | 15 | 88 | 4–6 |
+| [party-discovery-and-management](../../openspec/specs/party-discovery-and-management/spec.md) | 16 | 97 | 4–6 |
 | [party-media-gallery](../../openspec/specs/party-media-gallery/spec.md) | 3 | 5 | 7 |
-| [map-radius-control](../../openspec/specs/map-radius-control/spec.md) | 3 | 7 | 6 (Purpose repair 12) |
+| [map-radius-control](../../openspec/specs/map-radius-control/spec.md) | 3 | 10 | 6 (Purpose repair 12) |
 | [local-keycloak-environment](../../openspec/specs/local-keycloak-environment/spec.md) | 7 | 22 | 11 |
-| **Total** | **46** | **200** | **All assigned** |
+| **Total** | **47** | **212** | **All assigned** |
 
 ## Source and test evidence groups
 
@@ -82,7 +82,7 @@ Test evidence: `PartyResourceTest.testDeleteParty_owner` and `testDeleteParty_no
 
 **iOS map filtering and radius.** [PartyHubiOS/PartyHubiOS/Map/MapView.swift](../../PartyHubiOS/PartyHubiOS/Map/MapView.swift); [PartyHubiOS/PartyHubiOS/Map/PartyMapFilter.swift](../../PartyHubiOS/PartyHubiOS/Map/PartyMapFilter.swift); [PartyHubiOS/PartyHubiOS/Map/PartyAttendeeMapView.swift](../../PartyHubiOS/PartyHubiOS/Map/PartyAttendeeMapView.swift); [src/main/resources/META-INF/resources/index.js](../../src/main/resources/META-INF/resources/index.js); [openspec/changes/archive/2026-05-26-add-party-map-filters/proposal.md](../../openspec/changes/archive/2026-05-26-add-party-map-filters/proposal.md); [openspec/changes/archive/2026-06-03-integrate-map-distance-slider/proposal.md](../../openspec/changes/archive/2026-06-03-integrate-map-distance-slider/proposal.md).
 
-Observed: `MapView.filteredParties`, filter sheet/summary, reset, radius binding, rotated slider, `MapCircle`, location fallback and camera methods are present. Predicates compose with AND, missing user location resets finite distance to unlimited, and archived changes identify the iOS context. The 5 km finite state suppresses circle/camera behavior (G035). [Discovery and maps review](discovery-and-maps.md) records the proposed platform, query, metadata and radius boundaries; main specs remain unchanged until apply.
+Observed: `MapView.filteredParties`, filter sheet/summary, reset, radius binding, rotated slider, `MapCircle`, location fallback and camera methods are present. Predicates compose with AND, missing user location resets finite distance to unlimited, and archived changes identify the iOS context. The 5 km finite state suppresses circle/camera behavior (G035). [Discovery and maps review](discovery-and-maps.md) records the accepted platform, query, metadata and radius boundaries; the source mismatches remain implementation work.
 
 Test evidence: No matching automated iOS map interaction/filter/radius scenario test was identified. Backend filtering tests and HTTPYac filter requests do not validate these client behaviors. No client was run.
 
@@ -186,7 +186,7 @@ At the Step 4 checkpoint, Q003/Q010 still retained invitation-state and suppleme
 
 Reviewed and integrated 2026-09-25 from the unchanged application-source snapshot. [Invitation and attendance evidence](invitations-and-attendance.md) maps the two invitation write paths, invitation-state and attendance transitions, private-visibility effects, actor-scoped projections, event inputs, browser/iOS consumers and inspected tests. The bounded child [proposal](../../openspec/changes/document-invitations-and-attendance/proposal.md), [design](../../openspec/changes/document-invitations-and-attendance/design.md), [delta](../../openspec/changes/document-invitations-and-attendance/specs/party-discovery-and-management/spec.md) and [tasks](../../openspec/changes/document-invitations-and-attendance/tasks.md) define and verify the integrated scope with **7/7 tasks complete**.
 
-The child delta is synced into the main spec. Accepted main-spec coverage is now **46 requirements/200 scenarios**, with `party-discovery-and-management` at **15/88**.
+At the Step 5 checkpoint, the child delta was synced and accepted main-spec coverage became **46 requirements/200 scenarios**, with `party-discovery-and-management` at **15/88**. Step 6 later extends those accepted totals to 47/212 and 16/97.
 
 | Stable mapping | Accepted coverage after integration | Disposition |
 |---|---:|---|
@@ -195,11 +195,11 @@ The child delta is synced into the main spec. Accepted main-spec coverage is now
 | PARTY-14 actor-scoped invitation and attendance projections | 9 scenarios | New requirement covers pending/accepted visibility, caller-relative lists/details, host-only invitation projections and viewer-safe joined/self projections. Accepted. |
 | PARTY-15 consistent invitation and attendance events | 6 scenarios | New requirement covers one event per committed transition and no event for denied/failed/no-op actions, while leaving delivery to Step 8. Accepted. |
 
-D017 resolves Q003 and Q010. Q004 remains intentionally unresolved because the evidence does not establish age/capacity admission enforcement. Q014 remains with Step 11. G009/G017/G031-G033 preserve source, authorization, projection and client compatibility gaps. No application or runtime test was executed. Group 6 later reached its separate proposal boundary without changing this accepted coverage.
+D017 resolves Q003 and Q010. Q004 remains intentionally unresolved because the evidence does not establish age/capacity admission enforcement. Q014 remains with Step 11. G009/G017/G031-G033 preserve source, authorization, projection and client compatibility gaps. No application or runtime test was executed. Group 6 later added PARTY-16 and refined the filter/radius requirements without changing these Step 5 blocks.
 
 ## Requirement and scenario index
 
-All entries in the index have intended status **Existing accepted main-spec requirement**. Foundation entries below remain the original evidence index; the Steps 2-5 addenda record integrated coverage. No entry is runtime verified. Decision and gap IDs refer to the separate registers and can evolve during later stages; requirement IDs here remain stable for handoffs.
+All entries in the index have intended status **Existing accepted main-spec requirement**. Foundation entries below remain the original evidence index; the Steps 2-6 addenda record integrated coverage. No entry is runtime verified. Decision and gap IDs refer to the separate registers and can evolve during later stages; requirement IDs here remain stable for handoffs.
 
 ### user-auth-and-identity
 
@@ -523,7 +523,7 @@ Scenarios (5):
 
 **[Home map shows visible parties as the primary discovery experience](../../openspec/specs/party-discovery-and-management/spec.md#requirement-home-map-shows-visible-parties-as-the-primary-discovery-experience)**
 
-- Platform scope: Shared backend visibility contract with browser/iOS consumers. The unapplied Group 6 child proposes explicit client responsibility without changing this accepted viewer set.
+- Platform scope: Shared backend visibility contract with browser/iOS consumers. PARTY-16 makes client responsibility explicit without changing this viewer set.
 - Runbook owner: Step 6; visibility dependency 4.
 - Source evidence: [E07](#e07), [E08](#e08), [discovery/maps review](discovery-and-maps.md). Default repository query contains public/host/invited/joined visibility; alternate branches remain G009/G034.
 - Test evidence: api/party.http has visible/public/private request examples; client rendering and all query-path visibility remain unverified. All execution remains unverified.
@@ -654,11 +654,11 @@ Scenarios (9):
 
 **[Home map supports client-side party filtering for visible parties](../../openspec/specs/party-discovery-and-management/spec.md#requirement-home-map-supports-client-side-party-filtering-for-visible-parties)**
 
-- Platform scope: Accepted archive context is iOS; current main wording remains implicit. The unapplied child makes iOS scope explicit without browser UI parity.
+- Platform scope: iOS home map; D018 and the accepted main wording make this explicit without requiring browser UI parity.
 - Runbook owner: Step 6.
-- Source evidence: [E08](#e08), [E07](#e07), [discovery/maps review](discovery-and-maps.md). iOS contains local filter state/reset and direct radius controls. Backend query behavior is a separate proposed PARTY-16 concern.
+- Source evidence: [E08](#e08), [E07](#e07), [discovery/maps review](discovery-and-maps.md). iOS contains local filter state/reset and direct radius controls. Backend query behavior is accepted separately by PARTY-16.
 - Test evidence: No matching client-side combination/reset/radius test identified; server filter tests are not substitutes. All execution remains unverified.
-- Accepted decision references: [D011](decisions.md). Follow-up gaps: [G010](gaps.md), [G011](gaps.md), [G013](gaps.md), [G035](gaps.md). Q008 remains unresolved until apply.
+- Accepted decision references: [D011](decisions.md), [D018](decisions.md). Follow-up gaps: [G013](gaps.md), [G035](gaps.md); G010/G011 and Q008 are resolved at the specification level.
 
 Scenarios (5):
 
@@ -672,11 +672,11 @@ Scenarios (5):
 
 **[Home map filter experience matches the attendee-map interaction style](../../openspec/specs/party-discovery-and-management/spec.md#requirement-home-map-filter-experience-matches-the-attendee-map-interaction-style)**
 
-- Platform scope: Accepted archive context is iOS; current main wording remains implicit. The unapplied child names the iOS filter sheet, active summary and radius feedback directly.
+- Platform scope: iOS home map; the accepted wording names the filter sheet, active summary and radius feedback directly.
 - Runbook owner: Step 6.
 - Source evidence: [E08](#e08), [discovery/maps review](discovery-and-maps.md). Filter toolbar, sheet, active summary and radius feedback are present in iOS source; visible-state synchronization has not been exercised.
 - Test evidence: No matching automated filter-style/active-state synchronization scenario test identified. All execution remains unverified.
-- Accepted decision references: [D011](decisions.md). Follow-up gaps: [G010](gaps.md), [G013](gaps.md).
+- Accepted decision references: [D011](decisions.md), [D018](decisions.md). Follow-up gaps: [G013](gaps.md).
 
 Scenarios (4):
 
@@ -689,16 +689,17 @@ Scenarios (4):
 
 **[Home map time, distance, age, free, and text filters behave predictably](../../openspec/specs/party-discovery-and-management/spec.md#requirement-home-map-time-distance-age-free-and-text-filters-behave-predictably)**
 
-- Platform scope: Accepted archive context is iOS; current main wording remains implicit. The unapplied child defines iOS time/metadata, finite/unlimited, location-loss and reset boundaries.
+- Platform scope: iOS home map; accepted time/metadata, finite/unlimited, location-loss and reset boundaries are explicit.
 - Runbook owner: Step 6.
 - Source evidence: [E08](#e08), [discovery/maps review](discovery-and-maps.md). Client predicate code uses time, distance, age, fee and text metadata and resets finite distance when location is absent; boundaries remain unexecuted.
 - Test evidence: No matching client-clock, absent-location, metadata fallback or filter-boundary scenario test identified. All execution remains unverified.
-- Accepted decision references: [D011](decisions.md). Follow-up gaps: [G010](gaps.md), [G011](gaps.md), [G013](gaps.md), [G035](gaps.md).
+- Accepted decision references: [D011](decisions.md), [D018](decisions.md). Follow-up gaps: [G013](gaps.md), [G035](gaps.md).
 
-Scenarios (7):
+Scenarios (8):
 
 - [Within-two-weeks filter is active](../../openspec/specs/party-discovery-and-management/spec.md#scenario-within-two-weeks-filter-is-active)
 - [Distance filter is active and user location is available](../../openspec/specs/party-discovery-and-management/spec.md#scenario-distance-filter-is-active-and-user-location-is-available)
+- [Unlimited distance is selected](../../openspec/specs/party-discovery-and-management/spec.md#scenario-unlimited-distance-is-selected)
 - [Distance filter is changed from map interface](../../openspec/specs/party-discovery-and-management/spec.md#scenario-distance-filter-is-changed-from-map-interface)
 - [Distance filter is active and user location is unavailable](../../openspec/specs/party-discovery-and-management/spec.md#scenario-distance-filter-is-active-and-user-location-is-unavailable)
 - [Age range filter is active](../../openspec/specs/party-discovery-and-management/spec.md#scenario-age-range-filter-is-active)
@@ -709,11 +710,11 @@ Scenarios (7):
 
 **[Home map theme filtering uses displayable theme metadata](../../openspec/specs/party-discovery-and-management/spec.md#requirement-home-map-theme-filtering-uses-displayable-theme-metadata)**
 
-- Platform scope: Accepted archive context is iOS; current main wording remains implicit. The unapplied child makes the scope explicit and proposes strict AND behavior for Q008.
+- Platform scope: iOS home map; accepted wording uses strict AND behavior when a theme filter is active.
 - Runbook owner: Step 6.
-- Source evidence: [E08](#e08), [discovery/maps review](discovery-and-maps.md). Theme choices derive from client metadata and source filters use AND. The accepted missing-theme wording remains ambiguous until apply.
+- Source evidence: [E08](#e08), [discovery/maps review](discovery-and-maps.md). Theme choices derive from client metadata and source filters use AND. D018 resolves the earlier missing-theme ambiguity.
 - Test evidence: No matching client theme/missing-metadata test identified; no source behavior is promoted to resolve the specification ambiguity. All execution remains unverified.
-- Accepted decision references: [D011](decisions.md). Follow-up gaps: [G010](gaps.md), [G011](gaps.md), [G013](gaps.md).
+- Accepted decision references: [D011](decisions.md), [D018](decisions.md). Follow-up gaps: [G013](gaps.md).
 
 Scenarios (2):
 
@@ -802,6 +803,27 @@ Scenarios (6):
 - [Attendee leaves a party](../../openspec/specs/party-discovery-and-management/spec.md#scenario-attendee-leaves-a-party)
 - [Transition is denied or has no state change](../../openspec/specs/party-discovery-and-management/spec.md#scenario-transition-is-denied-or-has-no-state-change)
 
+#### PARTY-16
+
+**[Visible-party queries have shared composition and pagination boundaries](../../openspec/specs/party-discovery-and-management/spec.md#requirement-visible-party-queries-have-shared-composition-and-pagination-boundaries)**
+
+- Platform scope: Shared backend discovery contract for anonymous and authenticated browser/iOS consumers; client-only narrowing cannot expand the authorized result and browser controls need not mirror the iOS filter UI.
+- Runbook owner: Step 6; exact wire errors, default/max page sizes and compatibility remain Step 11/Q014.
+- Source evidence: [E07](#e07), [E08](#e08), [discovery/maps review](discovery-and-maps.md), [access row 14](access-matrix.md#access-matrix). The inspected branches do not yet share viewer-first composition, AND behavior, stable sorting and pagination.
+- Test evidence: No inspected test establishes every anonymous/authenticated combination, inclusive range boundary, validation failure or stable repeated page. No runtime query was executed.
+- Accepted decision references: [D007](decisions.md), [D016](decisions.md), [D017](decisions.md), [D018](decisions.md). Follow-up gaps: [G009](gaps.md), [G013](gaps.md), [G034](gaps.md); exact transport remains [Q014](decisions.md).
+
+Scenarios (8):
+
+- [Anonymous caller queries parties](../../openspec/specs/party-discovery-and-management/spec.md#scenario-anonymous-caller-queries-parties)
+- [Authenticated caller queries parties](../../openspec/specs/party-discovery-and-management/spec.md#scenario-authenticated-caller-queries-parties)
+- [Multiple server query predicates are supplied](../../openspec/specs/party-discovery-and-management/spec.md#scenario-multiple-server-query-predicates-are-supplied)
+- [Shared text search is supplied](../../openspec/specs/party-discovery-and-management/spec.md#scenario-shared-text-search-is-supplied)
+- [Time range is supplied](../../openspec/specs/party-discovery-and-management/spec.md#scenario-time-range-is-supplied)
+- [Age fee or distance metadata is queried](../../openspec/specs/party-discovery-and-management/spec.md#scenario-age-fee-or-distance-metadata-is-queried)
+- [Query results are paged](../../openspec/specs/party-discovery-and-management/spec.md#scenario-query-results-are-paged)
+- [Browser and iOS narrow visible results](../../openspec/specs/party-discovery-and-management/spec.md#scenario-browser-and-ios-narrow-visible-results)
+
 ### party-media-gallery
 
 #### MEDIA-01
@@ -854,16 +876,17 @@ Scenarios (2):
 
 **[Map exposes an in-context distance radius control](../../openspec/specs/map-radius-control/spec.md#requirement-map-exposes-an-in-context-distance-radius-control)**
 
-- Platform scope: iOS map; explicit SwiftUI companion requirements and archive context. The unapplied child adds finite/unlimited/reset synchronization.
+- Platform scope: iOS map; accepted SwiftUI wording includes finite/unlimited/reset synchronization.
 - Runbook owner: Step 6.
 - Source evidence: [E08](#e08), [discovery/maps review](discovery-and-maps.md). The source contains an in-map radius slider and immediate binding to filter state; runtime/UI behavior remains unverified.
 - Test evidence: No matching radius-slider interaction scenario test identified. All execution remains unverified.
-- Accepted decision references: [D011](decisions.md). Follow-up gaps: [G010](gaps.md), [G012](gaps.md), [G013](gaps.md), [G035](gaps.md).
+- Accepted decision references: [D011](decisions.md), [D018](decisions.md). Follow-up gaps: [G012](gaps.md), [G013](gaps.md), [G035](gaps.md).
 
-Scenarios (2):
+Scenarios (3):
 
 - [User opens the home map with location available](../../openspec/specs/map-radius-control/spec.md#scenario-user-opens-the-home-map-with-location-available)
 - [User adjusts the map distance slider](../../openspec/specs/map-radius-control/spec.md#scenario-user-adjusts-the-map-distance-slider)
+- [User resets map filters](../../openspec/specs/map-radius-control/spec.md#scenario-user-resets-map-filters)
 
 #### RADIUS-02
 
@@ -873,7 +896,7 @@ Scenarios (2):
 - Runbook owner: Step 6.
 - Source evidence: [E08](#e08), [discovery/maps review](discovery-and-maps.md). Slider source uses rotationEffect and right-side overlay layout; visual correctness was not tested.
 - Test evidence: No matching vertical-layout scenario test identified. All execution remains unverified.
-- Accepted decision references: [D011](decisions.md). Follow-up gaps: [G012](gaps.md), [G013](gaps.md).
+- Accepted decision references: [D011](decisions.md), [D018](decisions.md). Follow-up gaps: [G012](gaps.md), [G013](gaps.md).
 
 Scenarios (1):
 
@@ -883,18 +906,20 @@ Scenarios (1):
 
 **[Map displays selected radius as a geographic circle](../../openspec/specs/map-radius-control/spec.md#requirement-map-displays-selected-radius-as-a-geographic-circle)**
 
-- Platform scope: iOS SwiftUI map radius visualization; the unapplied child makes finite/unlimited/location-loss transitions explicit.
+- Platform scope: iOS SwiftUI map radius visualization with accepted finite/unlimited/location-loss transitions.
 - Runbook owner: Step 6.
 - Source evidence: [E08](#e08), [discovery/maps review](discovery-and-maps.md). MapCircle, finite-radius/location guards and camera-focus methods exist; the 5 km finite option skips circle/camera behavior (G035), and no transition was exercised.
 - Test evidence: No matching finite/change/camera/unavailable-location scenario test identified. All execution remains unverified.
-- Accepted decision references: [D011](decisions.md). Follow-up gaps: [G012](gaps.md), [G013](gaps.md), [G035](gaps.md).
+- Accepted decision references: [D011](decisions.md), [D018](decisions.md). Follow-up gaps: [G012](gaps.md), [G013](gaps.md), [G035](gaps.md).
 
-Scenarios (4):
+Scenarios (6):
 
 - [Finite radius is selected](../../openspec/specs/map-radius-control/spec.md#scenario-finite-radius-is-selected)
 - [Radius selection changes](../../openspec/specs/map-radius-control/spec.md#scenario-radius-selection-changes)
 - [Finite radius becomes active](../../openspec/specs/map-radius-control/spec.md#scenario-finite-radius-becomes-active)
+- [Unlimited radius is selected](../../openspec/specs/map-radius-control/spec.md#scenario-unlimited-radius-is-selected)
 - [Location is unavailable](../../openspec/specs/map-radius-control/spec.md#scenario-location-is-unavailable)
+- [Location becomes unavailable](../../openspec/specs/map-radius-control/spec.md#scenario-location-becomes-unavailable)
 
 ### local-keycloak-environment
 
@@ -1011,14 +1036,14 @@ Scenarios (3):
 - [Demo user can authenticate](../../openspec/specs/local-keycloak-environment/spec.md#scenario-demo-user-can-authenticate)
 - [Demo user can link to PartyHub user](../../openspec/specs/local-keycloak-environment/spec.md#scenario-demo-user-can-link-to-partyhub-user)
 
-## Projected Group 6 coverage
+## Step 6 discovery and maps review
 
-`document-discovery-and-maps` is planning-complete, strict-valid and unapplied. Its [party delta](../../openspec/changes/document-discovery-and-maps/specs/party-discovery-and-management/spec.md) proposes PARTY-16 with 8 scenarios, retains PARTY-08/PARTY-09 at 5/4 scenarios, expands PARTY-10 from 7 to 8, and retains PARTY-11 at 2 with strict missing-theme AND behavior. Its [radius delta](../../openspec/changes/document-discovery-and-maps/specs/map-radius-control/spec.md) proposes RADIUS-01/RADIUS-02/RADIUS-03 at 3/1/6 scenarios.
+`document-discovery-and-maps` is applied, synced and strict-valid. Its [party delta](../../openspec/changes/document-discovery-and-maps/specs/party-discovery-and-management/spec.md) added PARTY-16 with 8 scenarios, retained PARTY-08/PARTY-09 at 5/4 scenarios, expanded PARTY-10 from 7 to 8, and retained PARTY-11 at 2 with strict missing-theme AND behavior. Its [radius delta](../../openspec/changes/document-discovery-and-maps/specs/map-radius-control/spec.md) established RADIUS-01/RADIUS-02/RADIUS-03 at 3/1/6 scenarios.
 
-Exact integration would make `party-discovery-and-management` **16 requirements/97 scenarios**, `map-radius-control` **3 requirements/10 scenarios**, and the full baseline **47 requirements/212 scenarios**. These are projected counts only. Accepted links and PARTY-16 must not be added to the main requirement index until apply and sync. See [discovery-and-maps.md](discovery-and-maps.md), Q008, G010-G012 and G034-G035.
+Accepted `party-discovery-and-management` coverage is **16 requirements/97 scenarios**, `map-radius-control` is **3 requirements/10 scenarios**, and the full baseline is **47 requirements/212 scenarios**. D018 and the resolved Q008 record the accepted filter/query/radius boundaries. G010/G011 are resolved specification ambiguities; G009/G030/G034/G035 retain implementation/client mismatches and G012 remains the Step 12 Purpose correction.
 
 ## Coverage outside the existing baseline
 
-The 46 accepted requirements do not by themselves specify every discovered surface. Profile pictures, notification settings and delivery, QR login, extended location/calendar features, API validation/error contracts, storage and deployment details remain assigned in [inventory.md](inventory.md) and [runbook.md](runbook.md), with scope/contract gaps in [gaps.md](gaps.md). They have **no implied normative coverage** from a similarly named requirement. The remaining Group 6 apply task and Steps 7–11 add or reconcile coverage through bounded domain changes; Step 12 checks complete inventory-to-requirement-to-scenario traceability.
+The 47 accepted requirements do not by themselves specify every discovered surface. Profile pictures, notification settings and delivery, QR login, extended location/calendar features, API validation/error contracts, storage and deployment details remain assigned in [inventory.md](inventory.md) and [runbook.md](runbook.md), with scope/contract gaps in [gaps.md](gaps.md). They have **no implied normative coverage** from a similarly named requirement. Steps 7–11 add or reconcile coverage through bounded domain changes; Step 12 checks complete inventory-to-requirement-to-scenario traceability.
 
 Future domain updates should retain these identifiers or record a clear replacement mapping, add accepted requirement/scenario links after integration, state the exact observed implementation status, and identify the assertions and execution results supporting each coverage claim. Do not mark a domain complete solely because a proposal or test file exists.

@@ -12,7 +12,7 @@ Step 4 source review and integration completed 2026-09-25 with application sourc
 
 Step 5 source review and integration completed 2026-09-25 with application source still unchanged: [invitations-and-attendance.md](invitations-and-attendance.md) maps invitation selection/management, attendance transitions, projection audiences, events and tests. The bounded `document-invitations-and-attendance` child is integrated into the main party spec; G009/G017/G031-G033 retain source and client discrepancies.
 
-Step 6 source review and proposal planning completed 2026-09-25 with application source still unchanged: [discovery-and-maps.md](discovery-and-maps.md) maps visible query composition, browser/iOS responsibility, iOS filter boundaries and radius transitions. The bounded `document-discovery-and-maps` child is planning-complete but unapplied; G009/G030/G034-G035 retain source/client discrepancies and G012 remains Step 12.
+Step 6 source review and integration completed 2026-09-25 with application source still unchanged: [discovery-and-maps.md](discovery-and-maps.md) maps accepted visible query composition, browser/iOS responsibility, iOS filter boundaries and radius transitions. The bounded `document-discovery-and-maps` child is applied and synced; G009/G030/G034-G035 retain source/client discrepancies and G012 remains Step 12.
 
 ## Capability register and platform scope
 
@@ -22,7 +22,7 @@ Step 6 source review and proposal planning completed 2026-09-25 with application
 | CAP-SOCIAL | `social-and-notifications`; profile editing/discovery | Backend, browser, iOS | 3 | SOC-01-SOC-06 accepted; bounded field/audience and directed follow lifecycle integrated, with G024/G026-G028 retained. |
 | CAP-PARTY | `party-discovery-and-management`; host lifecycle | Backend, browser, iOS | 4 | PARTY-03-PARTY-05/PARTY-12-PARTY-13 accepted and integrated; G003/G006/G009/G029-G030 retained. |
 | CAP-ATTENDANCE | Invitation and attendance rules within party/social capabilities | Backend, browser, iOS | 5 | PARTY-06/PARTY-07/PARTY-14/PARTY-15 accepted and integrated; G009/G017/G031-G033 retain implementation/client gaps. |
-| CAP-DISCOVERY | `party-discovery-and-management`; queries and map filters | Backend, browser, iOS | 6 | Shared visibility is accepted. `document-discovery-and-maps` proposes PARTY-16 query composition and explicit iOS scope for PARTY-08-PARTY-11; unapplied at the Group 6 proposal boundary. |
+| CAP-DISCOVERY | `party-discovery-and-management`; queries and map filters | Backend, browser, iOS | 6 | PARTY-16 accepts shared visibility-first query composition; PARTY-08-PARTY-11 explicitly govern iOS map filters under D018. G009/G030/G034-G035 retain implementation differences. |
 | CAP-RADIUS | `map-radius-control` | iOS | 6 | Existing requirements remain accepted; the child proposes finite/unlimited/location/reset details. Purpose placeholder stays Step 12. |
 | CAP-MEDIA | `party-media-gallery`; profile-picture and storage lifecycle | Backend, browser, iOS, filesystem | 7 | Existing gallery intent; platform support and profile-picture contract partial. |
 | CAP-NOTIFY | `social-and-notifications`; notification settings/delivery | Backend, browser, iOS, email/push adapters | 8 | Existing notification center intent; channel/preferences contracts incomplete. |

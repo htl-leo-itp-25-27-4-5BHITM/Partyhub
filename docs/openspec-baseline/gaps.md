@@ -1,6 +1,6 @@
 # Initial implementation and documentation gaps
 
-Foundation snapshot: `9487ccb90bb438e24b3cfab547a5dc900b11aecb`, 2026-09-21; Step 2 refinement on 2026-09-23, Steps 3-5 integration on 2026-09-25 and Step 6 source/proposal review on 2026-09-25 with application source unchanged. These are source/configuration observations and specification/documentation conflicts. None is a runtime reproduction. Priorities are initial triage for later work: high = access/identity boundary, medium = behavior/compatibility, low = editorial/evidence hygiene. This register is not a complete security audit or a finding about a live deployment.
+Foundation snapshot: `9487ccb90bb438e24b3cfab547a5dc900b11aecb`, 2026-09-21; Step 2 refinement on 2026-09-23 and Steps 3-6 integration on 2026-09-25 with application source unchanged. These are source/configuration observations and specification/documentation conflicts. None is a runtime reproduction. Priorities are initial triage for later work: high = access/identity boundary, medium = behavior/compatibility, low = editorial/evidence hygiene. This register is not a complete security audit or a finding about a live deployment.
 
 Java paths below start at `src/main/java/at/htl/`; browser paths at `src/main/resources/META-INF/resources/`; Swift paths at `PartyHubiOS/PartyHubiOS/`. Complete surface ownership is in [inventory.md](inventory.md); requirement anchors are in [coverage.md](coverage.md).
 
@@ -71,15 +71,15 @@ Java paths below start at `src/main/java/at/htl/`; browser paths at `src/main/re
 
 - **Expected:** D011's archived changes target the SwiftUI iOS map; shared discovery remains platform-neutral where appropriate.
 - **Observed:** Durable discovery/filter wording can read as universal, while radius requirements explicitly name SwiftUI rotation and MapCircle. Archived change Impact sections name iOS files.
-- **Disposition:** Specification scope ambiguity. The unapplied `document-discovery-and-maps` delta names iOS scope throughout PARTY-08-PARTY-11 and RADIUS-01-RADIUS-03 while keeping shared queries platform-neutral. **Priority:** medium. **Owner:** Step 6 apply.
-- **Next action:** Review, apply and sync the child; close this specification gap only after the main specs carry the explicit scope.
+- **Disposition:** Resolved specification ambiguity. D018 and the synced PARTY-08-PARTY-11/RADIUS-01-RADIUS-03 wording name iOS scope while PARTY-16 keeps shared queries platform-neutral. **Priority:** resolved. **Owner:** completed Step 6.
+- **Next action:** None at the specification layer; implementation differences remain under their own gap IDs.
 
 ## G011 Theme fallback conflicts with filter combination wording
 
 - **Expected:** Enabled map filters are combined with AND according to the existing combination scenario.
 - **Observed:** The final missing-theme scenario in `party-discovery-and-management` says to exclude a party from theme matches unless another non-theme filter includes it; that exception is ambiguous alongside the AND rule.
-- **Disposition:** Specification ambiguity; Q008 remains unresolved in accepted coverage. The unapplied child proposes strict AND behavior, excluding missing or non-matching theme whenever theme is active. **Priority:** medium. **Owner:** Step 6 apply.
-- **Next action:** Review, apply and sync the proposed wording, then resolve Q008 in the accepted decision record.
+- **Disposition:** Resolved specification ambiguity. D018, resolved Q008 and synced PARTY-08/PARTY-11 require strict AND behavior, excluding missing or non-matching theme whenever theme is active. **Priority:** resolved. **Owner:** completed Step 6.
+- **Next action:** None at the specification layer; any source mismatch remains an implementation concern.
 
 ## G012 Radius Purpose placeholder
 
@@ -237,14 +237,14 @@ Java paths below start at `src/main/java/at/htl/`; browser paths at `src/main/re
 
 ## G034 Party query branches do not share composition or pagination semantics
 
-- **Expected:** PARTY-04 already requires the viewer predicate on every list branch. The unapplied Group 6 child additionally proposes one visibility-first candidate set, AND-composed supported predicates, deterministic post-filter sorting and pagination, and complete time/location inputs.
+- **Expected:** PARTY-04/PARTY-16 require one visibility-first candidate set, AND-composed supported predicates, deterministic post-filter sorting and pagination, and complete time/location inputs.
 - **Observed:** `PartyResource.getParties:80-119` chooses new-filter, legacy-filter, sort, or default paths. Legacy text/theme/date selection uses `else if`, bypasses visibility and ignores other supplied criteria. Sort bypasses visibility and does not compose. Only `findWithFilters:814-885` honors limit/offset; it always adds a next-14-days predicate and pages after optional in-memory distance filtering. Equal-time order has no stable identifier tie-break.
-- **Disposition:** Source mismatch against accepted PARTY-04 plus proposed Group 6 query behavior; the new composition/pagination portion is not accepted until apply. No endpoint was executed. **Priority:** high. **Owner:** bounded discovery backend implementation after Step 6 apply; exact wire/status/default limits Step 11/Q014.
-- **Next action:** After the child is accepted, consolidate party queries behind the viewer predicate and add anonymous/authenticated combination, boundary and stable-page tests without changing browser/iOS UI parity.
+- **Disposition:** Source mismatch against accepted PARTY-04/PARTY-16 and D018. No endpoint was executed. **Priority:** high. **Owner:** bounded discovery backend implementation; exact wire/status/default limits Step 11/Q014.
+- **Next action:** Consolidate party queries behind the viewer predicate and add anonymous/authenticated combination, boundary and stable-page tests without changing browser/iOS UI parity.
 
 ## G035 The smallest finite iOS radius has no circle or radius camera response
 
-- **Expected:** Current RADIUS-03 already says a finite radius with location renders a matching geographic circle and adjusts the camera; the proposed child makes finite/unlimited transitions explicit.
+- **Expected:** RADIUS-03 and D018 require every finite radius with location to render a matching geographic circle and adjust the camera, with explicit finite/unlimited transitions.
 - **Observed:** `MapView.shouldShowSearchRadiusCircle` and `shouldAutoFocusForDistanceFilter` exclude both unlimited and the 5 km finite option. Filtering still applies 5 km, but the circle and radius-focused camera do not. Other finite values render/focus; unavailable location resets to unlimited and disables the slider.
-- **Disposition:** iOS source mismatch against existing accepted finite-radius visualization; source inspection only, no SwiftUI flow or build executed. **Priority:** medium. **Owner:** bounded iOS map implementation after Step 6 apply.
+- **Disposition:** iOS source mismatch against accepted finite-radius visualization; source inspection only, no SwiftUI flow or build executed. **Priority:** medium. **Owner:** bounded iOS map implementation.
 - **Next action:** Make every finite selection drive the same filter/circle/camera state contract and add tests or UI verification for 5 km, another finite value, unlimited, reset and location loss.
