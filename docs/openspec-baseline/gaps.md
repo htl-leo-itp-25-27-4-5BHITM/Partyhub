@@ -1,6 +1,6 @@
 # Initial implementation and documentation gaps
 
-Foundation snapshot: `9487ccb90bb438e24b3cfab547a5dc900b11aecb`, 2026-09-21; Step 2 refinement on 2026-09-23, Steps 3-6 integration on 2026-09-25 and Group 7 integration on 2026-09-28 with application source unchanged. These are source/configuration observations and specification/documentation conflicts. None is a runtime reproduction. Priorities are initial triage for later work: high = access/identity boundary, medium = behavior/compatibility, low = editorial/evidence hygiene. This register is not a complete security audit or a finding about a live deployment.
+Foundation snapshot: `9487ccb90bb438e24b3cfab547a5dc900b11aecb`, 2026-09-21; Step 2 refinement on 2026-09-23, Steps 3-6 integration on 2026-09-25, Group 7 integration on 2026-09-28 and Group 8 integration on 2026-09-29 with application source unchanged. These are source/configuration observations and specification/documentation conflicts. None is a runtime reproduction. Priorities are initial triage for later work: high = access/identity boundary, medium = behavior/compatibility, low = editorial/evidence hygiene. This register is not a complete security audit or a finding about a live deployment.
 
 Java paths below start at `src/main/java/at/htl/`; browser paths at `src/main/resources/META-INF/resources/`; Swift paths at `PartyHubiOS/PartyHubiOS/`. Complete surface ownership is in [inventory.md](inventory.md); requirement anchors are in [coverage.md](coverage.md).
 
@@ -112,9 +112,9 @@ Java paths below start at `src/main/java/at/htl/`; browser paths at `src/main/re
 ## G016 Discovered capabilities lack complete durable contracts
 
 - **Expected:** Every retained product surface is eventually specified or explicitly excluded with a reason.
-- **Observed:** AUTH-10-AUTH-12 now cover the bounded native authentication minimum. Existing specs remain partial for full profile editing, notification settings/delivery, QR login, profile-picture/storage lifecycle, extended locations/calendar/time tracking and API/runtime quality contracts. Inventory ownership does not prove requirement completeness.
-- **Disposition:** Remaining specification coverage gaps have assigned steps and do not authorize feature implementation. **Priority:** medium. **Owner:** Steps 3-11 as assigned in inventory.
-- **Next action:** Complete the relevant bounded domain review and delta; use Q001-Q007 where target behavior is not already decided.
+- **Observed:** AUTH-10-AUTH-12, SOC-01-SOC-11, PARTY-01-PARTY-16, MEDIA-01-MEDIA-03 and RADIUS-01-RADIUS-03 now cover the bounded identity, profile/social, party, media, map and notification contracts. Durable coverage remains incomplete for QR login, extended locations/calendar/time tracking, exact API/runtime behavior, and physical storage/notification retention and retry operations. Inventory ownership does not prove requirement completeness.
+- **Disposition:** Remaining specification coverage gaps have assigned steps and do not authorize feature implementation. **Priority:** medium. **Owner:** Steps 9-11 as assigned in inventory.
+- **Next action:** Complete the remaining bounded domain reviews and deltas; use Q001/Q002/Q006/Q011-Q014 where target behavior is not already decided.
 
 ## G017 Mutual-contact enforcement is not evident in private-party invite creation
 
@@ -276,3 +276,45 @@ Java paths below start at `src/main/java/at/htl/`; browser paths at `src/main/re
 - **Observed:** Profile-picture and filename reads are open. Browser and iOS perform direct image calls; iOS can reject the server SVG placeholder as undecodable image content. Upload is self-authenticated, but the backend lacks a common type/size/content boundary, deletes the old metadata row before the new file move succeeds, and does not establish physical old-file cleanup. Browser client checks broad `image/*`/5 MiB while iOS sends JPEG.
 - **Disposition:** Access, validation, fallback, cache and failure-consistency mismatch against accepted SOC-07; source inspection only. Physical retention stays Q006. **Priority:** high. **Owner:** bounded profile/media backend and client work; lifecycle/API Step 11.
 - **Next action:** Require authenticated reads, implement a client-compatible placeholder and refresh reference, validate on the server, preserve the prior logical picture on failure, and test Self/other/anonymous/invalid/storage-failure/cache-refresh cases.
+
+## G040 Notification records lack typed identity, stable ordering and cancellation snapshots
+
+- **Expected:** D020/SOC-08 require explicit event type, event-recipient identity, actor, bounded content, deterministic newest-first ordering, optional party reference or durable cancellation snapshot, and message-independent action policy.
+- **Observed:** `notification/Notification.java` stores recipient, sender, optional party, status, message and timestamp, while `NotificationDto` exposes no event type or stable event identity. Type filtering and protected-deletion rules use English message matching, equal timestamps have no identifier tie-break, and party-bound cleanup cannot preserve a bounded cancellation snapshot independently of the deleted party.
+- **Disposition:** Storage/query mismatch against the accepted typed center contract; migration and runtime data were not exercised. **Priority:** high. **Owner:** bounded notification backend/data change; persistence and migration Step 11.
+- **Next action:** Add typed event and idempotency/snapshot fields with a migration, replace message parsing with stored policy, define stable ordering and test retry, filter, deletion and post-cancellation reads.
+
+## G041 Event producers conflict with accepted recipients and no-op suppression
+
+- **Expected:** D020/SOC-03 and PARTY-15 require one event per intended recipient for each committed transition, no self-duplicates, and no event for denied, failed or repeated no-op actions.
+- **Observed:** Follow acceptance creates messages for both users, invitation withdrawal has no accepted-equivalent event path, attendance outcomes vary between invitation and party repositories, public join and some leave paths omit or disagree on host notification, and party-update/cancellation recipient/cleanup behavior is tied to current repository branches. Tests assert only partial counts/messages and do not prove the complete matrix.
+- **Disposition:** Cross-producer behavior mismatch against the accepted event-recipient matrix; no transition was run. **Priority:** high. **Owner:** bounded follow/invitation/party event implementation.
+- **Next action:** Emit one shared typed event input after each committed transition, deduplicate party audiences, suppress actor/self and same-transaction duplicates, and test every matrix row plus denial/failure/no-op cases.
+
+## G042 Preference defaults and delivery gates are coupled or incomplete
+
+- **Expected:** D020/SOC-09 require one same-user effective settings state, enabled in-app/email and category defaults, disabled unsupported push/SMS defaults, atomic replacement, independent channel/category evaluation, and pending actions that remain available when informational delivery is disabled.
+- **Observed:** `UserNotificationSettings` initializes every boolean true, including push/SMS. Missing settings return not-found instead of effective defaults. `NotificationRepository.createNotification` checks the in-app setting before persistence and out-of-app dispatch, so disabling in-app also suppresses eligible email; category booleans are not generally applied outside the digest path. No inspected browser or iOS settings consumer exists.
+- **Disposition:** Defaults, gate independence and client-support mismatch against accepted SOC-09. **Priority:** high. **Owner:** bounded settings/delivery backend change; optional client surfaces separately scoped.
+- **Next action:** Materialize documented defaults, validate complete replacement atomically, evaluate channels/categories independently from authoritative actions, and add missing-row plus cross-gate tests.
+
+## G043 Welcome and digest email boundaries differ from the accepted contract
+
+- **Expected:** D020/SOC-11 require one best-effort welcome attempt after durable profile creation and a preference-aware weekly digest whose party content is filtered per recipient through the shared Viewer predicate; neither flow creates center state or controls domain success.
+- **Observed:** Welcome is invoked after user/settings creation and catches failure, but it does not apply the global mail-availability boundary or establish exact duplicate prevention. The digest selects upcoming parties globally, including private party details unrelated to a recipient, then checks only email and `partyUpdates`; it catches per-user failures but does not reuse party visibility.
+- **Disposition:** Recipient-visibility and delivery-boundary mismatch; scheduler, SMTP and duplicate behavior were not run. **Priority:** high for private digest disclosure, medium otherwise. **Owner:** bounded email implementation; scheduler/provider quality Step 11.
+- **Next action:** Build each digest from the recipient's Viewer-eligible parties, make welcome attempt identity explicit, retain per-recipient failure isolation and add private-content, disabled, duplicate and failure tests.
+
+## G044 Push and device-token behavior is not an integrated supported channel
+
+- **Expected:** D020/SOC-10 classify push as unsupported until a configured adapter and client contract exist; any later registration derives ownership only from the authenticated caller and push failure does not affect in-app/email/domain state.
+- **Observed:** `PushNotificationService` is not referenced by production event producers and sends raw HTTP/2 requests to the APNs sandbox with only a topic header, attendee-token query and no preference/category/event identity or accepted authentication/result handling. Backend duplicates authenticated PUT/query token routes at `/api/parties/device-token` and `/api/users/device-token`, while both iOS implementations POST JSON to `/api/users/{userId}/device-token` and include a user identifier. SMS has no adapter.
+- **Disposition:** Honest capability classification and cross-client API mismatch; no APNs request or device registration was run. **Priority:** medium while unsupported, high before activation. **Owner:** separate push integration decision/change; exact route/schema Step 11/Q014.
+- **Next action:** Keep push/SMS effectively disabled, choose one caller-derived registration contract before activation, add provider credentials/result handling and event/preference integration, then verify permission/token/failure paths without weakening other channels.
+
+## G045 Browser and iOS notification surfaces diverge from shared center/settings semantics
+
+- **Expected:** D020/SOC-03/SOC-08-SOC-10 permit different UI controls but require any exposed center/action/settings behavior to use typed recipient state, authoritative pending actions and shared preference/channel rules.
+- **Observed:** The browser notification page merges invitations, follow inbox and backend notifications, infers types/protection from messages, does not call mark-read and has no settings UI. iOS requests OS permission, keeps local badge/update polling and remote deep links, but no complete backend notification-center/settings client was found; polling uses stale singular party routes and token registration conflicts with the backend. Domain action dismissal and informational deletion are not consistently separated across clients.
+- **Disposition:** Client support/compatibility mismatch without a parity requirement; neither client was executed. **Priority:** medium. **Owner:** bounded browser/iOS notification work after shared backend/API contracts.
+- **Next action:** Replace message heuristics with typed data, keep actions backed by current domain state, add read/settings support only where product scope selects it, and verify browser/iOS refresh, stale-action and unavailable-permission behavior separately.

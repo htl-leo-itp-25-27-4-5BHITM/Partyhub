@@ -2,7 +2,7 @@
 
 Foundation snapshot: repository revision `9487ccb90bb438e24b3cfab547a5dc900b11aecb`, inspected 2026-09-21. See [runbook](runbook.md), [inventory](inventory.md), [decisions](decisions.md), [gaps](gaps.md) and [handoff](handoff.md).
 
-The foundation snapshot indexed **37 accepted requirements and 106 scenarios** in the six durable specifications. After the accepted Steps 2-7 integrations, the current main specs contain **48 accepted requirements and 235 scenarios**. `document-media-and-profile-pictures` is applied and synced, so MEDIA-01-MEDIA-03 and SOC-07 are accepted coverage. Acceptance records normative coverage; it does not assert implementation compliance, complete product scope or completion of Steps 8-12. Requirement titles and scenario labels below reproduce the current main specs exactly.
+The foundation snapshot indexed **37 accepted requirements and 106 scenarios** in the six durable specifications. After the accepted Steps 2-8 integrations, the current main specs contain **52 accepted requirements and 274 scenarios**. `document-notifications-and-preferences` is applied and synced, so the expanded SOC-03 and SOC-08-SOC-11 are accepted coverage. Acceptance records normative coverage; it does not assert implementation compliance, complete product scope or completion of Steps 9-12. Requirement titles and scenario labels below reproduce the current main specs exactly.
 
 Platform scope below is a foundation classification grounded in the requirement text, archive context and source entry points. Where existing wording is ambiguous, its owner stage must reconcile it. In particular, browser auth does not establish the iOS auth contract, and iOS map controls are not automatically browser requirements.
 
@@ -11,12 +11,12 @@ Platform scope below is a foundation classification grounded in the requirement 
 | Capability | Requirements | Scenarios | Main owner stage |
 |---|---:|---:|---|
 | [user-auth-and-identity](../../openspec/specs/user-auth-and-identity/spec.md) | 12 | 43 | 2 |
-| [social-and-notifications](../../openspec/specs/social-and-notifications/spec.md) | 7 | 43 | 3, 5, 7, 8 |
+| [social-and-notifications](../../openspec/specs/social-and-notifications/spec.md) | 11 | 82 | 3, 5, 7, 8 |
 | [party-discovery-and-management](../../openspec/specs/party-discovery-and-management/spec.md) | 16 | 97 | 4–6 |
 | [party-media-gallery](../../openspec/specs/party-media-gallery/spec.md) | 3 | 20 | 7 |
 | [map-radius-control](../../openspec/specs/map-radius-control/spec.md) | 3 | 10 | 6 (Purpose repair 12) |
 | [local-keycloak-environment](../../openspec/specs/local-keycloak-environment/spec.md) | 7 | 22 | 11 |
-| **Total** | **48** | **235** | **All assigned** |
+| **Total** | **52** | **274** | **All assigned** |
 
 ## Source and test evidence groups
 
@@ -64,11 +64,11 @@ Test evidence: Invitation repository/resource tests assert basic creation, list/
 
 ### E06
 
-**Notifications.** [src/main/java/at/htl/notification/NotificationResource.java](../../src/main/java/at/htl/notification/NotificationResource.java); [src/main/java/at/htl/notification/NotificationRepository.java](../../src/main/java/at/htl/notification/NotificationRepository.java); [src/main/java/at/htl/party/PartyRepository.java](../../src/main/java/at/htl/party/PartyRepository.java); [src/main/java/at/htl/follow/FollowRepository.java](../../src/main/java/at/htl/follow/FollowRepository.java); [src/main/resources/META-INF/resources/notifications/notifications.js](../../src/main/resources/META-INF/resources/notifications/notifications.js); [PartyHubiOS/PartyHubiOS/Partynotificationsystem.swift](../../PartyHubiOS/PartyHubiOS/Partynotificationsystem.swift); [src/test/java/at/htl/repository/NotificationRepositoryTest.java](../../src/test/java/at/htl/repository/NotificationRepositoryTest.java); [src/test/java/at/htl/resource/NotificationResourceTest.java](../../src/test/java/at/htl/resource/NotificationResourceTest.java).
+**Notifications and preferences.** [notification/preferences evidence and event-recipient-channel matrix](notifications-and-preferences.md); [src/main/java/at/htl/notification/NotificationResource.java](../../src/main/java/at/htl/notification/NotificationResource.java); [src/main/java/at/htl/notification/NotificationRepository.java](../../src/main/java/at/htl/notification/NotificationRepository.java); [src/main/java/at/htl/notificationsettings/UserNotificationSettingsResource.java](../../src/main/java/at/htl/notificationsettings/UserNotificationSettingsResource.java); [src/main/java/at/htl/notification/OutOfAppNotificationService.java](../../src/main/java/at/htl/notification/OutOfAppNotificationService.java); [src/main/java/at/htl/notification/PartyEmailDigestService.java](../../src/main/java/at/htl/notification/PartyEmailDigestService.java); [src/main/java/at/htl/auth/WelcomeEmailService.java](../../src/main/java/at/htl/auth/WelcomeEmailService.java); [src/main/java/at/htl/PushNotificationService.java](../../src/main/java/at/htl/PushNotificationService.java); [src/main/java/at/htl/party/PartyRepository.java](../../src/main/java/at/htl/party/PartyRepository.java); [src/main/java/at/htl/follow/FollowRepository.java](../../src/main/java/at/htl/follow/FollowRepository.java); [src/main/java/at/htl/invitation/InvitationRepository.java](../../src/main/java/at/htl/invitation/InvitationRepository.java); [src/main/resources/META-INF/resources/notifications/notifications.js](../../src/main/resources/META-INF/resources/notifications/notifications.js); [PartyHubiOS/PartyHubiOS/Partynotificationsystem.swift](../../PartyHubiOS/PartyHubiOS/Partynotificationsystem.swift); [src/test/java/at/htl/repository/NotificationRepositoryTest.java](../../src/test/java/at/htl/repository/NotificationRepositoryTest.java); [src/test/java/at/htl/resource/NotificationResourceTest.java](../../src/test/java/at/htl/resource/NotificationResourceTest.java); [src/test/java/at/htl/notificationsettings/UserNotificationSettingsResourceTest.java](../../src/test/java/at/htl/notificationsettings/UserNotificationSettingsResourceTest.java); [src/test/java/at/htl/notification/PartyEmailDigestServiceTest.java](../../src/test/java/at/htl/notification/PartyEmailDigestServiceTest.java); [src/test/java/at/htl/PushNotificationServiceTest.java](../../src/test/java/at/htl/PushNotificationServiceTest.java); [api/notification.http](../../api/notification.http).
 
-Observed: Notification resources/repository expose list, unread, read and delete operations; party/follow repositories contain event producers and both clients have notification surfaces. Delivery and all event-to-recipient mappings remain Step 8 work.
+Observed: recipient-scoped list/unread/read/delete endpoints, same-user settings routes, event producers and generic/welcome/digest email paths exist. Stored notification rows have no typed event identity or cancellation snapshot; filtering/protection uses message text, ordering has no stable tie-break, settings default every channel true, generic email is coupled to the in-app gate, digest selection does not reuse the Viewer predicate, and welcome delivery does not apply the general availability/settings boundary. Push is an unreferenced raw APNs helper with duplicated backend token routes and incompatible iOS callers; SMS has no adapter. G040-G045 preserve these differences from D020/SOC-03/SOC-08-SOC-11.
 
-Test evidence: `NotificationRepositoryTest.testMarkAsRead_success` asserts stored READ state; `testDeleteNotification_success` asserts 204 only. Wrong-user tests assert 403. These do not prove client rendering or complete event generation. Resource tests exercise bypass identity; none was run.
+Test evidence: repository/resource/settings/digest/push tests and HTTPYac requests cover partial read/delete/ownership/default or disabled-digest paths. They do not establish typed filters, deterministic ordering, event idempotency, complete recipients, independent gates, visibility-safe digest content, integrated APNs delivery or cross-client parity. All inspected tests remain unrun.
 
 ### E07
 
@@ -159,7 +159,7 @@ The child delta is synced into the main spec. At the Step 3 checkpoint, the acce
 |---|---:|---|
 | SOC-01 follow-request model | 12 scenarios | Full modified block preserves the original 3 scenarios and adds self, duplicate, actor, cancellation, rejection and removal transitions. Accepted. |
 | SOC-02 mutual-contact invitation eligibility | 2 scenarios | Unchanged and omitted from the delta. Existing accepted coverage remains authoritative. |
-| SOC-03 notification center | 4 scenarios | Unchanged and omitted from the delta. Step 8 still owns event/delivery detail. |
+| SOC-03 notification center | 4 scenarios at the Step 3 checkpoint | Group 8 later expands this block to 10 scenarios and accepts event/recipient/no-op behavior through D020. |
 | SOC-04 profile discovery and party context | 6 scenarios | Full modified block preserves the original 3 scenarios and adds own-party context, anonymous denial and client-scope behavior. Accepted. |
 | SOC-05 bounded profile/social projections | 6 scenarios | New requirement covers authenticated reads, cross-user/self fields, internal-field exclusion, private pending inbox and caller-relative status. Accepted. |
 | SOC-06 authenticated self profile editing | 5 scenarios | New requirement covers editable fields, immutable fields, unique handles, invalid/conflicting updates and other-user denial. Accepted. |
@@ -448,17 +448,23 @@ Scenarios (2):
 
 **[Notification center is the primary action surface for invites and follow requests](../../openspec/specs/social-and-notifications/spec.md#requirement-notification-center-is-the-primary-action-surface-for-invites-and-follow-requests)**
 
-- Platform scope: Shared domain: backend with browser/iOS consumers; detailed event, channel and delivery scope remains with Step 8.
+- Platform scope: Shared domain contract with backend delivery and browser/iOS consumers; clients may expose different controls while preserving recipient, action and state semantics.
 - Runbook owner: Step 8; event inputs 3–5.
-- Source evidence: [E06](#e06), [E05](#e05). Both clients expose notification surfaces and backend read/delete/event code exists; all events/actions and delivery are unverified.
-- Test evidence: E06 read-state and wrong-user assertions are partial evidence; deletion status alone does not establish persistence, and client action flows remain untested. All execution remains unverified.
-- Accepted decision references: [D012](decisions.md). Follow-up gaps: [G006](gaps.md), [G013](gaps.md).
+- Source evidence: [E06](#e06), [E05](#e05), [notification/preferences review](notifications-and-preferences.md). Follow, invitation and party event producers were reconciled with SOC-01 and PARTY-15 into one deterministic recipient matrix.
+- Test evidence: Partial count/message/read/delete assertions exist, but no inspected suite proves all recipient sets, no-op suppression, cancellation snapshots or action-state separation. All execution remains unverified.
+- Accepted decision references: [D012](decisions.md), [D020](decisions.md). Follow-up gaps: [G013](gaps.md), [G040](gaps.md), [G041](gaps.md), [G045](gaps.md).
 
-Scenarios (4):
+Scenarios (10):
 
 - [User receives a party invitation](../../openspec/specs/social-and-notifications/spec.md#scenario-user-receives-a-party-invitation)
+- [Pending invitation is withdrawn](../../openspec/specs/social-and-notifications/spec.md#scenario-pending-invitation-is-withdrawn)
+- [Host receives invitation or attendance outcome](../../openspec/specs/social-and-notifications/spec.md#scenario-host-receives-invitation-or-attendance-outcome)
 - [User receives a follow request](../../openspec/specs/social-and-notifications/spec.md#scenario-user-receives-a-follow-request)
+- [Requester receives follow acceptance](../../openspec/specs/social-and-notifications/spec.md#scenario-requester-receives-follow-acceptance)
 - [User receives party change notification](../../openspec/specs/social-and-notifications/spec.md#scenario-user-receives-party-change-notification)
+- [User receives party cancellation notification](../../openspec/specs/social-and-notifications/spec.md#scenario-user-receives-party-cancellation-notification)
+- [Domain action has no committed state change](../../openspec/specs/social-and-notifications/spec.md#scenario-domain-action-has-no-committed-state-change)
+- [User acts on stale notification content](../../openspec/specs/social-and-notifications/spec.md#scenario-user-acts-on-stale-notification-content)
 - [User manages notification state](../../openspec/specs/social-and-notifications/spec.md#scenario-user-manages-notification-state)
 
 #### SOC-04
@@ -537,6 +543,91 @@ Scenarios (8):
 - [Profile-picture upload is invalid](../../openspec/specs/social-and-notifications/spec.md#scenario-profile-picture-upload-is-invalid)
 - [Profile-picture replacement fails](../../openspec/specs/social-and-notifications/spec.md#scenario-profile-picture-replacement-fails)
 - [Client refreshes a replaced profile picture](../../openspec/specs/social-and-notifications/spec.md#scenario-client-refreshes-a-replaced-profile-picture)
+
+#### SOC-08
+
+**[Notification-center state is recipient-scoped and explicitly typed](../../openspec/specs/social-and-notifications/spec.md#requirement-notification-center-state-is-recipient-scoped-and-explicitly-typed)**
+
+- Platform scope: Shared authenticated backend contract. Browser and iOS clients may present different UI, but any center consumer must use typed recipient-scoped state rather than localized message parsing.
+- Runbook owner: Step 8; exact API envelopes remain Step 11.
+- Source evidence: [E06](#e06), [notification/preferences review](notifications-and-preferences.md), [access rows 8-11](access-matrix.md#access-matrix). Current storage and filters lack typed event identity, stable tie ordering and cancellation snapshots.
+- Test evidence: Repository/resource tests cover portions of list, unread, mark-read, delete and wrong-recipient denial; typed filters, stable order, idempotence and snapshot behavior are not established or executed.
+- Accepted decision references: [D020](decisions.md). Follow-up gaps: [G040](gaps.md), [G045](gaps.md); transport [Q014](decisions.md).
+
+Scenarios (9):
+
+- [Recipient lists their notifications](../../openspec/specs/social-and-notifications/spec.md#scenario-recipient-lists-their-notifications)
+- [Anonymous caller requests notifications](../../openspec/specs/social-and-notifications/spec.md#scenario-anonymous-caller-requests-notifications)
+- [Recipient filters by event type](../../openspec/specs/social-and-notifications/spec.md#scenario-recipient-filters-by-event-type)
+- [Recipient filters by party](../../openspec/specs/social-and-notifications/spec.md#scenario-recipient-filters-by-party)
+- [Recipient searches display content](../../openspec/specs/social-and-notifications/spec.md#scenario-recipient-searches-display-content)
+- [Recipient requests unread notifications](../../openspec/specs/social-and-notifications/spec.md#scenario-recipient-requests-unread-notifications)
+- [Recipient marks a notification as read](../../openspec/specs/social-and-notifications/spec.md#scenario-recipient-marks-a-notification-as-read)
+- [Recipient deletes an informational notification](../../openspec/specs/social-and-notifications/spec.md#scenario-recipient-deletes-an-informational-notification)
+- [Caller targets unavailable or another recipient's item](../../openspec/specs/social-and-notifications/spec.md#scenario-caller-targets-unavailable-or-another-recipients-item)
+
+#### SOC-09
+
+**[Notification preferences are same-user and independently effective](../../openspec/specs/social-and-notifications/spec.md#requirement-notification-preferences-are-same-user-and-independently-effective)**
+
+- Platform scope: Shared backend preference contract; no browser/iOS settings-screen parity is required.
+- Runbook owner: Step 8; exact replacement wire semantics remain Step 11.
+- Source evidence: [E06](#e06), [notification/preferences review](notifications-and-preferences.md), [access rows 12-13](access-matrix.md#access-matrix). Source enforces same-user paths but uses all-true defaults, missing-row not-found behavior and coupled in-app/email processing.
+- Test evidence: Settings resource tests cover current defaults, full update and other-user/anonymous denial; effective missing-row defaults, atomic failure and independent delivery effects are not covered or executed.
+- Accepted decision references: [D020](decisions.md). Follow-up gaps: [G042](gaps.md), [G045](gaps.md); transport [Q014](decisions.md).
+
+Scenarios (9):
+
+- [New profile receives notification defaults](../../openspec/specs/social-and-notifications/spec.md#scenario-new-profile-receives-notification-defaults)
+- [Legacy profile has no settings row](../../openspec/specs/social-and-notifications/spec.md#scenario-legacy-profile-has-no-settings-row)
+- [User reads their settings](../../openspec/specs/social-and-notifications/spec.md#scenario-user-reads-their-settings)
+- [User targets another user's settings](../../openspec/specs/social-and-notifications/spec.md#scenario-user-targets-another-users-settings)
+- [User replaces settings](../../openspec/specs/social-and-notifications/spec.md#scenario-user-replaces-settings)
+- [User disables in-app informational delivery](../../openspec/specs/social-and-notifications/spec.md#scenario-user-disables-in-app-informational-delivery)
+- [User disables email delivery](../../openspec/specs/social-and-notifications/spec.md#scenario-user-disables-email-delivery)
+- [User disables an event category](../../openspec/specs/social-and-notifications/spec.md#scenario-user-disables-an-event-category)
+- [Actionable request remains available when informational delivery is disabled](../../openspec/specs/social-and-notifications/spec.md#scenario-actionable-request-remains-available-when-informational-delivery-is-disabled)
+
+#### SOC-10
+
+**[Notification delivery is channel-honest and failure-tolerant](../../openspec/specs/social-and-notifications/spec.md#requirement-notification-delivery-is-channel-honest-and-failure-tolerant)**
+
+- Platform scope: Backend delivery contract with in-app and email support. Push remains unsupported until an integrated adapter/client contract exists; SMS is unsupported.
+- Runbook owner: Step 8; retry operations, observability and exact device-token API remain Steps 11-12.
+- Source evidence: [E06](#e06), [notification/preferences review](notifications-and-preferences.md), [access rows 19 and 58](access-matrix.md#access-matrix). Email catches failures, but no stable attempt identity exists; APNs is unintegrated and client token uploads disagree with both backend routes.
+- Test evidence: Push tests exercise only token-query behavior; no SMTP/APNs/provider execution, event-channel idempotence or failure-record assertion was run.
+- Accepted decision references: [D020](decisions.md). Follow-up gaps: [G042](gaps.md), [G044](gaps.md), [G045](gaps.md); reliability [Q006](decisions.md), transport [Q014](decisions.md).
+
+Scenarios (9):
+
+- [Domain transition commits before channel delivery](../../openspec/specs/social-and-notifications/spec.md#scenario-domain-transition-commits-before-channel-delivery)
+- [In-app processing is retried](../../openspec/specs/social-and-notifications/spec.md#scenario-in-app-processing-is-retried)
+- [Email event is eligible](../../openspec/specs/social-and-notifications/spec.md#scenario-email-event-is-eligible)
+- [Email event is ineligible](../../openspec/specs/social-and-notifications/spec.md#scenario-email-event-is-ineligible)
+- [Email delivery fails](../../openspec/specs/social-and-notifications/spec.md#scenario-email-delivery-fails)
+- [Failed out-of-app delivery is retried](../../openspec/specs/social-and-notifications/spec.md#scenario-failed-out-of-app-delivery-is-retried)
+- [User enables an unsupported channel](../../openspec/specs/social-and-notifications/spec.md#scenario-user-enables-an-unsupported-channel)
+- [Authenticated user registers a device token for supported push](../../openspec/specs/social-and-notifications/spec.md#scenario-authenticated-user-registers-a-device-token-for-supported-push)
+- [Device permission or token is unavailable](../../openspec/specs/social-and-notifications/spec.md#scenario-device-permission-or-token-is-unavailable)
+
+#### SOC-11
+
+**[Welcome and digest emails have bounded behavior](../../openspec/specs/social-and-notifications/spec.md#requirement-welcome-and-digest-emails-have-bounded-behavior)**
+
+- Platform scope: Backend email-only onboarding and scheduled summary behavior; neither creates notification-center state.
+- Runbook owner: Step 8; scheduler/provider/runtime policy remains Step 11.
+- Source evidence: [E06](#e06), [notification/preferences review](notifications-and-preferences.md). Source catches welcome/digest failures, but digest selection does not reuse Viewer filtering and welcome availability/duplicate boundaries are incomplete.
+- Test evidence: Digest tests cover two disabled-preference cases only; no visibility, one-per-user, rendering failure, welcome deduplication or delivery execution was established.
+- Accepted decision references: [D003](decisions.md), [D020](decisions.md). Follow-up gaps: [G043](gaps.md); reliability [Q006](decisions.md).
+
+Scenarios (6):
+
+- [New profile receives a welcome email](../../openspec/specs/social-and-notifications/spec.md#scenario-new-profile-receives-a-welcome-email)
+- [Welcome email cannot be sent](../../openspec/specs/social-and-notifications/spec.md#scenario-welcome-email-cannot-be-sent)
+- [Recipient is eligible for a weekly digest](../../openspec/specs/social-and-notifications/spec.md#scenario-recipient-is-eligible-for-a-weekly-digest)
+- [Digest applies recipient visibility](../../openspec/specs/social-and-notifications/spec.md#scenario-digest-applies-recipient-visibility)
+- [Recipient disables digest eligibility](../../openspec/specs/social-and-notifications/spec.md#scenario-recipient-disables-digest-eligibility)
+- [One digest delivery fails](../../openspec/specs/social-and-notifications/spec.md#scenario-one-digest-delivery-fails)
 
 ### party-discovery-and-management
 
@@ -1084,8 +1175,14 @@ At the Step 6 checkpoint, accepted `party-discovery-and-management` coverage was
 
 Accepted main-spec coverage is **48 requirements/235 scenarios**: media is 3/20 and social is 7/43. D019 resolves Q005 by retaining anonymous public-gallery viewing while requiring authenticated Viewer identity for upload, and accepts SOC-07's profile-picture boundary. G036-G039 retain observed access, serving, consistency and client mismatches; physical cleanup/retention remains Q006/Step 11 and exact routes/status/envelopes remain Q014/Step 11.
 
+## Step 8 notifications and preferences review
+
+`document-notifications-and-preferences` is applied, synced and strict-valid with 8/8 tasks complete. Its [social delta](../../openspec/changes/document-notifications-and-preferences/specs/social-and-notifications/spec.md) expands SOC-03 from 4 to 10 scenarios and adds SOC-08-SOC-11 with 33 scenarios. The [evidence review and event-recipient-channel matrix](notifications-and-preferences.md) traces follow, invitation, attendance, party-change/cancellation, welcome and digest inputs through recipient, category and supported-channel rules.
+
+Accepted main-spec coverage is **52 requirements/274 scenarios**: social is 11/82. D020 resolves Q007 with typed recipient-scoped center state, same-user effective defaults, independent in-app/email and category gates, best-effort welcome/digest email behavior, delivery-failure isolation and honest unsupported push/SMS boundaries. G040-G045 retain storage, event-producer, preference, email, push/device-token and client discrepancies; physical retention/retry policy remains Q006/Step 11 and exact routes/status/envelopes remain Q014/Step 11.
+
 ## Coverage outside the existing baseline
 
-The 48 accepted requirements do not by themselves specify every discovered surface. Notification settings and delivery, QR login, extended location/calendar features, exact API validation/error contracts, physical storage retention and deployment details remain assigned in [inventory.md](inventory.md) and [runbook.md](runbook.md), with scope/contract gaps in [gaps.md](gaps.md). They have **no implied normative coverage** from a similarly named requirement. Steps 8–11 add or reconcile coverage through bounded domain changes; Step 12 checks complete inventory-to-requirement-to-scenario traceability.
+The 52 accepted requirements do not by themselves specify every discovered surface. QR login, extended location/calendar features, exact API validation/error contracts, physical storage retention, notification retry operations and deployment details remain assigned in [inventory.md](inventory.md) and [runbook.md](runbook.md), with scope/contract gaps in [gaps.md](gaps.md). They have **no implied normative coverage** from a similarly named requirement. Steps 9–11 add or reconcile coverage through bounded domain changes; Step 12 checks complete inventory-to-requirement-to-scenario traceability.
 
 Future domain updates should retain these identifiers or record a clear replacement mapping, add accepted requirement/scenario links after integration, state the exact observed implementation status, and identify the assertions and execution results supporting each coverage claim. Do not mark a domain complete solely because a proposal or test file exists.

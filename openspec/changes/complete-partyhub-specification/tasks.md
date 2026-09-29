@@ -53,9 +53,9 @@ For every domain completion item below, record the change name and its strict va
 
 ## 8. Notifications and preferences
 
-- [ ] 8.1 Build the event-recipient-channel matrix for follows, invitations, attendance, party changes/cancellation, welcome messages and digests; verify events trace to Steps 3-5 and implemented delivery adapters are distinguished from stubs or unsupported channels.
-- [ ] 8.2 Document list/filter/read/delete behavior, same-user settings, preference effects, delivery failures and notification cleanup; verify browser/iOS/device-token contracts and failure scenarios are linked to source evidence.
-- [ ] 8.3 Complete notification/settings specification updates and handoff; verify accepted deltas are integrated and no event has contradictory recipients or state transitions across the social and party capabilities.
+- [x] 8.1 Build the event-recipient-channel matrix for follows, invitations, attendance, party changes/cancellation, welcome messages and digests; verify events trace to Steps 3-5 and implemented delivery adapters are distinguished from stubs or unsupported channels.
+- [x] 8.2 Document list/filter/read/delete behavior, same-user settings, preference effects, delivery failures and notification cleanup; verify browser/iOS/device-token contracts and failure scenarios are linked to source evidence.
+- [x] 8.3 Complete notification/settings specification updates and handoff; verify accepted deltas are integrated and no event has contradictory recipients or state transitions across the social and party capabilities.
 
 ## 9. QR login
 

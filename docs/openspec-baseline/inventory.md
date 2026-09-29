@@ -16,18 +16,20 @@ Step 6 source review and integration completed 2026-09-25 with application sourc
 
 Step 7 source review and integration completed 2026-09-28 with application source still unchanged: [media-and-profile-pictures.md](media-and-profile-pictures.md) maps gallery list/item/user-media access, server/local client state, upload validation/storage consistency and profile-picture replacement. The bounded `document-media-and-profile-pictures` child is applied and synced; D019 resolves Q005 while G036-G039 retain source/client discrepancies and Q006/Q014 remain Step 11.
 
+Step 8 source review and integration completed 2026-09-29 with application source still unchanged: [notifications-and-preferences.md](notifications-and-preferences.md) records the event-recipient-channel matrix, typed center state, same-user effective defaults, delivery/failure/cleanup behavior and client/channel support. The bounded `document-notifications-and-preferences` child is applied and synced into `social-and-notifications`; D020 resolves Q007 while G040-G045 retain source, storage, delivery and client discrepancies and Q006/Q014 remain Step 11.
+
 ## Capability register and platform scope
 
 | Inventory ID | Existing capability or review area | Platforms / environments | Owner steps | Baseline disposition |
 |---|---|---|---|---|
 | CAP-AUTH | `user-auth-and-identity`; browser/native identity and public bootstrap | Backend, browser, iOS, Keycloak | 2 | AUTH-01-AUTH-12 accepted; bypass and native source mismatches remain G002/G019-G023. |
-| CAP-SOCIAL | `social-and-notifications`; profile editing/discovery | Backend, browser, iOS | 3, 7 | SOC-01-SOC-07 accepted; profile-picture access/replacement added, with G024/G026-G028/G039 retained. |
+| CAP-SOCIAL | `social-and-notifications`; profile, relationship and notification contracts | Backend, browser, iOS, email | 3, 7, 8 | SOC-01-SOC-11 accepted; G024/G026-G028/G039-G045 retain implementation/client differences. |
 | CAP-PARTY | `party-discovery-and-management`; host lifecycle | Backend, browser, iOS | 4 | PARTY-03-PARTY-05/PARTY-12-PARTY-13 accepted and integrated; G003/G006/G009/G029-G030 retained. |
 | CAP-ATTENDANCE | Invitation and attendance rules within party/social capabilities | Backend, browser, iOS | 5 | PARTY-06/PARTY-07/PARTY-14/PARTY-15 accepted and integrated; G009/G017/G031-G033 retain implementation/client gaps. |
 | CAP-DISCOVERY | `party-discovery-and-management`; queries and map filters | Backend, browser, iOS | 6 | PARTY-16 accepts shared visibility-first query composition; PARTY-08-PARTY-11 explicitly govern iOS map filters under D018. G009/G030/G034-G035 retain implementation differences. |
 | CAP-RADIUS | `map-radius-control` | iOS | 6 | Existing requirements remain accepted; the child proposes finite/unlimited/location/reset details. Purpose placeholder stays Step 12. |
 | CAP-MEDIA | `party-media-gallery`; profile-picture and storage lifecycle | Backend, browser, iOS, filesystem | 7 | MEDIA-01-MEDIA-03 and SOC-07 accepted; G036-G039 retain implementation gaps, while physical retention remains Q006/Step 11. |
-| CAP-NOTIFY | `social-and-notifications`; notification settings/delivery | Backend, browser, iOS, email/push adapters | 8 | Existing notification center intent; channel/preferences contracts incomplete. |
+| CAP-NOTIFY | `social-and-notifications`; notification settings/delivery | Backend, browser, iOS, email/push adapters | 8 | SOC-03/SOC-08-SOC-11 accepted under D020; in-app/email supported, push/SMS unsupported until integrated. G040-G045. |
 | CAP-QR | QR/mobile login | Backend and potential deep-link consumers | 9 | Observed surface; no dedicated main spec and retained target unresolved (Q001). |
 | CAP-EXT | User/attendee locations, visits/time tracking, calendar | Backend, browser, iOS / device permissions | 10 | Observed extensions; excluded from core discovery only, not globally removed (D010, Q002). |
 | CAP-OPS | `local-keycloak-environment`; API, storage, validation and runtime contracts | Local Compose, Kubernetes declarations, test/CI, Keycloak theme | 11 | Existing local requirements; broader runtime contracts partial. |
@@ -49,7 +51,7 @@ CAP IDs are inventory labels, not new OpenSpec capability names. Every endpoint/
 | Attendee / joined user | A user linked to party membership; joining/attendance accepts an invitation when applicable (D006). |
 | Visible party | Public party, or a private party available under host/invitee/joined-user rules (D007); profile lists have D008 wording. |
 | Gallery viewer | Caller that meets the party Viewer predicate. D019 permits anonymous public-gallery reads but requires an authenticated Viewer for upload. |
-| Notification | Persisted in-app event record; delivery channels and preference guarantees need Step 8 review. |
+| Notification | A typed recipient-scoped informational event record with persisted read state and bounded content. Invitation/follow action availability comes from authoritative pending domain state; in-app/email delivery is preference-gated under D020. |
 | Location | Party venue/address coordinates; distinct from a user's current/live location. |
 | Radius / distance filter | Client discovery constraint with explicit iOS control requirements; it is not automatic authorization to expose live attendee positions. |
 | Observed | Found in source/configuration at the snapshot revision, without asserting runtime success or product acceptance. |
@@ -151,14 +153,14 @@ Owner step key: 2 auth/identity, 3 profiles/social, 4 party lifecycle, 5 invitat
 | `User` | `users` | `src/main/java/at/htl/user/User.java:10` | One-to-one `ProfilePicture` mapped by `user`; many-to-many parties mapped by `Party.users`; stores `device_token`, username, keycloak id, display/distinct names, email, phone, biography. | 2, 3, 8 |
 | `Party` | `party` | `src/main/java/at/htl/party/Party.java:17` | Many-to-one host `User`; one-to-many `Media`; many-to-many attendee `User` through `party_user`; one-to-many `Invitation`; many-to-one `Location`; `visibility`. | 4, 5, 6, 7, 10 |
 | `Invitation` | `invitation` | `src/main/java/at/htl/invitation/Invitation.java:9` | Many-to-one sender `User`, recipient `User`, and `Party`; status defaults to `PENDING`; exposes JSON id helpers. | 5, 8 |
-| `Notification` | `notification` | `src/main/java/at/htl/notification/Notification.java:10` | Many-to-one recipient `User`, sender `User`, optional `Party`; status defaults `UNREAD`; creation timestamp and message. | 8 |
+| `Notification` | `notification` | `src/main/java/at/htl/notification/Notification.java:10` | Recipient/sender, optional party, status, timestamp and message; lacks D020/SOC-08 typed event identity, dedupe key and cancellation snapshot (G040). | 8 |
 | `Media` | `media` | `src/main/java/at/htl/media/Media.java:7` | Many-to-one `Party`; many-to-one `User`; file path/url. | 7 |
 | `ProfilePicture` | `profile_picture` | `src/main/java/at/htl/profile_picture/ProfilePicture.java:6` | One-to-one `User` via unique `user_id`; stores `picture_name`. | 7 |
 | `UserLocation` | `user_location` | `src/main/java/at/htl/user_location/UserLocation.java:7` | One-to-one `User`; stores latitude/longitude; entity id is JSON-ignored. | 10 |
 | `Location` | `location` | `src/main/java/at/htl/location/Location.java:6` | Referenced by `Party.location`; stores latitude/longitude/address; id JSON-ignored. | 4, 6, 10 |
 | `Follow` | `follow` | `src/main/java/at/htl/follow/Follow.java:6` | Composite ids `user1_id`, `user2_id`; many-to-one `FollowStatus`; no entity relationship fields to `User`. | 3 |
 | `FollowStatus` | `follow_status` | `src/main/java/at/htl/follow/FollowStatus.java:5` | Status id/name; referenced by `Follow`. | 3 |
-| `UserNotificationSettings` | `user_notification_settings` | `src/main/java/at/htl/notificationsettings/UserNotificationSettings.java:6` | One-to-one `User` with `@MapsId`; channel and event booleans. | 8 |
+| `UserNotificationSettings` | `user_notification_settings` | `src/main/java/at/htl/notificationsettings/UserNotificationSettings.java:6` | One-to-one `User` with `@MapsId`; channel/category booleans currently default all true, differing from unsupported push/SMS defaults and independent gates in SOC-09 (G042). | 8 |
 | `QrLogin` | `qr_login` | `src/main/java/at/htl/qr/QrLogin.java:11` | Stores token, userId scalar, expiry, used flag, mobile token and mobile-token expiry. No JPA `User` relationship. | 9 |
 
 ### Backend source inventory outside REST resources
@@ -166,11 +168,11 @@ Owner step key: 2 auth/identity, 3 profiles/social, 4 party lifecycle, 5 invitat
 | File | Kind | Source-observed role | Owner |
 |---|---|---|---|
 | `src/main/java/at/htl/auth/CurrentUserResolver.java:17` | auth service | Resolves current user from JWT/security identity, numeric bypass subject, Keycloak id, or creates/links local user and settings. | 2 |
-| `src/main/java/at/htl/auth/WelcomeEmailService.java:14` | email service | Sends Qute welcome email when a resolved Keycloak user is created. | 2, 8 |
+| `src/main/java/at/htl/auth/WelcomeEmailService.java:14` | email service | Best-effort Qute welcome path after a new linked profile; availability and duplicate boundaries differ from SOC-11 (G043). | 2, 8 |
 | `src/main/java/at/htl/auth/XUserIdAuthFilter.java:21` | auth mechanism | Quarkus HTTP auth mechanism for `X-User-Id` when bypass config is enabled. | 2, 11 |
 | `src/main/java/at/htl/DataSeeder.java:17` | startup seeder | Observes startup and seeds base data/statuses if needed. | 11 |
 | `src/main/java/at/htl/FilterDto.java:3` | DTO | Legacy filter record. | 6, 11 |
-| `src/main/java/at/htl/PushNotificationService.java:13` | push service | Reads attendee device tokens and sends Apple APNs HTTP/2 request asynchronously. | 8, 11 |
+| `src/main/java/at/htl/PushNotificationService.java:13` | push stub | Unreferenced raw APNs sandbox helper over attendee tokens; no accepted event/preference/provider integration, so push remains unsupported (G044). | 8, 11 |
 | `src/main/java/at/htl/follow/FollowRepository.java:15` | repository/service | Follower/following counts, lists, pending requests, request creation, acceptance, removal, notifications. | 3, 8 |
 | `src/main/java/at/htl/follow/Follow.java:6` | entity | Follow relationship state. | 3 |
 | `src/main/java/at/htl/follow/FollowStatus.java:5` | entity | Follow status lookup. | 3 |
@@ -184,13 +186,13 @@ Owner step key: 2 auth/identity, 3 profiles/social, 4 party lifecycle, 5 invitat
 | `src/main/java/at/htl/media/MediaRepository.java:25` | repository/service | Media listing/serving helpers and party media upload validation/storage. Not a REST resource. | 7 |
 | `src/main/java/at/htl/media/Media.java:7` | entity | Party/user media record. | 7 |
 | `src/main/java/at/htl/media/MediaDto.java:3` | DTO | Media list projection. | 7 |
-| `src/main/java/at/htl/notification/NotificationRepository.java:15` | repository/service | Notification query/filter/read/delete/create/cleanup and out-of-app dispatch. | 8 |
-| `src/main/java/at/htl/notification/OutOfAppNotificationService.java:15` | notification service | Sends notification email when global/recipient settings permit. | 8, 11 |
-| `src/main/java/at/htl/notification/PartyEmailDigestService.java:20` | scheduled service | Weekly digest scheduled by cron, selects upcoming public parties and users. | 8, 11 |
+| `src/main/java/at/htl/notification/NotificationRepository.java:15` | repository/service | Recipient query/read/delete/create/cleanup plus coupled out-of-app dispatch; message heuristics, missing typed identity and in-app/email coupling are G040-G042. | 8 |
+| `src/main/java/at/htl/notification/OutOfAppNotificationService.java:15` | notification service | Generic email adapter with global/user email checks and caught failures; category and independent-gate gaps remain G042. | 8, 11 |
+| `src/main/java/at/htl/notification/PartyEmailDigestService.java:20` | scheduled service | Weekly email digest with preference checks and per-user failure isolation; missing recipient Viewer filtering is G043. | 8, 11 |
 | `src/main/java/at/htl/notification/NotificationSchemaCompatibility.java:13` | startup compatibility service | Runs startup DDL/native SQL for notification/invitation schema compatibility. | 8, 11 |
 | `src/main/java/at/htl/notification/Notification.java:10` | entity | Notification state. | 8 |
-| `src/main/java/at/htl/notification/NotificationDto.java:5` | DTO | Notification projection. | 8 |
-| `src/main/java/at/htl/notification/NotificationType.java:3` | enum | Notification type enum. | 8 |
+| `src/main/java/at/htl/notification/NotificationDto.java:5` | DTO | Notification projection without explicit event type/identity or cancellation snapshot (G040). | 8 |
+| `src/main/java/at/htl/notification/NotificationType.java:3` | enum | Read-state enum despite its name; it does not represent SOC-08 event types (G040). | 8 |
 | `src/main/java/at/htl/notificationsettings/UserNotificationSettingsRepository.java:12` | repository/service | Find/persist/save user notification settings. | 8 |
 | `src/main/java/at/htl/notificationsettings/UserNotificationSettings.java:6` | entity | Notification settings state. | 8 |
 | `src/main/java/at/htl/notificationsettings/NotificationSettingsDto.java:3` | DTO | Notification settings projection/update payload. | 8 |
@@ -287,7 +289,7 @@ All paths in this table are relative to `src/main/resources/META-INF/resources/`
 | `editProfile/editProfile.html`, `editProfile/editProfile.js` | Profile editing and profile-picture upload | Profile / **3** | Media 7 |
 | `followerList/followerList.html`, `followerList/followerList.js` | Followers/following display and relationship controls | Social / **3** | Auth 2 |
 | `gallery/gallery.html`, `gallery/gallery.js` | Party gallery load, read-only image grid and modal viewing; no upload UI found in the inspected page | Media / **7** | Party access 4/5 |
-| `notifications/notifications.html`, `notifications/notifications.js` | In-app notification list and follow/invitation actions | Social / **8** | 3, 5 |
+| `notifications/notifications.html`, `notifications/notifications.js` | Merges invitations, follow requests and backend notifications; message heuristics, no mark-read/settings UI and action/delete coupling are G045 | Social / **8** | 3, 5, API 11 |
 | `register_login/start.html`, `register_login/start.js` | Login/register entry | Auth / **2** | 11 |
 | `register_login/login/login.html`, `register_login/login/login.js` | Browser login entry/Keycloak flow | Auth / **2** | 11 |
 | `register_login/register/register.html`, `register_login/register/register.js` | Registration entry/Keycloak flow | Auth / **2** | 11 |
@@ -334,7 +336,7 @@ All paths below are relative to `PartyHubiOS/PartyHubiOS/` and have iOS scope. E
 | `GeoTimeTracking/LocationManager.swift`, `GeoTimeTracking/LocationDisplayHelper.swift`, `GeoTimeTracking/TimeEntry.swift`, `GeoTimeTracking/TimeTrackingView.swift`, `PartyView/PastVisitsSection.swift` | CoreLocation/geofences, background current location, SwiftData visit/time records, time tracking and past visits | Extensions / **10** | Runtime/privacy decisions 11 |
 | `CalendarService.swift` | EventKit permission and event create/update/delete mappings in UserDefaults; party deep link | Extensions / **10** | Party lifecycle 4; runtime/privacy 11 |
 | `Photo/PartyBilderView.swift`, `Photo/PhotoView.swift`, `PartyView/PhotosSection.swift` | PhotosPicker, local document-directory gallery/share/remove UI; PhotoView uses fixed `Birthday_2026` demo navigation | Media / **7** | Scope disposition 12; backend-gallery parity not established |
-| `Partynotificationsystem.swift` | AppDelegate/APNs registration, local notification manager and party update polling | Social / **8** | Party API 4; device-token API 11 |
+| `Partynotificationsystem.swift` | AppDelegate/APNs registration, local badge/update manager, party polling and deep links; no complete backend center/settings consumer and stale token/polling routes are G044-G045 | Social / **8** | Party API 4; device-token API 11 |
 | `PartyView/PartyDetailDebugSection.swift` | Entire file is inside a block comment; prior debug simulation controls observed, not active runtime code | Runtime/debug quality / **11** | Scope disposition 12 |
 | `Extensions.swift`, `View.swift` | Notification-name/color and view utility extensions | Runtime/UI support / **11** | Cross-journey 12 |
 | `Untitled.swift` | Empty file (0 bytes); no implemented behavior | Runtime/source hygiene / **11** | Scope disposition 12 |
@@ -357,7 +359,7 @@ iOS non-source support ownership:
 | `api/invitation.http` | 6 | Sent/received invitations, user requirement and delete authorization/not-found | Party / **5** | Auth 2; Social 8 |
 | `api/media.http` | 3 | Party and user media retrieval, including private-party example | Media / **7** | Party access 4 |
 | `api/profilePicture.http` | 6 | Picture/filename retrieval and unknown user | Media / **7** | Profile 3 |
-| `api/notification.http` | 7 | List/unread, read/delete and same-user failure cases | Social / **8** | Auth 2 |
+| `api/notification.http` | 7 | List/unread, read/delete and same-user failure examples using bypass identity; no typed/delivery coverage | Social / **8** | Auth 2; API 11 |
 | `api/qr.http` | 9 | Generate, images, token status and exchange error cases | QR / **9** | Auth 2 |
 
 Runtime/test quality **11** also owns `api/package.json`, `api/package-lock.json`, `api/.httpyacrc.json`, `api/README_TESTS.md`, `api/testing.jpg`, `run-http-tests.sh`, `.github/workflows/test.yml`, `src/test/resources/application.properties`, `pom.xml` test/plugin declarations, and `e2e/.gitignore`. `api/README_TESTS.md` reports historical numeric results, which are not this task's verification. HTTP tests use bypass identifiers in several files, e.g. `api/user.http:34–44` uses `X-User-Id`. Source inspection shows `src/test/resources/application.properties:14–16` disables JWT and enables bypass; this does not exercise the normal production JWT contract. JUnit class inventory is delegated separately.
@@ -434,7 +436,7 @@ Every substantive feature, stack, setup, route and workflow claim in README has 
 - README setup/realm/package/API claims: `README.md:41`, `:78–79`, `:103–107`, `:140–146`; Compose actual realm mount `docker-compose.yaml:28`; image staging import `Dockerfile.keycloak:4`. The missing README `deploy.sh` can be established from `git ls-files '*.sh'` (only three named scripts) and the filesystem enumeration. `deploy-local.sh:5` invokes `docker-compose down -v`; do not describe it simply as a safe/default setup without review.
 - Declared production bypass: `k8s/quarkus.yaml:34–39` sets prod plus `PARTYHUB_AUTH_BYPASS_ENABLED=true`; default/dev/staging/test distinctions in `src/main/resources/application.properties:7`, `:20`, `:31` and `src/test/resources/application.properties:14–16`.
 - Stale browser party update call: `backend-functions.js:110–120` uses singular `/api/party/${partyId}` with POST. Backend `PartyResource.java:158–173` supplies PUT `/api/parties/{id}`. iOS `Partynotificationsystem.swift:390`, `:419` also uses singular party routes. `PartyView/PartyDetailView.swift:339` uses a singular route inside `simulatePartyUpdate` under `#if DEBUG`; its debug view invocation is commented out, while the regular edit path at `:472–477` correctly uses PUT on the plural route. Exact compatibility and reachability dispositions belong to **4/8/11**.
-- iOS device-token calls: `Partynotificationsystem.swift:567` and `PartyHubiOSApp.swift:279` call `/api/users/{userId}/device-token`; observed backend routes are `PartyResource.java:176–191` `/api/parties/device-token` and `UserResource.java:437` `/api/users/device-token`, both without a user-id path segment. Owner **8/11**.
+- iOS device-token calls: `Partynotificationsystem.swift:567` and `PartyHubiOSApp.swift:279` POST JSON to `/api/users/{userId}/device-token`; observed backend routes are authenticated PUT/query operations at `PartyResource.java:176–191` `/api/parties/device-token` and `UserResource.java:437` `/api/users/device-token`, both deriving the user from the caller. D020 keeps push unsupported pending integration; G044 and Q014 own the mismatch. Owner **8/11**.
 - QR client mismatch: browser `register_login/qr-login.html:115` requests generate without userId then expects token/status; `profile/profile.js:698` instead passes userId; `ProfileView.swift:343` labels scanner as legacy `partyhub://login?userId=`. Preserve for **9**, not accepted auth policy.
 - Prototype/debug observations: browser `homepage/homepage.js:1–23` fixed marker click demo; `test.html:33` console test page; `script.js:3` and `:48` old remote host; iOS `Photo/PhotoView.swift:7–8` fixed demo birthday; `PartyDetailDebugSection.swift:1` opens whole-file comment; `Untitled.swift` zero bytes. Main tab includes Time Tracking in `ContentView.swift:35–40`, so extended features are actual surfaced UI, not automatically discarded.
 - iOS local gallery observation: `Photo/PartyBilderView.swift:117–152` writes/deletes/lists document-directory files; full backend-gallery parity is unverified. Owner **7**.
