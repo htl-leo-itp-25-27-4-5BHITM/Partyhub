@@ -59,9 +59,9 @@ For every domain completion item below, record the change name and its strict va
 
 ## 9. QR login
 
-- [ ] 9.1 Compare generation, image/status, exchange and mobile identity paths with QR tests and consumers; verify the evidence record identifies payload format, storage, expiry, reuse and acting-user derivation, including generation/exchange inconsistencies.
-- [ ] 9.2 Establish the retained QR contract or record an explicit retirement/defer decision; verify public/protected access and signing/identity gaps have dispositions without preserving unsafe source behavior as intended policy.
-- [ ] 9.3 Complete the QR specification or exclusion record and handoff; verify accepted deltas are integrated when applicable, exposed endpoints remain inventoried, and remediation items are bounded.
+- [x] 9.1 Compare generation, image/status, exchange and mobile identity paths with QR tests and consumers; verify the evidence record identifies payload format, storage, expiry, reuse and acting-user derivation, including generation/exchange inconsistencies.
+- [x] 9.2 Establish the retained QR contract or record an explicit retirement/defer decision; verify public/protected access and signing/identity gaps have dispositions without preserving unsafe source behavior as intended policy.
+- [x] 9.3 Complete the QR specification or exclusion record and handoff; verify accepted deltas are integrated when applicable, exposed endpoints remain inventoried, and remediation items are bounded.
 
 ## 10. Extended client features
 

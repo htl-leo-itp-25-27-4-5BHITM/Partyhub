@@ -1,6 +1,6 @@
 # Initial implementation and documentation gaps
 
-Foundation snapshot: `9487ccb90bb438e24b3cfab547a5dc900b11aecb`, 2026-09-21; Step 2 refinement on 2026-09-23, Steps 3-6 integration on 2026-09-25, Group 7 integration on 2026-09-28 and Group 8 integration on 2026-09-29 with application source unchanged. These are source/configuration observations and specification/documentation conflicts. None is a runtime reproduction. Priorities are initial triage for later work: high = access/identity boundary, medium = behavior/compatibility, low = editorial/evidence hygiene. This register is not a complete security audit or a finding about a live deployment.
+Foundation snapshot: `9487ccb90bb438e24b3cfab547a5dc900b11aecb`, 2026-09-21; Step 2 refinement on 2026-09-23, Steps 3-6 integration on 2026-09-25, Group 7 integration on 2026-09-28 and Groups 8-9 integration on 2026-09-29 with application source unchanged. These are source/configuration observations and specification/documentation conflicts. None is a runtime reproduction. Priorities are initial triage for later work: high = access/identity boundary, medium = behavior/compatibility, low = editorial/evidence hygiene. This register is not a complete security audit or a finding about a live deployment.
 
 Java paths below start at `src/main/java/at/htl/`; browser paths at `src/main/resources/META-INF/resources/`; Swift paths at `PartyHubiOS/PartyHubiOS/`. Complete surface ownership is in [inventory.md](inventory.md); requirement anchors are in [coverage.md](coverage.md).
 
@@ -48,17 +48,17 @@ Java paths below start at `src/main/java/at/htl/`; browser paths at `src/main/re
 
 ## G007 QR generation and exchange describe different payload flows
 
-- **Expected:** A retained login flow needs a coherent generation/consumption/identity contract; target scope is Q001.
-- **Observed:** `qr/QrResource.java:42` emits a user-ID login deep link and user image path; `:115` exchanges a token via `QrService.findValidByToken`. The generation endpoint does not visibly call that stored-token generation path.
-- **Disposition:** Observed flow inconsistency, product target unresolved. **Priority:** high. **Owner:** Step 9.
-- **Next action:** Trace consumers and tests, then specify the retained flow without legitimizing numeric-ID authentication by default.
+- **Expected:** D021 defers QR login and preserves Keycloak as the only accepted sign-in/session mechanism; any future retained QR design needs one coherent generation/consumption/identity contract.
+- **Observed:** `qr/QrResource.java:42` emits a user-ID login deep link and user image path; `:115` exchanges a token via `QrService.findValidByToken`. The generation endpoint does not call or return the stored-token generation path.
+- **Disposition:** Product scope is resolved as deferred/unsupported; the exposed inconsistency remains implementation debt detailed by G046/G049. **Priority:** high while exposed. **Owner:** bounded retirement/containment work or a future QR proposal; API Step 11.
+- **Next action:** Do not treat either path as authentication. Retire or disable unsupported routes/clients, or design and approve one replacement flow before implementation.
 
 ## G008 QR verification embeds signing material
 
-- **Expected:** The supported QR/mobile identity design must establish trustworthy identity; no accepted requirement endorses embedded signing material.
-- **Observed:** `qr/QrResource.java:137` contains a hardcoded HMAC verification secret. Its value is intentionally not duplicated here. `QrService` and QR tests are the follow-up evidence.
-- **Disposition:** Security-sensitive implementation observation for the retained-flow review. **Priority:** high. **Owner:** Step 9, identity coordination Step 2.
-- **Next action:** Record a bounded credential/verification remediation once Q001 determines the supported flow; do not treat existing code as approved policy.
+- **Expected:** D001/D014/D021 reject the custom QR/mobile token as an accepted PartyHub identity mechanism; no accepted requirement endorses embedded signing material.
+- **Observed:** `qr/QrResource.java:137` and `QrService` contain matching hardcoded HMAC material. Its value is intentionally not duplicated here.
+- **Disposition:** Product scope is resolved as deferred/unsupported, while the exposed verifier remains a security-sensitive implementation observation expanded in G048. **Priority:** high while exposed. **Owner:** bounded retirement/containment work; identity/API Step 11.
+- **Next action:** Remove exposure of the unsupported verifier or replace it only through a separately accepted identity design; never promote the embedded value to configuration as sufficient proof of a secure flow.
 
 ## G009 Private access checks are missing on several source paths
 
@@ -112,9 +112,9 @@ Java paths below start at `src/main/java/at/htl/`; browser paths at `src/main/re
 ## G016 Discovered capabilities lack complete durable contracts
 
 - **Expected:** Every retained product surface is eventually specified or explicitly excluded with a reason.
-- **Observed:** AUTH-10-AUTH-12, SOC-01-SOC-11, PARTY-01-PARTY-16, MEDIA-01-MEDIA-03 and RADIUS-01-RADIUS-03 now cover the bounded identity, profile/social, party, media, map and notification contracts. Durable coverage remains incomplete for QR login, extended locations/calendar/time tracking, exact API/runtime behavior, and physical storage/notification retention and retry operations. Inventory ownership does not prove requirement completeness.
-- **Disposition:** Remaining specification coverage gaps have assigned steps and do not authorize feature implementation. **Priority:** medium. **Owner:** Steps 9-11 as assigned in inventory.
-- **Next action:** Complete the remaining bounded domain reviews and deltas; use Q001/Q002/Q006/Q011-Q014 where target behavior is not already decided.
+- **Observed:** AUTH-10-AUTH-12, SOC-01-SOC-11, PARTY-01-PARTY-16, MEDIA-01-MEDIA-03 and RADIUS-01-RADIUS-03 now cover the bounded identity, profile/social, party, media, map and notification contracts. D021 explicitly defers QR login rather than leaving it silently uncovered. Durable coverage remains incomplete for extended locations/calendar/time tracking, exact API/runtime behavior, and physical storage/notification/legacy-QR retention and retry operations. Inventory ownership does not prove requirement completeness.
+- **Disposition:** Remaining specification coverage gaps have assigned steps and do not authorize feature implementation. **Priority:** medium. **Owner:** Steps 10-11 as assigned in inventory.
+- **Next action:** Complete the remaining bounded domain reviews and deltas; use Q002/Q006/Q011-Q014 where target behavior is not already decided.
 
 ## G017 Mutual-contact enforcement is not evident in private-party invite creation
 
@@ -318,3 +318,38 @@ Java paths below start at `src/main/java/at/htl/`; browser paths at `src/main/re
 - **Observed:** The browser notification page merges invitations, follow inbox and backend notifications, infers types/protection from messages, does not call mark-read and has no settings UI. iOS requests OS permission, keeps local badge/update polling and remote deep links, but no complete backend notification-center/settings client was found; polling uses stale singular party routes and token registration conflicts with the backend. Domain action dismissal and informational deletion are not consistently separated across clients.
 - **Disposition:** Client support/compatibility mismatch without a parity requirement; neither client was executed. **Priority:** medium. **Owner:** bounded browser/iOS notification work after shared backend/API contracts.
 - **Next action:** Replace message heuristics with typed data, keep actions backed by current domain state, add read/settings support only where product scope selects it, and verify browser/iOS refresh, stale-action and unavailable-permission behavior separately.
+
+## G046 QR generation never creates the token consumed by status and exchange
+
+- **Expected:** D021 classifies QR login as unsupported; an exposed prototype must not be mistaken for a coherent credential flow. Any future retained flow needs one transaction-linked handoff value from generation through status, scan and exchange.
+- **Observed:** Authenticated `/api/qr/generate` returns a numeric-user deep link and image URL without calling `QrService.generateForUser`, persisting `QrLogin`, or returning a token/expiry. The browser page nevertheless reads absent `data.token` and polls `/api/qr/status/undefined`. Token-based image and exchange paths can operate only on separately seeded or otherwise manually created rows.
+- **Disposition:** Broken cross-path implementation and documentation mismatch under the explicit defer decision. **Priority:** high while the page/routes remain exposed. **Owner:** bounded QR retirement/containment or future approved redesign; API Step 11.
+- **Next action:** Remove or disable the unsupported generation/poll/exchange journey, or replace it only after a proposal defines one securely linked flow and tests its complete lifecycle.
+
+## G047 Public QR status and image endpoints expose identifier and token-derived state
+
+- **Expected:** D001/D021 provide no accepted public QR identity API. Numeric IDs and path tokens do not authenticate a user, and unsupported surfaces should disclose no more identity/state than an explicitly accepted design requires.
+- **Observed:** `/api/qr/image/user/{userId}` publicly confirms existing user IDs and encodes them in a login deep link. `/api/qr/status/{token}` and `/api/qr/image/{token}` are public bearer-like paths; status reports raw used/expiry data and token images accept used/expired rows. Neither path is bound to the authenticated generator or intended scanner.
+- **Disposition:** Access/disclosure gap on deferred endpoints; no requests were executed. **Priority:** high. **Owner:** bounded QR endpoint containment; exact retirement/status behavior Step 11/Q014.
+- **Next action:** Prevent the unsupported endpoints from serving as public identity/status oracles. A future proposal must define possession, audience and disclosure rules before reopening them.
+
+## G048 Custom mobile token cannot establish the accepted PartyHub identity boundary
+
+- **Expected:** D001/D014/D021 require the normal Keycloak issuer and validated bearer-session path for browser/iOS identity; a deferred QR token cannot select a local user or authorize protected APIs.
+- **Observed:** Exchange issues a custom HS256 JWT using embedded signing material, no issuer/audience/provider trust and a scalar local user ID. `/mobile/me` verifies that separate value, does not consult stored JTI/revocation state, and returns only `userId`; it encodes `sub` as a JSON string but casts the decoded value to `Integer`. The custom token is not accepted by the normal backend bearer mechanism.
+- **Disposition:** Identity/security and functional mismatch against the accepted authentication contract; no successful endpoint flow was run. **Priority:** high. **Owner:** remove/contain unsupported credential paths or replace through a separate identity proposal; environment/API verification Step 11.
+- **Next action:** Do not wire the custom token into protected APIs. Retire the verifier/issuer or design a provider-integrated handoff with explicit trust, proof, audience and revocation rules.
+
+## G049 Browser, iOS and welcome-link QR consumers are inactive or incompatible
+
+- **Expected:** D021 marks QR login unsupported and keeps Keycloak as the active sign-in path. Legacy UI/deep links must not imply successful QR authentication.
+- **Observed:** The browser QR page polls an absent token; the profile helper targets missing DOM elements and renders a disabled logged-out button. iOS never sets its scanner presentation state in the inspected view, discards any scanned code, and labels the path legacy. The app posts `.legacyQRLogin` for numeric deep links but has no observer. Welcome templates still emit that numeric login link. No client calls exchange/mobile identity or stores a custom token.
+- **Disposition:** Reachability, UX and cross-client mismatch on deferred surfaces; no UI was run. **Priority:** medium, high where users are presented with a login claim. **Owner:** bounded browser/iOS/email cleanup or future approved QR client implementation; documentation reconciliation Step 12.
+- **Next action:** Stop presenting unsupported QR login affordances/links in a bounded implementation change, or implement clients only after an accepted replacement contract exists.
+
+## G050 QR token lifecycle, concurrency and tests do not establish single-use credentials
+
+- **Expected:** The defer record makes no QR reliability guarantee. Any future retained handoff needs explicit expiry, one-time atomic exchange, cleanup/revocation/account lifecycle and tests that prove the accepted identity result.
+- **Observed:** `QrLogin` stores scalar user ID, token, expiry, used flag, JTI and mobile expiry with no user relationship or reviewed cleanup. Validity read and used update are not visibly one locked transaction around exchange. Status/image paths ignore validity. Tests cover helper/repository happy paths and basic resource errors, but no successful end-to-end generation/exchange/mobile identity, concurrency, replay, cleanup, revocation or protected-API authentication.
+- **Disposition:** Data-lifecycle and evidence gap for a deferred feature; no runtime test was run. **Priority:** medium while contained, high before any future activation. **Owner:** Step 11 persistence/quality plus any future QR proposal.
+- **Next action:** Keep the feature unsupported. A future proposal must define lifecycle and acceptance cases before implementation; removal work should also address stored rows and seed/docs without inventing retention policy.

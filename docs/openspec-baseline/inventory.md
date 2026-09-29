@@ -18,6 +18,8 @@ Step 7 source review and integration completed 2026-09-28 with application sourc
 
 Step 8 source review and integration completed 2026-09-29 with application source still unchanged: [notifications-and-preferences.md](notifications-and-preferences.md) records the event-recipient-channel matrix, typed center state, same-user effective defaults, delivery/failure/cleanup behavior and client/channel support. The bounded `document-notifications-and-preferences` child is applied and synced into `social-and-notifications`; D020 resolves Q007 while G040-G045 retain source, storage, delivery and client discrepancies and Q006/Q014 remain Step 11.
 
+Step 9 source review completed 2026-09-29 with application source still unchanged: [qr-login.md](qr-login.md) compares generation, image/status, exchange, mobile identity, storage, clients and tests. D021 resolves Q001 by explicitly deferring QR login and preserving Keycloak as the only accepted authentication contract. No product-spec delta is required; all exposed legacy/prototype QR surfaces remain inventoried and G007/G008/G046-G050 retain implementation, access, credential, client and lifecycle gaps.
+
 ## Capability register and platform scope
 
 | Inventory ID | Existing capability or review area | Platforms / environments | Owner steps | Baseline disposition |
@@ -30,7 +32,7 @@ Step 8 source review and integration completed 2026-09-29 with application sourc
 | CAP-RADIUS | `map-radius-control` | iOS | 6 | Existing requirements remain accepted; the child proposes finite/unlimited/location/reset details. Purpose placeholder stays Step 12. |
 | CAP-MEDIA | `party-media-gallery`; profile-picture and storage lifecycle | Backend, browser, iOS, filesystem | 7 | MEDIA-01-MEDIA-03 and SOC-07 accepted; G036-G039 retain implementation gaps, while physical retention remains Q006/Step 11. |
 | CAP-NOTIFY | `social-and-notifications`; notification settings/delivery | Backend, browser, iOS, email/push adapters | 8 | SOC-03/SOC-08-SOC-11 accepted under D020; in-app/email supported, push/SMS unsupported until integrated. G040-G045. |
-| CAP-QR | QR/mobile login | Backend and potential deep-link consumers | 9 | Observed surface; no dedicated main spec and retained target unresolved (Q001). |
+| CAP-QR | QR/mobile login | Backend, browser, iOS and email deep links | 9 | Explicitly deferred/unsupported by D021; no main-spec delta. Six routes and all consumers/storage/tests remain inventoried; G007/G008/G046-G050. |
 | CAP-EXT | User/attendee locations, visits/time tracking, calendar | Backend, browser, iOS / device permissions | 10 | Observed extensions; excluded from core discovery only, not globally removed (D010, Q002). |
 | CAP-OPS | `local-keycloak-environment`; API, storage, validation and runtime contracts | Local Compose, Kubernetes declarations, test/CI, Keycloak theme | 11 | Existing local requirements; broader runtime contracts partial. |
 | CAP-DOCS | Cross-domain documentation and acceptance | Repository docs/specs | 12 | Editorial drift and final acceptance; no application capability introduced. |
@@ -52,6 +54,7 @@ CAP IDs are inventory labels, not new OpenSpec capability names. Every endpoint/
 | Visible party | Public party, or a private party available under host/invitee/joined-user rules (D007); profile lists have D008 wording. |
 | Gallery viewer | Caller that meets the party Viewer predicate. D019 permits anonymous public-gallery reads but requires an authenticated Viewer for upload. |
 | Notification | A typed recipient-scoped informational event record with persisted read state and bounded content. Invitation/follow action availability comes from authoritative pending domain state; in-app/email delivery is preference-gated under D020. |
+| QR login | Deferred legacy/prototype handoff surfaces. Numeric IDs, QR/deep-link payloads and custom mobile tokens are not accepted credentials; supported sign-in remains Keycloak under D021. |
 | Location | Party venue/address coordinates; distinct from a user's current/live location. |
 | Radius / distance filter | Client discovery constraint with explicit iOS control requirements; it is not automatic authorization to expose live attendee positions. |
 | Observed | Found in source/configuration at the snapshot revision, without asserting runtime success or product acceptance. |
@@ -161,7 +164,7 @@ Owner step key: 2 auth/identity, 3 profiles/social, 4 party lifecycle, 5 invitat
 | `Follow` | `follow` | `src/main/java/at/htl/follow/Follow.java:6` | Composite ids `user1_id`, `user2_id`; many-to-one `FollowStatus`; no entity relationship fields to `User`. | 3 |
 | `FollowStatus` | `follow_status` | `src/main/java/at/htl/follow/FollowStatus.java:5` | Status id/name; referenced by `Follow`. | 3 |
 | `UserNotificationSettings` | `user_notification_settings` | `src/main/java/at/htl/notificationsettings/UserNotificationSettings.java:6` | One-to-one `User` with `@MapsId`; channel/category booleans currently default all true, differing from unsupported push/SMS defaults and independent gates in SOC-09 (G042). | 8 |
-| `QrLogin` | `qr_login` | `src/main/java/at/htl/qr/QrLogin.java:11` | Stores token, userId scalar, expiry, used flag, mobile token and mobile-token expiry. No JPA `User` relationship. | 9 |
+| `QrLogin` | `qr_login` | `src/main/java/at/htl/qr/QrLogin.java:11` | Deferred prototype state: scalar user ID, handoff token/expiry/use and mobile JTI/expiry; no JPA `User` relationship or reviewed cleanup/revocation lifecycle (D021/G050). | 9 |
 
 ### Backend source inventory outside REST resources
 
@@ -203,9 +206,9 @@ Owner step key: 2 auth/identity, 3 profiles/social, 4 party lifecycle, 5 invitat
 | `src/main/java/at/htl/party/InvitationStatsDto.java:3` | DTO | Invitation stats projection. | 5 |
 | `src/main/java/at/htl/party/InvitedMemberDto.java:3` | DTO | Member projection for invited/joined views. | 5 |
 | `src/main/java/at/htl/profile_picture/ProfilePicture.java:6` | entity | Profile picture record. | 7 |
-| `src/main/java/at/htl/qr/QrService.java:16` | service | QR token generation, lookup, mobile token issuing. | 9 |
-| `src/main/java/at/htl/qr/QrLoginRepository.java:10` | repository/service | QR token/mobile token lookup and persist. | 9 |
-| `src/main/java/at/htl/qr/QrLogin.java:11` | entity | QR login token state. | 9 |
+| `src/main/java/at/htl/qr/QrService.java:16` | deferred prototype service | Creates five-minute handoff rows and custom 30-minute HS256 mobile tokens, but production generation does not call it; G046/G048/G050. | 9 |
+| `src/main/java/at/htl/qr/QrLoginRepository.java:10` | repository/service | Token/JTI lookup and persist; JTI lookup is unused by the production verifier and lifecycle is unbounded (G048/G050). | 9 |
+| `src/main/java/at/htl/qr/QrLogin.java:11` | deferred prototype entity | QR handoff/mobile token state excluded from accepted identity by D021. | 9 |
 | `src/main/java/at/htl/user/UserRepository.java:14` | repository/service | User lookup/search, Keycloak linking, persistence, local create/update helpers. | 2, 3 |
 | `src/main/java/at/htl/user/User.java:10` | entity | User/profile/auth identity state. | 2, 3, 8 |
 | `src/main/java/at/htl/user/UserCreateDto.java:3` | DTO | User create/update payload. | 3 |
@@ -236,20 +239,20 @@ Tests were inventoried only; no test command was run. Counts below are static `@
 | `src/test/java/at/htl/follow/FollowTest.java` | 9 | Follow entity/relationship behavior. | 3 |
 | `src/test/java/at/htl/notification/PartyEmailDigestServiceTest.java` | 2 | Weekly digest email service. | 8, 11 |
 | `src/test/java/at/htl/notificationsettings/UserNotificationSettingsResourceTest.java` | 4 | Notification settings resource. | 8 |
-| `src/test/java/at/htl/qr/QrServiceTest.java` | 8 | QR service token generation/exchange helpers. | 9 |
+| `src/test/java/at/htl/qr/QrServiceTest.java` | 8 | Isolated QR token generation/validity/custom-token helpers; production generator bypasses the tested create path. | 9 |
 | `src/test/java/at/htl/repository/FollowRepositoryTest.java` | 12 | Follow repository transitions/queries. | 3, 8 |
 | `src/test/java/at/htl/repository/InvitationRepositoryTest.java` | 6 | Invitation repository transitions/notifications. | 5, 8 |
 | `src/test/java/at/htl/repository/LocationRepositoryTest.java` | 7 | Location repository. | 4, 6, 10 |
 | `src/test/java/at/htl/repository/MediaRepositoryTest.java` | 7 | Media repository and upload/list behavior. | 7 |
 | `src/test/java/at/htl/repository/NotificationRepositoryTest.java` | 18 | Notification repository filters/read/delete/protection. | 8 |
 | `src/test/java/at/htl/repository/PartyRepositoryTest.java` | 9 | Party repository lifecycle/filter/member behavior. | 4, 5, 6, 8 |
-| `src/test/java/at/htl/repository/QrLoginRepositoryTest.java` | 8 | QR login repository. | 9 |
+| `src/test/java/at/htl/repository/QrLoginRepositoryTest.java` | 8 | QR token/JTI lookup and persistence; no cleanup, concurrency or identity result. | 9 |
 | `src/test/java/at/htl/repository/UserLocationRepositoryTest.java` | 8 | User location repository and party-location query. | 10 |
 | `src/test/java/at/htl/repository/UserRepositoryTest.java` | 22 | User lookup/link/create/update repository behavior. | 2, 3 |
 | `src/test/java/at/htl/resource/InvitationResourceTest.java` | 12 | Invitation resource endpoints. | 5 |
 | `src/test/java/at/htl/resource/NotificationResourceTest.java` | 11 | Notification resource endpoints. | 8 |
 | `src/test/java/at/htl/resource/PartyResourceTest.java` | 30 | Party resource endpoints including filters/join/media/location. | 4, 5, 6, 7, 10 |
-| `src/test/java/at/htl/resource/QrResourceTest.java` | 10 | QR resource endpoints. | 9 |
+| `src/test/java/at/htl/resource/QrResourceTest.java` | 10 | Basic QR generation/error responses; no successful stored-token exchange/mobile identity or protected-API authentication. | 9 |
 | `src/test/java/at/htl/resource/UserResourceTest.java` | 21 | User/profile/follow/location/media resource endpoints. | 2, 3, 7, 10 |
 | `src/test/java/at/htl/validation/NoHtmlValidatorTest.java` | 8 | No-HTML validator. | 11 |
 | `src/test/java/at/htl/validation/SafeTextValidatorTest.java` | 11 | Safe-text validator. | 11 |
@@ -285,7 +288,7 @@ All paths in this table are relative to `src/main/resources/META-INF/resources/`
 | `listPartys/listPartys.html`, `listPartys/listPartys.js` | Party list and local public/private/invited/hosted/free filter, search, sort and detail entry over the fetched visible set. | Party / **6** | 4, 11 |
 | `addParty/addParty.html`, `addParty/addParty.js` | Party create/edit form and invite selection | Party / **4** | 3, 5 |
 | `advancedPartyInfos/advancedPartyInfos.html`, `advancedPartyInfos/advancedPartyInfos.js` | Party details, join/leave, host/member/invitation displays and gallery link | Party / **4** | 5, 7 |
-| `profile/profile.html`, `profile/profile.js` | Profile, hosted/participating party views, follow controls and QR generation | Profile + Social / **3** | 4, 6, 7, QR 9 |
+| `profile/profile.html`, `profile/profile.js` | Profile, hosted/participating party views and follow controls; QR helper targets absent elements and logged-out QR button is disabled (D021/G049) | Profile + Social / **3** | 4, 6, 7, QR 9 |
 | `editProfile/editProfile.html`, `editProfile/editProfile.js` | Profile editing and profile-picture upload | Profile / **3** | Media 7 |
 | `followerList/followerList.html`, `followerList/followerList.js` | Followers/following display and relationship controls | Social / **3** | Auth 2 |
 | `gallery/gallery.html`, `gallery/gallery.js` | Party gallery load, read-only image grid and modal viewing; no upload UI found in the inspected page | Media / **7** | Party access 4/5 |
@@ -296,7 +299,7 @@ All paths in this table are relative to `src/main/resources/META-INF/resources/`
 | `register_login/logout.html` | Logout page with inline code | Auth / **2** | 11 |
 | `register_login/email-verified.html` | Email verification landing page with inline code | Auth / **2** | 11 |
 | `auth/callback.html` | Browser OAuth callback | Auth / **2** | 11 |
-| `register_login/qr-login.html` | QR generation and token-status polling via inline JS | QR / **9** | Auth 2 |
+| `register_login/qr-login.html` | Deferred direct QR page: authenticated numeric-ID generation followed by polling an absent token (D021/G046/G049) | QR / **9** | Auth 2; API 11 |
 | `homepage/homepage.html`, `homepage/homepage.js` | Separate Leaflet map with fixed Linz start marker and click-to-add markers; observed demo/prototype surface | Party / **6** | Scope disposition 12 |
 | `test.html` | Static "Test page - Output in console" with helpers; observed debug/demo surface | Runtime/API quality / **11** | Scope disposition 12 |
 | `auth-service.js` | PKCE/Keycloak authentication, token/session state, authenticated request handling | Auth / **2** | 11 |
@@ -315,7 +318,7 @@ All paths below are relative to `PartyHubiOS/PartyHubiOS/` and have iOS scope. E
 
 | Exact files | Observed surface | Capability / primary step | Cross-checks |
 |---|---|---|---|
-| `PartyHubiOSApp.swift` | App bootstrap, SwiftData container, authenticated root switching, deep links, party sync, notification/device-token startup | Auth / **2** | 6, 8, 9, 10, 11 |
+| `PartyHubiOSApp.swift` | App bootstrap, SwiftData container, authenticated root switching, party links/sync and notification startup; numeric-user login deep link posts an unobserved legacy notification (D021/G049) | Auth / **2** | 6, 8, 9, 10, 11 |
 | `ContentView.swift` | Five tabs: Home, Party, Map, Time Tracking, Profile; notification-driven detail sheet | Runtime/UI navigation / **11** | Journey review 12 |
 | `LoginView.swift` | Native login/registration entry | Auth / **2** | 11 |
 | `KeycloakAuthService.swift`, `KeycloakConfig.swift`, `KeycloakToken.swift`, `Keychain.swift` | Browser-based native OAuth, public config, token representation, storage/refresh/logout and `/api/users/me` linking | Auth / **2** | Runtime 11 |
@@ -323,7 +326,7 @@ All paths below are relative to `PartyHubiOS/PartyHubiOS/` and have iOS scope. E
 | `ApiService.swift` | Deprecated party-update helper and profile-picture caching/loading | Runtime/API compatibility / **11** | Party 4; Media 7 |
 | `Config.swift` | Backend URL choice | Runtime / **11** | Auth 2 |
 | `HomeView.swift` | Nearby and upcoming party cards from local party model | Party / **6** | Location availability 10 |
-| `ProfileView.swift`, `User.swift` | Profile, following/follower counts, photo upload and legacy QR scanner/deep-link code | Profile + Social / **3** | Media 7; QR 9 |
+| `ProfileView.swift`, `User.swift` | Profile, following/follower counts and photo upload; deferred QR scanner is not opened by inspected state and discards scans in favor of Keycloak (D021/G049) | Profile + Social / **3** | Media 7; QR 9 |
 | `UserProfileImageView.swift` | Shared profile image loading/display | Media / **7** | Profile 3 |
 | `PartyView/PartyView.swift` | Party list, create/edit entry, party deletion and refresh | Party / **4** | Discovery 6 |
 | `PartyView/PartyFormView.swift`, `PartyView/MapLocationPickerView.swift` | Create/edit fields and location picker | Party / **4** | Invites 5; API 11 |
@@ -360,7 +363,7 @@ iOS non-source support ownership:
 | `api/media.http` | 3 | Party and user media retrieval, including private-party example | Media / **7** | Party access 4 |
 | `api/profilePicture.http` | 6 | Picture/filename retrieval and unknown user | Media / **7** | Profile 3 |
 | `api/notification.http` | 7 | List/unread, read/delete and same-user failure examples using bypass identity; no typed/delivery coverage | Social / **8** | Auth 2; API 11 |
-| `api/qr.http` | 9 | Generate, images, token status and exchange error cases | QR / **9** | Auth 2 |
+| `api/qr.http` | 9 | Deferred QR generation/image/status and exchange-error examples; no successful end-to-end identity path | QR / **9** | Auth 2; API 11 |
 
 Runtime/test quality **11** also owns `api/package.json`, `api/package-lock.json`, `api/.httpyacrc.json`, `api/README_TESTS.md`, `api/testing.jpg`, `run-http-tests.sh`, `.github/workflows/test.yml`, `src/test/resources/application.properties`, `pom.xml` test/plugin declarations, and `e2e/.gitignore`. `api/README_TESTS.md` reports historical numeric results, which are not this task's verification. HTTP tests use bypass identifiers in several files, e.g. `api/user.http:34–44` uses `X-User-Id`. Source inspection shows `src/test/resources/application.properties:14–16` disables JWT and enables bypass; this does not exercise the normal production JWT contract. JUnit class inventory is delegated separately.
 
@@ -437,9 +440,9 @@ Every substantive feature, stack, setup, route and workflow claim in README has 
 - Declared production bypass: `k8s/quarkus.yaml:34–39` sets prod plus `PARTYHUB_AUTH_BYPASS_ENABLED=true`; default/dev/staging/test distinctions in `src/main/resources/application.properties:7`, `:20`, `:31` and `src/test/resources/application.properties:14–16`.
 - Stale browser party update call: `backend-functions.js:110–120` uses singular `/api/party/${partyId}` with POST. Backend `PartyResource.java:158–173` supplies PUT `/api/parties/{id}`. iOS `Partynotificationsystem.swift:390`, `:419` also uses singular party routes. `PartyView/PartyDetailView.swift:339` uses a singular route inside `simulatePartyUpdate` under `#if DEBUG`; its debug view invocation is commented out, while the regular edit path at `:472–477` correctly uses PUT on the plural route. Exact compatibility and reachability dispositions belong to **4/8/11**.
 - iOS device-token calls: `Partynotificationsystem.swift:567` and `PartyHubiOSApp.swift:279` POST JSON to `/api/users/{userId}/device-token`; observed backend routes are authenticated PUT/query operations at `PartyResource.java:176–191` `/api/parties/device-token` and `UserResource.java:437` `/api/users/device-token`, both deriving the user from the caller. D020 keeps push unsupported pending integration; G044 and Q014 own the mismatch. Owner **8/11**.
-- QR client mismatch: browser `register_login/qr-login.html:115` requests generate without userId then expects token/status; `profile/profile.js:698` instead passes userId; `ProfileView.swift:343` labels scanner as legacy `partyhub://login?userId=`. Preserve for **9**, not accepted auth policy.
+- QR exclusion evidence: browser `register_login/qr-login.html:115` calls generation then expects an absent token; `profile/profile.js:698` passes an ignored userId to a helper with no inspected DOM controls; `ProfileView.swift:343` labels the scanner legacy and discards values; `PartyHubiOSApp.swift:107` posts an unobserved numeric-user notification. D021 defers QR login, while G046-G050 preserve exposed behavior for retirement/containment or a future proposal. Owner **9/11/12**.
 - Prototype/debug observations: browser `homepage/homepage.js:1–23` fixed marker click demo; `test.html:33` console test page; `script.js:3` and `:48` old remote host; iOS `Photo/PhotoView.swift:7–8` fixed demo birthday; `PartyDetailDebugSection.swift:1` opens whole-file comment; `Untitled.swift` zero bytes. Main tab includes Time Tracking in `ContentView.swift:35–40`, so extended features are actual surfaced UI, not automatically discarded.
 - iOS local gallery observation: `Photo/PartyBilderView.swift:117–152` writes/deletes/lists document-directory files; full backend-gallery parity is unverified. Owner **7**.
 - Historical docs: `SWIFT_FILTER_IMPLEMENTATION.md:14–22` documents an older filter enum; current `Map/PartyMapFilter.swift` defines separate time/fee/distance state. `SwiftVertiefungREADME.md:4–8` captures historical incomplete time tracking. Reconcile at **6/10/12**, preserving accepted spec authority.
 
-No source surface in these tables is assigned an exclusion by this inventory. Debug, empty, historical and prototype labels identify observed implementation/document status; later scope decisions must be recorded explicitly.
+Every source surface remains assigned even when it is excluded from accepted product scope. D021 explicitly defers the QR routes/storage/UI/deep links without removing them from this inventory. Other debug, empty, historical and prototype labels identify observed implementation/document status; later scope decisions must be recorded explicitly.

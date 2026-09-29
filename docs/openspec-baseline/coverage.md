@@ -2,7 +2,7 @@
 
 Foundation snapshot: repository revision `9487ccb90bb438e24b3cfab547a5dc900b11aecb`, inspected 2026-09-21. See [runbook](runbook.md), [inventory](inventory.md), [decisions](decisions.md), [gaps](gaps.md) and [handoff](handoff.md).
 
-The foundation snapshot indexed **37 accepted requirements and 106 scenarios** in the six durable specifications. After the accepted Steps 2-8 integrations, the current main specs contain **52 accepted requirements and 274 scenarios**. `document-notifications-and-preferences` is applied and synced, so the expanded SOC-03 and SOC-08-SOC-11 are accepted coverage. Acceptance records normative coverage; it does not assert implementation compliance, complete product scope or completion of Steps 9-12. Requirement titles and scenario labels below reproduce the current main specs exactly.
+The foundation snapshot indexed **37 accepted requirements and 106 scenarios** in the six durable specifications. After the accepted Steps 2-8 integrations and Group 9 QR exclusion review, the current main specs contain **52 accepted requirements and 274 scenarios**. `document-notifications-and-preferences` is applied and synced, while D021 explicitly defers QR login without adding normative coverage. Acceptance records normative coverage; it does not assert implementation compliance, complete product scope or completion of Steps 10-12. Requirement titles and scenario labels below reproduce the current main specs exactly.
 
 Platform scope below is a foundation classification grounded in the requirement text, archive context and source entry points. Where existing wording is ambiguous, its owner stage must reconcile it. In particular, browser auth does not establish the iOS auth contract, and iOS map controls are not automatically browser requirements.
 
@@ -117,6 +117,14 @@ Test evidence: No realm-login or browser-to-real-Keycloak integration scenario w
 Observed: The initial accepted core discovery excludes a requirement for live location; later approved iOS map changes add filters/radius. Source availability of live-location features does not remove the exclusion or establish extension scope.
 
 Test evidence: This is specification-history evidence; no runtime test can resolve product scope. Step 6 reconciles later filters and Step 10 classifies extensions.
+
+### E13
+
+**QR login and deep-link surfaces.** [QR scope/evidence review](qr-login.md); [src/main/java/at/htl/qr/QrResource.java](../../src/main/java/at/htl/qr/QrResource.java); [src/main/java/at/htl/qr/QrService.java](../../src/main/java/at/htl/qr/QrService.java); [src/main/java/at/htl/qr/QrLogin.java](../../src/main/java/at/htl/qr/QrLogin.java); [src/main/resources/META-INF/resources/register_login/qr-login.html](../../src/main/resources/META-INF/resources/register_login/qr-login.html); [src/main/resources/META-INF/resources/profile/profile.js](../../src/main/resources/META-INF/resources/profile/profile.js); [PartyHubiOS/PartyHubiOS/ProfileView.swift](../../PartyHubiOS/PartyHubiOS/ProfileView.swift); [PartyHubiOS/PartyHubiOS/PartyHubiOSApp.swift](../../PartyHubiOS/PartyHubiOS/PartyHubiOSApp.swift); [src/test/java/at/htl/qr/QrServiceTest.java](../../src/test/java/at/htl/qr/QrServiceTest.java); [src/test/java/at/htl/repository/QrLoginRepositoryTest.java](../../src/test/java/at/htl/repository/QrLoginRepositoryTest.java); [src/test/java/at/htl/resource/QrResourceTest.java](../../src/test/java/at/htl/resource/QrResourceTest.java); [api/qr.http](../../api/qr.http).
+
+Observed: authenticated generation emits a numeric-user deep link and never creates the stored token consumed by public status/exchange paths. Public image routes expose numeric-ID or token-derived payloads; exchange issues a separate custom HMAC token whose verifier is outside normal Keycloak bearer identity. Browser polling expects an absent token, no inspected client calls exchange/mobile identity, iOS discards scans and posts an unobserved legacy numeric-user notification, and welcome email carries the same legacy link. G007/G008/G046-G050 preserve these implementation and exposure differences.
+
+Test evidence: service/repository tests cover isolated token helpers and resource tests cover basic generation/error statuses. They do not prove a successful generation-to-scan-to-exchange journey, transaction-safe single use, client consumption, normal bearer authentication, cleanup or revocation. No QR test or client was run.
 
 ## Step 2 authentication review
 
@@ -1181,8 +1189,14 @@ Accepted main-spec coverage is **48 requirements/235 scenarios**: media is 3/20 
 
 Accepted main-spec coverage is **52 requirements/274 scenarios**: social is 11/82. D020 resolves Q007 with typed recipient-scoped center state, same-user effective defaults, independent in-app/email and category gates, best-effort welcome/digest email behavior, delivery-failure isolation and honest unsupported push/SMS boundaries. G040-G045 retain storage, event-producer, preference, email, push/device-token and client discrepancies; physical retention/retry policy remains Q006/Step 11 and exact routes/status/envelopes remain Q014/Step 11.
 
+## Step 9 QR login review
+
+[QR scope/evidence review](qr-login.md) compares all six backend endpoints, persisted token fields, browser generation/polling, iOS scanner/deep links, welcome links, tests and HTTPYac examples. D021 resolves Q001 by explicitly deferring QR login: neither the numeric-user payload nor the disconnected stored-token/custom-mobile-token path is an accepted credential, and protected identity continues to use AUTH-01-AUTH-12.
+
+No domain proposal or main-spec delta is required for this exclusion, so accepted coverage remains **52 requirements/274 scenarios**. All QR surfaces remain inventoried rather than disappearing from coverage. G007/G008/G046-G050 record generation/exchange disconnection, public identity/status exposure, custom credential defects, inactive/incompatible clients and incomplete lifecycle/test evidence. Exact endpoint retirement/status behavior and stored-row lifecycle remain Q014/Q006.
+
 ## Coverage outside the existing baseline
 
-The 52 accepted requirements do not by themselves specify every discovered surface. QR login, extended location/calendar features, exact API validation/error contracts, physical storage retention, notification retry operations and deployment details remain assigned in [inventory.md](inventory.md) and [runbook.md](runbook.md), with scope/contract gaps in [gaps.md](gaps.md). They have **no implied normative coverage** from a similarly named requirement. Steps 9–11 add or reconcile coverage through bounded domain changes; Step 12 checks complete inventory-to-requirement-to-scenario traceability.
+The 52 accepted requirements do not by themselves specify every discovered surface. QR login is explicitly deferred by D021 rather than silently uncovered. Extended location/calendar features, exact API validation/error contracts, physical storage retention, notification retry operations and deployment details remain assigned in [inventory.md](inventory.md) and [runbook.md](runbook.md), with scope/contract gaps in [gaps.md](gaps.md). They have **no implied normative coverage** from a similarly named requirement. Steps 10-11 add or reconcile coverage through bounded domain changes; Step 12 checks complete inventory-to-requirement-to-scenario traceability.
 
 Future domain updates should retain these identifiers or record a clear replacement mapping, add accepted requirement/scenario links after integration, state the exact observed implementation status, and identify the assertions and execution results supporting each coverage claim. Do not mark a domain complete solely because a proposal or test file exists.
