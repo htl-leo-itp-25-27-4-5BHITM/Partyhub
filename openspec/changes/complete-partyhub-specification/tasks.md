@@ -65,8 +65,8 @@ For every domain completion item below, record the change name and its strict va
 
 ## 10. Extended client features
 
-- [ ] 10.1 Classify live/current location, attendee locations, visit/time tracking and calendar integration as retained, optional or excluded; verify each classification has source evidence and a decision reference consistent with the existing core-discovery exclusion.
-- [ ] 10.2 Document retained feature contracts for permission/consent, visibility, update/storage lifecycle and missing-permission/service failures; verify private-party and user-location cases agree with the access matrix and no unsupported retention policy is invented.
+- [x] 10.1 Classify live/current location, attendee locations, visit/time tracking and calendar integration as retained, optional or excluded; verify each classification has source evidence and a decision reference consistent with the existing core-discovery exclusion.
+- [x] 10.2 Document retained feature contracts for permission/consent, visibility, update/storage lifecycle and missing-permission/service failures; verify private-party and user-location cases agree with the access matrix and no unsupported retention policy is invented.
 - [ ] 10.3 Complete retained-feature specification updates or explicit exclusion records and handoff; verify each inventoried extension is accounted for and accepted deltas are integrated where applicable.
 
 ## 11. Runtime and quality contracts

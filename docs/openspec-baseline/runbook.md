@@ -25,13 +25,15 @@ Notification/preferences evidence: [event-recipient-channel matrix, center/setti
 
 QR evidence: [generation/image/status/exchange/mobile identity, clients, tests and exclusion decision](qr-login.md). Group 9 resolves Q001 through D021 by explicitly deferring QR login and retaining Keycloak as the supported identity contract. No product delta or child proposal is needed for this exclusion; items 9.1-9.3 are complete, while all six routes and legacy/prototype consumers remain inventoried under G007/G008/G046-G050.
 
+Extended-client evidence: [local current-location scope, deferred sharing, visit/time tracking and calendar snapshots](extended-client-features.md). Group 10 resolves Q002 at scope level through D022. `document-extended-client-features` is a strict-valid proposal with three added party requirements and 0/8 apply tasks; items 10.1-10.2 are complete while 10.3 waits for a separate apply/sync task.
+
 ## Snapshot and boundaries
 
 - Foundation inspected revision: `9487ccb90bb438e24b3cfab547a5dc900b11aecb`, 2026-09-21.
 - Starting durable baseline: 6 capabilities, 37 requirements, 106 scenarios.
-- Latest accepted integration: Group 9 QR source review and exclusion record completed on 2026-09-29 from Group 8 completion commit `6217f5009530777a920d03db88900f1259f5b9d5`. Accepted main-spec coverage remains 52 requirements/274 scenarios because no QR product behavior was retained. Only documentation records changed; application code, configuration and data did not.
+- Latest accepted integration: Group 9 QR source review and exclusion record completed at `2aabedc7003e13e7f15408d3acf791b2796dcd12`. Group 10 planning then created the strict-valid `document-extended-client-features` proposal from that commit on 2026-09-29. Accepted main-spec coverage remains 52 requirements/274 scenarios until the proposed 3 requirements/16 scenarios are applied and synced. Only documentation/planning records changed; application code, configuration and data did not.
 - Product deltas are intentionally absent from the documentation umbrella (`skip_specs: true`). Actual domain changes use the normal proposal/integration workflow.
-- Source and test-file inspection do not prove runtime behavior. No application, API, UI, deployment, database, SMTP or APNs tests were run in the foundation or Groups 2-9 documentation reviews.
+- Source and test-file inspection do not prove runtime behavior. No application, API, UI, deployment, database, SMTP, APNs, CoreLocation or EventKit tests were run in the foundation or Groups 2-10 documentation/planning reviews.
 - Existing main-spec validation issue: `map-radius-control` has a placeholder Purpose; [G012](gaps.md#g012-radius-purpose-placeholder) belongs to Step 12.
 
 ## Progress
@@ -47,13 +49,13 @@ QR evidence: [generation/image/status/exchange/mobile identity, clients, tests a
 | 7 | Media and profile pictures | 2, 4, 5 | Complete | 7.1-7.3 complete; child applied and synced, 9/9 tasks; retention/deletion remains Step 11/Q006. |
 | 8 | Notifications and preferences | 3, 4, 5 | Complete | 8.1-8.3 complete; child applied and synced, 8/8 tasks; D020 resolves Q007 and G040-G045 retain implementation/client gaps. |
 | 9 | QR login | 2 | Complete | 9.1-9.3 complete; D021 explicitly defers QR login, no spec delta required, and G007/G008/G046-G050 retain exposed legacy/prototype gaps. |
-| 10 | Extended client features | 2, 5, 6 | Not started | Explicit scope for live locations, visits/time tracking and calendar integration. |
+| 10 | Extended client features | 2, 5, 6 | Proposal checkpoint | 10.1-10.2 complete; D022 resolves scope and `document-extended-client-features` is strict-valid with 0/8 tasks. Apply/sync and 10.3 remain open. |
 | 11 | Runtime and quality contracts | 2-10 | Not started | Environments, API compatibility, persistence, validation and quality evidence. |
 | 12 | Consolidation and acceptance | 1-11 | Not started | Integrate accepted changes, resolve documentation drift and pass all strict spec checks. |
 
-Seven domain changes have been applied and synced: `document-authentication-and-identity`, `document-profiles-and-social-relationships`, `document-party-lifecycle`, `document-invitations-and-attendance`, `document-discovery-and-maps`, `document-media-and-profile-pictures` and `document-notifications-and-preferences`. All remain active and unarchived. Group 9 needs no child because it records an explicit exclusion rather than product behavior. The accepted baseline remains **6 capabilities, 52 requirements and 274 scenarios**, including AUTH-01-AUTH-12 at 12/43, SOC-01-SOC-11 at 11/82, PARTY-01-PARTY-16 at 16/97, MEDIA-01-MEDIA-03 at 3/20 and RADIUS-01-RADIUS-03 at 3/10. Acceptance records contracts; exclusion/gap records and the unrun-test record prevent observed QR code from being read as supported behavior.
+Seven domain changes have been applied and synced: `document-authentication-and-identity`, `document-profiles-and-social-relationships`, `document-party-lifecycle`, `document-invitations-and-attendance`, `document-discovery-and-maps`, `document-media-and-profile-pictures` and `document-notifications-and-preferences`. All remain active and unarchived. Group 9 needs no child; Group 10's `document-extended-client-features` child is planned but unapplied. The accepted baseline remains **6 capabilities, 52 requirements and 274 scenarios**, including AUTH-01-AUTH-12 at 12/43, SOC-01-SOC-11 at 11/82, PARTY-01-PARTY-16 at 16/97, MEDIA-01-MEDIA-03 at 3/20 and RADIUS-01-RADIUS-03 at 3/10. Its proposed post-integration total is 55/290 with PARTY-01-PARTY-19 at 19/113.
 
-Current progress: **32 of 46 checklist items complete**; **14 remain**. Foundation 1.1-1.5 and Groups 2-9 are complete; Groups 10-12 have not started. G001-G050 are the accepted gap register. Q001 is resolved by D021; Q006 and Q014 retain QR row lifecycle and exact endpoint containment/retirement boundaries for Step 11.
+Current progress: **34 of 46 checklist items complete**; **12 remain**. Foundation 1.1-1.5 and Groups 2-9 are complete; Group 10 is at its proposal checkpoint with 10.3 open, and Groups 11-12 have not started. G001-G056 are the gap register. Q002 is resolved at scope level by D022; Q006/Q014 retain broader lifecycle and exact endpoint containment/status boundaries for Step 11.
 
 ## Recording rules
 

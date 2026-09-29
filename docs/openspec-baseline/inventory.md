@@ -20,6 +20,8 @@ Step 8 source review and integration completed 2026-09-29 with application sourc
 
 Step 9 source review completed 2026-09-29 with application source still unchanged: [qr-login.md](qr-login.md) compares generation, image/status, exchange, mobile identity, storage, clients and tests. D021 resolves Q001 by explicitly deferring QR login and preserving Keycloak as the only accepted authentication contract. No product-spec delta is required; all exposed legacy/prototype QR surfaces remain inventoried and G007/G008/G046-G050 retain implementation, access, credential, client and lifecycle gaps.
 
+Group 10 planning reached its proposal checkpoint on 2026-09-29 with application source still unchanged: [extended-client-features.md](extended-client-features.md) classifies accepted local current-location use, deferred shared user/attendee locations, optional local visit tracking and optional calendar snapshots. D022 resolves Q002 at scope level. `document-extended-client-features` is strict-valid with three proposed party requirements and 0/8 tasks; main-spec integration and umbrella 10.3 remain open. G051-G056 retain access, storage, client, consent, tracking and calendar gaps.
+
 ## Capability register and platform scope
 
 | Inventory ID | Existing capability or review area | Platforms / environments | Owner steps | Baseline disposition |
@@ -29,11 +31,11 @@ Step 9 source review completed 2026-09-29 with application source still unchange
 | CAP-PARTY | `party-discovery-and-management`; host lifecycle | Backend, browser, iOS | 4 | PARTY-03-PARTY-05/PARTY-12-PARTY-13 accepted and integrated; G003/G006/G009/G029-G030 retained. |
 | CAP-ATTENDANCE | Invitation and attendance rules within party/social capabilities | Backend, browser, iOS | 5 | PARTY-06/PARTY-07/PARTY-14/PARTY-15 accepted and integrated; G009/G017/G031-G033 retain implementation/client gaps. |
 | CAP-DISCOVERY | `party-discovery-and-management`; queries and map filters | Backend, browser, iOS | 6 | PARTY-16 accepts shared visibility-first query composition; PARTY-08-PARTY-11 explicitly govern iOS map filters under D018. G009/G030/G034-G035 retain implementation differences. |
-| CAP-RADIUS | `map-radius-control` | iOS | 6 | Existing requirements remain accepted; the child proposes finite/unlimited/location/reset details. Purpose placeholder stays Step 12. |
+| CAP-RADIUS | `map-radius-control` | iOS | 6 | RADIUS-01-RADIUS-03 accept finite/unlimited/location/reset details; Purpose placeholder stays Step 12. |
 | CAP-MEDIA | `party-media-gallery`; profile-picture and storage lifecycle | Backend, browser, iOS, filesystem | 7 | MEDIA-01-MEDIA-03 and SOC-07 accepted; G036-G039 retain implementation gaps, while physical retention remains Q006/Step 11. |
 | CAP-NOTIFY | `social-and-notifications`; notification settings/delivery | Backend, browser, iOS, email/push adapters | 8 | SOC-03/SOC-08-SOC-11 accepted under D020; in-app/email supported, push/SMS unsupported until integrated. G040-G045. |
 | CAP-QR | QR/mobile login | Backend, browser, iOS and email deep links | 9 | Explicitly deferred/unsupported by D021; no main-spec delta. Six routes and all consumers/storage/tests remain inventoried; G007/G008/G046-G050. |
-| CAP-EXT | User/attendee locations, visits/time tracking, calendar | Backend, browser, iOS / device permissions | 10 | Observed extensions; excluded from core discovery only, not globally removed (D010, Q002). |
+| CAP-EXT | User/attendee locations, visits/time tracking, calendar | Backend, browser, iOS / device permissions | 10 | D022 retains private current-location context plus optional iOS local visits/calendar snapshots and defers shared user/attendee locations. Child proposal is strict-valid and unintegrated; G051-G056. |
 | CAP-OPS | `local-keycloak-environment`; API, storage, validation and runtime contracts | Local Compose, Kubernetes declarations, test/CI, Keycloak theme | 11 | Existing local requirements; broader runtime contracts partial. |
 | CAP-DOCS | Cross-domain documentation and acceptance | Repository docs/specs | 12 | Editorial drift and final acceptance; no application capability introduced. |
 
@@ -117,7 +119,7 @@ Owner step key: 2 auth/identity, 3 profiles/social, 4 party lifecycle, 5 invitat
 | 25 | GET | `/api/parties/{id}/invitation-stats` | `PartyResource.invitationStats` | `src/main/java/at/htl/party/PartyResource.java:240` | `@Authenticated` | Returns invitation statistics. | 5 |
 | 26 | POST | `/api/parties/{partyId}/media/upload` | `PartyResource.upload` | `src/main/java/at/htl/party/PartyResource.java:253` | `@Authenticated` | Uploads party media via `MediaRepository.FileUploadInput`. | 7 |
 | 27 | GET | `/api/parties/{id}/can-edit` | `PartyResource.canEditParty` | `src/main/java/at/htl/party/PartyResource.java:271` | `@Authenticated` | Reports whether current user is party owner by current source check. | 4 |
-| 28 | GET | `/api/parties/{id}/locations` | `PartyResource.getPartyLocations` | `src/main/java/at/htl/party/PartyResource.java:302` | none | Returns user locations for a party id. | 10 |
+| 28 | GET | `/api/parties/{id}/locations` | `PartyResource.getPartyLocations` | `src/main/java/at/htl/party/PartyResource.java:302` | none | Unsupported/deferred attendee-location projection; currently returns joined-user locations without Viewer/consent checks (D022/G051). | 10 |
 | 29 | GET | `/api/parties/{id}/media` | `PartyResource.getPartyMedia` | `src/main/java/at/htl/party/PartyResource.java:313` | none | Returns party media DTO list. | 7 |
 | 30 | GET | `/api/qr/generate` | `QrResource.generate` | `src/main/java/at/htl/qr/QrResource.java:42` | `@Authenticated` | Returns QR payload/image URL for current user. | 9 |
 | 31 | GET | `/api/qr/status/{token}` | `QrResource.status` | `src/main/java/at/htl/qr/QrResource.java:62` | none | Returns QR token used/expiry status. | 9 |
@@ -144,8 +146,8 @@ Owner step key: 2 auth/identity, 3 profiles/social, 4 party lifecycle, 5 invitat
 | 52 | POST | `/api/users/{id}/follow` | `UserResource.followUser` | `src/main/java/at/htl/user/UserResource.java:348` | `@Authenticated` | Creates follow request from current user to `targetUserId`. | 3 |
 | 53 | PUT | `/api/users/{id}/followers/{followerId}` | `UserResource.acceptFollow` | `src/main/java/at/htl/user/UserResource.java:360` | `@Authenticated` | Accepts follow request for current user. | 3 |
 | 54 | DELETE | `/api/users/{id}/followers/{followerId}` | `UserResource.unfollowUser` | `src/main/java/at/htl/user/UserResource.java:369` | `@Authenticated` | Removes follow relation through repository. | 3 |
-| 55 | GET | `/api/users/location/{id}` | `UserResource.getUserLocation` | `src/main/java/at/htl/user/UserResource.java:378` | none | Reads a user location by id lookup in `UserLocation`. | 10 |
-| 56 | PUT | `/api/users/location` | `UserResource.updateUserLocation` | `src/main/java/at/htl/user/UserResource.java:389` | `@Authenticated` | Upserts current user's location. | 10 |
+| 55 | GET | `/api/users/location/{id}` | `UserResource.getUserLocation` | `src/main/java/at/htl/user/UserResource.java:378` | none | Unsupported/deferred location read using entity primary-key lookup without consent or audience checks (D022/G051-G052). | 10 |
+| 56 | PUT | `/api/users/location` | `UserResource.updateUserLocation` | `src/main/java/at/htl/user/UserResource.java:389` | `@Authenticated` | Unsupported/deferred location update with caller/location-row ID mismatch (D022/G052). | 10 |
 | 57 | GET | `/api/users/{id}/media` | `UserResource.getUserMedia` | `src/main/java/at/htl/user/UserResource.java:423` | none | Lists media by user id. | 7 |
 | 58 | PUT | `/api/users/device-token` | `UserResource.updateDeviceToken` | `src/main/java/at/htl/user/UserResource.java:437` | `@Authenticated` | Updates current user's device token via users table. | 8, 11 |
 
@@ -159,7 +161,7 @@ Owner step key: 2 auth/identity, 3 profiles/social, 4 party lifecycle, 5 invitat
 | `Notification` | `notification` | `src/main/java/at/htl/notification/Notification.java:10` | Recipient/sender, optional party, status, timestamp and message; lacks D020/SOC-08 typed event identity, dedupe key and cancellation snapshot (G040). | 8 |
 | `Media` | `media` | `src/main/java/at/htl/media/Media.java:7` | Many-to-one `Party`; many-to-one `User`; file path/url. | 7 |
 | `ProfilePicture` | `profile_picture` | `src/main/java/at/htl/profile_picture/ProfilePicture.java:6` | One-to-one `User` via unique `user_id`; stores `picture_name`. | 7 |
-| `UserLocation` | `user_location` | `src/main/java/at/htl/user_location/UserLocation.java:7` | One-to-one `User`; stores latitude/longitude; entity id is JSON-ignored. | 10 |
+| `UserLocation` | `user_location` | `src/main/java/at/htl/user_location/UserLocation.java:7` | Deferred shared-location state: one-to-one `User`, latitude/longitude and hidden entity id; no consent, time, precision, expiry or revocation fields (D022/G054). | 10 |
 | `Location` | `location` | `src/main/java/at/htl/location/Location.java:6` | Referenced by `Party.location`; stores latitude/longitude/address; id JSON-ignored. | 4, 6, 10 |
 | `Follow` | `follow` | `src/main/java/at/htl/follow/Follow.java:6` | Composite ids `user1_id`, `user2_id`; many-to-one `FollowStatus`; no entity relationship fields to `User`. | 3 |
 | `FollowStatus` | `follow_status` | `src/main/java/at/htl/follow/FollowStatus.java:5` | Status id/name; referenced by `Follow`. | 3 |
@@ -212,9 +214,9 @@ Owner step key: 2 auth/identity, 3 profiles/social, 4 party lifecycle, 5 invitat
 | `src/main/java/at/htl/user/UserRepository.java:14` | repository/service | User lookup/search, Keycloak linking, persistence, local create/update helpers. | 2, 3 |
 | `src/main/java/at/htl/user/User.java:10` | entity | User/profile/auth identity state. | 2, 3, 8 |
 | `src/main/java/at/htl/user/UserCreateDto.java:3` | DTO | User create/update payload. | 3 |
-| `src/main/java/at/htl/user_location/UserLocationRepository.java:10` | repository/service | User location list/find/save and locations-by-party query. | 10 |
-| `src/main/java/at/htl/user_location/UserLocation.java:7` | entity | Current user location state. | 10 |
-| `src/main/java/at/htl/user_location/UserLocationUpdateDto.java:6` | DTO | User location update payload. | 10 |
+| `src/main/java/at/htl/user_location/UserLocationRepository.java:10` | deferred repository/service | User location list/find/save and joined-party query without requester or consent predicates (G051/G054). | 10 |
+| `src/main/java/at/htl/user_location/UserLocation.java:7` | deferred entity | Unsupported shared current-location state without freshness/sharing lifecycle (D022/G054). | 10 |
+| `src/main/java/at/htl/user_location/UserLocationUpdateDto.java:6` | deferred DTO | Coordinate-range validation for unsupported server location updates; validation does not establish consent/ownership. | 10 |
 | `src/main/java/at/htl/validation/NoHtml.java:11` | validation annotation | Custom no-HTML constraint. | 11 |
 | `src/main/java/at/htl/validation/NoHtmlValidator.java:7` | validator | Validates no HTML tags. | 11 |
 | `src/main/java/at/htl/validation/SafeText.java:11` | validation annotation | Custom safe-text constraint. | 11 |
@@ -247,13 +249,13 @@ Tests were inventoried only; no test command was run. Counts below are static `@
 | `src/test/java/at/htl/repository/NotificationRepositoryTest.java` | 18 | Notification repository filters/read/delete/protection. | 8 |
 | `src/test/java/at/htl/repository/PartyRepositoryTest.java` | 9 | Party repository lifecycle/filter/member behavior. | 4, 5, 6, 8 |
 | `src/test/java/at/htl/repository/QrLoginRepositoryTest.java` | 8 | QR token/JTI lookup and persistence; no cleanup, concurrency or identity result. | 9 |
-| `src/test/java/at/htl/repository/UserLocationRepositoryTest.java` | 8 | User location repository and party-location query. | 10 |
+| `src/test/java/at/htl/repository/UserLocationRepositoryTest.java` | 8 | Deferred location persistence/query helpers; no consent, Viewer, freshness, revocation, ownership or cleanup coverage. | 10 |
 | `src/test/java/at/htl/repository/UserRepositoryTest.java` | 22 | User lookup/link/create/update repository behavior. | 2, 3 |
 | `src/test/java/at/htl/resource/InvitationResourceTest.java` | 12 | Invitation resource endpoints. | 5 |
 | `src/test/java/at/htl/resource/NotificationResourceTest.java` | 11 | Notification resource endpoints. | 8 |
-| `src/test/java/at/htl/resource/PartyResourceTest.java` | 30 | Party resource endpoints including filters/join/media/location. | 4, 5, 6, 7, 10 |
+| `src/test/java/at/htl/resource/PartyResourceTest.java` | 30 | Party resource endpoints including one missing-party location assertion; no shared-location success/access policy coverage. | 4, 5, 6, 7, 10 |
 | `src/test/java/at/htl/resource/QrResourceTest.java` | 10 | Basic QR generation/error responses; no successful stored-token exchange/mobile identity or protected-API authentication. | 9 |
-| `src/test/java/at/htl/resource/UserResourceTest.java` | 21 | User/profile/follow/location/media resource endpoints. | 2, 3, 7, 10 |
+| `src/test/java/at/htl/resource/UserResourceTest.java` | 21 | User/profile/follow/location/media endpoints; location coverage is a public missing-row response only. | 2, 3, 7, 10 |
 | `src/test/java/at/htl/validation/NoHtmlValidatorTest.java` | 8 | No-HTML validator. | 11 |
 | `src/test/java/at/htl/validation/SafeTextValidatorTest.java` | 11 | Safe-text validator. | 11 |
 | `src/test/java/at/htl/validation/ValidPartyNameValidatorTest.java` | 12 | Party-name validator. | 4, 11 |
@@ -335,9 +337,9 @@ All paths below are relative to `PartyHubiOS/PartyHubiOS/` and have iOS scope. E
 | `PartyView/AttendanceSection.swift`, `PartyView/InviteUsersView.swift` | Attendance display and invited-user selection/request helper | Party / **5** | Social 3 |
 | `Map/InvitationsView.swift`, `Map/InvitationsViewModel.swift` | Received invitations and accept/decline via join/leave calls | Party / **5** | Social 8 |
 | `Map/MapView.swift`, `Map/PartyMapFilter.swift`, `Map/MapClustering.swift`, `Map/ClusterPin.swift` | iOS party discovery map, AND-composed time/theme/fee/age/search and finite/unlimited distance state, reset, clustering, summary and radius UI; the 5 km circle/camera mismatch is G035. | Party + Radius / **6** | Extensions 10; deprecated component disposition 12 |
-| `PartyView/AttendeeFilter.swift`, `Map/PartyAttendeeMapView.swift`, `Map/UserLocationListView.swift`, `Map/UserLocationViewModel.swift`, `Map/LocationSection.swift` | Attendee filter/maps/lists, user location fetch/update and location presentation | Extensions / **10** | Party visibility 4/5; Auth 2 |
-| `GeoTimeTracking/LocationManager.swift`, `GeoTimeTracking/LocationDisplayHelper.swift`, `GeoTimeTracking/TimeEntry.swift`, `GeoTimeTracking/TimeTrackingView.swift`, `PartyView/PastVisitsSection.swift` | CoreLocation/geofences, background current location, SwiftData visit/time records, time tracking and past visits | Extensions / **10** | Runtime/privacy decisions 11 |
-| `CalendarService.swift` | EventKit permission and event create/update/delete mappings in UserDefaults; party deep link | Extensions / **10** | Party lifecycle 4; runtime/privacy 11 |
+| `PartyView/AttendeeFilter.swift`, `Map/PartyAttendeeMapView.swift`, `Map/UserLocationListView.swift`, `Map/UserLocationViewModel.swift`, `Map/LocationSection.swift` | Deferred attendee/user-location maps/lists and server fetch/update paths; hard-coded/stale identity and missing authorization are G051-G054. | Extensions / **10** | Party visibility 4/5; Auth 2; containment 11 |
+| `GeoTimeTracking/LocationManager.swift`, `GeoTimeTracking/LocationDisplayHelper.swift`, `GeoTimeTracking/TimeEntry.swift`, `GeoTimeTracking/TimeTrackingView.swift`, `PartyView/PastVisitsSection.swift` | Proposed optional iOS local visits: CoreLocation/geofences, SwiftData intervals, time-tracking tab and past visits; opt-in/failure gaps G055. | Extensions / **10** | Runtime/privacy verification 11 |
+| `CalendarService.swift` | Proposed optional iOS EventKit snapshot: permission, event create/remove/local mapping and party deep link; feedback/stale mapping gaps G056. | Extensions / **10** | Party lifecycle 4; runtime/privacy verification 11 |
 | `Photo/PartyBilderView.swift`, `Photo/PhotoView.swift`, `PartyView/PhotosSection.swift` | PhotosPicker, local document-directory gallery/share/remove UI; PhotoView uses fixed `Birthday_2026` demo navigation | Media / **7** | Scope disposition 12; backend-gallery parity not established |
 | `Partynotificationsystem.swift` | AppDelegate/APNs registration, local badge/update manager, party polling and deep links; no complete backend center/settings consumer and stale token/polling routes are G044-G045 | Social / **8** | Party API 4; device-token API 11 |
 | `PartyView/PartyDetailDebugSection.swift` | Entire file is inside a block comment; prior debug simulation controls observed, not active runtime code | Runtime/debug quality / **11** | Scope disposition 12 |
@@ -346,7 +348,7 @@ All paths below are relative to `PartyHubiOS/PartyHubiOS/` and have iOS scope. E
 
 iOS non-source support ownership:
 
-- Runtime **11**: `Info.plist`; `PartyHubiOS.xcodeproj/project.pbxproj`; `PartyHubiOS.xcodeproj/project.xcworkspace/contents.xcworkspacedata`; `PartyHubiOS.xcodeproj/xcshareddata/xcschemes/PartyHubiOS.xcscheme`; `PartyHubiOS.xcodeproj/xcshareddata/xcschemes/xcschememanagement.plist`; all `xcuserdata` scheme/UI state and `Assets.xcassets/**` files. The runtime/privacy review must inspect declared camera/location/calendar/photo/background permissions and build settings. These files do not establish permissions actually granted on devices.
+- Runtime **11**: `Info.plist`; `PartyHubiOS.xcodeproj/project.pbxproj`; `PartyHubiOS.xcodeproj/project.xcworkspace/contents.xcworkspacedata`; `PartyHubiOS.xcodeproj/xcshareddata/xcschemes/PartyHubiOS.xcscheme`; `PartyHubiOS.xcodeproj/xcshareddata/xcschemes/xcschememanagement.plist`; all `xcuserdata` scheme/UI state and `Assets.xcassets/**` files. Group 10 inspected location/calendar usage strings and background declarations, including duplicate/malformed-looking location keys; Step 11 must verify the effective built plist. These declarations do not prove permissions granted or behavior on devices.
 - Extensions **10**: `GeoTimeTracking/school.gpx`, `GeoTimeTracking/ffhart.gpx` are location simulation fixtures.
 - Runtime **11**, observed non-source metadata: `._APIEndpoint.swift`, `._ContentView.swift`, `._HomeView.swift`, `._PartyHubiOSApp.swift`, `._UserProfileImageView.swift`, `PartyView/._Party.swift`, `PartyView/._PartyDetailView.swift`, `PartyView/._PartyView.swift` and `._Info.plist`. `file` identifies inspected `._*.swift` files as AppleDouble Macintosh metadata. There is no actual `APIEndpoint.swift` text source in this enumeration.
 - Runtime **11**: `error` is a checked-in diagnostic artifact; future review should treat it as historical evidence, not current execution results.
