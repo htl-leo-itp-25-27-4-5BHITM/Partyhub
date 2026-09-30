@@ -22,6 +22,8 @@ Step 9 source review completed 2026-09-29 with application source still unchange
 
 Group 10 completed on 2026-09-30 with application source still unchanged: [extended-client-features.md](extended-client-features.md) classifies accepted local current-location use, deferred shared user/attendee locations, optional local visit tracking and optional calendar snapshots. D022 resolves Q002. `document-extended-client-features` is applied and synced with 8/8 tasks; PARTY-17-PARTY-19 provide the integrated contracts. G051-G056 retain access, storage, client, consent, tracking and calendar implementation gaps.
 
+Group 11 completed on 2026-09-30 at `3a3f6ed` with application source still unchanged since `9487ccb`: [runtime-environments.md](runtime-environments.md), [data-lifecycle.md](data-lifecycle.md), [api-contract-matrix.md](api-contract-matrix.md) and [quality-evidence.md](quality-evidence.md) cover every CAP-OPS surface listed below (configuration, Compose, Dockerfiles, Kubernetes, workflows, scripts, seed SQL including the root `create-tables.sql`/`test-data.sql`, uploads, `openapi.yaml`, HTTPYac/JUnit harnesses and `AGENTS.md` claims). `document-runtime-and-quality-contracts` is applied and synced (ENV-08-ENV-11). D023-D025 close Q006 and narrow Q014; G057-G066 retain runtime, storage, API, CI, guidance and tooling gaps. All 58 endpoints and all client call sites are matched or given a compatibility gap.
+
 ## Capability register and platform scope
 
 | Inventory ID | Existing capability or review area | Platforms / environments | Owner steps | Baseline disposition |
@@ -32,11 +34,11 @@ Group 10 completed on 2026-09-30 with application source still unchanged: [exten
 | CAP-ATTENDANCE | Invitation and attendance rules within party/social capabilities | Backend, browser, iOS | 5 | PARTY-06/PARTY-07/PARTY-14/PARTY-15 accepted and integrated; G009/G017/G031-G033 retain implementation/client gaps. |
 | CAP-DISCOVERY | `party-discovery-and-management`; queries and map filters | Backend, browser, iOS | 6 | PARTY-16 accepts shared visibility-first query composition; PARTY-08-PARTY-11 explicitly govern iOS map filters under D018. G009/G030/G034-G035 retain implementation differences. |
 | CAP-RADIUS | `map-radius-control` | iOS | 6 | RADIUS-01-RADIUS-03 accept finite/unlimited/location/reset details; Purpose placeholder stays Step 12. |
-| CAP-MEDIA | `party-media-gallery`; profile-picture and storage lifecycle | Backend, browser, iOS, filesystem | 7 | MEDIA-01-MEDIA-03 and SOC-07 accepted; G036-G039 retain implementation gaps, while physical retention remains Q006/Step 11. |
+| CAP-MEDIA | `party-media-gallery`; profile-picture and storage lifecycle | Backend, browser, iOS, filesystem | 7 | MEDIA-01-MEDIA-03 and SOC-07 accepted; G036-G039/G058/G065 retain implementation gaps, while physical retention is Q016. |
 | CAP-NOTIFY | `social-and-notifications`; notification settings/delivery | Backend, browser, iOS, email/push adapters | 8 | SOC-03/SOC-08-SOC-11 accepted under D020; in-app/email supported, push/SMS unsupported until integrated. G040-G045. |
 | CAP-QR | QR/mobile login | Backend, browser, iOS and email deep links | 9 | Explicitly deferred/unsupported by D021; no main-spec delta. Six routes and all consumers/storage/tests remain inventoried; G007/G008/G046-G050. |
 | CAP-EXT | User/attendee locations, visits/time tracking, calendar | Backend, browser, iOS / device permissions | 10 | D022/PARTY-17-PARTY-19 retain private current-location context plus optional iOS local visits/calendar snapshots and defer shared user/attendee locations. Child is applied/synced; G051-G056. |
-| CAP-OPS | `local-keycloak-environment`; API, storage, validation and runtime contracts | Local Compose, Kubernetes declarations, test/CI, Keycloak theme | 11 | Existing local requirements; broader runtime contracts partial. |
+| CAP-OPS | `local-keycloak-environment`; API, storage, validation and runtime contracts | Local Compose, Kubernetes declarations, test/CI, Keycloak theme | 11 | ENV-01-ENV-11 accepted (D023). Deployed/CI/storage/API/quality observations are evidence only (D024/D025); G057-G066 and Q014-Q018 remain. |
 | CAP-DOCS | Cross-domain documentation and acceptance | Repository docs/specs | 12 | Editorial drift and final acceptance; no application capability introduced. |
 
 CAP IDs are inventory labels, not new OpenSpec capability names. Every endpoint/screen/service below uses one of these owners. Listing a capability for review does not approve every observed behavior or require another client to implement it.

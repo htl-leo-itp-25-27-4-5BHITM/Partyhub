@@ -27,14 +27,16 @@ QR evidence: [generation/image/status/exchange/mobile identity, clients, tests a
 
 Extended-client evidence: [local current-location scope, deferred sharing, visit/time tracking and calendar snapshots](extended-client-features.md). Group 10 resolves Q002 through D022/PARTY-17-PARTY-19. `document-extended-client-features` is applied and synced with three added party requirements, 16 scenarios and 8/8 tasks; items 10.1-10.3 are complete.
 
+Runtime/quality evidence: [environments](runtime-environments.md), [data lifecycle](data-lifecycle.md), [API contract matrix](api-contract-matrix.md) and [quality evidence](quality-evidence.md). Group 11 used the applied and synced [document-runtime-and-quality-contracts](../../openspec/changes/document-runtime-and-quality-contracts/proposal.md), its [design](../../openspec/changes/document-runtime-and-quality-contracts/design.md), [environment delta](../../openspec/changes/document-runtime-and-quality-contracts/specs/local-keycloak-environment/spec.md) and [tasks](../../openspec/changes/document-runtime-and-quality-contracts/tasks.md). Items 11.1-11.5 and all six child tasks are complete. D023-D025 close Q006, narrow Q014 and open Q015-Q018.
+
 ## Snapshot and boundaries
 
 - Foundation inspected revision: `9487ccb90bb438e24b3cfab547a5dc900b11aecb`, 2026-09-21.
 - Starting durable baseline: 6 capabilities, 37 requirements, 106 scenarios.
-- Latest accepted integration: Group 10 applied and synced `document-extended-client-features` on 2026-09-30 from proposal checkpoint `a487379115b6c8832f18d043475c774ae42d9742`. Accepted main-spec coverage is 55 requirements/290 scenarios. Only specifications and documentation records changed; application code, configuration and data did not.
+- Latest accepted integration: Group 11 applied and synced `document-runtime-and-quality-contracts` on 2026-09-30 from proposal checkpoint `4c55180` (inspected revision `3a3f6ed`, second device). Accepted main-spec coverage is 59 requirements/303 scenarios. Only specifications and documentation records changed; application code, configuration and data did not.
 - Product deltas are intentionally absent from the documentation umbrella (`skip_specs: true`). Actual domain changes use the normal proposal/integration workflow.
-- Source and test-file inspection do not prove runtime behavior. No application, API, UI, deployment, database, SMTP, APNs, CoreLocation or EventKit tests were run in the foundation or Groups 2-10 documentation/planning reviews.
-- Existing main-spec validation issue: `map-radius-control` has a placeholder Purpose; [G012](gaps.md#g012-radius-purpose-placeholder) belongs to Step 12.
+- Source and test-file inspection do not prove runtime behavior. No application, API, UI, deployment, database, SMTP, APNs, CoreLocation or EventKit tests were run in the foundation or Groups 2-11 documentation/planning reviews.
+- Existing main-spec issue: `map-radius-control` has a placeholder Purpose; [G012](gaps.md#g012-radius-purpose-placeholder) belongs to Step 12. OpenSpec CLI results differ by version: on the Group 11 device (CLI 1.3.1) the strict spec aggregate passes 6/6 without flagging the placeholder, but strict umbrella validation fails with "no deltas" because `skip_specs` is ignored during validation ([G066](gaps.md#g066-installed-openspec-cli-validates-the-documentation-only-umbrella-differently)).
 
 ## Progress
 
@@ -50,12 +52,12 @@ Extended-client evidence: [local current-location scope, deferred sharing, visit
 | 8 | Notifications and preferences | 3, 4, 5 | Complete | 8.1-8.3 complete; child applied and synced, 8/8 tasks; D020 resolves Q007 and G040-G045 retain implementation/client gaps. |
 | 9 | QR login | 2 | Complete | 9.1-9.3 complete; D021 explicitly defers QR login, no spec delta required, and G007/G008/G046-G050 retain exposed legacy/prototype gaps. |
 | 10 | Extended client features | 2, 5, 6 | Complete | 10.1-10.3 complete; D022/PARTY-17-PARTY-19 resolve scope and `document-extended-client-features` is applied/synced with 8/8 tasks. |
-| 11 | Runtime and quality contracts | 2-10 | Not started | Environments, API compatibility, persistence, validation and quality evidence. |
+| 11 | Runtime and quality contracts | 2-10 | Complete | 11.1-11.5 complete; child applied and synced, 6/6 tasks, ENV-08-ENV-11; D023-D025, G057-G066, Q015-Q018. |
 | 12 | Consolidation and acceptance | 1-11 | Not started | Integrate accepted changes, resolve documentation drift and pass all strict spec checks. |
 
-Eight domain changes have been applied and synced: `document-authentication-and-identity`, `document-profiles-and-social-relationships`, `document-party-lifecycle`, `document-invitations-and-attendance`, `document-discovery-and-maps`, `document-media-and-profile-pictures`, `document-notifications-and-preferences` and `document-extended-client-features`. All remain active and unarchived. Group 9 needs no child. The accepted baseline is **6 capabilities, 55 requirements and 290 scenarios**, including AUTH-01-AUTH-12 at 12/43, SOC-01-SOC-11 at 11/82, PARTY-01-PARTY-19 at 19/113, MEDIA-01-MEDIA-03 at 3/20 and RADIUS-01-RADIUS-03 at 3/10.
+Nine domain changes have been applied and synced: `document-authentication-and-identity`, `document-profiles-and-social-relationships`, `document-party-lifecycle`, `document-invitations-and-attendance`, `document-discovery-and-maps`, `document-media-and-profile-pictures`, `document-notifications-and-preferences`, `document-extended-client-features` and `document-runtime-and-quality-contracts`. All remain active and unarchived. Group 9 needs no child. The accepted baseline is **6 capabilities, 59 requirements and 303 scenarios**, including AUTH-01-AUTH-12 at 12/43, SOC-01-SOC-11 at 11/82, PARTY-01-PARTY-19 at 19/113, MEDIA-01-MEDIA-03 at 3/20, RADIUS-01-RADIUS-03 at 3/10 and ENV-01-ENV-11 at 11/35.
 
-Current progress: **35 of 46 checklist items complete**; **11 remain**. Foundation 1.1-1.5 and Groups 2-10 are complete; Groups 11-12 have not started. G001-G056 are the gap register. Q002 is resolved by D022/PARTY-17-PARTY-19; Q006/Q014 retain broader lifecycle and exact endpoint containment/status boundaries for Step 11.
+Current progress: **40 of 46 checklist items complete**; **6 remain**. Foundation 1.1-1.5 and Groups 2-11 are complete; Group 12 has not started. G001-G066 are the gap register. Q006 is closed by D025; Q004 and Q011-Q018 remain open: Q004 and Q011-Q013 need a decision or explicit deferral at Step 12, while Q014-Q018 do not block any accepted requirement (see decisions).
 
 ## Recording rules
 

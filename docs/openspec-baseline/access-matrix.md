@@ -8,7 +8,7 @@ Step 2.2, inspected 2026-09-23 at `9487ccb90bb438e24b3cfab547a5dc900b11aecb`. Al
 - `Auth`: method has `@Authenticated` and calls `CurrentUserResolver.requireCurrentUser[Id]`. Anonymous access is denied by the intended normal bearer path. [Bypass configuration](auth-environments.md) can satisfy authentication through an untrusted header; every Auth row inherits G002/G019 and is not a proven JWT boundary.
 - `Optional`: anonymous or resolved caller; repository selects visible data. A valid token does not bypass object checks.
 - `Self`: token-resolved user owns the requested user-scoped data. `Host`: token-resolved user is the stored party host, not merely someone with a realm role. `Viewer`: public party or private host, pending invitee, or joined user under D007/D017 and PARTY-14; declined/withdrawn invitations are not visibility grants. Host status does not grant access to another user's settings or notifications.
-- **Intended** identifies accepted D/AUTH rules or explicit Q IDs where the main specs do not yet determine anonymous/authenticated/self/host policy. An unresolved row is not permission to retain source behavior. Non-authentication validation/status details are only noted where relevant; this is not Step 11's complete API schema matrix.
+- **Intended** identifies accepted D/AUTH rules or explicit Q IDs where the main specs do not yet determine anonymous/authenticated/self/host policy. An unresolved row is not permission to retain source behavior. Non-authentication validation/status details are only noted where relevant; Step 11's method/path/status/schema and client-compatibility matrix is [api-contract-matrix.md](api-contract-matrix.md); it uses the same row numbers and does not change any access disposition here.
 
 ## Source key
 

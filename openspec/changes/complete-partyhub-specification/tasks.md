@@ -71,11 +71,11 @@ For every domain completion item below, record the change name and its strict va
 
 ## 11. Runtime and quality contracts
 
-- [ ] 11.1 Reconcile local/runtime authentication and startup documentation with Compose, realm files, public configuration, app profiles and Kubernetes manifests; verify ports, realm import paths, bypass differences and dependencies have evidence in `local-keycloak-environment` or appropriate supporting contracts.
-- [ ] 11.2 Document persistence and storage lifecycles for application data, uploads, profile pictures and notification cleanup; verify environment differences and unknown migration/retention behavior have explicit records rather than inferred guarantees.
-- [ ] 11.3 Complete the cross-client API method/path/status/schema and validation/error matrix from domain evidence; verify every inventoried endpoint and client call is matched or assigned a compatibility gap, including README-only endpoint claims.
-- [ ] 11.4 Record accepted quality expectations and the JUnit/HTTPYac/CI evidence map, including authentication test configuration; verify every normative quality requirement cites an accepted requirement or explicit product decision, test existence is distinguished from execution, and missing accessibility/privacy/reliability decisions have concrete next actions without invented targets.
-- [ ] 11.5 Complete runtime/API contract updates and handoff; verify accepted deltas are integrated, references to Steps 2-10 are consistent, and outstanding code/runtime discrepancies remain in the remediation backlog.
+- [x] 11.1 Reconcile local/runtime authentication and startup documentation with Compose, realm files, public configuration, app profiles and Kubernetes manifests; verify ports, realm import paths, bypass differences and dependencies have evidence in `local-keycloak-environment` or appropriate supporting contracts.
+- [x] 11.2 Document persistence and storage lifecycles for application data, uploads, profile pictures and notification cleanup; verify environment differences and unknown migration/retention behavior have explicit records rather than inferred guarantees.
+- [x] 11.3 Complete the cross-client API method/path/status/schema and validation/error matrix from domain evidence; verify every inventoried endpoint and client call is matched or assigned a compatibility gap, including README-only endpoint claims.
+- [x] 11.4 Record accepted quality expectations and the JUnit/HTTPYac/CI evidence map, including authentication test configuration; verify every normative quality requirement cites an accepted requirement or explicit product decision, test existence is distinguished from execution, and missing accessibility/privacy/reliability decisions have concrete next actions without invented targets.
+- [x] 11.5 Complete runtime/API contract updates and handoff; verify accepted deltas are integrated, references to Steps 2-10 are consistent, and outstanding code/runtime discrepancies remain in the remediation backlog.
 
 ## 12. Consolidation and acceptance
 

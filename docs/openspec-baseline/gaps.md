@@ -1,6 +1,6 @@
 # Initial implementation and documentation gaps
 
-Foundation snapshot: `9487ccb90bb438e24b3cfab547a5dc900b11aecb`, 2026-09-21; Step 2 refinement on 2026-09-23, Steps 3-6 integration on 2026-09-25, Group 7 integration on 2026-09-28, Groups 8-9 integration on 2026-09-29 and Group 10 integration on 2026-09-30 with application source unchanged. These are source/configuration observations and specification/documentation conflicts. None is a runtime reproduction. Priorities are initial triage for later work: high = access/identity/privacy boundary, medium = behavior/compatibility, low = editorial/evidence hygiene. This register is not a complete security audit or a finding about a live deployment.
+Foundation snapshot: `9487ccb90bb438e24b3cfab547a5dc900b11aecb`, 2026-09-21; Step 2 refinement on 2026-09-23, Steps 3-6 integration on 2026-09-25, Group 7 integration on 2026-09-28, Groups 8-9 integration on 2026-09-29, Group 10 integration on 2026-09-30 and Group 11 runtime/quality review on 2026-09-30 with application source unchanged. These are source/configuration observations and specification/documentation conflicts. None is a runtime reproduction. Priorities are initial triage for later work: high = access/identity/privacy boundary, medium = behavior/compatibility, low = editorial/evidence hygiene. This register is not a complete security audit or a finding about a live deployment.
 
 Java paths below start at `src/main/java/at/htl/`; browser paths at `src/main/resources/META-INF/resources/`; Swift paths at `PartyHubiOS/PartyHubiOS/`. Complete surface ownership is in [inventory.md](inventory.md); requirement anchors are in [coverage.md](coverage.md).
 
@@ -38,6 +38,7 @@ Java paths below start at `src/main/java/at/htl/`; browser paths at `src/main/re
 - **Observed:** README names `keycloak/realm-export.json`; `docker-compose.yaml:28` mounts `keycloak/realm-dev.json`.
 - **Disposition:** Documentation/configuration drift. **Priority:** low. **Owner:** Step 11, then 12.
 - **Next action:** Establish per-environment realm-file roles before updating setup documentation; do not equate different files with a runtime failure.
+- **Group 11 update:** ENV-09 (D023) makes `keycloak/realm-dev.json` the local source of truth; [runtime-environments.md](runtime-environments.md) records the per-environment realm-file roles. README correction remains Step 12.
 
 ## G006 Client party routes and methods disagree with backend
 
@@ -94,6 +95,7 @@ Java paths below start at `src/main/java/at/htl/`; browser paths at `src/main/re
 - **Observed:** JUnit/RestAssured and HTTPYac suites exist; the foundation stage has not run them, started services or exercised browser/iOS flows. Test configuration enables auth bypass. Historical HTTPYac README pass claims are not a current test result.
 - **Disposition:** Evidence limitation, not a test failure. **Priority:** low; revisit for access-test relevance. **Owner:** Each domain; consolidated evidence Step 11.
 - **Next action:** Map assertions when needed and record any later executed test command/environment/result precisely. Do not claim that bypass-enabled tests verify real Keycloak authentication.
+- **Group 11 update:** [quality-evidence.md](quality-evidence.md) consolidates the JUnit/HTTPYac/CI map. ENV-11 makes bypass-only results non-authoritative. No test was executed in Group 11; the missing real-JWT job is G061.
 
 ## G014 Gallery target and per-client support need reconciliation
 
@@ -108,6 +110,7 @@ Java paths below start at `src/main/java/at/htl/`; browser paths at `src/main/re
 - **Observed:** README recommends `./deploy.sh`; tracked setup scripts include `deploy-local.sh`, `sync-import.sh` and `run-http-tests.sh`, while `deploy.sh` is absent from the inspected repository.
 - **Disposition:** Setup documentation drift. **Priority:** medium. **Owner:** Step 11, correction Step 12.
 - **Next action:** Read the scripts to establish their actual side effects and supported local workflow; do not execute deployment or seed synchronization to document it.
+- **Group 11 update:** `deploy-local.sh` removes Compose volumes, rebuilds (running JUnit) and starts dev mode; `sync-import.sh` truncates local and Kubernetes data by default. See [runtime-environments.md](runtime-environments.md) and G060. README correction remains Step 12.
 
 ## G016 Discovered capabilities lack complete durable contracts
 
@@ -129,6 +132,7 @@ Java paths below start at `src/main/java/at/htl/`; browser paths at `src/main/re
 - **Observed:** `Dockerfile.keycloak` copies `realm-staging.json` while Compose additionally mounts `realm-dev.json`; both declare the same realm name. The README's demo credential differs from the mounted development realm. Credential values are not duplicated here; import precedence and actual persisted realm state were not exercised.
 - **Disposition:** Configuration/documentation inconsistency needing environment review, not a claim that login currently fails. **Priority:** medium. **Owner:** Step 11, with Step 2 identity setup.
 - **Next action:** Establish the intended fresh-volume/existing-volume import behavior and documentation source of truth, then propose bounded configuration/documentation remediation.
+- **Group 11 update:** ENV-09 now defines the target: only `realm-dev.json` is imported locally. The image-baked `realm-staging.json` in the same import directory remains the observed conflict. Bounded remediation: stop copying the staging realm into the image used by Compose (for example with a separate build target or a deployment-only copy) and document existing-realm recreation.
 
 ## G019 Numeric token subject precedes Keycloak identity linkage
 
@@ -395,3 +399,73 @@ Java paths below start at `src/main/java/at/htl/`; browser paths at `src/main/re
 - **Observed:** Party details expose add/remove and `CalendarService` stores event IDs locally, but denied/save/remove failures mostly reset or leave UI state without actionable feedback. A missing party start is replaced with the current time, stale mappings are not proactively cleared by `hasEvent`, and party edit/cancellation does not update the event. No EventKit or device test was identified.
 - **Disposition:** Client feedback/data-mapping mismatch against an accepted requirement; automatic synchronization is intentionally not promised. **Priority:** medium. **Owner:** bounded iOS implementation/testing.
 - **Next action:** Use valid stored party fields, report permission/save/remove failures, prevent duplicate mappings, clear stale associations safely and label export as a snapshot requiring explicit remove-and-export after changes.
+
+## G057 Every deployment resets application and Keycloak data
+
+- **Expected:** Deployment behaviour and data durability follow an explicit decision (Q015). Keycloak data is not destroyed as a side effect of resetting application data.
+- **Observed:** `.github/workflows/deploy.yml` runs `DROP SCHEMA public CASCADE; CREATE SCHEMA public;` on the `demo` database for every deploy and replays `import.sql`. `k8s/keycloak.yaml` points Keycloak at the same `demo` database, so realm state and registrations are dropped too; the step comment says only the Keycloak schema is dropped. Profile-picture files on the PVC survive and become orphans. This is workflow/manifest evidence, not an observed run.
+- **Disposition:** Deployment/data-lifecycle conflict pending Q015. **Priority:** high. **Owner:** Step 11 evidence; bounded deployment change after Q015.
+- **Next action:** Decide Q015. If data must persist, give Keycloak its own database/schema, remove the unconditional drop and make seeding explicit; if reset is intended, document it as a demonstration-environment property and still separate the Keycloak database.
+
+## G058 Party gallery files are stored outside persistent storage and served from the classpath
+
+- **Expected:** D019/MEDIA-03 require a stored gallery reference to stay usable after a successful upload.
+- **Observed:** `media/MediaRepository.upload` writes to `src/main/resources/uploads/party{id}/` relative to the working directory. In the container that is `/app/src/...`, outside the `/app/uploads` PVC, so files are lost on pod replacement. `getMediaById` reads a classpath resource, which only finds files packaged at build time, and no REST route exposes it (G036).
+- **Disposition:** Storage/serving mismatch against an accepted requirement. **Priority:** high for gallery use. **Owner:** bounded media implementation change.
+- **Next action:** Store gallery files under a configurable persistent upload directory (like profile pictures), serve them through a Viewer-checked route, and add persistence/serving tests.
+
+## G059 Schema evolution has no migration record
+
+- **Expected:** Schema changes that preserve accepted persisted state (SOC-08, PARTY-14) are applied predictably in every environment.
+- **Observed:** No Flyway/Liquibase. Production uses Hibernate `update`; dev and tests use drop-and-create. `notification/NotificationSchemaCompatibility` applies hand-written DDL/backfill at startup on PostgreSQL and ignores failures. Root `create-tables.sql`/`test-data.sql` are unreferenced manual fixtures with users absent from the realm files.
+- **Disposition:** Persistence-process gap; no accepted migration policy. **Priority:** medium (low while G057 resets every deploy). **Owner:** Step 11 evidence; bounded runtime change after Q015.
+- **Next action:** Introduce versioned migrations when data must persist, move the startup DDL into them, and retire or label the unreferenced root SQL files.
+
+## G060 Seed and reset scripts are destructive and under-documented
+
+- **Expected:** Setup documentation identifies commands that delete local or shared data.
+- **Observed:** `deploy-local.sh` runs `docker-compose down -v`. `sync-import.sh` applies `import.sql`, which begins with `TRUNCATE ... RESTART IDENTITY CASCADE`, to both local and Kubernetes Postgres unless restricted by flags. README presents both as ordinary setup/sync steps (and names a missing `deploy.sh`, G015).
+- **Disposition:** Documentation/operational-safety gap. **Priority:** medium. **Owner:** Step 12 README reconciliation; optional script-safety change.
+- **Next action:** Document the destructive effects and the `--local-only` flag in README; consider making the Kubernetes target opt-in.
+
+## G061 CI does not gate deployment on success or exercise real bearer authentication
+
+- **Expected:** Quality evidence for AUTH comes from real-token checks (ENV-11), and deployment follows successful build/test runs.
+- **Observed:** `deploy.yml` triggers on Build and Push `completed` without checking the conclusion. JUnit disables SmallRye JWT and enables the bypass. HTTPYac runs against `quarkus:dev` with the bypass. No workflow runs on pull requests. No browser/iOS tests exist.
+- **Disposition:** Test/pipeline evidence gap. **Priority:** medium (high for the G002 regression risk). **Owner:** bounded CI/test change.
+- **Next action:** Add `if: github.event.workflow_run.conclusion == 'success'` to deploy. Add a bypass-disabled integration job that obtains local realm tokens and asserts accepted AUTH scenarios, including numeric-only rejection.
+
+## G062 API error bodies and status usage are inconsistent
+
+- **Expected:** Clients can handle rejection/denial/not-found consistently. The exact envelope is Q014; accepted specs are wire-agnostic.
+- **Observed:** Errors appear as concatenated JSON strings `{"error": "..."}` (unescaped messages), JSON maps, plain text, empty bodies and framework violation reports. Some branches return 400 for a missing caller after `@Authenticated`. Party update has no 403 path (G003). Counts are hand-built JSON strings. See [api-contract-matrix.md](api-contract-matrix.md).
+- **Disposition:** Compatibility/API-hygiene gap. **Priority:** medium. **Owner:** bounded API change after Q014.
+- **Next action:** Choose one error envelope and status taxonomy (Q014), then apply it with an exception mapper and serializer-built bodies.
+
+## G063 Static OpenAPI document is stale and not served
+
+- **Expected:** API documentation reflects the exposed endpoints.
+- **Observed:** Root `openapi.yaml` lists 48 operations. It omits 12 endpoints (rows 1, 5-7, 12, 13, 19, 23-26, 58) and lists two non-existent operations (`GET /api/media/{id}`, `POST /api/parties/{id}/media`). It sits outside `META-INF`, so Quarkus serves the annotation-generated document instead.
+- **Disposition:** Documentation drift. **Priority:** low. **Owner:** Step 12.
+- **Next action:** Delete the file or regenerate it from `/q/openapi`, and point README to the served document.
+
+## G064 Repository guidance claims validation and encoding controls that are not applied
+
+- **Expected:** Contributor guidance (`AGENTS.md`) matches the controls the source actually applies.
+- **Observed:** `@SafeText`/`@NoHtml` are not applied to any DTO. `OnCreate`/`OnUpdate` groups are never activated. `UserCreateDto` (rows 36/44) and `NotificationSettingsDto` have no constraints. The OWASP encoder is declared but unused. CI has no SQL inspector. See [quality-evidence.md](quality-evidence.md).
+- **Disposition:** Documentation/implementation mismatch; accepted validation rules remain those in PARTY-12/13, MEDIA-03 and SOC-06/07. **Priority:** medium. **Owner:** Step 12 documentation; bounded validation change with G029.
+- **Next action:** Either apply the documented constraints where accepted requirements need them or correct `AGENTS.md` to describe the real controls.
+
+## G065 No cleanup exists for uploaded files or aged records
+
+- **Expected:** Deletion and retention follow an explicit decision (Q016). Accepted flows that remove logical records do not leave unusable references.
+- **Observed:** No main-source code deletes any file. Party deletion cascades media rows and deletes party notifications but leaves gallery files. Profile-picture replacement writes a new file without removing the old one. There is no scheduled cleanup (the only scheduled job is the weekly digest), no user-deletion path, and no expiry cleanup for QR (G050) or location rows (G054).
+- **Disposition:** Data-lifecycle gap pending Q016. **Priority:** medium (privacy-relevant). **Owner:** bounded lifecycle change after Q016.
+- **Next action:** Decide Q016, then implement file/row cleanup for the accepted deletions with tests.
+
+## G066 Installed OpenSpec CLI validates the documentation-only umbrella differently
+
+- **Expected:** The design's final commands (`openspec validate complete-partyhub-specification --type change --strict --no-interactive` and `openspec validate --specs --strict --no-interactive`) give reproducible results across devices.
+- **Observed:** On this device OpenSpec CLI `1.3.1` rejects the umbrella with "Change must have at least one delta" despite `skip_specs: true` (the CLI only uses `skipSpecs` at archive time). The same CLI passes strict validation for all six main specs, including `map-radius-control`, whose Purpose is still the placeholder (G012). The Group 10 handoff recorded the opposite on the original device: umbrella pass and radius failure.
+- **Disposition:** Tooling-version difference, not a specification defect. **Priority:** medium for final acceptance. **Owner:** Step 12.4.
+- **Next action:** In Step 12, record the CLI version with each validation result, repair G012 regardless, and choose an explicit way to satisfy the umbrella gate (for example, run it with the CLI version that honours `skip_specs`, or record the tool limitation as an accepted exception). Do not add artificial product deltas to the umbrella.

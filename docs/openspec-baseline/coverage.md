@@ -2,7 +2,7 @@
 
 Foundation snapshot: repository revision `9487ccb90bb438e24b3cfab547a5dc900b11aecb`, inspected 2026-09-21. See [runbook](runbook.md), [inventory](inventory.md), [decisions](decisions.md), [gaps](gaps.md) and [handoff](handoff.md).
 
-The foundation snapshot indexed **37 accepted requirements and 106 scenarios** in the six durable specifications. After the accepted Steps 2-8 integrations, Group 9 QR exclusion review and Group 10 extended-client integration, the current main specs contain **55 accepted requirements and 290 scenarios**. `document-extended-client-features` is applied and synced with 3 added party requirements and 16 scenarios. Acceptance records normative coverage; it does not assert implementation compliance, complete product scope or completion of Groups 11-12. Requirement titles and scenario labels below reproduce the current main specs exactly.
+The foundation snapshot indexed **37 accepted requirements and 106 scenarios** in the six durable specifications. After the accepted Steps 2-8 integrations, Group 9 QR exclusion review, Group 10 extended-client integration and Group 11 runtime integration, the current main specs contain **59 accepted requirements and 303 scenarios**. `document-runtime-and-quality-contracts` is applied and synced with 4 added environment requirements and 13 scenarios. Acceptance records normative coverage; it does not assert implementation compliance, complete product scope or completion of Group 12. Requirement titles and scenario labels below reproduce the current main specs exactly.
 
 Platform scope below is a foundation classification grounded in the requirement text, archive context and source entry points. Where existing wording is ambiguous, its owner stage must reconcile it. In particular, browser auth does not establish the iOS auth contract, and iOS map controls are not automatically browser requirements.
 
@@ -15,8 +15,8 @@ Platform scope below is a foundation classification grounded in the requirement 
 | [party-discovery-and-management](../../openspec/specs/party-discovery-and-management/spec.md) | 19 | 113 | 4–6, 10 |
 | [party-media-gallery](../../openspec/specs/party-media-gallery/spec.md) | 3 | 20 | 7 |
 | [map-radius-control](../../openspec/specs/map-radius-control/spec.md) | 3 | 10 | 6 (Purpose repair 12) |
-| [local-keycloak-environment](../../openspec/specs/local-keycloak-environment/spec.md) | 7 | 22 | 11 |
-| **Total** | **55** | **290** | **All assigned** |
+| [local-keycloak-environment](../../openspec/specs/local-keycloak-environment/spec.md) | 11 | 35 | 11 |
+| **Total** | **59** | **303** | **All assigned** |
 
 ## Source and test evidence groups
 
@@ -1234,6 +1234,71 @@ Scenarios (3):
 - [Demo user can authenticate](../../openspec/specs/local-keycloak-environment/spec.md#scenario-demo-user-can-authenticate)
 - [Demo user can link to PartyHub user](../../openspec/specs/local-keycloak-environment/spec.md#scenario-demo-user-can-link-to-partyhub-user)
 
+#### ENV-08
+
+**[Local runtime binds PartyHub to the local realm](../../openspec/specs/local-keycloak-environment/spec.md#requirement-local-runtime-binds-partyhub-to-the-local-realm)**
+
+- Platform scope: Local development backend, browser and iOS bootstrap.
+- Runbook owner: Step 11.
+- Source evidence: [runtime-environments.md](runtime-environments.md); `application.properties` issuer/JWKS defaults, `PublicConfigResource`, `quarkus.http.port`. Declared and consistent; not executed.
+- Test evidence: No test asserts the issuer binding with real tokens. All execution remains unverified.
+- Accepted decision references: [D013](decisions.md), [D014](decisions.md), [D023](decisions.md). Follow-up gaps: [G021](gaps.md), [G061](gaps.md).
+
+Scenarios (3):
+
+- [Backend defaults to the local issuer](../../openspec/specs/local-keycloak-environment/spec.md#scenario-backend-defaults-to-the-local-issuer)
+- [Public configuration names the verified issuer](../../openspec/specs/local-keycloak-environment/spec.md#scenario-public-configuration-names-the-verified-issuer)
+- [Application origin matches the browser client](../../openspec/specs/local-keycloak-environment/spec.md#scenario-application-origin-matches-the-browser-client)
+
+#### ENV-09
+
+**[Local realm import has one source of truth](../../openspec/specs/local-keycloak-environment/spec.md#requirement-local-realm-import-has-one-source-of-truth)**
+
+- Platform scope: Local development Compose Keycloak.
+- Runbook owner: Step 11.
+- Source evidence: [runtime-environments.md](runtime-environments.md); Compose mounts `realm-dev.json`; `Dockerfile.keycloak` also copies `realm-staging.json` into the same import directory, which **conflicts** with the requirement.
+- Test evidence: None; import precedence not executed.
+- Accepted decision references: [D013](decisions.md), [D023](decisions.md). Follow-up gaps: [G005](gaps.md), [G018](gaps.md).
+
+Scenarios (3):
+
+- [Compose imports the development realm file](../../openspec/specs/local-keycloak-environment/spec.md#scenario-compose-imports-the-development-realm-file)
+- [No competing realm definition is imported locally](../../openspec/specs/local-keycloak-environment/spec.md#scenario-no-competing-realm-definition-is-imported-locally)
+- [Existing realm needs documented recreation](../../openspec/specs/local-keycloak-environment/spec.md#scenario-existing-realm-needs-documented-recreation)
+
+#### ENV-10
+
+**[Realm import provisions native iOS client](../../openspec/specs/local-keycloak-environment/spec.md#requirement-realm-import-provisions-native-ios-client)**
+
+- Platform scope: Local realm for the iOS client; the same client is declared in the staging realm file.
+- Runbook owner: Step 11.
+- Source evidence: [runtime-environments.md](runtime-environments.md); `realm-dev.json`/`realm-staging.json` `partyhub-ios` public, standard flow, no direct grants, S256, `partyhub.auth://callback`; consumer `KeycloakConfig.swift`. Declared.
+- Test evidence: No iOS test target exists; realm verified by file inspection only.
+- Accepted decision references: [D014](decisions.md), [D023](decisions.md). Follow-up gaps: [G013](gaps.md), [G023](gaps.md).
+
+Scenarios (4):
+
+- [Native client exists and is public](../../openspec/specs/local-keycloak-environment/spec.md#scenario-native-client-exists-and-is-public)
+- [Native client uses the app callback](../../openspec/specs/local-keycloak-environment/spec.md#scenario-native-client-uses-the-app-callback)
+- [Native client requires S256 PKCE](../../openspec/specs/local-keycloak-environment/spec.md#scenario-native-client-requires-s256-pkce)
+- [Native client disables direct access grants](../../openspec/specs/local-keycloak-environment/spec.md#scenario-native-client-disables-direct-access-grants)
+
+#### ENV-11
+
+**[Development identity bypass is non-authoritative](../../openspec/specs/local-keycloak-environment/spec.md#requirement-development-identity-bypass-is-non-authoritative)**
+
+- Platform scope: Backend configuration across local, test and CI environments.
+- Runbook owner: Step 11.
+- Source evidence: [runtime-environments.md](runtime-environments.md), [auth-environments.md](auth-environments.md); base default false, `%dev`/`%staging`/test true, Kubernetes override true (outside local scope, G002).
+- Test evidence: JUnit and HTTPYac authenticate only through the bypass or `@TestSecurity` ([quality-evidence.md](quality-evidence.md)); none verifies real tokens. Not executed.
+- Accepted decision references: [D001](decisions.md), [D023](decisions.md). Follow-up gaps: [G002](gaps.md), [G013](gaps.md), [G019](gaps.md), [G061](gaps.md).
+
+Scenarios (3):
+
+- [Bypass is off by default](../../openspec/specs/local-keycloak-environment/spec.md#scenario-bypass-is-off-by-default)
+- [Bypass-only checks are not authentication evidence](../../openspec/specs/local-keycloak-environment/spec.md#scenario-bypass-only-checks-are-not-authentication-evidence)
+- [Local real-token verification is possible](../../openspec/specs/local-keycloak-environment/spec.md#scenario-local-real-token-verification-is-possible)
+
 ## Step 6 discovery and maps review
 
 `document-discovery-and-maps` is applied, synced and strict-valid. Its [party delta](../../openspec/changes/document-discovery-and-maps/specs/party-discovery-and-management/spec.md) added PARTY-16 with 8 scenarios, retained PARTY-08/PARTY-09 at 5/4 scenarios, expanded PARTY-10 from 7 to 8, and retained PARTY-11 at 2 with strict missing-theme AND behavior. Its [radius delta](../../openspec/changes/document-discovery-and-maps/specs/map-radius-control/spec.md) established RADIUS-01/RADIUS-02/RADIUS-03 at 3/1/6 scenarios.
@@ -1266,8 +1331,14 @@ No domain proposal or main-spec delta was required for this exclusion, so accept
 
 Accepted coverage is **55 requirements/290 scenarios**, including party at **19/113**. G051-G056 record exposed location, identifier/storage, client, lifecycle, visit-permission and calendar implementation gaps; exact unsupported-route transport remains Q014/Step 11.
 
+## Step 11 runtime and quality review
+
+`document-runtime-and-quality-contracts` is applied, synced and strict-valid. Its [environment delta](../../openspec/changes/document-runtime-and-quality-contracts/specs/local-keycloak-environment/spec.md) adds ENV-08-ENV-11 with 13 scenarios and preserves ENV-01-ENV-07. `local-keycloak-environment` is now **11 requirements/35 scenarios**, and accepted coverage is **59 requirements/303 scenarios**.
+
+Supporting evidence: [runtime environments](runtime-environments.md) (11.1), [data lifecycle](data-lifecycle.md) (11.2), [API contract matrix](api-contract-matrix.md) covering all 58 endpoints, every browser/iOS call site, README routes and the static OpenAPI file (11.3), and [quality evidence](quality-evidence.md) (11.4). D023-D025 record the decisions: Q006 is closed as a mapping, Q014 is narrowed, and Q015-Q018 are opened. G057-G066 record new gaps. No test was executed.
+
 ## Coverage outside the existing baseline
 
-The 55 accepted requirements do not by themselves specify every discovered surface. QR login is deferred by D021 and shared live location is deferred by D022/PARTY-17; optional visit/calendar behavior is covered by PARTY-18/PARTY-19. Exact API validation/error contracts, physical storage retention, notification retry operations and deployment details remain assigned in [inventory.md](inventory.md) and [runbook.md](runbook.md), with scope/contract gaps in [gaps.md](gaps.md). Steps 11-12 add or reconcile their remaining bounded coverage.
+The 59 accepted requirements do not by themselves specify every discovered surface. QR login is deferred by D021 and shared live location is deferred by D022/PARTY-17; optional visit/calendar behavior is covered by PARTY-18/PARTY-19. Group 11 records API compatibility, persistence, deployment and quality evidence in its supporting files without accepting wire envelopes, retention, availability or accessibility targets (D024/D025, Q014-Q018). Step 12 consolidates the remaining coverage.
 
 Future domain updates should retain these identifiers or record a clear replacement mapping, add accepted requirement/scenario links after integration, state the exact observed implementation status, and identify the assertions and execution results supporting each coverage claim. Do not mark a domain complete solely because a proposal or test file exists.
