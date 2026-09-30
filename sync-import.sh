@@ -2,7 +2,7 @@
 set -euo pipefail
 
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-SQL_FILE="$ROOT_DIR/src/main/resources/import.sql"
+SQL_FILE="$ROOT_DIR/src/main/resources/db/dev-seed/afterMigrate.sql"
 NAMESPACE="${NAMESPACE:-default}"
 APPLY_LOCAL=true
 APPLY_K8S=true
@@ -12,7 +12,7 @@ usage() {
 Usage: ./sync-import.sh [options]
 
 Options:
-  --sql <path>         Path to SQL file (default: src/main/resources/import.sql)
+  --sql <path>         Path to SQL file (default: src/main/resources/db/dev-seed/afterMigrate.sql)
   --namespace <name>   Kubernetes namespace (default: default)
   --local-only         Apply only to local docker-compose postgres
   --k8s-only           Apply only to Kubernetes postgres
