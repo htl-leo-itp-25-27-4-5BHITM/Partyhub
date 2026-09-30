@@ -29,6 +29,9 @@ metadata:
   name: keycloak
 spec:
   replicas: 1
+  # Never run two Keycloak pods against the same database (schema migration lock)
+  strategy:
+    type: Recreate
   selector:
     matchLabels:
       app: keycloak
@@ -37,6 +40,29 @@ spec:
       labels:
         app: keycloak
     spec:
+      initContainers:
+        # Keycloak has its own database; create it on the existing Postgres volume if missing
+        - name: create-keycloak-db
+          image: postgres:16-alpine
+          env:
+            - name: PGHOST
+              value: 'postgres'
+            - name: PGUSER
+              value: 'demo'
+            - name: PGPASSWORD
+              value: 'demo'
+            - name: PGDATABASE
+              value: 'demo'
+          command:
+            - sh
+            - -c
+            - |
+              until pg_isready; do echo "waiting for postgres"; sleep 2; done
+              if psql -tAc "SELECT 1 FROM pg_database WHERE datname = 'keycloak'" | grep -q 1; then
+                echo "database keycloak already exists"
+              else
+                psql -v ON_ERROR_STOP=1 -c "CREATE DATABASE keycloak"
+              fi
       containers:
         - name: keycloak
           image: ghcr.io/htl-leo-itp-25-27-4-5bhitm/partyhub-keycloak:latest
@@ -76,7 +102,7 @@ spec:
             - name: KC_CACHE_EMBEDDED_NETWORK_BIND_ADDRESS
               value: '$(POD_IP)'
             - name: 'KC_DB_URL_DATABASE'
-              value: 'demo'
+              value: 'keycloak'
             - name: 'KC_DB_URL_HOST'
               value: 'postgres'
             - name: 'KC_DB'
