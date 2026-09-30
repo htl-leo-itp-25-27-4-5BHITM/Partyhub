@@ -1,6 +1,6 @@
 # Initial implementation and documentation gaps
 
-Foundation snapshot: `9487ccb90bb438e24b3cfab547a5dc900b11aecb`, 2026-09-21; Step 2 refinement on 2026-09-23, Steps 3-6 integration on 2026-09-25, Group 7 integration on 2026-09-28, Groups 8-9 integration on 2026-09-29, Group 10 integration on 2026-09-30 and Group 11 runtime/quality review on 2026-09-30 with application source unchanged. These are source/configuration observations and specification/documentation conflicts. None is a runtime reproduction. Priorities are initial triage for later work: high = access/identity/privacy boundary, medium = behavior/compatibility, low = editorial/evidence hygiene. This register is not a complete security audit or a finding about a live deployment.
+Foundation snapshot: `9487ccb90bb438e24b3cfab547a5dc900b11aecb`, 2026-09-21; Step 2 refinement on 2026-09-23, Steps 3-6 integration on 2026-09-25, Group 7 integration on 2026-09-28, Groups 8-9 integration on 2026-09-29, Group 10 integration on 2026-09-30 Group 11 runtime/quality review and Group 12 acceptance on 2026-09-30 with application source unchanged. Every open gap is assigned to a bounded item in [backlog.md](backlog.md); closed and deferred gaps are listed there too. These are source/configuration observations and specification/documentation conflicts. None is a runtime reproduction. Priorities are initial triage for later work: high = access/identity/privacy boundary, medium = behavior/compatibility, low = editorial/evidence hygiene. This register is not a complete security audit or a finding about a live deployment.
 
 Java paths below start at `src/main/java/at/htl/`; browser paths at `src/main/resources/META-INF/resources/`; Swift paths at `PartyHubiOS/PartyHubiOS/`. Complete surface ownership is in [inventory.md](inventory.md); requirement anchors are in [coverage.md](coverage.md).
 
@@ -10,6 +10,7 @@ Java paths below start at `src/main/java/at/htl/`; browser paths at `src/main/re
 - **Observed:** `docs/functional-spec-codex.md:26` still describes stored numeric user identity and future Keycloak. Step 2 corrected the main identity spec's Purpose and headings and added explicit browser/iOS/backend scope; browser `auth-service.js` and Swift `KeycloakAuthService.swift` remain source evidence rather than proof of conformance.
 - **Disposition:** Main-spec wording corrected; older narrative drift remains. **Priority:** medium. **Owner:** documentation reconciliation Step 12.
 - **Next action:** Reconcile the historical narrative against the accepted identity spec without reintroducing legacy identity requirements.
+- **Group 12 update:** **Closed (documentation).** `docs/functional-spec-codex.md` now has a historical banner correcting the authentication narrative, and its local links are repaired.
 
 ## G002 Deployment manifest enables numeric identity bypass
 
@@ -31,6 +32,7 @@ Java paths below start at `src/main/java/at/htl/`; browser paths at `src/main/re
 - **Observed:** README claims `/api/auth/*`, `/api/categories/*`, `/api/media/*` and `/api/follow/*` families and an `at/htl/partyhub` package tree. The resource inventory places identity/follows under users, media under party/user paths and has no standalone auth/categories resources; Java code is under `at/htl/` domain packages.
 - **Disposition:** Documentation drift, not proof that missing claimed features should be added. **Priority:** medium. **Owner:** Step 11 contract reconciliation, Step 12 editorial correction; Step 4 for theme/category scope.
 - **Next action:** Match each README claim to inventoried routes and explicitly classify unsupported claims.
+- **Group 12 update:** **Closed (documentation).** README API, feature and structure sections now match the source and link to the API matrix.
 
 ## G005 README Keycloak import filename differs from Compose
 
@@ -39,6 +41,7 @@ Java paths below start at `src/main/java/at/htl/`; browser paths at `src/main/re
 - **Disposition:** Documentation/configuration drift. **Priority:** low. **Owner:** Step 11, then 12.
 - **Next action:** Establish per-environment realm-file roles before updating setup documentation; do not equate different files with a runtime failure.
 - **Group 11 update:** ENV-09 (D023) makes `keycloak/realm-dev.json` the local source of truth; [runtime-environments.md](runtime-environments.md) records the per-environment realm-file roles. README correction remains Step 12.
+- **Group 12 update:** **Closed (documentation).** README names `realm-dev.json` and the deployment realm file.
 
 ## G006 Client party routes and methods disagree with backend
 
@@ -88,6 +91,7 @@ Java paths below start at `src/main/java/at/htl/`; browser paths at `src/main/re
 - **Observed:** `openspec/specs/map-radius-control/spec.md:4` contains the archive-generated placeholder. Initial strict validation passes 5 of 6 specs and fails this one with an overview warning.
 - **Disposition:** Known baseline documentation defect. **Priority:** low. **Owner:** Step 12, explicitly authorized direct Purpose correction.
 - **Next action:** Replace only the Purpose with the already accepted capability intent during consolidation; leave requirements unchanged unless a separate domain delta changes them.
+- **Group 12 update:** **Closed.** The Purpose was replaced directly in the main spec; strict validation passes with CLI 1.13.2.
 
 ## G013 Test presence and source inspection do not establish runtime coverage
 
@@ -111,6 +115,7 @@ Java paths below start at `src/main/java/at/htl/`; browser paths at `src/main/re
 - **Disposition:** Setup documentation drift. **Priority:** medium. **Owner:** Step 11, correction Step 12.
 - **Next action:** Read the scripts to establish their actual side effects and supported local workflow; do not execute deployment or seed synchronization to document it.
 - **Group 11 update:** `deploy-local.sh` removes Compose volumes, rebuilds (running JUnit) and starts dev mode; `sync-import.sh` truncates local and Kubernetes data by default. See [runtime-environments.md](runtime-environments.md) and G060. README correction remains Step 12.
+- **Group 12 update:** **Closed (documentation).** README uses `deploy-local.sh` and describes its destructive effects.
 
 ## G016 Discovered capabilities lack complete durable contracts
 
@@ -118,6 +123,7 @@ Java paths below start at `src/main/java/at/htl/`; browser paths at `src/main/re
 - **Observed:** AUTH-10-AUTH-12, SOC-01-SOC-11, PARTY-01-PARTY-19, MEDIA-01-MEDIA-03 and RADIUS-01-RADIUS-03 now cover the bounded identity, profile/social, party, media, map, notification and extended-client contracts. D021 explicitly defers QR login and D022/PARTY-17 defer shared location rather than leaving either silently uncovered. Durable coverage remains incomplete for exact API/runtime behavior and physical storage/notification/legacy-QR retention and retry operations. Inventory ownership does not prove requirement completeness.
 - **Disposition:** Remaining specification coverage gaps have assigned steps and do not authorize feature implementation. **Priority:** medium. **Owner:** Step 11 as assigned in inventory.
 - **Next action:** Complete the remaining bounded runtime/API review and deltas; use Q006/Q011-Q014 where target behavior is not already decided.
+- **Group 12 update:** **Closed.** All discovered surfaces are covered or explicitly excluded (see [acceptance.md](acceptance.md)); runtime contracts were added in Groups 11-12.
 
 ## G017 Mutual-contact enforcement is not evident in private-party invite creation
 
@@ -133,6 +139,7 @@ Java paths below start at `src/main/java/at/htl/`; browser paths at `src/main/re
 - **Disposition:** Configuration/documentation inconsistency needing environment review, not a claim that login currently fails. **Priority:** medium. **Owner:** Step 11, with Step 2 identity setup.
 - **Next action:** Establish the intended fresh-volume/existing-volume import behavior and documentation source of truth, then propose bounded configuration/documentation remediation.
 - **Group 11 update:** ENV-09 now defines the target: only `realm-dev.json` is imported locally. The image-baked `realm-staging.json` in the same import directory remains the observed conflict. Bounded remediation: stop copying the staging realm into the image used by Compose (for example with a separate build target or a deployment-only copy) and document existing-realm recreation.
+- **Group 12 update:** Backlog B17.
 
 ## G019 Numeric token subject precedes Keycloak identity linkage
 
@@ -147,6 +154,7 @@ Java paths below start at `src/main/java/at/htl/`; browser paths at `src/main/re
 - **Observed:** `UserRepository.findUnlinkedByUsernameOrEmail` also considers distinctName and calls `setMaxResults(1)` without detecting competing matches. Resolver does not examine `email_verified`. Existing tests supply synthetic principals, not competing real claim sets.
 - **Disposition:** Policy/evidence gap and unsafe-to-assume matching completeness; source observation, no account takeover reproduction. **Priority:** high. **Owner:** Step 2, profile/uniqueness inputs Step 3.
 - **Next action:** Resolve Q012 before extending normative linking edge cases; then define collision, claim-trust and concurrent-link acceptance cases for a separate fix. Do not silently replace the accepted unique-match/minimal-create alternatives.
+- **Group 12 update:** Now conflicts with the modified AUTH-08 (D028): ambiguous matches must create a new linked user. Backlog B04.
 
 ## G021 Browser authentication failure cleanup is incomplete
 
@@ -406,6 +414,7 @@ Java paths below start at `src/main/java/at/htl/`; browser paths at `src/main/re
 - **Observed:** `.github/workflows/deploy.yml` runs `DROP SCHEMA public CASCADE; CREATE SCHEMA public;` on the `demo` database for every deploy and replays `import.sql`. `k8s/keycloak.yaml` points Keycloak at the same `demo` database, so realm state and registrations are dropped too; the step comment says only the Keycloak schema is dropped. Profile-picture files on the PVC survive and become orphans. This is workflow/manifest evidence, not an observed run.
 - **Disposition:** Deployment/data-lifecycle conflict pending Q015. **Priority:** high. **Owner:** Step 11 evidence; bounded deployment change after Q015.
 - **Next action:** Decide Q015. If data must persist, give Keycloak its own database/schema, remove the unconditional drop and make seeding explicit; if reset is intended, document it as a demonstration-environment property and still separate the Keycloak database.
+- **Group 12 update:** Now conflicts with the accepted DEPLOY-01/DEPLOY-02 (D030): the school cloud is persistent. Backlog B01, top priority.
 
 ## G058 Party gallery files are stored outside persistent storage and served from the classpath
 
@@ -420,6 +429,7 @@ Java paths below start at `src/main/java/at/htl/`; browser paths at `src/main/re
 - **Observed:** No Flyway/Liquibase. Production uses Hibernate `update`; dev and tests use drop-and-create. `notification/NotificationSchemaCompatibility` applies hand-written DDL/backfill at startup on PostgreSQL and ignores failures. Root `create-tables.sql`/`test-data.sql` are unreferenced manual fixtures with users absent from the realm files.
 - **Disposition:** Persistence-process gap; no accepted migration policy. **Priority:** medium (low while G057 resets every deploy). **Owner:** Step 11 evidence; bounded runtime change after Q015.
 - **Next action:** Introduce versioned migrations when data must persist, move the startup DDL into them, and retire or label the unreferenced root SQL files.
+- **Group 12 update:** Required by DEPLOY-02 *Schema changes keep existing rows*. Backlog B01.
 
 ## G060 Seed and reset scripts are destructive and under-documented
 
@@ -427,6 +437,7 @@ Java paths below start at `src/main/java/at/htl/`; browser paths at `src/main/re
 - **Observed:** `deploy-local.sh` runs `docker-compose down -v`. `sync-import.sh` applies `import.sql`, which begins with `TRUNCATE ... RESTART IDENTITY CASCADE`, to both local and Kubernetes Postgres unless restricted by flags. README presents both as ordinary setup/sync steps (and names a missing `deploy.sh`, G015).
 - **Disposition:** Documentation/operational-safety gap. **Priority:** medium. **Owner:** Step 12 README reconciliation; optional script-safety change.
 - **Next action:** Document the destructive effects and the `--local-only` flag in README; consider making the Kubernetes target opt-in.
+- **Group 12 update:** README now documents the destructive effects; the optional script change is B19.
 
 ## G061 CI does not gate deployment on success or exercise real bearer authentication
 
@@ -434,6 +445,7 @@ Java paths below start at `src/main/java/at/htl/`; browser paths at `src/main/re
 - **Observed:** `deploy.yml` triggers on Build and Push `completed` without checking the conclusion. JUnit disables SmallRye JWT and enables the bypass. HTTPYac runs against `quarkus:dev` with the bypass. No workflow runs on pull requests. No browser/iOS tests exist.
 - **Disposition:** Test/pipeline evidence gap. **Priority:** medium (high for the G002 regression risk). **Owner:** bounded CI/test change.
 - **Next action:** Add `if: github.event.workflow_run.conclusion == 'success'` to deploy. Add a bypass-disabled integration job that obtains local realm tokens and asserts accepted AUTH scenarios, including numeric-only rejection.
+- **Group 12 update:** DEPLOY-02 *Failed pipeline does not deploy* makes gating a requirement. Backlog B01 (gating) and B03 (real-token tests).
 
 ## G062 API error bodies and status usage are inconsistent
 
@@ -448,6 +460,7 @@ Java paths below start at `src/main/java/at/htl/`; browser paths at `src/main/re
 - **Observed:** Root `openapi.yaml` lists 48 operations. It omits 12 endpoints (rows 1, 5-7, 12, 13, 19, 23-26, 58) and lists two non-existent operations (`GET /api/media/{id}`, `POST /api/parties/{id}/media`). It sits outside `META-INF`, so Quarkus serves the annotation-generated document instead.
 - **Disposition:** Documentation drift. **Priority:** low. **Owner:** Step 12.
 - **Next action:** Delete the file or regenerate it from `/q/openapi`, and point README to the served document.
+- **Group 12 update:** Backlog B19.
 
 ## G064 Repository guidance claims validation and encoding controls that are not applied
 
@@ -455,6 +468,7 @@ Java paths below start at `src/main/java/at/htl/`; browser paths at `src/main/re
 - **Observed:** `@SafeText`/`@NoHtml` are not applied to any DTO. `OnCreate`/`OnUpdate` groups are never activated. `UserCreateDto` (rows 36/44) and `NotificationSettingsDto` have no constraints. The OWASP encoder is declared but unused. CI has no SQL inspector. See [quality-evidence.md](quality-evidence.md).
 - **Disposition:** Documentation/implementation mismatch; accepted validation rules remain those in PARTY-12/13, MEDIA-03 and SOC-06/07. **Priority:** medium. **Owner:** Step 12 documentation; bounded validation change with G029.
 - **Next action:** Either apply the documented constraints where accepted requirements need them or correct `AGENTS.md` to describe the real controls.
+- **Group 12 update:** Backlog B05 (validation) and B19 (guidance).
 
 ## G065 No cleanup exists for uploaded files or aged records
 
@@ -462,6 +476,7 @@ Java paths below start at `src/main/java/at/htl/`; browser paths at `src/main/re
 - **Observed:** No main-source code deletes any file. Party deletion cascades media rows and deletes party notifications but leaves gallery files. Profile-picture replacement writes a new file without removing the old one. There is no scheduled cleanup (the only scheduled job is the weekly digest), no user-deletion path, and no expiry cleanup for QR (G050) or location rows (G054).
 - **Disposition:** Data-lifecycle gap pending Q016. **Priority:** medium (privacy-relevant). **Owner:** bounded lifecycle change after Q016.
 - **Next action:** Decide Q016, then implement file/row cleanup for the accepted deletions with tests.
+- **Group 12 update:** **Deferred by D031** (retention/cleanup out of scope). Observation retained.
 
 ## G066 Installed OpenSpec CLI validates the documentation-only umbrella differently
 
@@ -469,3 +484,4 @@ Java paths below start at `src/main/java/at/htl/`; browser paths at `src/main/re
 - **Observed:** On this device OpenSpec CLI `1.3.1` rejects the umbrella with "Change must have at least one delta" despite `skip_specs: true` (the CLI only uses `skipSpecs` at archive time). The same CLI passes strict validation for all six main specs, including `map-radius-control`, whose Purpose is still the placeholder (G012). The Group 10 handoff recorded the opposite on the original device: umbrella pass and radius failure.
 - **Disposition:** Tooling-version difference, not a specification defect. **Priority:** medium for final acceptance. **Owner:** Step 12.4.
 - **Next action:** In Step 12, record the CLI version with each validation result, repair G012 regardless, and choose an explicit way to satisfy the umbrella gate (for example, run it with the CLI version that honours `skip_specs`, or record the tool limitation as an accepted exception). Do not add artificial product deltas to the umbrella.
+- **Group 12 update:** **Closed (W022).** OpenSpec CLI 1.13.2 is installed. With it the umbrella passes via `skip_specs` and all specs pass after the G012 repair.

@@ -13,7 +13,7 @@ The backend SHALL link authenticated Keycloak subjects to PartyHub user records.
 
 #### Scenario: No matching PartyHub user exists
 - **WHEN** a valid Keycloak token has no existing link and no matching PartyHub user
-- **THEN** the backend SHALL create a minimal PartyHub user from token claims or return an explicit onboarding-required response
+- **THEN** the backend SHALL create a minimal PartyHub user from token claims, link it to the token subject and use it as the acting user; profile details MAY be completed afterwards
 
 #### Scenario: Several unlinked users match token claims
 - **WHEN** a valid Keycloak token has no existing link and its username or email matches more than one unlinked PartyHub user

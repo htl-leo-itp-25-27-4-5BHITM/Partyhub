@@ -20,7 +20,9 @@ The product owner answered the Group 12 acceptance questions on 2026-09-30:
 
 "There should be a link" means every successful first login must end with the subject linked to exactly one PartyHub user. When the claims match several unlinked records, choosing one would risk attaching someone to another person's data (G020 takes the first result). The safe way to always produce a link is to create a minimal user and link it. The seed data in `import.sql` keeps `keycloak_id = NULL`: demo users still link through the existing unique-match scenario (ENV-07), and no seed record is pre-linked or rewritten.
 
-Alternative considered: onboarding-required responses for ambiguous matches. Rejected because that path ends without a link, which contradicts the answer.
+The same answer removes the older "or return an explicit onboarding-required response" alternative from the no-match scenario, because that path also ends without a link; the source already always creates and links (`CurrentUserResolver.linkOrCreateUser`). Profile completion after creation stays possible.
+
+Alternative considered: onboarding-required responses for ambiguous or unmatched logins. Rejected because that path ends without a link, which contradicts the answer.
 
 ### A new capability for the deployed environment
 

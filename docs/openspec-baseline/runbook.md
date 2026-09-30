@@ -29,14 +29,16 @@ Extended-client evidence: [local current-location scope, deferred sharing, visit
 
 Runtime/quality evidence: [environments](runtime-environments.md), [data lifecycle](data-lifecycle.md), [API contract matrix](api-contract-matrix.md) and [quality evidence](quality-evidence.md). Group 11 used the applied and synced [document-runtime-and-quality-contracts](../../openspec/changes/document-runtime-and-quality-contracts/proposal.md), its [design](../../openspec/changes/document-runtime-and-quality-contracts/design.md), [environment delta](../../openspec/changes/document-runtime-and-quality-contracts/specs/local-keycloak-environment/spec.md) and [tasks](../../openspec/changes/document-runtime-and-quality-contracts/tasks.md). Items 11.1-11.5 and all six child tasks are complete. D023-D025 close Q006, narrow Q014 and open Q015-Q018.
 
+Acceptance: [final review](acceptance.md) (coverage audit, journeys, documentation reconciliation, validation) and the [implementation backlog](backlog.md) B01-B20. Group 12 integrated [document-acceptance-decisions](../../openspec/changes/document-acceptance-decisions/proposal.md) (modified AUTH-08, new `deployment-environment`) from the product-owner answers recorded as D026-D031.
+
 ## Snapshot and boundaries
 
 - Foundation inspected revision: `9487ccb90bb438e24b3cfab547a5dc900b11aecb`, 2026-09-21.
 - Starting durable baseline: 6 capabilities, 37 requirements, 106 scenarios.
-- Latest accepted integration: Group 11 applied and synced `document-runtime-and-quality-contracts` on 2026-09-30 from proposal checkpoint `4c55180` (inspected revision `3a3f6ed`, second device). Accepted main-spec coverage is 59 requirements/303 scenarios. Only specifications and documentation records changed; application code, configuration and data did not.
+- Latest accepted integration: Group 12 applied and synced `document-acceptance-decisions` on 2026-09-30 (proposal checkpoint `ce2e0b1`). Accepted main-spec coverage is 7 capabilities, 61 requirements/313 scenarios.
 - Product deltas are intentionally absent from the documentation umbrella (`skip_specs: true`). Actual domain changes use the normal proposal/integration workflow.
-- Source and test-file inspection do not prove runtime behavior. No application, API, UI, deployment, database, SMTP, APNs, CoreLocation or EventKit tests were run in the foundation or Groups 2-11 documentation/planning reviews.
-- Existing main-spec issue: `map-radius-control` has a placeholder Purpose; [G012](gaps.md#g012-radius-purpose-placeholder) belongs to Step 12. OpenSpec CLI results differ by version: on the Group 11 device (CLI 1.3.1) the strict spec aggregate passes 6/6 without flagging the placeholder, but strict umbrella validation fails with "no deltas" because `skip_specs` is ignored during validation ([G066](gaps.md#g066-installed-openspec-cli-validates-the-documentation-only-umbrella-differently)).
+- Source and test-file inspection do not prove runtime behavior. No application, API, UI, deployment, database, SMTP, APNs, CoreLocation or EventKit tests were run in the foundation or Groups 2-12 documentation/planning reviews.
+- Validation tooling: OpenSpec CLI pinned to `1.13.2` (W022; G066 closed). With it the umbrella, all 11 changes and all 7 specs pass strict validation after the G012 Purpose repair.
 
 ## Progress
 
@@ -53,11 +55,11 @@ Runtime/quality evidence: [environments](runtime-environments.md), [data lifecyc
 | 9 | QR login | 2 | Complete | 9.1-9.3 complete; D021 explicitly defers QR login, no spec delta required, and G007/G008/G046-G050 retain exposed legacy/prototype gaps. |
 | 10 | Extended client features | 2, 5, 6 | Complete | 10.1-10.3 complete; D022/PARTY-17-PARTY-19 resolve scope and `document-extended-client-features` is applied/synced with 8/8 tasks. |
 | 11 | Runtime and quality contracts | 2-10 | Complete | 11.1-11.5 complete; child applied and synced, 6/6 tasks, ENV-08-ENV-11; D023-D025, G057-G066, Q015-Q018. |
-| 12 | Consolidation and acceptance | 1-11 | Not started | Integrate accepted changes, resolve documentation drift and pass all strict spec checks. |
+| 12 | Consolidation and acceptance | 1-11 | Complete | 12.1-12.6 complete; `document-acceptance-decisions` applied/synced; README/narrative reconciled; strict validation green; backlog B01-B20. Umbrella is archive-ready. |
 
-Nine domain changes have been applied and synced: `document-authentication-and-identity`, `document-profiles-and-social-relationships`, `document-party-lifecycle`, `document-invitations-and-attendance`, `document-discovery-and-maps`, `document-media-and-profile-pictures`, `document-notifications-and-preferences`, `document-extended-client-features` and `document-runtime-and-quality-contracts`. All remain active and unarchived. Group 9 needs no child. The accepted baseline is **6 capabilities, 59 requirements and 303 scenarios**, including AUTH-01-AUTH-12 at 12/43, SOC-01-SOC-11 at 11/82, PARTY-01-PARTY-19 at 19/113, MEDIA-01-MEDIA-03 at 3/20, RADIUS-01-RADIUS-03 at 3/10 and ENV-01-ENV-11 at 11/35.
+Ten domain changes have been applied and synced: `document-authentication-and-identity`, `document-profiles-and-social-relationships`, `document-party-lifecycle`, `document-invitations-and-attendance`, `document-discovery-and-maps`, `document-media-and-profile-pictures`, `document-notifications-and-preferences`, `document-extended-client-features` `document-runtime-and-quality-contracts` and `document-acceptance-decisions`. All remain active and unarchived. Group 9 needs no child. The accepted baseline is **7 capabilities, 61 requirements and 313 scenarios**, including AUTH-01-AUTH-12 at 12/43, SOC-01-SOC-11 at 11/82, PARTY-01-PARTY-19 at 19/113, MEDIA-01-MEDIA-03 at 3/20, RADIUS-01-RADIUS-03 at 3/10 ENV-01-ENV-11 at 11/35 and DEPLOY-01/DEPLOY-02 at 2/8; AUTH is now 12/45.
 
-Current progress: **40 of 46 checklist items complete**; **6 remain**. Foundation 1.1-1.5 and Groups 2-11 are complete; Group 12 has not started. G001-G066 are the gap register. Q006 is closed by D025; Q004 and Q011-Q018 remain open: Q004 and Q011-Q013 need a decision or explicit deferral at Step 12, while Q014-Q018 do not block any accepted requirement (see decisions).
+Current progress: **46 of 46 checklist items complete**. All twelve groups are done. G001-G066 are dispositioned (closed, deferred or assigned to backlog items). Only Q014 remains open, and it is non-blocking (backlog B11). The umbrella and its child changes are ready for the standard archive workflow; nothing has been archived.
 
 ## Recording rules
 

@@ -1,5 +1,7 @@
 # Keycloak Branch Merge Summary
 
+> **Historical merge note.** The current identity contract is `openspec/specs/user-auth-and-identity` and the local setup is `openspec/specs/local-keycloak-environment` ([runbook](openspec-baseline/runbook.md)).
+
 ## Purpose
 
 This document summarizes the content merged from the `keycloak` branch into `main`, excluding `.DS_Store`.

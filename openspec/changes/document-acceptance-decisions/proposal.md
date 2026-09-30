@@ -6,7 +6,7 @@ Group 12 final acceptance needs answers to the open questions left by Groups 5-1
 
 ## What Changes
 
-- Modify `user-auth-and-identity` "PartyHub users link to Keycloak identities": when several unlinked PartyHub users match a first login, none is linked by guessing; a new minimal user is created and linked to the subject. Seeded test records are stored without Keycloak IDs and gain a link only through the accepted unique-match login path.
+- Modify `user-auth-and-identity` "PartyHub users link to Keycloak identities": when several unlinked PartyHub users match a first login, none is linked by guessing; a new minimal user is created and linked to the subject. The no-match case likewise always creates and links a minimal user (the onboarding-required alternative is removed). Seeded test records are stored without Keycloak IDs and gain a link only through the accepted unique-match login path.
 - Add a new `deployment-environment` capability for the school-cloud deployment: application data, Keycloak data and uploaded files persist across deployments; a successful push to `main` deploys the new version by applying changes incrementally, with no schema drop or seed replay.
 - Decisions only (no delta): age/capacity metadata is shown and filtered but does not gate attendance (Q004). `POST /api/users` stays available for testing and test data without ever establishing identity (Q011). iOS logout stays at the accepted local minimum (Q013). Retention, accessibility and operational targets are explicitly deferred (Q016-Q018).
 

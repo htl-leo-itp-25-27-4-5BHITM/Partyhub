@@ -1,7 +1,7 @@
 # map-radius-control Specification
 
 ## Purpose
-TBD - created by archiving change integrate-map-distance-slider. Update Purpose after archive.
+Defines the iOS home-map distance radius control: an in-map vertical slider for choosing a finite or unlimited party search radius, and the geographic circle, filtered results and camera response that stay synchronized with the selected radius around the device's current location. It applies to the iOS client only and does not establish browser parity.
 ## Requirements
 ### Requirement: Map exposes an in-context distance radius control
 The iOS client SHALL present a distance radius slider directly in the SwiftUI home-map interface so users can select a finite or unlimited party search radius without opening the filter sheet.

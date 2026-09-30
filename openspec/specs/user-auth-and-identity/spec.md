@@ -109,7 +109,7 @@ The Quarkus backend SHALL validate Keycloak-issued bearer access tokens for prot
 - **THEN** the backend SHALL make those roles available for role-based authorization
 
 ### Requirement: PartyHub users link to Keycloak identities
-The backend SHALL link authenticated Keycloak subjects to PartyHub user records.
+The backend SHALL link authenticated Keycloak subjects to PartyHub user records. Every successful first login SHALL end with the subject linked to exactly one PartyHub user, and the backend SHALL NOT choose among several candidate records by guessing.
 
 #### Scenario: Linked user exists
 - **WHEN** a valid Keycloak token has a `sub` value that matches a PartyHub user's stored Keycloak ID
@@ -121,7 +121,15 @@ The backend SHALL link authenticated Keycloak subjects to PartyHub user records.
 
 #### Scenario: No matching PartyHub user exists
 - **WHEN** a valid Keycloak token has no existing link and no matching PartyHub user
-- **THEN** the backend SHALL create a minimal PartyHub user from token claims or return an explicit onboarding-required response
+- **THEN** the backend SHALL create a minimal PartyHub user from token claims, link it to the token subject and use it as the acting user; profile details MAY be completed afterwards
+
+#### Scenario: Several unlinked users match token claims
+- **WHEN** a valid Keycloak token has no existing link and its username or email matches more than one unlinked PartyHub user
+- **THEN** the backend SHALL NOT link any of those users, SHALL create a minimal PartyHub user from token claims, link it to the token subject and use it as the acting user
+
+#### Scenario: Seeded test users stay unlinked data
+- **WHEN** PartyHub test or seed data is loaded
+- **THEN** its user records carry no Keycloak ID and gain one only when a login matches exactly one of them through the unique-match rule
 
 ### Requirement: Protected APIs use authenticated acting-user identity
 Protected PartyHub APIs SHALL derive the caller's acting-user identity from the validated Keycloak token for browser, iOS and other API callers. Authentication SHALL NOT replace the ownership, recipient or visibility checks required by the affected capability.

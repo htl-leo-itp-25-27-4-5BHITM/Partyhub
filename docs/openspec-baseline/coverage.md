@@ -2,7 +2,7 @@
 
 Foundation snapshot: repository revision `9487ccb90bb438e24b3cfab547a5dc900b11aecb`, inspected 2026-09-21. See [runbook](runbook.md), [inventory](inventory.md), [decisions](decisions.md), [gaps](gaps.md) and [handoff](handoff.md).
 
-The foundation snapshot indexed **37 accepted requirements and 106 scenarios** in the six durable specifications. After the accepted Steps 2-8 integrations, Group 9 QR exclusion review, Group 10 extended-client integration and Group 11 runtime integration, the current main specs contain **59 accepted requirements and 303 scenarios**. `document-runtime-and-quality-contracts` is applied and synced with 4 added environment requirements and 13 scenarios. Acceptance records normative coverage; it does not assert implementation compliance, complete product scope or completion of Group 12. Requirement titles and scenario labels below reproduce the current main specs exactly.
+The foundation snapshot indexed **37 accepted requirements and 106 scenarios** in the six durable specifications. After the accepted Steps 2-8 integrations, Group 9 QR exclusion review, Group 10 extended-client integration, Group 11 runtime integration and Group 12 acceptance decisions, the current main specs contain **61 accepted requirements and 313 scenarios** across seven capabilities. `document-acceptance-decisions` adds two AUTH-08 scenarios and the new `deployment-environment` capability (2 requirements, 8 scenarios). Acceptance records normative coverage; it does not assert implementation compliance. Requirement titles and scenario labels below reproduce the current main specs exactly.
 
 Platform scope below is a foundation classification grounded in the requirement text, archive context and source entry points. Where existing wording is ambiguous, its owner stage must reconcile it. In particular, browser auth does not establish the iOS auth contract, and iOS map controls are not automatically browser requirements.
 
@@ -10,13 +10,14 @@ Platform scope below is a foundation classification grounded in the requirement 
 
 | Capability | Requirements | Scenarios | Main owner stage |
 |---|---:|---:|---|
-| [user-auth-and-identity](../../openspec/specs/user-auth-and-identity/spec.md) | 12 | 43 | 2 |
+| [user-auth-and-identity](../../openspec/specs/user-auth-and-identity/spec.md) | 12 | 45 | 2, 12 |
 | [social-and-notifications](../../openspec/specs/social-and-notifications/spec.md) | 11 | 82 | 3, 5, 7, 8 |
 | [party-discovery-and-management](../../openspec/specs/party-discovery-and-management/spec.md) | 19 | 113 | 4–6, 10 |
 | [party-media-gallery](../../openspec/specs/party-media-gallery/spec.md) | 3 | 20 | 7 |
 | [map-radius-control](../../openspec/specs/map-radius-control/spec.md) | 3 | 10 | 6 (Purpose repair 12) |
 | [local-keycloak-environment](../../openspec/specs/local-keycloak-environment/spec.md) | 11 | 35 | 11 |
-| **Total** | **59** | **303** | **All assigned** |
+| [deployment-environment](../../openspec/specs/deployment-environment/spec.md) | 2 | 8 | 12 |
+| **Total** | **61** | **313** | **All assigned** |
 
 ## Source and test evidence groups
 
@@ -339,13 +340,15 @@ Scenarios (3):
 - Runbook owner: Step 2.
 - Source evidence: [E02](#e02), [E11](#e11). Subject link, unlinked-user match and minimal-user creation branches exist; claim ambiguity/onboarding boundaries need domain review.
 - Test evidence: E02's three named resolver tests assert linkage and minimal creation using synthetic identities; claim uniqueness and real-login integration remain unverified. All execution remains unverified.
-- Accepted decision references: [D003](decisions.md). Follow-up gaps: [G013](gaps.md).
+- Accepted decision references: [D003](decisions.md), [D028](decisions.md) (Group 12: ambiguous matches create a new linked user; seed data stays unlinked). Follow-up gaps: [G013](gaps.md), [G020](gaps.md) (the source takes the first match).
 
-Scenarios (3):
+Scenarios (5):
 
 - [Linked user exists](../../openspec/specs/user-auth-and-identity/spec.md#scenario-linked-user-exists)
 - [Existing user matches token claims](../../openspec/specs/user-auth-and-identity/spec.md#scenario-existing-user-matches-token-claims)
 - [No matching PartyHub user exists](../../openspec/specs/user-auth-and-identity/spec.md#scenario-no-matching-partyhub-user-exists)
+- [Several unlinked users match token claims](../../openspec/specs/user-auth-and-identity/spec.md#scenario-several-unlinked-users-match-token-claims)
+- [Seeded test users stay unlinked data](../../openspec/specs/user-auth-and-identity/spec.md#scenario-seeded-test-users-stay-unlinked-data)
 
 #### AUTH-09
 
@@ -1298,6 +1301,42 @@ Scenarios (3):
 - [Bypass is off by default](../../openspec/specs/local-keycloak-environment/spec.md#scenario-bypass-is-off-by-default)
 - [Bypass-only checks are not authentication evidence](../../openspec/specs/local-keycloak-environment/spec.md#scenario-bypass-only-checks-are-not-authentication-evidence)
 - [Local real-token verification is possible](../../openspec/specs/local-keycloak-environment/spec.md#scenario-local-real-token-verification-is-possible)
+
+### deployment-environment
+
+#### DEPLOY-01
+
+**[Deployments preserve persisted data](../../openspec/specs/deployment-environment/spec.md#requirement-deployments-preserve-persisted-data)**
+
+- Platform scope: School-cloud Kubernetes deployment (backend, Keycloak, Postgres, upload storage).
+- Runbook owner: Step 12.
+- Source evidence: [runtime-environments.md](runtime-environments.md), [data-lifecycle.md](data-lifecycle.md). **Conflicts:** `deploy.yml` drops the shared `demo` schema on every deploy, and Keycloak shares that database (G057); gallery files are written outside the PVC (G058). Profile pictures are on a PVC.
+- Test evidence: None; no deployment test exists.
+- Accepted decision references: [D030](decisions.md). Follow-up gaps: [G057](gaps.md), [G058](gaps.md).
+
+Scenarios (3):
+
+- [Application data survives a deployment](../../openspec/specs/deployment-environment/spec.md#scenario-application-data-survives-a-deployment)
+- [Keycloak accounts survive a deployment](../../openspec/specs/deployment-environment/spec.md#scenario-keycloak-accounts-survive-a-deployment)
+- [Uploaded files survive pod replacement](../../openspec/specs/deployment-environment/spec.md#scenario-uploaded-files-survive-pod-replacement)
+
+#### DEPLOY-02
+
+**[Pushes deploy changes without resetting](../../openspec/specs/deployment-environment/spec.md#requirement-pushes-deploy-changes-without-resetting)**
+
+- Platform scope: GitHub Actions `test.yml` → `push.yaml` → `deploy.yml` and the Kubernetes manifests.
+- Runbook owner: Step 12.
+- Source evidence: [runtime-environments.md](runtime-environments.md#scripts-and-workflows). Push-triggered test → build → deploy exists. **Conflicts:** deploy is not gated on build success (G061), drops the schema and replays `import.sql` (G057), and relies on Hibernate `update` plus startup DDL without migrations (G059). Realm import with an existing realm is not executed.
+- Test evidence: None.
+- Accepted decision references: [D030](decisions.md). Follow-up gaps: [G057](gaps.md), [G059](gaps.md), [G061](gaps.md).
+
+Scenarios (5):
+
+- [Successful push is deployed](../../openspec/specs/deployment-environment/spec.md#scenario-successful-push-is-deployed)
+- [Failed pipeline does not deploy](../../openspec/specs/deployment-environment/spec.md#scenario-failed-pipeline-does-not-deploy)
+- [Schema changes keep existing rows](../../openspec/specs/deployment-environment/spec.md#scenario-schema-changes-keep-existing-rows)
+- [Seed data is not replayed](../../openspec/specs/deployment-environment/spec.md#scenario-seed-data-is-not-replayed)
+- [Existing realm is not overwritten](../../openspec/specs/deployment-environment/spec.md#scenario-existing-realm-is-not-overwritten)
 
 ## Step 6 discovery and maps review
 

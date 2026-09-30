@@ -1,11 +1,13 @@
 # PartyHub Functional Specification for Codex
 
+> **Historical document (May 2026).** This narrative predates the accepted OpenSpec baseline. Accepted behaviour is in [`openspec/specs/`](../openspec/specs/); decisions and known gaps are in [`docs/openspec-baseline/`](openspec-baseline/runbook.md). In particular, the "stored user ID" authentication and "planned Keycloak" statements are outdated: browser and iOS use Keycloak (AUTH-01-AUTH-12, gap G001). Line numbers below refer to the source at the time of writing.
+
 ## Purpose
 
 This document describes:
 
 1. The verified current brownfield behavior implemented in the repository.
-2. The intended target behavior derived from [intent.md](/Users/carla/Documents/Partyhub/docs/intent.md).
+2. The intended target behavior derived from [intent.md](intent.md).
 3. The gap between current and target behavior.
 4. Open questions that remain unresolved and must not be assumed by Codex.
 
@@ -34,9 +36,9 @@ Technology context:
 
 This specification is based on:
 
-- Intent narrative: [intent.md](/Users/carla/Documents/Partyhub/docs/intent.md)
-- Quarkus backend resources and repositories under `/Users/carla/Documents/Partyhub/src/main/java`
-- Frontend pages and scripts under `/Users/carla/Documents/Partyhub/src/main/resources/META-INF/resources`
+- Intent narrative: [intent.md](intent.md)
+- Quarkus backend resources and repositories under `src/main/java`
+- Frontend pages and scripts under `src/main/resources/META-INF/resources`
 
 ## Functional Areas
 
@@ -53,9 +55,9 @@ This specification is based on:
 
 Relevant implementation:
 
-- [auth-service.js](/Users/carla/Documents/Partyhub/src/main/resources/META-INF/resources/auth-service.js:1)
-- [UserResource.java](/Users/carla/Documents/Partyhub/src/main/java/at/htl/user/UserResource.java:31)
-- [QrResource.java](/Users/carla/Documents/Partyhub/src/main/java/at/htl/qr/QrResource.java:26)
+- [auth-service.js](../src/main/resources/META-INF/resources/auth-service.js) (line 1 at the time of writing)
+- [UserResource.java](../src/main/java/at/htl/user/UserResource.java) (line 31 at the time of writing)
+- [QrResource.java](../src/main/java/at/htl/qr/QrResource.java) (line 26 at the time of writing)
 
 #### Gap / Target Behavior
 
@@ -89,11 +91,11 @@ Relevant implementation:
 
 Relevant implementation:
 
-- [PartyRepository.java](/Users/carla/Documents/Partyhub/src/main/java/at/htl/party/PartyRepository.java:59)
-- [PartyRepository.java](/Users/carla/Documents/Partyhub/src/main/java/at/htl/party/PartyRepository.java:441)
-- [index.js](/Users/carla/Documents/Partyhub/src/main/resources/META-INF/resources/index.js:344)
-- [index.js](/Users/carla/Documents/Partyhub/src/main/resources/META-INF/resources/index.js:395)
-- [PartyResource.java](/Users/carla/Documents/Partyhub/src/main/java/at/htl/party/PartyResource.java:261)
+- [PartyRepository.java](../src/main/java/at/htl/party/PartyRepository.java) (line 59 at the time of writing)
+- [PartyRepository.java](../src/main/java/at/htl/party/PartyRepository.java) (line 441 at the time of writing)
+- [index.js](../src/main/resources/META-INF/resources/index.js) (line 344 at the time of writing)
+- [index.js](../src/main/resources/META-INF/resources/index.js) (line 395 at the time of writing)
+- [PartyResource.java](../src/main/java/at/htl/party/PartyResource.java) (line 261 at the time of writing)
 
 #### Gap / Target Behavior
 
@@ -127,10 +129,10 @@ Relevant implementation:
 
 Relevant implementation:
 
-- [advancedPartyInfos.js](/Users/carla/Documents/Partyhub/src/main/resources/META-INF/resources/advancedPartyInfos/advancedPartyInfos.js:94)
-- [PartyRepository.java](/Users/carla/Documents/Partyhub/src/main/java/at/htl/party/PartyRepository.java:441)
-- [PartyRepository.java](/Users/carla/Documents/Partyhub/src/main/java/at/htl/party/PartyRepository.java:470)
-- [PartyRepository.java](/Users/carla/Documents/Partyhub/src/main/java/at/htl/party/PartyRepository.java:512)
+- [advancedPartyInfos.js](../src/main/resources/META-INF/resources/advancedPartyInfos/advancedPartyInfos.js) (line 94 at the time of writing)
+- [PartyRepository.java](../src/main/java/at/htl/party/PartyRepository.java) (line 441 at the time of writing)
+- [PartyRepository.java](../src/main/java/at/htl/party/PartyRepository.java) (line 470 at the time of writing)
+- [PartyRepository.java](../src/main/java/at/htl/party/PartyRepository.java) (line 512 at the time of writing)
 
 #### Gap / Target Behavior
 
@@ -156,10 +158,10 @@ Relevant implementation:
 
 Relevant implementation:
 
-- [PartyRepository.java](/Users/carla/Documents/Partyhub/src/main/java/at/htl/party/PartyRepository.java:555)
-- [PartyRepository.java](/Users/carla/Documents/Partyhub/src/main/java/at/htl/party/PartyRepository.java:595)
-- [InvitationRepository.java](/Users/carla/Documents/Partyhub/src/main/java/at/htl/invitation/InvitationRepository.java:109)
-- [InvitationResource.java](/Users/carla/Documents/Partyhub/src/main/java/at/htl/invitation/InvitationResource.java:11)
+- [PartyRepository.java](../src/main/java/at/htl/party/PartyRepository.java) (line 555 at the time of writing)
+- [PartyRepository.java](../src/main/java/at/htl/party/PartyRepository.java) (line 595 at the time of writing)
+- [InvitationRepository.java](../src/main/java/at/htl/invitation/InvitationRepository.java) (line 109 at the time of writing)
+- [InvitationResource.java](../src/main/java/at/htl/invitation/InvitationResource.java) (line 11 at the time of writing)
 
 #### Gap / Target Behavior
 
@@ -189,10 +191,10 @@ Relevant implementation:
 
 Relevant implementation:
 
-- [NotificationResource.java](/Users/carla/Documents/Partyhub/src/main/java/at/htl/notification/NotificationResource.java:20)
-- [notifications.js](/Users/carla/Documents/Partyhub/src/main/resources/META-INF/resources/notifications/notifications.js:1)
-- [FollowRepository.java](/Users/carla/Documents/Partyhub/src/main/java/at/htl/follow/FollowRepository.java:107)
-- [PartyRepository.java](/Users/carla/Documents/Partyhub/src/main/java/at/htl/party/PartyRepository.java:341)
+- [NotificationResource.java](../src/main/java/at/htl/notification/NotificationResource.java) (line 20 at the time of writing)
+- [notifications.js](../src/main/resources/META-INF/resources/notifications/notifications.js) (line 1 at the time of writing)
+- [FollowRepository.java](../src/main/java/at/htl/follow/FollowRepository.java) (line 107 at the time of writing)
+- [PartyRepository.java](../src/main/java/at/htl/party/PartyRepository.java) (line 341 at the time of writing)
 
 #### Gap / Target Behavior
 
@@ -216,9 +218,9 @@ Relevant implementation:
 
 Relevant implementation:
 
-- [UserResource.java](/Users/carla/Documents/Partyhub/src/main/java/at/htl/user/UserResource.java:295)
-- [FollowRepository.java](/Users/carla/Documents/Partyhub/src/main/java/at/htl/follow/FollowRepository.java:16)
-- [profile.js](/Users/carla/Documents/Partyhub/src/main/resources/META-INF/resources/profile/profile.js:1)
+- [UserResource.java](../src/main/java/at/htl/user/UserResource.java) (line 295 at the time of writing)
+- [FollowRepository.java](../src/main/java/at/htl/follow/FollowRepository.java) (line 16 at the time of writing)
+- [profile.js](../src/main/resources/META-INF/resources/profile/profile.js) (line 1 at the time of writing)
 
 #### Gap / Target Behavior
 
@@ -250,11 +252,11 @@ Relevant implementation:
 
 Relevant implementation:
 
-- [addParty.js](/Users/carla/Documents/Partyhub/src/main/resources/META-INF/resources/addParty/addParty.js:1)
-- [addParty.js](/Users/carla/Documents/Partyhub/src/main/resources/META-INF/resources/addParty/addParty.js:309)
-- [addParty.js](/Users/carla/Documents/Partyhub/src/main/resources/META-INF/resources/addParty/addParty.js:442)
-- [PartyResource.java](/Users/carla/Documents/Partyhub/src/main/java/at/htl/party/PartyResource.java:80)
-- [PartyCreateDto.java](/Users/carla/Documents/Partyhub/src/main/java/at/htl/party/PartyCreateDto.java:1)
+- [addParty.js](../src/main/resources/META-INF/resources/addParty/addParty.js) (line 1 at the time of writing)
+- [addParty.js](../src/main/resources/META-INF/resources/addParty/addParty.js) (line 309 at the time of writing)
+- [addParty.js](../src/main/resources/META-INF/resources/addParty/addParty.js) (line 442 at the time of writing)
+- [PartyResource.java](../src/main/java/at/htl/party/PartyResource.java) (line 80 at the time of writing)
+- [PartyCreateDto.java](../src/main/java/at/htl/party/PartyCreateDto.java) (line 1 at the time of writing)
 
 #### Gap / Target Behavior
 
@@ -278,10 +280,10 @@ Relevant implementation:
 
 Relevant implementation:
 
-- [addParty.js](/Users/carla/Documents/Partyhub/src/main/resources/META-INF/resources/addParty/addParty.js:507)
-- [PartyRepository.java](/Users/carla/Documents/Partyhub/src/main/java/at/htl/party/PartyRepository.java:136)
-- [PartyRepository.java](/Users/carla/Documents/Partyhub/src/main/java/at/htl/party/PartyRepository.java:120)
-- [PartyResource.java](/Users/carla/Documents/Partyhub/src/main/java/at/htl/party/PartyResource.java:229)
+- [addParty.js](../src/main/resources/META-INF/resources/addParty/addParty.js) (line 507 at the time of writing)
+- [PartyRepository.java](../src/main/java/at/htl/party/PartyRepository.java) (line 136 at the time of writing)
+- [PartyRepository.java](../src/main/java/at/htl/party/PartyRepository.java) (line 120 at the time of writing)
+- [PartyResource.java](../src/main/java/at/htl/party/PartyResource.java) (line 229 at the time of writing)
 
 #### Gap / Target Behavior
 
@@ -305,9 +307,9 @@ Relevant implementation:
 
 Relevant implementation:
 
-- [PartyResource.java](/Users/carla/Documents/Partyhub/src/main/java/at/htl/party/PartyResource.java:210)
-- [gallery.js](/Users/carla/Documents/Partyhub/src/main/resources/META-INF/resources/gallery/gallery.js:25)
-- [MediaRepository.java](/Users/carla/Documents/Partyhub/src/main/java/at/htl/media/MediaRepository.java:111)
+- [PartyResource.java](../src/main/java/at/htl/party/PartyResource.java) (line 210 at the time of writing)
+- [gallery.js](../src/main/resources/META-INF/resources/gallery/gallery.js) (line 25 at the time of writing)
+- [MediaRepository.java](../src/main/java/at/htl/media/MediaRepository.java) (line 111 at the time of writing)
 
 #### Gap / Target Behavior
 

@@ -1,5 +1,7 @@
 # Ich bin Partyhub-Verwenderin
 
+> **Produktintention (Erzählung).** Das akzeptierte, verbindliche Verhalten steht in [`openspec/specs/`](../openspec/specs/); diese Geschichte beschreibt die ursprüngliche Absicht.
+
 Ich bin Partyhub-Nutzerin.  
 Ich habe mir die App heruntergeladen, weil ich neue Partys entdecken und selbst Events organisieren möchte. Nach der Registrierung und Anmeldung lande ich direkt auf der Startseite. Diese besteht aus einer Karte, auf der alle Partys in meiner Umgebung angezeigt werden. Dadurch bekomme ich sofort einen guten Überblick, wo gerade etwas stattfindet.
 

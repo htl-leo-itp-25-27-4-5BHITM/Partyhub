@@ -1,5 +1,7 @@
 # Party Map Filter Implementation in Swift
 
+> **Historical implementation note.** The filter enum described here was replaced by separate time/fee/distance state in `PartyHubiOS/PartyHubiOS/Map/PartyMapFilter.swift`. Accepted iOS map-filter behaviour is PARTY-08-PARTY-11 in [`openspec/specs/party-discovery-and-management`](openspec/specs/party-discovery-and-management/spec.md) and RADIUS-01-RADIUS-03 in [`openspec/specs/map-radius-control`](openspec/specs/map-radius-control/spec.md).
+
 ## Files Created/Modified
 
 ### NEW FILES
