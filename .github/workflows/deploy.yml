@@ -9,6 +9,9 @@ on:
         description: 'Image tag to deploy (short commit SHA)'
         required: true
         type: string
+    secrets:
+      KUBE_CONFIG_DATA:
+        required: true
   workflow_dispatch:
     inputs:
       image-tag:

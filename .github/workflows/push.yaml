@@ -18,10 +18,19 @@ jobs:
     permissions:
       contents: read
       packages: write
+    outputs:
+      image-tag: ${{ steps.image-tag.outputs.tag }}
 
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
+        with:
+          # Build the commit that Test ran on, not the current branch head
+          ref: ${{ github.event.workflow_run.head_sha || github.sha }}
+
+      - name: Determine image tag
+        id: image-tag
+        run: echo "tag=$(git rev-parse --short=7 HEAD)" >> "$GITHUB_OUTPUT"
 
       - name: Set up JDK 21
         uses: actions/setup-java@v4
@@ -45,6 +54,8 @@ jobs:
         id: meta-backend
         uses: docker/metadata-action@v5
         with:
+          # Tag from the checked-out commit, not github.sha (the default branch head on workflow_run)
+          context: git
           images: ${{ env.REGISTRY }}/${{ env.BACKEND_IMAGE }}
           tags: |
             type=raw,value=latest
@@ -63,6 +74,8 @@ jobs:
         id: meta-keycloak
         uses: docker/metadata-action@v5
         with:
+          # Tag from the checked-out commit, not github.sha (the default branch head on workflow_run)
+          context: git
           images: ${{ env.REGISTRY }}/${{ env.KEYCLOAK_IMAGE }}
           tags: |
             type=raw,value=latest
@@ -76,3 +89,12 @@ jobs:
           push: true
           tags: ${{ steps.meta-keycloak.outputs.tags }}
           labels: ${{ steps.meta-keycloak.outputs.labels }}
+
+  # Only runs when build-and-push succeeded (skipped or failed builds skip it)
+  deploy:
+    needs: build-and-push
+    uses: ./.github/workflows/deploy.yml
+    with:
+      image-tag: ${{ needs.build-and-push.outputs.image-tag }}
+    secrets:
+      KUBE_CONFIG_DATA: ${{ secrets.KUBE_CONFIG_DATA }}
