@@ -2,7 +2,7 @@
 
 Foundation snapshot: repository revision `9487ccb90bb438e24b3cfab547a5dc900b11aecb`, inspected 2026-09-21. See [runbook](runbook.md), [inventory](inventory.md), [decisions](decisions.md), [gaps](gaps.md) and [handoff](handoff.md).
 
-The foundation snapshot indexed **37 accepted requirements and 106 scenarios** in the six durable specifications. After the accepted Steps 2-8 integrations and Group 9 QR exclusion review, the current main specs contain **52 accepted requirements and 274 scenarios**. Group 10 is at a proposal checkpoint: `document-extended-client-features` proposes 3 party requirements with 16 scenarios but has not been applied or synced, so those numbers are not yet accepted coverage. Acceptance records normative coverage; it does not assert implementation compliance, complete product scope or completion of Groups 10-12. Requirement titles and scenario labels below reproduce the current main specs exactly.
+The foundation snapshot indexed **37 accepted requirements and 106 scenarios** in the six durable specifications. After the accepted Steps 2-8 integrations, Group 9 QR exclusion review and Group 10 extended-client integration, the current main specs contain **55 accepted requirements and 290 scenarios**. `document-extended-client-features` is applied and synced with 3 added party requirements and 16 scenarios. Acceptance records normative coverage; it does not assert implementation compliance, complete product scope or completion of Groups 11-12. Requirement titles and scenario labels below reproduce the current main specs exactly.
 
 Platform scope below is a foundation classification grounded in the requirement text, archive context and source entry points. Where existing wording is ambiguous, its owner stage must reconcile it. In particular, browser auth does not establish the iOS auth contract, and iOS map controls are not automatically browser requirements.
 
@@ -12,11 +12,11 @@ Platform scope below is a foundation classification grounded in the requirement 
 |---|---:|---:|---|
 | [user-auth-and-identity](../../openspec/specs/user-auth-and-identity/spec.md) | 12 | 43 | 2 |
 | [social-and-notifications](../../openspec/specs/social-and-notifications/spec.md) | 11 | 82 | 3, 5, 7, 8 |
-| [party-discovery-and-management](../../openspec/specs/party-discovery-and-management/spec.md) | 16 | 97 | 4–6 |
+| [party-discovery-and-management](../../openspec/specs/party-discovery-and-management/spec.md) | 19 | 113 | 4–6, 10 |
 | [party-media-gallery](../../openspec/specs/party-media-gallery/spec.md) | 3 | 20 | 7 |
 | [map-radius-control](../../openspec/specs/map-radius-control/spec.md) | 3 | 10 | 6 (Purpose repair 12) |
 | [local-keycloak-environment](../../openspec/specs/local-keycloak-environment/spec.md) | 7 | 22 | 11 |
-| **Total** | **52** | **274** | **All assigned** |
+| **Total** | **55** | **290** | **All assigned** |
 
 ## Source and test evidence groups
 
@@ -130,7 +130,7 @@ Test evidence: service/repository tests cover isolated token helpers and resourc
 
 **Extended client location, visit and calendar surfaces.** [Extended-client evidence review](extended-client-features.md); [src/main/java/at/htl/user_location](../../src/main/java/at/htl/user_location); [UserResource.java](../../src/main/java/at/htl/user/UserResource.java); [PartyResource.java](../../src/main/java/at/htl/party/PartyResource.java); [PartyAttendeeMapView.swift](../../PartyHubiOS/PartyHubiOS/Map/PartyAttendeeMapView.swift); [UserLocationViewModel.swift](../../PartyHubiOS/PartyHubiOS/Map/UserLocationViewModel.swift); [GeoTimeTracking](../../PartyHubiOS/PartyHubiOS/GeoTimeTracking); [CalendarService.swift](../../PartyHubiOS/PartyHubiOS/CalendarService.swift); [PartyDetailView.swift](../../PartyHubiOS/PartyHubiOS/PartyView/PartyDetailView.swift); [Info.plist](../../PartyHubiOS/PartyHubiOS/Info.plist).
 
-Observed: accepted distance/radius features consume current location locally. Separate public location reads, authenticated location update and attendee clients expose server-shared positions without an accepted consent/freshness/Viewer contract. iOS starts background/geofence tracking broadly and stores visit intervals locally; calendar add/remove is reachable and stores a local event association. D022 classifies shared location as deferred and proposes local visit tracking/calendar export as optional iOS extensions through `document-extended-client-features`. G051-G056 preserve implementation, access, lifecycle and feedback differences.
+Observed: accepted distance/radius features consume current location locally. Separate public location reads, authenticated location update and attendee clients expose server-shared positions without an accepted consent/freshness/Viewer contract. iOS starts background/geofence tracking broadly and stores visit intervals locally; calendar add/remove is reachable and stores a local event association. D022/PARTY-17-PARTY-19 defer shared location and define local visit tracking/calendar export as optional iOS extensions through `document-extended-client-features`. G051-G056 preserve implementation, access, lifecycle and feedback differences.
 
 Test evidence: repository tests cover location persistence/joined-party selection and resource tests cover missing location/party rows only. No client permission, geofence, SwiftData, EventKit, private-party location, identity-ownership, freshness, revocation or cleanup scenario was identified or executed.
 
@@ -952,6 +952,61 @@ Scenarios (8):
 - [Query results are paged](../../openspec/specs/party-discovery-and-management/spec.md#scenario-query-results-are-paged)
 - [Browser and iOS narrow visible results](../../openspec/specs/party-discovery-and-management/spec.md#scenario-browser-and-ios-narrow-visible-results)
 
+#### PARTY-17
+
+**[Current device location remains private client context](../../openspec/specs/party-discovery-and-management/spec.md#requirement-current-device-location-remains-private-client-context)**
+
+- Platform scope: iOS local current-location input plus a shared backend/client exclusion for live user and attendee location publication.
+- Runbook owner: Group 10; unsupported route containment/status remains Step 11/Q014.
+- Source evidence: [E14](#e14), [extended-client review](extended-client-features.md), [access rows 28/55/56](access-matrix.md#access-matrix). Local distance/radius input exists, while the separate backend and attendee clients expose positions without the accepted consent, freshness or Viewer boundary.
+- Test evidence: Repository persistence/query and missing-row assertions do not establish device permission, private-party denial, ownership, freshness, revocation or cleanup. No runtime or device test was executed.
+- Accepted decision references: [D010](decisions.md), [D018](decisions.md), [D022](decisions.md). Follow-up gaps: [G051](gaps.md), [G052](gaps.md), [G053](gaps.md), [G054](gaps.md), [G055](gaps.md); exact transport remains [Q014](decisions.md).
+
+Scenarios (4):
+
+- [Current location supports distance filtering](../../openspec/specs/party-discovery-and-management/spec.md#scenario-current-location-supports-distance-filtering)
+- [Current location is unavailable](../../openspec/specs/party-discovery-and-management/spec.md#scenario-current-location-is-unavailable)
+- [Device enters a party region](../../openspec/specs/party-discovery-and-management/spec.md#scenario-device-enters-a-party-region)
+- [Caller requests a shared user or attendee location](../../openspec/specs/party-discovery-and-management/spec.md#scenario-caller-requests-a-shared-user-or-attendee-location)
+
+#### PARTY-18
+
+**[iOS visit tracking is an optional private local history](../../openspec/specs/party-discovery-and-management/spec.md#requirement-ios-visit-tracking-is-an-optional-private-local-history)**
+
+- Platform scope: Optional iOS-only local visit history; no browser parity, backend visit store or authoritative attendance effect.
+- Runbook owner: Group 10; platform/runtime verification remains Step 11.
+- Source evidence: [E14](#e14), [extended-client review](extended-client-features.md). CoreLocation geofences and SwiftData intervals exist, but startup monitoring, explicit enablement, eligibility, failure feedback and permission transitions do not conform completely.
+- Test evidence: No automated or device test was identified for permission changes, background delivery, duplicate/out-of-order events, geofence limits, local persistence or deletion. No runtime test was executed.
+- Accepted decision references: [D022](decisions.md). Follow-up gap: [G055](gaps.md).
+
+Scenarios (6):
+
+- [User enables visit tracking](../../openspec/specs/party-discovery-and-management/spec.md#scenario-user-enables-visit-tracking)
+- [User enters and exits a monitored party region](../../openspec/specs/party-discovery-and-management/spec.md#scenario-user-enters-and-exits-a-monitored-party-region)
+- [Region event is repeated or out of order](../../openspec/specs/party-discovery-and-management/spec.md#scenario-region-event-is-repeated-or-out-of-order)
+- [Permission or monitoring becomes unavailable](../../openspec/specs/party-discovery-and-management/spec.md#scenario-permission-or-monitoring-becomes-unavailable)
+- [User reviews or deletes visit history](../../openspec/specs/party-discovery-and-management/spec.md#scenario-user-reviews-or-deletes-visit-history)
+- [Local party data is removed](../../openspec/specs/party-discovery-and-management/spec.md#scenario-local-party-data-is-removed)
+
+#### PARTY-19
+
+**[iOS calendar export is an optional user-controlled snapshot](../../openspec/specs/party-discovery-and-management/spec.md#requirement-ios-calendar-export-is-an-optional-user-controlled-snapshot)**
+
+- Platform scope: Optional iOS party-detail integration with device-local EventKit state; no browser parity or automatic calendar-provider synchronization.
+- Runbook owner: Group 10; platform/runtime verification remains Step 11.
+- Source evidence: [E14](#e14), [extended-client review](extended-client-features.md). Add/remove and local event-ID mapping exist, while denial/failure feedback, stale-association recovery and edit/cancellation handling remain incomplete.
+- Test evidence: No EventKit, permission-transition, stale-mapping, duplicate, removal or device execution test was identified or run.
+- Accepted decision references: [D022](decisions.md). Follow-up gap: [G056](gaps.md).
+
+Scenarios (6):
+
+- [User exports a visible party](../../openspec/specs/party-discovery-and-management/spec.md#scenario-user-exports-a-visible-party)
+- [Calendar permission is denied or unavailable](../../openspec/specs/party-discovery-and-management/spec.md#scenario-calendar-permission-is-denied-or-unavailable)
+- [Exported event already exists](../../openspec/specs/party-discovery-and-management/spec.md#scenario-exported-event-already-exists)
+- [User removes the exported event through PartyHub](../../openspec/specs/party-discovery-and-management/spec.md#scenario-user-removes-the-exported-event-through-partyhub)
+- [Associated calendar event is missing or removal fails](../../openspec/specs/party-discovery-and-management/spec.md#scenario-associated-calendar-event-is-missing-or-removal-fails)
+- [Party changes after export](../../openspec/specs/party-discovery-and-management/spec.md#scenario-party-changes-after-export)
+
 ### party-media-gallery
 
 #### MEDIA-01
@@ -1195,24 +1250,24 @@ Accepted main-spec coverage is **48 requirements/235 scenarios**: media is 3/20 
 
 `document-notifications-and-preferences` is applied, synced and strict-valid with 8/8 tasks complete. Its [social delta](../../openspec/changes/document-notifications-and-preferences/specs/social-and-notifications/spec.md) expands SOC-03 from 4 to 10 scenarios and adds SOC-08-SOC-11 with 33 scenarios. The [evidence review and event-recipient-channel matrix](notifications-and-preferences.md) traces follow, invitation, attendance, party-change/cancellation, welcome and digest inputs through recipient, category and supported-channel rules.
 
-Accepted main-spec coverage is **52 requirements/274 scenarios**: social is 11/82. D020 resolves Q007 with typed recipient-scoped center state, same-user effective defaults, independent in-app/email and category gates, best-effort welcome/digest email behavior, delivery-failure isolation and honest unsupported push/SMS boundaries. G040-G045 retain storage, event-producer, preference, email, push/device-token and client discrepancies; physical retention/retry policy remains Q006/Step 11 and exact routes/status/envelopes remain Q014/Step 11.
+At the Group 8 checkpoint, accepted main-spec coverage was **52 requirements/274 scenarios** with social at 11/82. D020 resolves Q007 with typed recipient-scoped center state, same-user effective defaults, independent in-app/email and category gates, best-effort welcome/digest email behavior, delivery-failure isolation and honest unsupported push/SMS boundaries. G040-G045 retain storage, event-producer, preference, email, push/device-token and client discrepancies; physical retention/retry policy remains Q006/Step 11 and exact routes/status/envelopes remain Q014/Step 11.
 
 ## Step 9 QR login review
 
 [QR scope/evidence review](qr-login.md) compares all six backend endpoints, persisted token fields, browser generation/polling, iOS scanner/deep links, welcome links, tests and HTTPYac examples. D021 resolves Q001 by explicitly deferring QR login: neither the numeric-user payload nor the disconnected stored-token/custom-mobile-token path is an accepted credential, and protected identity continues to use AUTH-01-AUTH-12.
 
-No domain proposal or main-spec delta is required for this exclusion, so accepted coverage remains **52 requirements/274 scenarios**. All QR surfaces remain inventoried rather than disappearing from coverage. G007/G008/G046-G050 record generation/exchange disconnection, public identity/status exposure, custom credential defects, inactive/incompatible clients and incomplete lifecycle/test evidence. Exact endpoint retirement/status behavior and stored-row lifecycle remain Q014/Q006.
+No domain proposal or main-spec delta was required for this exclusion, so accepted coverage at the Group 9 checkpoint remained **52 requirements/274 scenarios**. All QR surfaces remain inventoried rather than disappearing from coverage. G007/G008/G046-G050 record generation/exchange disconnection, public identity/status exposure, custom credential defects, inactive/incompatible clients and incomplete lifecycle/test evidence. Exact endpoint retirement/status behavior and stored-row lifecycle remain Q014/Q006.
 
-## Step 10 extended client features proposal review
+## Step 10 extended client features review
 
-[Extended-client evidence](extended-client-features.md) classifies local current location for accepted iOS distance/radius behavior as retained, server user/attendee location sharing as deferred, and local visit tracking plus calendar export as optional iOS extensions. D022 resolves Q002 at scope level without changing core discovery, attendance or browser parity.
+[Extended-client evidence](extended-client-features.md) classifies local current location for accepted iOS distance/radius behavior as retained, server user/attendee location sharing as deferred, and local visit tracking plus calendar export as optional iOS extensions. D022/PARTY-17-PARTY-19 resolve Q002 without changing core discovery, attendance or browser parity.
 
-`document-extended-client-features` is strict-valid with proposal, design, one `party-discovery-and-management` delta and eight unchecked apply tasks. The delta proposes three added requirements with 16 scenarios covering local current-location privacy/shared-location exclusion, visit permission/interval/storage/failure behavior and calendar permission/snapshot/removal/failure behavior. Tasks 10.1-10.2 are complete as planning/evidence; 10.3 stays open until a separate apply task integrates the delta and completion records.
+`document-extended-client-features` is applied, synced and strict-valid with 8/8 tasks complete. PARTY-17-PARTY-19 add 16 scenarios covering local current-location privacy/shared-location exclusion, visit permission/interval/storage/failure behavior and calendar permission/snapshot/removal/failure behavior. Tasks 10.1-10.3 are complete.
 
-Accepted coverage remains **52 requirements/274 scenarios** at this checkpoint. After later apply and sync, the proposed total would be **55 requirements/290 scenarios**, including party at 19/113, subject to semantic review and strict validation during that task. G051-G056 record exposed location, identifier/storage, client, lifecycle, visit-permission and calendar gaps; exact unsupported-route transport remains Q014/Step 11.
+Accepted coverage is **55 requirements/290 scenarios**, including party at **19/113**. G051-G056 record exposed location, identifier/storage, client, lifecycle, visit-permission and calendar implementation gaps; exact unsupported-route transport remains Q014/Step 11.
 
 ## Coverage outside the existing baseline
 
-The 52 accepted requirements do not by themselves specify every discovered surface. QR login is deferred by D021, shared live location is deferred by D022, and retained optional visit/calendar behavior remains proposed rather than silently covered. Exact API validation/error contracts, physical storage retention, notification retry operations and deployment details remain assigned in [inventory.md](inventory.md) and [runbook.md](runbook.md), with scope/contract gaps in [gaps.md](gaps.md). Group 10 apply and Steps 11-12 add or reconcile coverage through their bounded workflows.
+The 55 accepted requirements do not by themselves specify every discovered surface. QR login is deferred by D021 and shared live location is deferred by D022/PARTY-17; optional visit/calendar behavior is covered by PARTY-18/PARTY-19. Exact API validation/error contracts, physical storage retention, notification retry operations and deployment details remain assigned in [inventory.md](inventory.md) and [runbook.md](runbook.md), with scope/contract gaps in [gaps.md](gaps.md). Steps 11-12 add or reconcile their remaining bounded coverage.
 
 Future domain updates should retain these identifiers or record a clear replacement mapping, add accepted requirement/scenario links after integration, state the exact observed implementation status, and identify the assertions and execution results supporting each coverage claim. Do not mark a domain complete solely because a proposal or test file exists.

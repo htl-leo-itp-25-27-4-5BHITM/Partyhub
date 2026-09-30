@@ -1,17 +1,17 @@
 # Extended client feature scope and evidence review
 
-Group 10 planning reviewed the extended location, visit/time-tracking and calendar surfaces on 2026-09-29 from repository commit `2aabedc7003e13e7f15408d3acf791b2796dcd12`. Application source remains the foundation snapshot from `9487ccb90bb438e24b3cfab547a5dc900b11aecb`. No application source, configuration, database, device data or deployed service was changed or exercised.
+Group 10 reviewed the extended location, visit/time-tracking and calendar surfaces on 2026-09-29 and integrated their accepted contracts on 2026-09-30 from proposal checkpoint `a487379115b6c8832f18d043475c774ae42d9742`. Application source remains the foundation snapshot from `9487ccb90bb438e24b3cfab547a5dc900b11aecb`. No application source, configuration, database, device data or deployed service was changed or exercised.
 
-Read this with the accepted [identity specification](../../openspec/specs/user-auth-and-identity/spec.md), [party specification](../../openspec/specs/party-discovery-and-management/spec.md), [radius specification](../../openspec/specs/map-radius-control/spec.md), [access matrix](access-matrix.md), [decisions](decisions.md), [gaps](gaps.md) and the proposed [extended-client child change](../../openspec/changes/document-extended-client-features/proposal.md).
+Read this with the accepted [identity specification](../../openspec/specs/user-auth-and-identity/spec.md), [party specification](../../openspec/specs/party-discovery-and-management/spec.md), [radius specification](../../openspec/specs/map-radius-control/spec.md), [access matrix](access-matrix.md), [decisions](decisions.md), [gaps](gaps.md) and the applied [extended-client child change](../../openspec/changes/document-extended-client-features/proposal.md).
 
 ## Scope classification
 
-| Surface | Classification | Accepted/proposed boundary |
+| Surface | Classification | Accepted boundary |
 |---|---|---|
 | iOS current device location for finite-distance filters and radius display | Retained existing behavior | PARTY-10/PARTY-11, RADIUS-01-RADIUS-03 and D018 already accept local current-location use with unavailable-location fallback. It does not publish a user position or establish attendance. |
-| Server-stored current-user location and attendee location maps/lists | Excluded/deferred | D022 proposes no accepted live-location sharing. Rows 28, 55 and 56 remain inventoried unsupported endpoints; future retention needs a separate consent, audience, freshness, revocation and retention proposal. |
-| iOS visit/time tracking | Optional retained extension | Proposed as explicit opt-in, permission-gated, device-local history. It is not server attendance, invitation acceptance, identity or location sharing. |
-| iOS calendar export | Optional retained extension | Proposed as a user-initiated device-calendar snapshot with local association/removal and no automatic PartyHub synchronization or server state effect. |
+| Server-stored current-user location and attendee location maps/lists | Excluded/deferred | D022/PARTY-17 accept no live-location sharing. Rows 28, 55 and 56 remain inventoried unsupported endpoints; future retention needs a separate consent, audience, freshness, revocation and retention proposal. |
+| iOS visit/time tracking | Optional retained extension | D022/PARTY-18 require explicit opt-in, permission-gated, device-local history. It is not server attendance, invitation acceptance, identity or location sharing. |
+| iOS calendar export | Optional retained extension | D022/PARTY-19 define a user-initiated device-calendar snapshot with local association/removal and no automatic PartyHub synchronization or server state effect. |
 | Browser location, visit tracking and calendar UI | Excluded from this extension | No inspected reachable browser counterpart establishes behavior, and iOS-only support does not imply UI parity. |
 
 This classification preserves D010: core party discovery works without live location. It also preserves the later accepted iOS distance/radius behavior, which consumes current location locally and is distinct from the deferred sharing surfaces.
@@ -48,16 +48,16 @@ The app creates one `LocationManager` during application setup, requests always-
 
 The source has no separate visit-tracking enable switch, does not limit monitoring to joined or explicitly selected parties, ignores local save failures, and only prints monitoring errors. Startup fetch/monitoring and the permission/configuration declarations were not executed. No automated iOS tests were found for permission changes, background delivery, duplicate/out-of-order region events, geofence limits, persistence, deletion or separation from backend attendance.
 
-The child proposal therefore retains this only as an optional iOS-local feature: explicit enablement and permission precede monitoring; one coherent interval exists per party; failures create no fabricated visit; local records are user-removable; local party cleanup owns their deletion; and no local event changes PartyHub attendance or sharing.
+PARTY-18 therefore retains this only as an optional iOS-local feature: explicit enablement and permission precede monitoring; one coherent interval exists per party; failures create no fabricated visit; local records are user-removable; local party cleanup owns their deletion; and no local event changes PartyHub attendance or sharing.
 
 ## Calendar lifecycle
 
 The reachable party-detail toolbar asks for full EventKit access on first add, creates an event from party title/location/notes/coordinates/times and a PartyHub deep link, stores a party-to-event identifier in `UserDefaults`, detects an existing event, and offers confirmed removal. It sends no calendar data to PartyHub.
 
-Observed limitations are separate from the proposed contract: denial and save/remove failures produce little or no user feedback; a missing start time is replaced by the current time even though accepted parties require a start; the local identifier can become stale after external deletion; party edits/cancellation do not update the exported event; and no calendar tests or device execution were found. D022 classifies export as an optional snapshot, not automatic synchronization. Add/remove failures leave PartyHub state unchanged, repeated add must not duplicate an existing associated event, stale associations must not delete another event, and updated parties require an explicit remove-and-export action.
+Observed limitations are separate from the accepted contract: denial and save/remove failures produce little or no user feedback; a missing start time is replaced by the current time even though accepted parties require a start; the local identifier can become stale after external deletion; party edits/cancellation do not update the exported event; and no calendar tests or device execution were found. D022/PARTY-19 classify export as an optional snapshot, not automatic synchronization. Add/remove failures leave PartyHub state unchanged, repeated add must not duplicate an existing associated event, stale associations must not delete another event, and updated parties require an explicit remove-and-export action.
 
-## Proposal checkpoint and test limits
+## Completed Group 10 and test limits
 
-`document-extended-client-features` proposes three added `party-discovery-and-management` requirements with 16 scenarios: private current-location context/shared-location exclusion, optional local visit tracking, and optional calendar snapshot export. Its planning artifacts are strict-valid with 0/8 child tasks complete. The main spec remains unchanged at this checkpoint, so accepted coverage remains 52 requirements/274 scenarios until a separate apply and sync task integrates the delta.
+`document-extended-client-features` is applied and synced with 8/8 tasks complete. PARTY-17 through PARTY-19 add 16 scenarios for private current-location context/shared-location exclusion, optional local visit tracking, and optional calendar snapshot export. The party spec is now 19 requirements/113 scenarios and accepted baseline coverage is 55 requirements/290 scenarios.
 
 No JUnit, HTTPYac, browser, iOS simulator/device, EventKit, CoreLocation, database or deployment test was run. Group 10 application behavior remains unverified, and no source/configuration/data change is authorized by this review.

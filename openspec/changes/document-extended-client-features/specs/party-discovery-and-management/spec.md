@@ -3,7 +3,7 @@
 ## ADDED Requirements
 
 ### Requirement: Current device location remains private client context
-The iOS client MAY use the current device location as a local input to accepted distance filtering, radius presentation, and optional visit detection only after the relevant platform permission is available. The accepted PartyHub baseline SHALL NOT upload, persist, or expose a user's current coordinates or an attendee-location roster, and a location observation SHALL NOT create attendance, invitation, visibility, or host authority.
+When the iOS client uses the current device location as a local input to accepted distance filtering, radius presentation, or optional visit detection, it SHALL do so only after the relevant platform permission is available. The accepted PartyHub baseline SHALL NOT upload, persist, or expose a user's current coordinates or an attendee-location roster, and a location observation SHALL NOT create attendance, invitation, visibility, or host authority.
 
 #### Scenario: Current location supports distance filtering
 - **WHEN** the iOS client has location permission and evaluates an accepted finite-distance map filter
@@ -16,8 +16,8 @@ The iOS client MAY use the current device location as a local input to accepted 
 - **AND** core party discovery, party details, and attendance actions SHALL remain usable without publishing location
 
 #### Scenario: Device enters a party region
-- **WHEN** the client observes that the device is inside a party region
-- **THEN** that observation MAY drive an enabled local visit record
+- **WHEN** an enabled local visit feature observes that the device is inside a party region
+- **THEN** the client SHALL treat that observation only as input to a local visit record
 - **AND** it SHALL NOT join the user to the party, accept an invitation, or prove server-side attendance
 
 #### Scenario: Caller requests a shared user or attendee location
@@ -26,11 +26,11 @@ The iOS client MAY use the current device location as a local input to accepted 
 - **AND** a private party's existence, membership, or location data SHALL NOT be disclosed through that surface
 
 ### Requirement: iOS visit tracking is an optional private local history
-The iOS client MAY offer visit/time tracking as an optional feature that the user explicitly enables with the required location permission. Visit intervals SHALL be stored only in that user's local application data, SHALL remain separate from authoritative PartyHub attendance, and SHALL be removable by the user. Disabling the feature, losing permission, or failing to determine location SHALL stop new tracking without changing server state.
+If the iOS client offers visit/time tracking, it SHALL require the user to enable the feature explicitly with the required location permission. Visit intervals SHALL be stored only in that user's local application data, SHALL remain separate from authoritative PartyHub attendance, and SHALL be removable by the user. Disabling the feature, losing permission, or failing to determine location SHALL stop new tracking without changing server state.
 
 #### Scenario: User enables visit tracking
 - **WHEN** an iOS user explicitly enables visit tracking and grants the required location permission
-- **THEN** the client MAY monitor eligible locally available party regions for that user
+- **THEN** any monitoring the client starts SHALL be limited to eligible locally available party regions for that user
 - **AND** it SHALL explain that the resulting history is device local and is not PartyHub attendance
 
 #### Scenario: User enters and exits a monitored party region
@@ -56,7 +56,7 @@ The iOS client MAY offer visit/time tracking as an optional feature that the use
 - **AND** it SHALL NOT interpret that local cleanup as a server attendance transition
 
 ### Requirement: iOS calendar export is an optional user-controlled snapshot
-The iOS client MAY let a viewer export a visible party to a device calendar as a user-initiated snapshot. Calendar access SHALL be requested in context, the event SHALL use the visible party's stored title, start time, stored end time or a documented bounded default duration when no end time exists, location, and PartyHub link, and the local event association SHALL remain on the device. Calendar denial or failure SHALL NOT change PartyHub party, invitation, attendance, notification, or visibility state.
+If the iOS client offers calendar export, it SHALL let a viewer export a visible party to a device calendar only as a user-initiated snapshot. Calendar access SHALL be requested in context, the event SHALL use the visible party's stored title, start time, stored end time or a documented bounded default duration when no end time exists, location, and PartyHub link, and the local event association SHALL remain on the device. Calendar denial or failure SHALL NOT change PartyHub party, invitation, attendance, notification, or visibility state.
 
 #### Scenario: User exports a visible party
 - **WHEN** an iOS user viewing an authorized party chooses to add it to their calendar and grants calendar access

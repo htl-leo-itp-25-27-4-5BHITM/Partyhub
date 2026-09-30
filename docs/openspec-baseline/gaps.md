@@ -1,6 +1,6 @@
 # Initial implementation and documentation gaps
 
-Foundation snapshot: `9487ccb90bb438e24b3cfab547a5dc900b11aecb`, 2026-09-21; Step 2 refinement on 2026-09-23, Steps 3-6 integration on 2026-09-25, Group 7 integration on 2026-09-28, Groups 8-9 integration and the Group 10 proposal checkpoint on 2026-09-29 with application source unchanged. These are source/configuration observations and specification/documentation conflicts. None is a runtime reproduction. Priorities are initial triage for later work: high = access/identity/privacy boundary, medium = behavior/compatibility, low = editorial/evidence hygiene. This register is not a complete security audit or a finding about a live deployment.
+Foundation snapshot: `9487ccb90bb438e24b3cfab547a5dc900b11aecb`, 2026-09-21; Step 2 refinement on 2026-09-23, Steps 3-6 integration on 2026-09-25, Group 7 integration on 2026-09-28, Groups 8-9 integration on 2026-09-29 and Group 10 integration on 2026-09-30 with application source unchanged. These are source/configuration observations and specification/documentation conflicts. None is a runtime reproduction. Priorities are initial triage for later work: high = access/identity/privacy boundary, medium = behavior/compatibility, low = editorial/evidence hygiene. This register is not a complete security audit or a finding about a live deployment.
 
 Java paths below start at `src/main/java/at/htl/`; browser paths at `src/main/resources/META-INF/resources/`; Swift paths at `PartyHubiOS/PartyHubiOS/`. Complete surface ownership is in [inventory.md](inventory.md); requirement anchors are in [coverage.md](coverage.md).
 
@@ -64,8 +64,8 @@ Java paths below start at `src/main/java/at/htl/`; browser paths at `src/main/re
 
 - **Expected:** D007/D017 and PARTY-14 establish private-party access and invitation/attendance viewer boundaries: pending invitations and current joined membership qualify, while declined/withdrawn invitations do not. D008 has profile-specific wording and D009 establishes gallery-viewer boundaries.
 - **Observed:** Step 2 traced [access rows 14,20-29,55-57](access-matrix.md#access-matrix). Legacy title/theme/date filters and sorting (`PartyRepository:411-445`) omit the visibility predicate used by default/new-filter paths. `attendParty:566` and `attendStatus:643` do not check visibility. Party media/location and user-media reads have no caller-based predicates. User-location update looks up an independently generated location entity ID using the caller user ID without checking its linked user (`UserResource:406`, `UserLocation`), so same-user ownership cannot be assumed from caller resolution alone.
-- **Disposition:** Missing checks confirmed in inspected source paths; runtime responses, data population and exploitability not exercised. D016/PARTY-04 require branch-consistent party list/detail visibility, and D017/PARTY-07/PARTY-14 now require private join/status/projection checks. Media and location remain later owners. Location retained/privacy policy still Q002/Q006. **Priority:** high. **Owner:** bounded list/detail and invitation/attendance implementation, then Steps 6-7 and 10 owners.
-- **Next action:** Implement pending-invitation private join and actor-scoped projection checks in a separate application change. Preserve D007/D009/D016/D017 while later groups specify admission, viewer uploads and location consent.
+- **Disposition:** Missing checks confirmed in inspected source paths; runtime responses, data population and exploitability not exercised. D016/PARTY-04 require branch-consistent party list/detail visibility, D017/PARTY-07/PARTY-14 require private join/status/projection checks, and D022/PARTY-17 exclude shared user/attendee location. **Priority:** high. **Owner:** bounded list/detail, invitation/attendance, media and unsupported-location containment implementations; exact route behavior Step 11/Q014.
+- **Next action:** Implement pending-invitation private join and actor-scoped projection checks in a separate application change. Preserve D007/D009/D016/D017/D022 while containing unsupported location reads and deferring any shared-location consent model to a separate proposal.
 
 ## G010 Map requirements have implicit platform scope
 
@@ -112,9 +112,9 @@ Java paths below start at `src/main/java/at/htl/`; browser paths at `src/main/re
 ## G016 Discovered capabilities lack complete durable contracts
 
 - **Expected:** Every retained product surface is eventually specified or explicitly excluded with a reason.
-- **Observed:** AUTH-10-AUTH-12, SOC-01-SOC-11, PARTY-01-PARTY-16, MEDIA-01-MEDIA-03 and RADIUS-01-RADIUS-03 now cover the bounded identity, profile/social, party, media, map and notification contracts. D021 explicitly defers QR login rather than leaving it silently uncovered. Durable coverage remains incomplete for extended locations/calendar/time tracking, exact API/runtime behavior, and physical storage/notification/legacy-QR retention and retry operations. Inventory ownership does not prove requirement completeness.
-- **Disposition:** Remaining specification coverage gaps have assigned steps and do not authorize feature implementation. **Priority:** medium. **Owner:** Steps 10-11 as assigned in inventory.
-- **Next action:** Complete the remaining bounded domain reviews and deltas; use Q002/Q006/Q011-Q014 where target behavior is not already decided.
+- **Observed:** AUTH-10-AUTH-12, SOC-01-SOC-11, PARTY-01-PARTY-19, MEDIA-01-MEDIA-03 and RADIUS-01-RADIUS-03 now cover the bounded identity, profile/social, party, media, map, notification and extended-client contracts. D021 explicitly defers QR login and D022/PARTY-17 defer shared location rather than leaving either silently uncovered. Durable coverage remains incomplete for exact API/runtime behavior and physical storage/notification/legacy-QR retention and retry operations. Inventory ownership does not prove requirement completeness.
+- **Disposition:** Remaining specification coverage gaps have assigned steps and do not authorize feature implementation. **Priority:** medium. **Owner:** Step 11 as assigned in inventory.
+- **Next action:** Complete the remaining bounded runtime/API review and deltas; use Q006/Q011-Q014 where target behavior is not already decided.
 
 ## G017 Mutual-contact enforcement is not evident in private-party invite creation
 
@@ -356,42 +356,42 @@ Java paths below start at `src/main/java/at/htl/`; browser paths at `src/main/re
 
 ## G051 Shared user and attendee locations are publicly readable without a Viewer boundary
 
-- **Expected:** D007/D017 protect private-party context, and D022 defers shared current/attendee locations entirely. Neither joined attendance nor a numeric path value grants consent to publish current coordinates.
+- **Expected:** D007/D017 protect private-party context, and D022/PARTY-17 defer shared current/attendee locations entirely. Neither joined attendance nor a numeric path value grants consent to publish current coordinates.
 - **Observed:** `GET /api/users/location/{id}` is open and loads a `UserLocation` entity directly. `GET /api/parties/{id}/locations` is open, checks only party existence and returns stored positions for joined users without caller, Viewer, private-party, per-user sharing or consent checks.
 - **Disposition:** Access/privacy mismatch on unsupported endpoints; no route was executed. **Priority:** high. **Owner:** bounded endpoint containment/removal; exact status/migration Step 11/Q014.
 - **Next action:** Prevent unsupported location reads from exposing coordinates or private-party context, preserve the routes in inventory until compatibility is decided, and test anonymous/authenticated/private-party denial during the later implementation change.
 
 ## G052 User-location identity and storage keys are inconsistent
 
-- **Expected:** D001 requires caller-derived identity for protected actions, while D022 accepts no server location-sharing mutation. Any future same-user location storage would need an unambiguous caller-owned row.
+- **Expected:** D001 requires caller-derived identity for protected actions, while D022/PARTY-17 accept no server location-sharing mutation. Any future same-user location storage would need an unambiguous caller-owned row.
 - **Observed:** Authenticated `PUT /api/users/location` resolves the caller but uses `em.find(UserLocation.class, userId)`, treating the user ID as the independently generated location entity ID. An existing row is mutated without checking `existingLocation.user.id`; otherwise another row is inserted. Public `GET /api/users/location/{id}` uses the same primary-key meaning despite its user-oriented path name.
 - **Disposition:** Ownership and identifier mismatch on a deferred surface; database constraints and runtime effects were not exercised. **Priority:** high. **Owner:** endpoint containment or future approved location redesign; persistence/API Step 11.
 - **Next action:** Do not infer safe same-user behavior from authentication. Remove/disable the unsupported mutation or use an explicitly designed unique caller-owned mapping only after shared location is approved.
 
 ## G053 iOS attendee-location clients use stale identity and unauthenticated projections
 
-- **Expected:** D001/D014 require the bearer-backed PartyHub user, D007/D017 protect private-party and host-only projections, and D022 makes attendee location unsupported.
+- **Expected:** D001/D014 require the bearer-backed PartyHub user, D007/D017 protect private-party and host-only projections, and D022/PARTY-17 make attendee location unsupported.
 - **Observed:** `PartyAttendeeMapView` and `UserLocationListView` use hard-coded current user ID `1` in self/filter branches, perform raw unauthenticated location, following and invited-member requests, and synthesize a current-user marker. Location upload is attempted only when a legacy `UserDefaults.currentUserId` exists, even though the method's `userId` argument is unused and the request itself uses a bearer token. Accepted/pending filter cases return empty arrays.
 - **Disposition:** Client identity/access/behavior mismatch on a deferred feature; no iOS flow was run. **Priority:** high. **Owner:** bounded removal/containment or a future shared-location client proposal.
 - **Next action:** Remove or disable unsupported attendee-location affordances without weakening accepted party details, or replace every identity/projection path only after an approved consent and Viewer contract exists.
 
 ## G054 Shared location data has no consent, freshness, revocation or retention state
 
-- **Expected:** D022 requires a separate future proposal before shared location can be retained; it must define consent, audience, precision, freshness, revocation, deletion/retention and private-party behavior.
+- **Expected:** D022/PARTY-17 require a separate future proposal before shared location can be retained; it must define consent, audience, precision, freshness, revocation, deletion/retention and private-party behavior.
 - **Observed:** `UserLocation` stores latitude, longitude and a user relationship only. There is no sharing state, observed/update time, precision, expiry, revocation, purpose, cleanup or account/party lifecycle policy. Repository tests assert persistence and joined-party selection but not those boundaries.
 - **Disposition:** Data-model/lifecycle gap for an excluded/deferred feature. **Priority:** high before any activation. **Owner:** future product proposal plus Step 11 persistence/privacy review.
 - **Next action:** Keep server location sharing unsupported and contain current routes/data. Do not add lifecycle fields or retention assumptions until a separately approved design defines the feature.
 
 ## G055 iOS visit tracking starts broadly and lacks accepted permission/failure transitions
 
-- **Expected:** Proposed D022 and the child visit requirement make tracking optional, explicitly enabled, permission-gated, device-local, idempotent and separate from attendance; denial/failure stops new records without fabricated visits.
+- **Expected:** D022/PARTY-18 make tracking optional, explicitly enabled, permission-gated, device-local, idempotent and separate from attendance; denial/failure stops new records without fabricated visits.
 - **Observed:** App setup requests always-location permission and registers geofences for every fetched local party without a separate tracking opt-in or attendance eligibility. Region entry/exit writes SwiftData visits, save failures are ignored, monitoring failures are printed only, and local party deletion cascades visit records. Permission changes, duplicate/out-of-order events, region limits, background delivery and persistence have no identified automated tests.
-- **Disposition:** Source/permission/lifecycle mismatch against a proposed requirement; it is not accepted until child apply/sync. **Priority:** high for consent, medium for behavior. **Owner:** Group 10 child integration then bounded iOS implementation; platform/runtime verification Step 11.
-- **Next action:** After accepting the child contract, add explicit enable/disable and permission transitions, restrict eligible monitoring, make interval transitions coherent, surface failures and test local deletion without sending attendance or location to the backend.
+- **Disposition:** Source/permission/lifecycle mismatch against an accepted requirement. **Priority:** high for consent, medium for behavior. **Owner:** bounded iOS implementation; platform/runtime verification Step 11.
+- **Next action:** Add explicit enable/disable and permission transitions, restrict eligible monitoring, make interval transitions coherent, surface failures and test local deletion without sending attendance or location to the backend.
 
 ## G056 Calendar export feedback and snapshot lifecycle are incomplete
 
-- **Expected:** Proposed D022 and the child calendar requirement define a user-initiated local snapshot, contextual permission, no duplicate associated event, safe removal/stale-association recovery and failure isolation from PartyHub state.
+- **Expected:** D022/PARTY-19 define a user-initiated local snapshot, contextual permission, no duplicate associated event, safe removal/stale-association recovery and failure isolation from PartyHub state.
 - **Observed:** Party details expose add/remove and `CalendarService` stores event IDs locally, but denied/save/remove failures mostly reset or leave UI state without actionable feedback. A missing party start is replaced with the current time, stale mappings are not proactively cleared by `hasEvent`, and party edit/cancellation does not update the event. No EventKit or device test was identified.
-- **Disposition:** Client feedback/data-mapping mismatch against a proposed requirement; automatic synchronization is intentionally not promised. **Priority:** medium. **Owner:** Group 10 child integration then bounded iOS implementation/testing.
-- **Next action:** After accepting the child contract, use valid stored party fields, report permission/save/remove failures, prevent duplicate mappings, clear stale associations safely and label export as a snapshot requiring explicit remove-and-export after changes.
+- **Disposition:** Client feedback/data-mapping mismatch against an accepted requirement; automatic synchronization is intentionally not promised. **Priority:** medium. **Owner:** bounded iOS implementation/testing.
+- **Next action:** Use valid stored party fields, report permission/save/remove failures, prevent duplicate mappings, clear stale associations safely and label export as a snapshot requiring explicit remove-and-export after changes.
