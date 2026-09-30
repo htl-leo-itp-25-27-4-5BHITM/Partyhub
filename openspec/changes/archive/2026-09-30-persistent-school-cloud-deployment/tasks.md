@@ -31,7 +31,7 @@
 
 ## 5. Cut-over and integration check
 
-- [ ] 5.1 Before merging: take `pg_dump -U demo demo` from the cloud Postgres pod and store it off-cluster, outside the repo. Verify that the dump file is not empty and contains `CREATE TABLE public.party`
+- [x] 5.1 Before merging: take `pg_dump -U demo demo` from the cloud Postgres pod and store it off-cluster, outside the repo. Verify that the dump file is not empty and contains `CREATE TABLE public.party`. *Done 2026-09-30 09:54:* `~/partyhub-backups/demo-before-b01.sql`, 265K, `grep -c "CREATE TABLE public.party "` = 1
 - [ ] 5.2 After merging: confirm the pipeline ran Test, then Build and Push, then deploy. Both rollouts complete, Flyway logged the baseline and V2, the `keycloak` database exists, and a demo user from `realm-staging.json` can log in at `https://it220274.cloud.htl-leonding.ac.at`
 - [ ] 5.3 Verify the DEPLOY scenarios on the cloud: record the row counts for users, party, invitation, party_user, follow and notification, register a Keycloak user and upload a profile picture. Push a trivial commit and confirm after the rollout that the counts, the Keycloak user and the picture are unchanged
 - [ ] 5.4 Drop the old Keycloak tables from `demo.public`, using the reviewed list built from the `keycloak` database's table names. Verify that `\dt` in `demo` lists only PartyHub tables and `flyway_schema_history`, and that the app and login still work
