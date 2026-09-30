@@ -60,7 +60,7 @@ The current iOS source already resets finite state when location is absent and d
 
 ## Integrated child change and coverage
 
-The [proposal](../../openspec/changes/document-discovery-and-maps/proposal.md), [design](../../openspec/changes/document-discovery-and-maps/design.md), [party delta](../../openspec/changes/document-discovery-and-maps/specs/party-discovery-and-management/spec.md), [radius delta](../../openspec/changes/document-discovery-and-maps/specs/map-radius-control/spec.md), and [tasks](../../openspec/changes/document-discovery-and-maps/tasks.md) are applied, synced and complete.
+The [proposal](../../openspec/changes/archive/2026-09-30-document-discovery-and-maps/proposal.md), [design](../../openspec/changes/archive/2026-09-30-document-discovery-and-maps/design.md), [party delta](../../openspec/changes/archive/2026-09-30-document-discovery-and-maps/specs/party-discovery-and-management/spec.md), [radius delta](../../openspec/changes/archive/2026-09-30-document-discovery-and-maps/specs/map-radius-control/spec.md), and [tasks](../../openspec/changes/archive/2026-09-30-document-discovery-and-maps/tasks.md) are applied, synced and complete.
 
 - PARTY-16 adds 8 scenarios for visibility-first query composition, search, time/metadata validation, deterministic pagination, and client responsibility.
 - PARTY-08/PARTY-09 retain 5/4 scenarios with explicit iOS scope and synchronized reset/result behavior.

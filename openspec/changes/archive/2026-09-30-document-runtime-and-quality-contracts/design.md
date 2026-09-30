@@ -2,12 +2,12 @@
 
 ## Context
 
-Group 11 of [complete-partyhub-specification](../complete-partyhub-specification/design.md) reconciles runtime, persistence, API compatibility and quality evidence after the domain contracts of Groups 2-10. Source was inspected at `3a3f6ed` on 2026-09-30; application source, configuration, manifests and workflows are unchanged since the foundation snapshot `9487ccb`. Evidence is recorded in:
+Group 11 of [complete-partyhub-specification](../2026-09-30-complete-partyhub-specification/design.md) reconciles runtime, persistence, API compatibility and quality evidence after the domain contracts of Groups 2-10. Source was inspected at `3a3f6ed` on 2026-09-30; application source, configuration, manifests and workflows are unchanged since the foundation snapshot `9487ccb`. Evidence is recorded in:
 
-- [runtime-environments.md](../../../docs/openspec-baseline/runtime-environments.md) — local Compose, CI and Kubernetes declarations, realm inputs, bypass and ports.
-- [data-lifecycle.md](../../../docs/openspec-baseline/data-lifecycle.md) — schema management, seeding/reset, uploads, profile pictures and notification cleanup.
-- [api-contract-matrix.md](../../../docs/openspec-baseline/api-contract-matrix.md) — all 58 endpoints, client calls, README/OpenAPI claims, statuses and validation.
-- [quality-evidence.md](../../../docs/openspec-baseline/quality-evidence.md) — accepted quality authority, JUnit/HTTPYac/CI map and open quality decisions.
+- [runtime-environments.md](../../../../docs/openspec-baseline/runtime-environments.md) — local Compose, CI and Kubernetes declarations, realm inputs, bypass and ports.
+- [data-lifecycle.md](../../../../docs/openspec-baseline/data-lifecycle.md) — schema management, seeding/reset, uploads, profile pictures and notification cleanup.
+- [api-contract-matrix.md](../../../../docs/openspec-baseline/api-contract-matrix.md) — all 58 endpoints, client calls, README/OpenAPI claims, statuses and validation.
+- [quality-evidence.md](../../../../docs/openspec-baseline/quality-evidence.md) — accepted quality authority, JUnit/HTTPYac/CI map and open quality decisions.
 
 ## Goals / Non-Goals
 

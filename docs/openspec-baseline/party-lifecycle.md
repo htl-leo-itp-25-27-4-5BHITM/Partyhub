@@ -1,6 +1,6 @@
 # Party lifecycle evidence and contract
 
-Group 4 review and integration, 2026-09-25, against application-source snapshot `9487ccb90bb438e24b3cfab547a5dc900b11aecb`, applied from proposal checkpoint `e9df2e767547855aef15f6dcf9a63a1f813c579e`. This document separates accepted D001/D007-D008/D016 behavior from source observations. The [document-party-lifecycle proposal](../../openspec/changes/document-party-lifecycle/proposal.md) is applied and synced without application changes. No application, API, browser, iOS, database, or runtime test was executed.
+Group 4 review and integration, 2026-09-25, against application-source snapshot `9487ccb90bb438e24b3cfab547a5dc900b11aecb`, applied from proposal checkpoint `e9df2e767547855aef15f6dcf9a63a1f813c579e`. This document separates accepted D001/D007-D008/D016 behavior from source observations. The [document-party-lifecycle proposal](../../openspec/changes/archive/2026-09-30-document-party-lifecycle/proposal.md) is applied and synced without application changes. No application, API, browser, iOS, database, or runtime test was executed.
 
 ## Scope and stable boundaries
 
@@ -67,4 +67,4 @@ The accepted client rule defines common API behavior without requiring identical
 
 ## Integration result
 
-The [proposal](../../openspec/changes/document-party-lifecycle/proposal.md), [design](../../openspec/changes/document-party-lifecycle/design.md), [delta](../../openspec/changes/document-party-lifecycle/specs/party-discovery-and-management/spec.md), and [tasks](../../openspec/changes/document-party-lifecycle/tasks.md) are applied and synced with **7/7 tasks complete**. The main spec now contains **13 requirements/60 scenarios**: PARTY-03 through PARTY-05 are updated, PARTY-12 defines atomic lifecycle validation, and PARTY-13 defines shared client/API behavior. The full accepted baseline is **44/172**.
+The [proposal](../../openspec/changes/archive/2026-09-30-document-party-lifecycle/proposal.md), [design](../../openspec/changes/archive/2026-09-30-document-party-lifecycle/design.md), [delta](../../openspec/changes/archive/2026-09-30-document-party-lifecycle/specs/party-discovery-and-management/spec.md), and [tasks](../../openspec/changes/archive/2026-09-30-document-party-lifecycle/tasks.md) are applied and synced with **7/7 tasks complete**. The main spec now contains **13 requirements/60 scenarios**: PARTY-03 through PARTY-05 are updated, PARTY-12 defines atomic lifecycle validation, and PARTY-13 defines shared client/API behavior. The full accepted baseline is **44/172**.

@@ -2,7 +2,7 @@
 
 Group 7 review and integration, 2026-09-28, against application-source snapshot `9487ccb90bb438e24b3cfab547a5dc900b11aecb`, started from repository checkpoint `2870e2c9d996b5f3bd7940e9cca7909ef220078f`. This is documentation and specification evidence only. No application, API, browser, iOS, database, deployment or runtime test was executed.
 
-Read this with [coverage](coverage.md), [access matrix](access-matrix.md), [decisions](decisions.md), [gaps](gaps.md), the accepted [media spec](../../openspec/specs/party-media-gallery/spec.md), the accepted [social spec](../../openspec/specs/social-and-notifications/spec.md), and the applied [media/profile change](../../openspec/changes/document-media-and-profile-pictures/proposal.md). The child is synced and complete with 9/9 tasks; accepted main-spec coverage at the Group 7 checkpoint was 48 requirements/235 scenarios.
+Read this with [coverage](coverage.md), [access matrix](access-matrix.md), [decisions](decisions.md), [gaps](gaps.md), the accepted [media spec](../../openspec/specs/party-media-gallery/spec.md), the accepted [social spec](../../openspec/specs/social-and-notifications/spec.md), and the applied [media/profile change](../../openspec/changes/archive/2026-09-30-document-media-and-profile-pictures/proposal.md). The child is synced and complete with 9/9 tasks; accepted main-spec coverage at the Group 7 checkpoint was 48 requirements/235 scenarios.
 
 ## Source evidence
 

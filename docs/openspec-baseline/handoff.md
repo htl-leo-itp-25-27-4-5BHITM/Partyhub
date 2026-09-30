@@ -2,8 +2,8 @@
 
 ## Status
 
-- Umbrella `complete-partyhub-specification`: **46/46 items complete**, all twelve groups done. It is archive-ready but **not archived**.
-- Ten child changes are applied and synced, all tasks complete, none archived: authentication, profiles/social, party lifecycle, invitations/attendance, discovery/maps, media/profile pictures, notifications/preferences, extended client features, runtime/quality contracts, acceptance decisions.
+- Umbrella `complete-partyhub-specification`: **46/46 items complete**, all twelve groups done. **Archived on 2026-09-30** to `openspec/changes/archive/2026-09-30-complete-partyhub-specification/`.
+- Ten child changes are applied, synced and **archived** (`openspec/changes/archive/2026-09-30-document-*`), all tasks complete: authentication, profiles/social, party lifecycle, invitations/attendance, discovery/maps, media/profile pictures, notifications/preferences, extended client features, runtime/quality contracts, acceptance decisions.
 - Accepted baseline: **7 capabilities, 61 requirements, 313 scenarios**. AUTH 12/45, SOC 11/82, PARTY 19/113, MEDIA 3/20, RADIUS 3/10, ENV 11/35, DEPLOY 2/8.
 - Device and revisions: second device (`/Users/carla/Documents/PartyHub`). Group 11 commits `4c55180`/`76972ed`; Group 12 proposal `ce2e0b1` plus the completion commit. Application source, configuration, manifests, workflows and scripts are unchanged since `9487ccb`. Group 12 edited documentation only: README, narrative docs, specs and records.
 
@@ -32,5 +32,5 @@ No application, JUnit, HTTPYac, browser, iOS, Keycloak, database, CI or deployme
 
 ## Next steps
 
-1. Optional: archive the umbrella and child changes with `/opsx:archive` (standard workflow; the main specs are already synced).
+1. Done: all 11 changes archived on 2026-09-30; links in the records now point to the archived paths.
 2. Start implementation with `/opsx:propose` for backlog B01 (persistent school-cloud deployment), then B02/B03 (bypass removal plus real-token tests).

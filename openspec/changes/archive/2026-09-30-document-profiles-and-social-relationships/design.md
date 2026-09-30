@@ -2,7 +2,7 @@
 
 ## Context
 
-See [proposal.md](proposal.md) for motivation and [profiles-and-social.md](../../../docs/openspec-baseline/profiles-and-social.md) for source evidence. The existing capability combines social relationships, private-invite eligibility, notifications and profile discovery. This change modifies only the profile/social portions while preserving SOC-02 private-invite semantics and SOC-03 notification-center semantics.
+See [proposal.md](proposal.md) for motivation and [profiles-and-social.md](../../../../docs/openspec-baseline/profiles-and-social.md) for source evidence. The existing capability combines social relationships, private-invite eligibility, notifications and profile discovery. This change modifies only the profile/social portions while preserving SOC-02 private-invite semantics and SOC-03 notification-center semantics.
 
 The backend currently returns JPA `User` entities from open profile/follow reads, accepts a broad update DTO, and exposes follow mutations whose path parameters do not consistently describe the actor or target. Browser code implements search, profiles and most follow actions; iOS currently implements an authenticated self profile and counts, with inert Follow/Message buttons. Existing tests were inspected but not run.
 

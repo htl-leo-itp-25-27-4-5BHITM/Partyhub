@@ -2,7 +2,7 @@
 
 Group 9 reviewed the QR surfaces on 2026-09-29 from repository commit `6217f5009530777a920d03db88900f1259f5b9d5`. Application source remains the foundation snapshot from `9487ccb90bb438e24b3cfab547a5dc900b11aecb`. No application source, configuration, database or deployed service was changed or exercised.
 
-Read this with the accepted [identity specification](../../openspec/specs/user-auth-and-identity/spec.md), [authentication evidence](authentication.md), [access matrix](access-matrix.md), [coverage](coverage.md), [decisions](decisions.md), [gaps](gaps.md) and the Group 9 checklist in the [umbrella tasks](../../openspec/changes/complete-partyhub-specification/tasks.md).
+Read this with the accepted [identity specification](../../openspec/specs/user-auth-and-identity/spec.md), [authentication evidence](authentication.md), [access matrix](access-matrix.md), [coverage](coverage.md), [decisions](decisions.md), [gaps](gaps.md) and the Group 9 checklist in the [umbrella tasks](../../openspec/changes/archive/2026-09-30-complete-partyhub-specification/tasks.md).
 
 ## Evidence index
 

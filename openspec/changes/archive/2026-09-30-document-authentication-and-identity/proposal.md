@@ -10,7 +10,7 @@ PartyHub's durable authentication specification covers browser/JWT behavior but 
 - Specify public issuer bootstrap for both clients without treating configured fallbacks as successful authentication.
 - Rename the obsolete explicit-user-context/future-Keycloak headings and clarify shared protected-action scenarios for browser and iOS. Preserve browser-only token storage/provider logout rules and the existing backend link-or-create/onboarding alternatives.
 - Integrate the accepted delta in a **later documentation-only execution**, then refresh coverage and the umbrella handoff. Correct the identity Purpose editorially to describe the integrated scope.
-- Carry forward the source-reviewed [flow contract](../../../docs/openspec-baseline/authentication.md), [58-route access matrix](../../../docs/openspec-baseline/access-matrix.md) and [environment evidence](../../../docs/openspec-baseline/auth-environments.md). Keep numeric bypass, subject-binding, callback and access defects in the gap register.
+- Carry forward the source-reviewed [flow contract](../../../../docs/openspec-baseline/authentication.md), [58-route access matrix](../../../../docs/openspec-baseline/access-matrix.md) and [environment evidence](../../../../docs/openspec-baseline/auth-environments.md). Keep numeric bypass, subject-binding, callback and access defects in the gap register.
 
 ## Capabilities
 

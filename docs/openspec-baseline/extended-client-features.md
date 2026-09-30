@@ -2,7 +2,7 @@
 
 Group 10 reviewed the extended location, visit/time-tracking and calendar surfaces on 2026-09-29 and integrated their accepted contracts on 2026-09-30 from proposal checkpoint `a487379115b6c8832f18d043475c774ae42d9742`. Application source remains the foundation snapshot from `9487ccb90bb438e24b3cfab547a5dc900b11aecb`. No application source, configuration, database, device data or deployed service was changed or exercised.
 
-Read this with the accepted [identity specification](../../openspec/specs/user-auth-and-identity/spec.md), [party specification](../../openspec/specs/party-discovery-and-management/spec.md), [radius specification](../../openspec/specs/map-radius-control/spec.md), [access matrix](access-matrix.md), [decisions](decisions.md), [gaps](gaps.md) and the applied [extended-client child change](../../openspec/changes/document-extended-client-features/proposal.md).
+Read this with the accepted [identity specification](../../openspec/specs/user-auth-and-identity/spec.md), [party specification](../../openspec/specs/party-discovery-and-management/spec.md), [radius specification](../../openspec/specs/map-radius-control/spec.md), [access matrix](access-matrix.md), [decisions](decisions.md), [gaps](gaps.md) and the applied [extended-client child change](../../openspec/changes/archive/2026-09-30-document-extended-client-features/proposal.md).
 
 ## Scope classification
 
