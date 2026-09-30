@@ -2,6 +2,8 @@
 
 Group 11.1, inspected 2026-09-30 at `3a3f6ed`. Application source, configuration, manifests, workflows and scripts are unchanged since the foundation snapshot `9487ccb` (`git diff --stat 9487ccb HEAD` over `src`, `PartyHubiOS/PartyHubiOS`, `api`, `k8s`, `keycloak`, `docker`, `.github`, Compose, Dockerfiles, `pom.xml`, README and scripts is empty). Everything below is a **repository declaration**. No container, Keycloak, cluster, CI run or network probe was performed. Read this with [auth-environments.md](auth-environments.md), which remains authoritative for JWT/bypass declarations, and [data-lifecycle.md](data-lifecycle.md).
 
+> **B01 update:** The schema, load-script, `sync-import.sh` and `deploy.yml` rows below describe the state before B01 (`persistent-school-cloud-deployment`). Since B01, Flyway migrations with Hibernate `validate` own the schema, dev seeds from `db/dev-seed/afterMigrate.sql`, Keycloak uses its own `keycloak` database, and deploys are gated, incremental and non-destructive. See the B01 updates on G057, G059 and G061 in [gaps.md](gaps.md) and the README *Production* section.
+
 Accepted contract: [local-keycloak-environment](../../openspec/specs/local-keycloak-environment/spec.md) ENV-01-ENV-11 cover the local Compose environment only. D023 records why CI and Kubernetes remain evidence rather than accepted policy.
 
 ## Environment comparison

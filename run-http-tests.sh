@@ -31,8 +31,8 @@ rm -f "$QUARKUS_LOG"
 nohup mvn quarkus:dev -Dquarkus.profile=dev -Dquarkus.http.test-port=8080 -Dquarkus.http.port=8080 > "$QUARKUS_LOG" 2>&1 &
 QUARKUS_PID=$!
 
-# Wait for Quarkus to initialize and run import.sql by checking the DB
-# Poll the party table row count until it's > 0 (import.sql inserts parties)
+# Wait for Quarkus to initialize and load the dev seed (db/dev-seed/afterMigrate.sql) by checking the DB
+# Poll the party table row count until it's > 0 (the seed inserts parties)
 MAX_WAIT=120
 WAITED=0
 PARTY_COUNT=0

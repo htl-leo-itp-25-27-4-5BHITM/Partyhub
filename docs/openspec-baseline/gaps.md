@@ -415,6 +415,7 @@ Java paths below start at `src/main/java/at/htl/`; browser paths at `src/main/re
 - **Disposition:** Deployment/data-lifecycle conflict pending Q015. **Priority:** high. **Owner:** Step 11 evidence; bounded deployment change after Q015.
 - **Next action:** Decide Q015. If data must persist, give Keycloak its own database/schema, remove the unconditional drop and make seeding explicit; if reset is intended, document it as a demonstration-environment property and still separate the Keycloak database.
 - **Group 12 update:** Now conflicts with the accepted DEPLOY-01/DEPLOY-02 (D030): the school cloud is persistent. Backlog B01, top priority.
+- **B01 update:** **Closed by B01** (change `persistent-school-cloud-deployment`). `deploy.yml` applies the manifests in place and rolls out pinned image tags; it no longer deletes Deployments, drops the schema or replays seed data. Keycloak uses its own `keycloak` database (created by an initContainer) and realm import keeps an existing realm (`IGNORE_EXISTING`, verified locally). The fix takes effect on the school cloud after the one-time cut-over in [`../deployment-cutover.md`](../deployment-cutover.md). Scheduled backups are still missing (G067).
 
 ## G058 Party gallery files are stored outside persistent storage and served from the classpath
 
@@ -430,6 +431,7 @@ Java paths below start at `src/main/java/at/htl/`; browser paths at `src/main/re
 - **Disposition:** Persistence-process gap; no accepted migration policy. **Priority:** medium (low while G057 resets every deploy). **Owner:** Step 11 evidence; bounded runtime change after Q015.
 - **Next action:** Introduce versioned migrations when data must persist, move the startup DDL into them, and retire or label the unreferenced root SQL files.
 - **Group 12 update:** Required by DEPLOY-02 *Schema changes keep existing rows*. Backlog B01.
+- **B01 update:** **Closed by B01.** Flyway owns the schema: `db/migration/V1__baseline.sql` (generated from the entities) and `V2__…` (the former `NotificationSchemaCompatibility` DDL, class removed). All profiles use Hibernate `validate`; existing databases are baselined at version 1. Dev seeds through the `db/dev-seed/afterMigrate.sql` callback, so HTTPYac in CI runs the migrations on PostgreSQL. A local upgrade rehearsal from the `update`-built schema found only differently named unique constraints (`uk…` vs `…_key`), with no semantic drift. New migrations must not rely on those constraint names. The root `create-tables.sql`/`test-data.sql` are unchanged (B19).
 
 ## G060 Seed and reset scripts are destructive and under-documented
 
@@ -446,6 +448,7 @@ Java paths below start at `src/main/java/at/htl/`; browser paths at `src/main/re
 - **Disposition:** Test/pipeline evidence gap. **Priority:** medium (high for the G002 regression risk). **Owner:** bounded CI/test change.
 - **Next action:** Add `if: github.event.workflow_run.conclusion == 'success'` to deploy. Add a bypass-disabled integration job that obtains local realm tokens and asserts accepted AUTH scenarios, including numeric-only rejection.
 - **Group 12 update:** DEPLOY-02 *Failed pipeline does not deploy* makes gating a requirement. Backlog B01 (gating) and B03 (real-token tests).
+- **B01 update:** **Gating half closed by B01.** Deploy is a reusable workflow called by a `deploy` job in `push.yaml` with `needs: build-and-push`, so a failed or skipped build deploys nothing, and it deploys the image built from `workflow_run.head_sha`. The real-token half remains open (B03).
 
 ## G062 API error bodies and status usage are inconsistent
 
@@ -485,3 +488,17 @@ Java paths below start at `src/main/java/at/htl/`; browser paths at `src/main/re
 - **Disposition:** Tooling-version difference, not a specification defect. **Priority:** medium for final acceptance. **Owner:** Step 12.4.
 - **Next action:** In Step 12, record the CLI version with each validation result, repair G012 regardless, and choose an explicit way to satisfy the umbrella gate (for example, run it with the CLI version that honours `skip_specs`, or record the tool limitation as an accepted exception). Do not add artificial product deltas to the umbrella.
 - **Group 12 update:** **Closed (W022).** OpenSpec CLI 1.13.2 is installed. With it the umbrella passes via `skip_specs` and all specs pass after the G012 repair.
+
+## G067 The persistent school-cloud database has no scheduled backups
+
+- **Expected:** Since D030 the school cloud keeps data that exists nowhere else, so it can be restored after a bad migration, operator error or volume loss.
+- **Observed:** Postgres runs as a single replica on the 1Gi `postgres-pvc` (`k8s/postgres.yaml`), and nothing backs it up on a schedule. B01 takes one manual `pg_dump` at cut-over ([`../deployment-cutover.md`](../deployment-cutover.md)), and Flyway migrations are forward-only.
+- **Disposition:** Operational follow-up recorded by B01 (a non-goal there). **Priority:** medium. **Owner:** bounded operations change.
+- **Next action:** Add a scheduled `pg_dump` of `demo` and `keycloak` (for example a Kubernetes CronJob) to storage outside the Postgres volume, with retention and a documented, tested restore. Backlog B21.
+
+## G068 `DataSeeder` writes demo location rows at startup in production
+
+- **Expected:** D022/PARTY-17 exclude shared location, and since D030 the school cloud keeps real data, so no startup code invents user data outside the dev seed (`db/dev-seed/afterMigrate.sql`).
+- **Observed:** `DataSeeder.onStart` runs on every `StartupEvent` in every profile. Outside the test launch mode it also ensures the `follow_status` rows (reference data), and in every profile it gives the first six users returned by `UserRepository.getUsers()` a hard-coded Vienna `user_location` row if they have none. On the persistent school cloud these can be real accounts, and each restart repeats it for any user whose row was removed.
+- **Disposition:** Privacy/data-integrity gap found during B01, outside its scope. **Priority:** high (fabricated location data for real users). **Owner:** bounded change B22.
+- **Next action:** Remove the demo `user_location` seeding from startup (the dev seed can carry demo locations if still needed), move the `follow_status` reference rows into a Flyway migration or keep only that part of the seeder, and add a test that a prod-profile startup writes no `user_location` rows. Clean up any seeded rows on the school cloud as part of the change.
