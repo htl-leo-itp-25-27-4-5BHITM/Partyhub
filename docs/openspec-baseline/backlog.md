@@ -77,6 +77,13 @@ Priority: **P1** = identity, access, privacy or data loss; **P2** = accepted beh
 - **Acceptance scenarios:** PARTY-17 shared-location exclusion; no QR payload or token authenticates (D021).
 - **Dependencies:** Q014 for the status returned by retired routes (a default is available). The iOS parts touch client code; D029 only freezes iOS logout, not these.
 
+### B22 Stop seeding demo locations in production
+- **Gaps:** G068.
+- **Requirements:** PARTY-17 / D022 (no shared location), DEPLOY-01 (D030, persistent data).
+- **Source areas:** `DataSeeder.java` (demo `user_location` rows for the first six users in every profile, plus the `follow_status` reference rows), `db/migration/` (a migration for the `follow_status` rows if they move there), `db/dev-seed/afterMigrate.sql`.
+- **Acceptance scenarios:** a `%prod` startup against a database with users writes no `user_location` rows; `follow_status` still holds pending/accepted/blocked; existing seeded rows on the school cloud are removed deliberately and documented.
+- **Dependencies:** B01 (Flyway), coordinate with B10, which contains the location endpoints.
+
 ## P2
 
 ### B11 API error envelope and PUT semantics (answers Q014)

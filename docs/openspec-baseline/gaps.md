@@ -495,3 +495,10 @@ Java paths below start at `src/main/java/at/htl/`; browser paths at `src/main/re
 - **Observed:** Postgres runs as a single replica on the 1Gi `postgres-pvc` (`k8s/postgres.yaml`), and nothing backs it up on a schedule. B01 takes one manual `pg_dump` at cut-over ([`../deployment-cutover.md`](../deployment-cutover.md)), and Flyway migrations are forward-only.
 - **Disposition:** Operational follow-up recorded by B01 (a non-goal there). **Priority:** medium. **Owner:** bounded operations change.
 - **Next action:** Add a scheduled `pg_dump` of `demo` and `keycloak` (for example a Kubernetes CronJob) to storage outside the Postgres volume, with retention and a documented, tested restore. Backlog B21.
+
+## G068 `DataSeeder` writes demo location rows at startup in production
+
+- **Expected:** D022/PARTY-17 exclude shared location, and since D030 the school cloud keeps real data, so no startup code invents user data outside the dev seed (`db/dev-seed/afterMigrate.sql`).
+- **Observed:** `DataSeeder.onStart` runs on every `StartupEvent` in every profile. Outside the test launch mode it also ensures the `follow_status` rows (reference data), and in every profile it gives the first six users returned by `UserRepository.getUsers()` a hard-coded Vienna `user_location` row if they have none. On the persistent school cloud these can be real accounts, and each restart repeats it for any user whose row was removed.
+- **Disposition:** Privacy/data-integrity gap found during B01, outside its scope. **Priority:** high (fabricated location data for real users). **Owner:** bounded change B22.
+- **Next action:** Remove the demo `user_location` seeding from startup (the dev seed can carry demo locations if still needed), move the `follow_status` reference rows into a Flyway migration or keep only that part of the seeder, and add a test that a prod-profile startup writes no `user_location` rows. Clean up any seeded rows on the school cloud as part of the change.
