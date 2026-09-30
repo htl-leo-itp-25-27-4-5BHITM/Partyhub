@@ -2,6 +2,8 @@
 
 Group 11.2, inspected 2026-09-30 at `3a3f6ed` (source unchanged since `9487ccb`). This record describes **declared and source-observed** lifecycles only. No database, container, cluster or file system was inspected at runtime, and no seed, reset or deployment script was executed. Accepted behavioural rules stay in the main specs. The only accepted persistence statements are D012/SOC-08 (the centre's read/delete state persists), MEDIA-03/SOC-07 (failure-consistent storage, and the previous picture is kept on failure) and PARTY-15/SOC-03 (cancellation snapshot semantics). No accepted retention period, backup policy or deletion SLA exists; see Q015/Q016.
 
+> **B01 update:** The schema-management and Kubernetes rows below describe the state before B01 (`persistent-school-cloud-deployment`). Since B01, Flyway (`db/migration/V1__baseline.sql`, `V2__…`) owns the schema in every PostgreSQL profile and Hibernate only validates it. `NotificationSchemaCompatibility` and the `sql-load-script` settings are removed, the seed lives in `db/dev-seed/afterMigrate.sql` (dev only), Keycloak uses its own `keycloak` database, and deploys no longer drop or reseed anything. See G057, G059 and G067 in [gaps.md](gaps.md).
+
 ## Schema management
 
 | Mechanism | Evidence | Observation |

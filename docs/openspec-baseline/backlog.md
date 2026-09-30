@@ -12,6 +12,7 @@ Priority: **P1** = identity, access, privacy or data loss; **P2** = accepted beh
 - **Source areas:** `.github/workflows/deploy.yml` (remove `DROP SCHEMA` and `import.sql` replay; gate on `workflow_run.conclusion == 'success'`), `k8s/keycloak.yaml` (own database or schema instead of `demo`), `k8s/postgres.yaml`/init (create the Keycloak DB), `application.properties` `%prod` schema handling, a versioned migration tool (Flyway or Liquibase) absorbing `NotificationSchemaCompatibility`.
 - **Acceptance scenarios:** all 8 DEPLOY scenarios, in particular *Application data survives a deployment*, *Keycloak accounts survive a deployment*, *Failed pipeline does not deploy*, *Seed data is not replayed*, *Existing realm is not overwritten*.
 - **Dependencies:** none. Do this first, because until it lands every deploy still erases school-cloud data. The first run needs a one-time plan for moving Keycloak out of the `demo` database.
+- **Status:** Implemented in change `persistent-school-cloud-deployment` (Flyway V1/V2, Keycloak `keycloak` database, gated in-place deploy). It is complete once the one-time cut-over in [`../deployment-cutover.md`](../deployment-cutover.md) has run on the school cloud. Follow-up: scheduled backups (G067, B21).
 
 ### B02 Remove the identity bypass from production and numeric subjects
 - **Gaps:** G002, G019.
@@ -123,6 +124,12 @@ Priority: **P1** = identity, access, privacy or data loss; **P2** = accepted beh
 - **Gaps:** G022 (native nonce), G023, G035, G055, G056, G038 (local photos).
 - **Requirements:** AUTH-11, AUTH-12, RADIUS-03, PARTY-18, PARTY-19, MEDIA-02.
 - **Note:** D029 keeps iOS logout unchanged; the G023 logout/Keychain aspects stay deferred, and the remaining items need an explicit go-ahead for iOS work.
+
+### B21 Scheduled school-cloud database backups
+- **Gaps:** G067.
+- **Requirements:** DEPLOY-01 (D030), operational safeguard.
+- **Source areas:** `k8s/` (for example a `pg_dump` CronJob for `demo` and `keycloak`), backup storage outside `postgres-pvc`, and a restore procedure in the README.
+- **Dependencies:** B01.
 
 ## P3
 

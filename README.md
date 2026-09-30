@@ -4,7 +4,7 @@
   <img src="logo.png" alt="PartyHub Logo" width="200">
 </p>
 <p align="center">
-  <a href="https://github.com/htl-leo-itp-25-27-4-5BHITM/Partyhub/actions/workflows/deploy.yml"><img src="https://img.shields.io/github/actions/workflow/status/htl-leo-itp-25-27-4-5BHITM/Partyhub/deploy.yml?branch=main&style=for-the-badge" alt="Deploy status"></a>
+  <a href="https://github.com/htl-leo-itp-25-27-4-5BHITM/Partyhub/actions/workflows/push.yaml"><img src="https://img.shields.io/github/actions/workflow/status/htl-leo-itp-25-27-4-5BHITM/Partyhub/push.yaml?branch=main&style=for-the-badge" alt="Build and deploy status"></a>
 </p>
 
 
@@ -43,10 +43,17 @@ cd Partyhub
 ./deploy-local.sh
 ```
 
-`deploy-local.sh` **deletes the local Docker volumes** (`docker-compose down -v`, including the local Keycloak database), starts Postgres and Keycloak, builds the project (running the tests) and starts `./mvnw quarkus:dev`. In dev mode the application schema is dropped, recreated and filled from `import.sql` on every start, and the `X-User-Id` test bypass is enabled; do not rely on it to verify real login.
-### 3. Sync import.sql to Local and Server DB
+`deploy-local.sh` **deletes the local Docker volumes** (`docker-compose down -v`, including the local Keycloak database), starts Postgres and Keycloak, builds the project (running the tests) and starts `./mvnw quarkus:dev`. In dev mode Flyway cleans the local `demo` schema on every start, applies the migrations in `src/main/resources/db/migration/` and then loads the seed data from `src/main/resources/db/dev-seed/afterMigrate.sql`; the `X-User-Id` test bypass is enabled; do not rely on it to verify real login.
 
-If you change seed data in `src/main/resources/import.sql`, apply it with the script below. `import.sql` starts with `TRUNCATE ... CASCADE`, so **every target database is emptied and reseeded**. The default targets both local and Kubernetes databases; use `--local-only` unless you really want to reset the school-cloud data.
+### 3. Schema changes (Flyway)
+
+The database schema is owned by versioned Flyway migrations in `src/main/resources/db/migration/`; Hibernate only validates it. To change the schema, update the entities and add a new `V<n>__<description>.sql` with the next free number. **Never edit or rename a migration that has already been applied** (it is on `main`); fix mistakes with a new migration. Migrations run automatically at startup in every environment, so `quarkus:dev` and the HTTPYac tests in CI exercise them against PostgreSQL before they are deployed. Destructive statements (`DROP`, deleting rows) need a note in the pull request, as for raw SQL (see AGENTS.md).
+
+### 4. Sync seed data to Local and Server DB
+
+If you change seed data in `src/main/resources/db/dev-seed/afterMigrate.sql`, the next `quarkus:dev` start loads it automatically. To apply it to a running database, use the script below. The seed starts with `TRUNCATE ... CASCADE`, so **every target database is emptied and reseeded**. The default targets both local and Kubernetes databases; always use `--local-only`.
+
+> **Warning:** the school cloud is persistent. `./sync-import.sh` without `--local-only`, and `--k8s-only` in particular, **permanently deletes all school-cloud application data** (users, parties, invitations, follows, notifications) and replaces it with demo data. There is no automatic backup.
 
 ```bash
 ./sync-import.sh
@@ -62,7 +69,7 @@ Common variants:
 # only local DB
 ./sync-import.sh --local-only
 
-# only Kubernetes DB
+# only Kubernetes DB: WIPES the persistent school-cloud data (see warning above)
 ./sync-import.sh --k8s-only --namespace default
 ```
 
@@ -70,13 +77,13 @@ Requirements:
 - local sync: `docker compose` (or `docker-compose`) and running `postgres` service
 - server sync: `kubectl` access to the cluster and namespace
 
-### 4. Open the application
+### 5. Open the application
 
 **Website**: http://localhost:8080
 
 **API Documentation**: http://localhost:8080/q/swagger-ui/
 
-### 5. Local Keycloak login
+### 6. Local Keycloak login
 
 Keycloak runs at http://localhost:8000 and imports the `partyhub` realm from
 `keycloak/realm-dev.json` (`keycloak/realm-staging.json` is the realm baked into
@@ -99,12 +106,28 @@ only imports a realm that does not exist yet.
 
 **Website**: https://it220274.cloud.htl-leonding.ac.at
 
-A push to `main` runs the `Test` → `Build and Push` → `Deploy` workflows. The
-accepted contract ([`deployment-environment`](openspec/specs/deployment-environment/spec.md))
-requires deployments to keep all data. **The current `deploy.yml` does not meet
-it yet:** it drops the shared `demo` schema (application and Keycloak data) and
-replays `import.sql` on every deploy (gap G057 in
-[`docs/openspec-baseline/gaps.md`](docs/openspec-baseline/gaps.md)).
+The school cloud is persistent ([`deployment-environment`](openspec/specs/deployment-environment/spec.md)):
+deployments keep application data, Keycloak accounts and uploaded files.
+
+- **Gated:** a push to `main` runs `Test`; only if it succeeds does `Build and Push`
+  build the images of that commit, and only if the build succeeds does its `deploy`
+  job run `.github/workflows/deploy.yml`. A failed or skipped step deploys nothing.
+- **Incremental and pinned:** the deploy runs `kubectl apply` on the manifests in
+  `k8s/`, then `kubectl set image` to the commit's short-SHA image tag and waits for
+  the rollouts. Nothing is deleted, dropped, truncated or reseeded. The manifests
+  keep `:latest` for manual `kubectl apply`; the next deploy pins the tag again.
+  To redeploy a specific build, run the `Deploy` workflow manually with its tag.
+  Rollback: `kubectl rollout undo deployment/quarkus` (and `deployment/keycloak`).
+- **Schema:** Quarkus applies new Flyway migrations at startup (see
+  [Schema changes](#3-schema-changes-flyway)); seed data is never loaded outside dev.
+- **Keycloak:** uses its own `keycloak` database in the same Postgres (created by an
+  initContainer if missing). `--import-realm` only imports `realm-staging.json` when
+  the `partyhub` realm does not exist yet, so realm changes after that are made in
+  the Admin Console (`/keycloak/admin`) or by a deliberate, documented re-import;
+  a redeploy never overwrites the realm or its users.
+- The one-time cut-over to this setup is described in
+  [`docs/deployment-cutover.md`](docs/deployment-cutover.md). There are no scheduled
+  database backups yet (see gaps.md).
 
 ## Project Structure
 
@@ -117,7 +140,8 @@ Partyhub/
 ├── src/main/resources/
 │   ├── META-INF/resources/    # Browser app (HTML/JS/CSS)
 │   ├── application.properties # Profiles: dev, staging, prod
-│   └── import.sql             # Seed data
+│   ├── db/migration/          # Flyway schema migrations (V<n>__*.sql)
+│   └── db/dev-seed/           # Dev-only seed data (afterMigrate.sql)
 ├── src/test/                  # JUnit/RestAssured tests (H2)
 ├── api/                       # HTTPYac API tests
 ├── PartyHubiOS/               # SwiftUI iOS app
