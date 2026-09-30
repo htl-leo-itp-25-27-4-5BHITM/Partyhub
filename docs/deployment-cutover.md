@@ -4,8 +4,7 @@ This runbook moves the school cloud from "reset on every deploy" to persistent,
 incremental deployments (change `persistent-school-cloud-deployment`, DEPLOY-01/DEPLOY-02).
 It is run **once**, by someone with `kubectl` access to the school cloud, and
 it follows the Migration Plan in
-`openspec/changes/persistent-school-cloud-deployment/design.md`
-(archived under `openspec/changes/archive/` after completion).
+[`openspec/changes/archive/2026-09-30-persistent-school-cloud-deployment/design.md`](../openspec/changes/archive/2026-09-30-persistent-school-cloud-deployment/design.md).
 
 What changes on the cluster with the first deploy after the merge:
 
