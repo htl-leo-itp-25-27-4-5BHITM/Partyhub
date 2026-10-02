@@ -460,12 +460,12 @@ public class PartyRepository {
         }
 
         if (userId != null) {
-            if (party.getHost_user().getId().equals(userId)) {
+            if (party.getHost_user() != null && party.getHost_user().getId().equals(userId)) {
                 return party;
             }
 
             boolean hasInvitation = party.getInvitations() != null &&
-                    party.getInvitations().stream().anyMatch(i -> i.getRecipient().getId().equals(userId));
+                    party.getInvitations().stream().anyMatch(i -> "PENDING".equals(i.getStatus()) && i.getRecipient().getId().equals(userId));
             if (hasInvitation) {
                 return party;
             }
@@ -570,14 +570,14 @@ public class PartyRepository {
                     .build();
         }
 
-        Party party = entityManager.find(Party.class, partyId);
-        User user = entityManager.find(User.class, userId);
-
+        Party party = getPartyByIdIfVisible(partyId, userId);
         if (party == null) {
             return Response.status(Response.Status.NOT_FOUND)
                     .entity("{\"error\": \"Party not found\"}")
                     .build();
         }
+
+        User user = entityManager.find(User.class, userId);
         if (user == null) {
             return Response.status(Response.Status.NOT_FOUND)
                     .entity("{\"error\": \"User not found\"}")
@@ -610,14 +610,14 @@ public class PartyRepository {
                     .build();
         }
 
-        Party party = entityManager.find(Party.class, partyId);
-        User user = entityManager.find(User.class, userId);
-
+        Party party = getPartyByIdIfVisible(partyId, userId);
         if (party == null) {
             return Response.status(Response.Status.NOT_FOUND)
                     .entity("{\"error\": \"Party not found\"}")
                     .build();
         }
+
+        User user = entityManager.find(User.class, userId);
         if (user == null) {
             return Response.status(Response.Status.NOT_FOUND)
                     .entity("{\"error\": \"User not found\"}")
@@ -647,7 +647,7 @@ public class PartyRepository {
                     .build();
         }
 
-        Party party = entityManager.find(Party.class, partyId);
+        Party party = getPartyByIdIfVisible(partyId, userId);
         if (party == null) {
             return Response.status(Response.Status.NOT_FOUND)
                     .entity("{\"error\": \"Party not found\"}")
@@ -812,8 +812,12 @@ public class PartyRepository {
     }
 
     public List<Party> findWithFilters(FilterParams filters, Long userId) {
+        return findVisibleParties(filters, userId, null, null, null, false);
+    }
+
+    public List<Party> findVisibleParties(FilterParams filters, Long userId, String dateFrom, String dateTo,
+                                          String sort, boolean includePast) {
         LocalDateTime now = LocalDateTime.now();
-        LocalDateTime twoWeeksLater = now.plusDays(14);
 
         StringBuilder jpql = new StringBuilder(
             "SELECT DISTINCT p FROM Party p " +
@@ -821,10 +825,15 @@ public class PartyRepository {
             "LEFT JOIN p.users pu " +
             "WHERE (p.visibility = 'PUBLIC' " +
             "   OR p.host_user.id = :userId " +
-            "   OR i.recipient.id = :userId " +
-            "   OR pu.id = :userId) " +
-            "AND p.time_start BETWEEN :now AND :twoWeeksLater"
+            "   OR (i.recipient.id = :userId AND i.status = 'PENDING') " +
+            "   OR pu.id = :userId) "
         );
+
+        if (!includePast) {
+            jpql.append(" AND (p.time_end > :now OR (p.time_end IS NULL AND p.time_start >= :now))");
+        }
+        if (dateFrom != null && !dateFrom.isBlank()) jpql.append(" AND p.time_start >= :dateFrom");
+        if (dateTo != null && !dateTo.isBlank()) jpql.append(" AND p.time_start <= :dateTo");
 
         if (filters.hasTextSearch()) {
             String searchTerm = "%" + filters.query().trim().toLowerCase() + "%";
@@ -851,12 +860,13 @@ public class PartyRepository {
             }
         }
 
-        jpql.append(" ORDER BY p.time_start DESC");
+        jpql.append(" ORDER BY p.time_start " + ("asc".equalsIgnoreCase(sort) ? "ASC" : "DESC") + ", p.id ASC");
 
         var query = entityManager.createQuery(jpql.toString(), Party.class);
         query.setParameter("userId", userId != null ? userId : -1L);
-        query.setParameter("now", now);
-        query.setParameter("twoWeeksLater", twoWeeksLater);
+        if (!includePast) query.setParameter("now", now);
+        if (dateFrom != null && !dateFrom.isBlank()) query.setParameter("dateFrom", (dateFrom.trim().length() == 10 ? java.time.LocalDate.parse(dateFrom.trim()).atStartOfDay() : parseDateTime(dateFrom)));
+        if (dateTo != null && !dateTo.isBlank()) query.setParameter("dateTo", (dateTo.trim().length() == 10 ? java.time.LocalDate.parse(dateTo.trim()).atTime(java.time.LocalTime.MAX) : parseDateTime(dateTo)));
 
         if (filters.hasTextSearch()) {
             query.setParameter("query", "%" + filters.query().trim().toLowerCase() + "%");

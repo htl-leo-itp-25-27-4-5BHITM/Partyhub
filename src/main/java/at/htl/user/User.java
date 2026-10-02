@@ -17,6 +17,7 @@ public class User {
 @Column(name = "device_token")
 private String deviceToken;
 
+@JsonIgnore
 public String getDeviceToken() { return deviceToken; }
 public void setDeviceToken(String deviceToken) { this.deviceToken = deviceToken; }
 
@@ -60,6 +61,7 @@ public void setDeviceToken(String deviceToken) { this.deviceToken = deviceToken;
         this.id = id;
     }
 
+    @JsonIgnore
     public String getUsername() {
         return username;
     }
@@ -68,6 +70,7 @@ public void setDeviceToken(String deviceToken) { this.deviceToken = deviceToken;
         this.username = username;
     }
 
+    @JsonIgnore
     public String getKeycloakId() {
         return keycloakId;
     }
@@ -92,6 +95,7 @@ public void setDeviceToken(String deviceToken) { this.deviceToken = deviceToken;
         this.distinctName = distinctName;
     }
 
+    @JsonIgnore
     public String getEmail() {
         return email;
     }
@@ -100,6 +104,7 @@ public void setDeviceToken(String deviceToken) { this.deviceToken = deviceToken;
         this.email = email;
     }
 
+    @JsonIgnore
     public String getPhoneNumber() {
         return phoneNumber;
     }

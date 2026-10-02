@@ -4,8 +4,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   const list = document.getElementById("notifList");
   const tpl = document.getElementById("notifTpl");
 
-  const isAuthenticated = await window.authService?.init?.({ requireLogin: true, redirectTo: window.location.pathname });
-  if (isAuthenticated === false) return;
+  if (!(await window.requireAuth())) return;
 
   let currentUserId = await resolveCurrentUserId();
 

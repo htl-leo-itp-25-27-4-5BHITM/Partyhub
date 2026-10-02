@@ -49,6 +49,9 @@
   let tokenSession = readJson(TOKEN_SESSION_KEY);
   let currentUser = readJson(CURRENT_USER_KEY);
   let initPromise = null;
+  let refreshPromise = null;
+  let sessionRevision = 0;
+  let authNavigationStarted = false;
 
   function readJson(key) {
     try {
@@ -75,6 +78,7 @@
   }
 
   function clearAuthState() {
+    sessionRevision++;
     tokenSession = null;
     currentUser = null;
     initPromise = null;
@@ -143,6 +147,9 @@
   }
 
   async function login(options = {}) {
+    if (authNavigationStarted) return;
+    authNavigationStarted = true;
+    await fetchKeycloakConfig();
     const codeVerifier = randomBase64Url(64);
     const codeChallenge = await sha256Base64Url(codeVerifier);
     const state = randomBase64Url(32);
@@ -174,7 +181,7 @@
         authUrl.searchParams.set("kc_action", kcAction);
       }
 
-      window.location.assign(authUrl.toString());
+      window.location.replace(authUrl.toString());
     } catch (err) {
       const params = new URLSearchParams({
         client_id: config.clientId,
@@ -189,11 +196,14 @@
       if (kcAction) {
         params.set("kc_action", kcAction);
       }
-      window.location.assign(`${config.authorizationEndpoint}?${params.toString()}`);
+      window.location.replace(`${config.authorizationEndpoint}?${params.toString()}`);
     }
   }
 
   async function register(options = {}) {
+    if (authNavigationStarted) return;
+    authNavigationStarted = true;
+    await fetchKeycloakConfig();
     const codeVerifier = randomBase64Url(64);
     const codeChallenge = await sha256Base64Url(codeVerifier);
     const state = randomBase64Url(32);
@@ -210,7 +220,7 @@
 
     sessionStorage.setItem("partyhub_post_registration", "true");
 
-    const registrationRedirect = `${window.location.origin}/register_login/login/login.html`;
+    const registrationRedirect = config.redirectUri;
     const registrationEndpoint = `${config.issuer}/protocol/openid-connect/registrations`;
 
     try {
@@ -223,7 +233,7 @@
       url.searchParams.set("nonce", nonce);
       url.searchParams.set("code_challenge", codeChallenge);
       url.searchParams.set("code_challenge_method", "S256");
-      window.location.assign(url.toString());
+      window.location.replace(url.toString());
     } catch (err) {
       const params = new URLSearchParams({
         client_id: config.clientId,
@@ -235,7 +245,7 @@
         code_challenge: codeChallenge,
         code_challenge_method: "S256",
       });
-      window.location.assign(`${registrationEndpoint}?${params.toString()}`);
+      window.location.replace(`${registrationEndpoint}?${params.toString()}`);
     }
   }
 
@@ -262,13 +272,13 @@
       throw new Error("Invalid Keycloak login callback: missing code or state");
     }
 
-    if (!transaction || transaction.state !== state) {
+    if (!transaction || transaction.state !== state || Date.now() - transaction.createdAt > 600000) {
       // OIDC transaction not found — likely the email verification link
       // opened in a different tab/window where sessionStorage is separate.
       // Keycloak already processed the action (email verified), so redirect
       // to login for a fresh flow instead of showing "Sign-in failed".
       clearAuthState();
-      sessionStorage.setItem("partyhub_post_verify", "true");
+
       window.location.replace("/register_login/login/login.html");
       return;
     }
@@ -294,7 +304,7 @@
 
     const tokenResponse = await response.json();
     const idClaims = decodeJwtPayload(tokenResponse.id_token);
-    if (idClaims?.nonce && idClaims.nonce !== transaction.nonce) {
+    if (!idClaims?.nonce || idClaims.nonce !== transaction.nonce) {
       clearAuthState();
       throw new Error("Invalid Keycloak login callback nonce");
     }
@@ -314,10 +324,19 @@
   }
 
   async function updateToken(minValiditySeconds = 30) {
-    if (hasUsableAccessToken(minValiditySeconds)) {
-      return true;
+    if (hasUsableAccessToken(minValiditySeconds)) return true;
+    if (!refreshPromise) {
+      refreshPromise = refreshToken().catch(error => {
+        console.warn("Token refresh failed", error);
+        clearAuthState();
+        return false;
+      }).finally(() => { refreshPromise = null; });
     }
+    return refreshPromise;
+  }
 
+  async function refreshToken() {
+    const revision = sessionRevision;
     if (!tokenSession?.refreshToken) {
       clearAuthState();
       return false;
@@ -340,7 +359,9 @@
       return false;
     }
 
-    storeTokenResponse(await response.json());
+    const renewedSession = await response.json();
+    if (revision !== sessionRevision) return false;
+    storeTokenResponse(renewedSession);
     return true;
   }
 
@@ -364,7 +385,7 @@
       })();
     }
 
-    await initPromise;
+    try { await initPromise; } finally { initPromise = null; }
     if (options.requireLogin && !isLoggedIn()) {
       await login({ redirectTo: options.redirectTo });
       return false;
@@ -459,7 +480,7 @@
       if (idToken) {
         logoutUrl.searchParams.set("id_token_hint", idToken);
       }
-      window.location.assign(logoutUrl.toString());
+      window.location.replace(logoutUrl.toString());
     } catch (err) {
       const params = new URLSearchParams({
         client_id: config.clientId,
@@ -468,7 +489,7 @@
       if (idToken) {
         params.set("id_token_hint", idToken);
       }
-      window.location.assign(`${config.logoutEndpoint}?${params.toString()}`);
+      window.location.replace(`${config.logoutEndpoint}?${params.toString()}`);
     }
   }
 

@@ -171,7 +171,7 @@ async function getMediaForParty(partyId) {
 // User-functions
 async function getAllUsers() {
   try {
-    const response = await publicRequest("/api/users/");
+    const response = await apiRequest("/api/users/");
     if (!response.ok) throw new Error("Network response was not ok");
     return await response.json();
   } catch (error) {
@@ -182,7 +182,7 @@ async function getAllUsers() {
 
 async function getUserById(id) {
   try {
-    const response = await publicRequest("/api/users/" + id);
+    const response = await apiRequest("/api/users/" + id);
     if (!response.ok) throw new Error("Network response was not ok");
     return await response.json();
   } catch (error) {
@@ -326,7 +326,7 @@ async function getPartiesByUser(userId) {
 // Follow helpers
 async function getFollowers(userId) {
   try {
-    const res = await fetch(`/api/users/${encodeURIComponent(userId)}/followers`);
+    const res = await apiRequest(`/api/users/${encodeURIComponent(userId)}/followers`);
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
     const data = await res.json();
     return Array.isArray(data) ? data : [];
@@ -338,7 +338,7 @@ async function getFollowers(userId) {
 
 async function getFollowings(userId) {
   try {
-    const res = await fetch(`/api/users/${encodeURIComponent(userId)}/following`);
+    const res = await apiRequest(`/api/users/${encodeURIComponent(userId)}/following`);
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
     const data = await res.json();
     return Array.isArray(data) ? data : [];
@@ -350,7 +350,7 @@ async function getFollowings(userId) {
 
 async function isFollowing(userA, userB) {
   try {
-    const res = await fetch(`/api/users/${encodeURIComponent(userA)}/followers/${encodeURIComponent(userB)}/status`);
+    const res = await apiRequest(`/api/users/${encodeURIComponent(userA)}/followers/${encodeURIComponent(userB)}/status`);
     if (!res.ok) return false;
 
     const data = await res.json();
@@ -438,7 +438,7 @@ async function getFollowStatus(userA, userB) {
 
     // fallback: check pending lists for userB (users who requested to follow userB)
     try {
-      const res = await fetch(`/api/users/${encodeURIComponent(userB)}/follow-requests`);
+      const res = await apiRequest(`/api/users/${encodeURIComponent(userB)}/follow-requests`);
       if (res.ok) {
         const data = await res.json().catch(() => null);
         if (Array.isArray(data) && data.some((u) => String(u?.id) === String(userA))) {

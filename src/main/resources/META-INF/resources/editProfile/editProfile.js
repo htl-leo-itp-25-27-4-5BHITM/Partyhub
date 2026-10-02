@@ -24,7 +24,7 @@ async function initializeEditPage() {
 
 async function loadUserData(userId) {
   try {
-    const response = await fetch(`/api/users/${userId}`);
+    const response = await window.authService.apiCall(`/api/users/${userId}`);
 
     if (!response.ok) {
       throw new Error("Failed to load user data");
@@ -199,7 +199,7 @@ function clearFieldError(fieldId) {
 
 async function checkUsernameAvailability(username) {
   try {
-    const response = await fetch(`/api/users/handle/${username}`);
+    const response = await window.authService.apiCall(`/api/users/handle/${username}`);
 
     if (response.ok) {
       // Username exists and belongs to someone else
@@ -310,7 +310,7 @@ async function getProfilePictureFilename() {
   const userId = window.authService?.getCurrentUserId?.() ?? window.getCurrentUserId();
   if (!userId) return "/images/default_profile-picture.svg";
   try {
-    const response = await fetch(
+    const response = await window.authService.apiCall(
       `/api/users/${userId}/profile-picture-filename`,
     );
     const data = await response.json();

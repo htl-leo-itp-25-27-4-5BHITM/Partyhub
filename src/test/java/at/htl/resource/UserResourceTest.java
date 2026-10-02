@@ -13,6 +13,7 @@ import static org.hamcrest.Matchers.*;
 public class UserResourceTest extends TestBase {
 
     @Test
+    @TestSecurity(user = "test-user", roles = "user")
     void testGetAllUsers_empty() {
         given()
             .when().get("/api/users")
@@ -22,6 +23,7 @@ public class UserResourceTest extends TestBase {
     }
 
     @Test
+    @TestSecurity(user = "test-user", roles = "user")
     void testGetUserById_notFound() {
         given()
             .when().get("/api/users/999")
@@ -30,6 +32,7 @@ public class UserResourceTest extends TestBase {
     }
 
     @Test
+    @TestSecurity(user = "test-user", roles = "user")
     void testGetUserByHandle_notFound() {
         given()
             .when().get("/api/users/handle/nonexistent")
@@ -38,6 +41,7 @@ public class UserResourceTest extends TestBase {
     }
 
     @Test
+    @TestSecurity(user = "test-user", roles = "user")
     void testGetUserByUsername_notFound() {
         given()
             .when().get("/api/users/username/nonexistent")
@@ -63,6 +67,7 @@ public class UserResourceTest extends TestBase {
     }
 
     @Test
+    @TestSecurity(user = "test-user", roles = "user")
     void testGetFollowersCount_notFound() {
         given()
             .when().get("/api/users/999/followers/count")
@@ -71,6 +76,7 @@ public class UserResourceTest extends TestBase {
     }
 
     @Test
+    @TestSecurity(user = "test-user", roles = "user")
     void testGetFollowingCount_notFound() {
         given()
             .when().get("/api/users/999/following/count")
@@ -79,6 +85,7 @@ public class UserResourceTest extends TestBase {
     }
 
     @Test
+    @TestSecurity(user = "test-user", roles = "user")
     void testGetFollowers_notFound() {
         given()
             .when().get("/api/users/999/followers")
@@ -87,6 +94,7 @@ public class UserResourceTest extends TestBase {
     }
 
     @Test
+    @TestSecurity(user = "test-user", roles = "user")
     void testGetFollowing_notFound() {
         given()
             .when().get("/api/users/999/following")
@@ -95,6 +103,7 @@ public class UserResourceTest extends TestBase {
     }
 
     @Test
+    @TestSecurity(user = "test-user", roles = "user")
     void testGetFollowRequests_notFound() {
         given()
             .when().get("/api/users/999/follow-requests")
@@ -103,6 +112,7 @@ public class UserResourceTest extends TestBase {
     }
 
     @Test
+    @TestSecurity(user = "test-user", roles = "user")
     void testGetFollowStatus_notFound() {
         given()
             .when().get("/api/users/1/followers/999/status")
@@ -183,4 +193,11 @@ public class UserResourceTest extends TestBase {
             .then()
             .statusCode(404);
     }
+    @Test
+    void anonymousProfileAccessIsRejected() {
+        for (String path : new String[]{"/api/users", "/api/users/999", "/api/users/handle/nonexistent", "/api/users/999/followers"}) {
+            given().when().get(path).then().statusCode(401);
+        }
+    }
+
 }

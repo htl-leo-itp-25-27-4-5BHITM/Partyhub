@@ -93,18 +93,18 @@
         }
     </style>
 </head>
-<body>
-    <div class="container">
+<body style="margin:0;padding:0;background-color:#0d0b1a;color:#e8e0f0;font-family:Arial,sans-serif;">
+    <div class="container" style="max-width:560px;margin:24px auto;background-color:#1a1040;color:#e8e0f0;">
         <div class="header">
             <h1>PartyHub</h1>
             <p>Discover &amp; Share Amazing Events</p>
         </div>
-        <div class="body-content">
-            <p><strong>Hi ${user.firstName!}!</strong></p>
-            <p>Welcome to PartyHub! Please verify your email address to get started.</p>
+        <div class="body-content" style="padding:32px 24px;color:#e8e0f0;font-size:16px;line-height:1.6;">
+            <p style="color:#e8e0f0;"><strong>Hi ${user.firstName!}!</strong></p>
+            <p style="color:#e8e0f0;">Welcome to PartyHub! Please verify your email address to get started.</p>
 
             <div class="actions">
-                <a href="${link}" class="btn-primary">
+                <a href="${link}" class="btn-primary" style="display:inline-block;padding:14px 32px;background-color:#ff2e63;color:#ffffff;text-decoration:none;border-radius:8px;">
                     Verify Email Address
                 </a>
             </div>
@@ -116,7 +116,7 @@
 
             <div class="divider"></div>
 
-            <p><strong>Get the PartyHub App</strong></p>
+            <p style="color:#e8e0f0;"><strong>Get the PartyHub App</strong></p>
             <p style="font-size: 14px; color: #8880a8;">
                 Open the app on your iPhone.
             </p>

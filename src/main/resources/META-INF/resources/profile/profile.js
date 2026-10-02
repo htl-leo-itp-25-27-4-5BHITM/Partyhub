@@ -166,7 +166,7 @@ document.addEventListener("DOMContentLoaded", async function () {
       ...existingBackend,
 
       async getFollowers(userId) {
-        const response = await fetch(
+        const response = await window.authService.apiCall(
           `/api/users/${encodeURIComponent(userId)}/followers`
         );
 
@@ -180,7 +180,7 @@ document.addEventListener("DOMContentLoaded", async function () {
       },
 
       async getFollowings(userId) {
-        const response = await fetch(
+        const response = await window.authService.apiCall(
           `/api/users/${encodeURIComponent(userId)}/following`
         );
 
@@ -198,7 +198,7 @@ document.addEventListener("DOMContentLoaded", async function () {
           return { status: "not_following" };
         }
 
-        const response = await fetch(
+        const response = await window.authService.apiCall(
           `/api/users/${encodeURIComponent(currentUserId)}/followers/${encodeURIComponent(targetUserId)}/status`
         );
 
@@ -213,7 +213,7 @@ document.addEventListener("DOMContentLoaded", async function () {
           return { status: "following" };
         }
 
-        const pendingResponse = await fetch(
+        const pendingResponse = await window.authService.apiCall(
           `/api/users/${encodeURIComponent(targetUserId)}/follow-requests`
         );
 
@@ -274,8 +274,8 @@ document.addEventListener("DOMContentLoaded", async function () {
       },
 
       async getPartiesByUser(userId) {
-        const response = await (window.authService?.apiCall || fetch)("/api/parties", {
-          authRequired: false,
+        const response = await window.authService.apiCall("/api/parties?include_past=true", {
+          authRequired: true,
           cache: "no-store",
           headers: {
             "Cache-Control": "no-cache"
@@ -981,7 +981,7 @@ document.addEventListener("DOMContentLoaded", async function () {
   // Load user
   // -----------------------------
   function loadUserDataByHandle(userHandle) {
-    fetch(`/api/users/handle/${encodeURIComponent(userHandle)}`)
+    window.authService.apiCall(`/api/users/handle/${encodeURIComponent(userHandle)}`)
       .then((response) => {
         if (!response.ok) {
           throw new Error(`HTTP ${response.status}`);
@@ -997,7 +997,7 @@ document.addEventListener("DOMContentLoaded", async function () {
   }
 
   function loadUserDataById(userId) {
-    fetch(`/api/users/${encodeURIComponent(userId)}`)
+    window.authService.apiCall(`/api/users/${encodeURIComponent(userId)}`)
       .then((response) => {
         if (!response.ok) {
           throw new Error(`HTTP ${response.status}`);
@@ -1377,7 +1377,7 @@ document.addEventListener("DOMContentLoaded", async function () {
 
   async function performSearch(query) {
     try {
-      const response = await fetch(`/api/users?q=${encodeURIComponent(query)}`);
+      const response = await window.authService.apiCall(`/api/users?q=${encodeURIComponent(query)}`);
 
       if (!response.ok) {
         throw new Error(`HTTP ${response.status}`);
@@ -1488,7 +1488,7 @@ document.addEventListener("DOMContentLoaded", async function () {
   }
 
   async function fetchUsersAll() {
-    const response = await fetch("/api/users");
+    const response = await window.authService.apiCall("/api/users");
 
     if (!response.ok) {
       throw new Error(`HTTP ${response.status}`);
@@ -1673,7 +1673,7 @@ document.addEventListener("DOMContentLoaded", async function () {
               return;
             }
 
-            const response = await fetch(`/api/parties/${encodeURIComponent(party.id)}`, {
+            const response = await window.authService.apiCall(`/api/parties/${encodeURIComponent(party.id)}`, {
               method: "DELETE",
             });
 
@@ -1766,22 +1766,7 @@ document.addEventListener("DOMContentLoaded", async function () {
 
     showTab("Parties");
   }
-  // If no explicit user is requested (no handle/id in URL) and no stored
-  // logged-in user is available, require login similar to notifications page.
-  // This ensures users who open /profile/profile.html are redirected to
-  // Keycloak and returned to the same page after authentication.
-  try {
-    const urlParams = new URLSearchParams(window.location.search);
-    const hasHandle = urlParams.has("handle");
-    const hasId = urlParams.has("id");
-    const stored = getStoredUserId();
-
-    if (!hasHandle && !hasId && (stored == null)) {
-      await window.authService?.init?.({ requireLogin: true, redirectTo: window.location.pathname });
-    }
-  } catch (err) {
-    console.warn("Profile init login check failed", err);
-  }
+  if (!(await window.requireAuth())) return;
 
   initTabs();
   initProfileLoad();

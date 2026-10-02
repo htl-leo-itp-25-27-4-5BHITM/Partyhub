@@ -60,7 +60,8 @@ public class PartyResource {
             @QueryParam("user_longitude") Double userLongitude,
             @QueryParam("distance") Integer distanceKm,
             @QueryParam("limit") Integer limit,
-            @QueryParam("offset") Integer offset) {
+            @QueryParam("offset") Integer offset,
+            @QueryParam("include_past") Boolean includePast) {
         
         Long actualUserId = currentUserResolver.currentUserIdIfAuthenticated().orElse(null);
 
@@ -77,46 +78,13 @@ public class PartyResource {
             return Response.status(400).entity("{\"error\": \"user_latitude and user_longitude are required for distance filter\"}").build();
         }
 
-        boolean hasNewFilters = (userAge != null) ||
-                               (free != null) ||
-                               (userLatitude != null && userLongitude != null);
-
-        if (hasNewFilters) {
-            try {
-                FilterParams filters = new FilterParams(q, theme, userAge, free, userLatitude, userLongitude, distanceKm, limit, offset);
-                List<Party> result = partyRepository.findWithFilters(filters, actualUserId);
-                return Response.ok(result).build();
-            } catch (IllegalArgumentException e) {
-                return Response.status(400).entity("{\"error\": \"" + e.getMessage() + "\"}").build();
-            }
+        try {
+            FilterParams filters = new FilterParams(q, theme, userAge, free, userLatitude, userLongitude, distanceKm, limit, offset);
+            return Response.ok(partyRepository.findVisibleParties(filters, actualUserId, dateFrom, dateTo, sort,
+                    Boolean.TRUE.equals(includePast) && actualUserId != null)).build();
+        } catch (IllegalArgumentException | java.time.DateTimeException e) {
+            return Response.status(400).entity("Invalid party filters").build();
         }
-
-        boolean hasLegacyFilters = (q != null && !q.isBlank()) ||
-                                  (theme != null && !theme.isBlank()) ||
-                                  (dateFrom != null && !dateFrom.isBlank()) ||
-                                  (dateTo != null && !dateTo.isBlank());
-        
-        if (hasLegacyFilters) {
-            List<Party> result = null;
-            if (q != null && !q.isBlank()) {
-                result = partyRepository.findByTitleOrDescription(q);
-            } else if (theme != null && !theme.isBlank()) {
-                result = partyRepository.findByTheme(theme);
-            } else if (dateFrom != null && dateTo != null) {
-                result = partyRepository.findByDateRange(dateFrom, dateTo);
-            }
-            
-            if (result == null) {
-                return Response.status(400).entity("Invalid filter or incomplete data").build();
-            }
-            return Response.ok(result).build();
-        }
-        
-        if (sort != null && !sort.isBlank()) {
-            return partyRepository.sortParty(sort);
-        }
-        
-        return Response.ok().entity(partyRepository.getPartiesByUser(actualUserId)).build();
     }
 
     @POST

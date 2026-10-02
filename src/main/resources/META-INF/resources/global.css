@@ -333,3 +333,5 @@ a {
     font-size: 0.65rem;
   }
 }
+/* Keep protected content out of unauthenticated history snapshots. */
+body[data-auth-required]:not([data-auth-ready]) { visibility: hidden; }

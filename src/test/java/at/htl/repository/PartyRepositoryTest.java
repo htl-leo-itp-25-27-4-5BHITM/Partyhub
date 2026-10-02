@@ -404,4 +404,27 @@ public class PartyRepositoryTest {
         assertTrue(members.stream().anyMatch(member ->
                 member.userId().equals(declinedInvitee.getId()) && "DECLINED".equals(member.status())));
     }
+    @Test
+    void discoveryHidesPrivateAndEndedPartiesButKeepsOngoingAndHistory() {
+        createTestData();
+        User host = entityManager.createQuery("SELECT u FROM User u", User.class).getSingleResult();
+        Location location = entityManager.createQuery("SELECT l FROM Location l", Location.class).getSingleResult();
+        for (String title : List.of("Ended", "Ongoing", "Private")) {
+            Party party = new Party();
+            party.setTitle(title);
+            party.setDescription("Discovery regression");
+            party.setHost_user(host);
+            party.setLocation(location);
+            party.setVisibility(title.equals("Private") ? "PRIVATE" : "PUBLIC");
+            party.setTime_start(LocalDateTime.now().minusHours(2));
+            party.setTime_end(title.equals("Ended") ? LocalDateTime.now().minusHours(1) : LocalDateTime.now().plusHours(1));
+            entityManager.persist(party);
+        }
+        entityManager.flush();
+        var filters = new at.htl.party.FilterParams("Discovery", null, null, null, null, null, null, null, null);
+        assertEquals(List.of("Ongoing"), partyRepository.findVisibleParties(filters, null, null, null, "asc", false).stream().map(Party::getTitle).toList());
+        assertEquals(2, partyRepository.findVisibleParties(filters, host.getId(), null, null, null, false).size());
+        assertEquals(3, partyRepository.findVisibleParties(filters, host.getId(), null, null, null, true).size());
+    }
+
 }

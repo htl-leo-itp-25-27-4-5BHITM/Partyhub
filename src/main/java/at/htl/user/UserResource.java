@@ -69,13 +69,14 @@ public class UserResource {
 
     @GET
     @jakarta.ws.rs.Path("")
+    @Authenticated
     public Response getUsers(@QueryParam("q") String query) {
         if (query != null && !query.isBlank()) {
             List<User> users = userRepository.getUsersByDistinctNameSearch(query);
-            return Response.ok(users).build();
+            return Response.ok(users.stream().map(u -> ProfileDto.from(u, false)).toList()).build();
         }
         List<User> users = userRepository.getUsers();
-        return Response.ok(users).build();
+        return Response.ok(users.stream().map(u -> ProfileDto.from(u, false)).toList()).build();
     }
 
     private User createUserDtoToUser(UserCreateDto userCreateDto) {
@@ -90,44 +91,48 @@ public class UserResource {
 
     @GET
     @jakarta.ws.rs.Path("/{id}")
+    @Authenticated
     public Response getUser(@PathParam("id") long id) {
         User user = userRepository.getUser(id);
         if (user == null) {
             return Response.status(Response.Status.NOT_FOUND).build();
         }
-        return Response.ok(user).build();
+        return Response.ok(ProfileDto.from(user, user.getId().equals(currentUserResolver.requireCurrentUserId()))).build();
     }
 
     @GET
     @jakarta.ws.rs.Path("/handle/{distinctName}")
+    @Authenticated
     public Response getUserByDistinctName(@PathParam("distinctName") String distinctName) {
         User user = userRepository.findByDistinctName(distinctName);
         if (user == null) {
             return Response.status(Response.Status.NOT_FOUND).build();
         }
-        return Response.ok(user).build();
+        return Response.ok(ProfileDto.from(user, user.getId().equals(currentUserResolver.requireCurrentUserId()))).build();
     }
 
     @GET
     @jakarta.ws.rs.Path("/username/{username}")
+    @Authenticated
     public Response getUserByUsername(@PathParam("username") String username) {
         var user = userRepository.findByUsername(username);
         if (user.isEmpty()) {
             return Response.status(Response.Status.NOT_FOUND).build();
         }
-        return Response.ok(user.get()).build();
+        return Response.ok(ProfileDto.from(user.get(), user.get().getId().equals(currentUserResolver.requireCurrentUserId()))).build();
     }
 
     @GET
     @jakarta.ws.rs.Path("/me")
     @Authenticated
     public Response getCurrentUser() {
-        return Response.ok(currentUserResolver.requireCurrentUser()).build();
+        return Response.ok(ProfileDto.from(currentUserResolver.requireCurrentUser(), true)).build();
     }
 
     @GET
     @jakarta.ws.rs.Path("/{id}/followers/count")
     @Produces(MediaType.APPLICATION_JSON)
+    @Authenticated
     public Response getFollowerCount(@PathParam("id") long id) {
         User user = userRepository.getUser(id);
         if (user == null) {
@@ -140,6 +145,7 @@ public class UserResource {
     @GET
     @jakarta.ws.rs.Path("/{id}/following/count")
     @Produces(MediaType.APPLICATION_JSON)
+    @Authenticated
     public Response getFollowingCount(@PathParam("id") long id) {
         User user = userRepository.getUser(id);
         if (user == null) {
@@ -177,7 +183,7 @@ public class UserResource {
         User merged = em.merge(user);
         logger.info("User merged successfully: " + merged.getId());
         
-        return Response.ok(merged).build();
+        return Response.ok(ProfileDto.from(merged, true)).build();
     }
 
 
@@ -315,14 +321,16 @@ public class UserResource {
     @GET
     @jakarta.ws.rs.Path("/{id}/followers")
     @Produces(MediaType.APPLICATION_JSON)
+    @Authenticated
     public Response getFollowers(@PathParam("id") long id) {
         List<User> followers = followRepository.getFollowers(id);
-        return Response.ok(followers).build();
+        return Response.ok(followers.stream().map(u -> ProfileDto.from(u, false)).toList()).build();
     }
 
     @GET
     @jakarta.ws.rs.Path("/{id}/following")
     @Produces(MediaType.APPLICATION_JSON)
+    @Authenticated
     public Response getFollowing(@PathParam("id") long id) {
         List<User> following = followRepository.getFollowing(id);
         return Response.ok(following).build();
@@ -331,14 +339,16 @@ public class UserResource {
     @GET
     @jakarta.ws.rs.Path("/{id}/follow-requests")
     @Produces(MediaType.APPLICATION_JSON)
+    @Authenticated
     public Response getFollowRequests(@PathParam("id") long id) {
         List<User> pending = followRepository.getPendingFollowerRequests(id);
-        return Response.ok(pending).build();
+        return Response.ok(pending.stream().map(u -> ProfileDto.from(u, false)).toList()).build();
     }
 
     @GET
     @jakarta.ws.rs.Path("/{userId1}/followers/{userId2}/status")
     @Produces(MediaType.APPLICATION_JSON)
+    @Authenticated
     public Response getFollowStatus(@PathParam("userId1") long userId1,
                                    @PathParam("userId2") long userId2) {
         boolean following = followRepository.isFollowing(userId1, userId2);

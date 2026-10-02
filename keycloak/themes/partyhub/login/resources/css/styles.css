@@ -531,3 +531,26 @@ span.required,
     font-size: 30px;
   }
 }
+
+/* Base-theme messages and containers, including email verification. */
+body { color: var(--ph-text-primary); }
+body > div, #kc-content, #kc-content-wrapper { width: 100%; max-width: 460px; }
+.alert-warning {
+  background: rgba(255, 200, 90, 0.12);
+  border: 1px solid rgba(255, 200, 90, 0.3);
+  color: #fff0c2;
+  padding: 12px 16px;
+  border-radius: 12px;
+  margin-bottom: 20px;
+  font-size: 15px;
+  line-height: 1.5;
+}
+.alert-warning span, .alert-warning .pf-c-alert__title { color: inherit; }
+#kc-info a, #kc-content a { color: #ff8baa; }
+#kc-content-wrapper .instruction { color: var(--ph-text-primary); line-height: 1.5; }
+@media (max-width: 480px) {
+  body { align-items: flex-start; padding: 24px 16px; }
+  body > div { margin: auto 0; }
+  #kc-form { padding: 24px 18px; }
+  input[type="text"], input[type="email"], input[type="password"] { font-size: 16px; }
+}

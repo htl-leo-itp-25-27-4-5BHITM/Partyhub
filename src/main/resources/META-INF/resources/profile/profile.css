@@ -578,14 +578,7 @@ body.bg-light .container {
   margin-top: 2px;
 }
 
-.bottom-nav {
-  display: flex !important;
-  position: fixed !important;
-  left: 0 !important;
-  right: 0 !important;
-  bottom: 0 !important;
-  z-index: 10000 !important;
-}
+/* Bottom navigation geometry is shared in global.css. */
 
 .bottom-nav .nav-btn {
   text-decoration: none;

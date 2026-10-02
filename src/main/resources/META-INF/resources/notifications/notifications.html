@@ -24,12 +24,13 @@
 
     <script src="../user-utils.js" defer></script>
     <script src="../auth-service.js" defer></script>
+    <script src="../route-guard.js" defer></script>
     <script src="../nav.js" defer></script>
     <script src="../backend-functions.js?v=20260429-notifications" defer></script>
     <script src="./notifications.js?v=20260603-invite-accept-fix-2" defer></script>
   </head>
 
-  <body class="bg-light">
+  <body class="bg-light" data-auth-required>
     <div class="app-shell">
       <main class="container py-4">
         <header class="page-header">
