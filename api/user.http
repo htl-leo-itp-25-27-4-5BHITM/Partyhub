@@ -8,6 +8,7 @@
 ### Seed: get all users from import.sql
 ###########################################
 GET {{baseUrl}}
+X-User-Id: 1
 
 ?? status == 200
 
@@ -16,6 +17,7 @@ GET {{baseUrl}}
 ### Search users by distinct name
 ###########################################
 GET {{baseUrl}}?q=anna
+X-User-Id: 1
 
 ?? status == 200
 
@@ -24,6 +26,7 @@ GET {{baseUrl}}?q=anna
 ### Get user by ID
 ###########################################
 GET {{baseUrl}}/{{anna}}
+X-User-Id: 1
 
 ?? status == 200
 
@@ -50,6 +53,7 @@ X-User-Id: {{anna}}
 ### Follower count for Anna
 ###########################################
 GET {{baseUrl}}/{{anna}}/followers/count
+X-User-Id: 1
 
 ?? status == 200
 
@@ -58,6 +62,7 @@ GET {{baseUrl}}/{{anna}}/followers/count
 ### Following count for Anna
 ###########################################
 GET {{baseUrl}}/{{anna}}/following/count
+X-User-Id: 1
 
 ?? status == 200
 
@@ -66,6 +71,7 @@ GET {{baseUrl}}/{{anna}}/following/count
 ### Followers of Anna
 ###########################################
 GET {{baseUrl}}/{{anna}}/followers
+X-User-Id: 1
 
 ?? status == 200
 
@@ -74,6 +80,7 @@ GET {{baseUrl}}/{{anna}}/followers
 ### Following of Anna
 ###########################################
 GET {{baseUrl}}/{{anna}}/following
+X-User-Id: 1
 
 ?? status == 200
 
@@ -82,6 +89,7 @@ GET {{baseUrl}}/{{anna}}/following
 ### Pending follow requests for Thomas
 ###########################################
 GET {{baseUrl}}/4/follow-requests
+X-User-Id: 1
 
 ?? status == 200
 
@@ -90,6 +98,7 @@ GET {{baseUrl}}/4/follow-requests
 ### Follow status: Anna follows Michael in import.sql
 ###########################################
 GET {{baseUrl}}/{{anna}}/followers/{{michael}}/status
+X-User-Id: 1
 
 ?? status == 200
 
@@ -124,3 +133,58 @@ GET {{baseUrl}}/{{anna}}/profile-picture-filename
 GET {{baseUrl}}/{{anna}}/media
 
 ?? status == 200
+
+### Anonymous profile access is rejected: list
+GET {{baseUrl}}
+
+?? status == 401
+
+### Anonymous profile access is rejected: /1
+GET {{baseUrl}}/1
+
+?? status == 401
+
+### Anonymous profile access is rejected: /handle/anna
+GET {{baseUrl}}/handle/anna
+
+?? status == 401
+
+### Anonymous profile access is rejected: /username/anna
+GET {{baseUrl}}/username/anna
+
+?? status == 401
+
+### Anonymous profile access is rejected: /me
+GET {{baseUrl}}/me
+
+?? status == 401
+
+### Anonymous profile access is rejected: /1/followers/count
+GET {{baseUrl}}/1/followers/count
+
+?? status == 401
+
+### Anonymous profile access is rejected: /1/following/count
+GET {{baseUrl}}/1/following/count
+
+?? status == 401
+
+### Anonymous profile access is rejected: /1/followers
+GET {{baseUrl}}/1/followers
+
+?? status == 401
+
+### Anonymous profile access is rejected: /1/following
+GET {{baseUrl}}/1/following
+
+?? status == 401
+
+### Anonymous profile access is rejected: /4/follow-requests
+GET {{baseUrl}}/4/follow-requests
+
+?? status == 401
+
+### Anonymous profile access is rejected: /1/followers/2/status
+GET {{baseUrl}}/1/followers/2/status
+
+?? status == 401

@@ -5,6 +5,7 @@
 ### Seed: follower count for Anna
 ###
 GET {{baseUrl}}/1/followers/count
+X-User-Id: 1
 
 ?? status == 200
 
@@ -13,6 +14,7 @@ GET {{baseUrl}}/1/followers/count
 ### Seed: following count for Anna
 ###
 GET {{baseUrl}}/1/following/count
+X-User-Id: 1
 
 ?? status == 200
 
@@ -21,6 +23,7 @@ GET {{baseUrl}}/1/following/count
 ### Seed: followers of Anna
 ###
 GET {{baseUrl}}/1/followers
+X-User-Id: 1
 
 ?? status == 200
 
@@ -29,6 +32,7 @@ GET {{baseUrl}}/1/followers
 ### Seed: Anna follows Michael and Katrin
 ###
 GET {{baseUrl}}/1/following
+X-User-Id: 1
 
 ?? status == 200
 
@@ -37,6 +41,7 @@ GET {{baseUrl}}/1/following
 ### Seed: Michael wants to follow Thomas
 ###
 GET {{baseUrl}}/4/follow-requests
+X-User-Id: 1
 
 ?? status == 200
 
@@ -45,6 +50,7 @@ GET {{baseUrl}}/4/follow-requests
 ### Seed: Anna follows Michael
 ###
 GET {{baseUrl}}/1/followers/2/status
+X-User-Id: 1
 
 ?? status == 200
 

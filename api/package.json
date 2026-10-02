@@ -5,7 +5,7 @@
   "main": "index.js",
   "scripts": {
     "test": "httpyac --all --timeout 10000 --verbose *.http",
-    "test:ci": "httpyac --all --timeout 10000 --verbose --output ./test-results/ *.http"
+    "test:ci": "mkdir -p test-results && bash -o pipefail -c 'httpyac --all --timeout 10000 --verbose *.http 2>&1 | tee test-results/http-log.txt'"
   },
   "keywords": [
     "httpyac",

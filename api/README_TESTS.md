@@ -1,6 +1,17 @@
 # HTTPYac API Tests - GitHub Actions Compatible
 
-**Status: ✅ ALL 67 TESTS PASSING**
+## Authentication checks
+
+Protected profile and follow requests use `X-User-Id` with the existing local/CI
+identity mechanism. The HTTPYac CI server explicitly enables this development
+mechanism; these tests do not exercise Keycloak login. Anonymous requests omit
+that header and assert HTTP 401. Production authentication remains unchanged.
+
+Run against a disposable development database: `00-setup.http` creates data and
+other files modify it. The last isolated run processed 191 requests successfully.
+`npm run test:ci` saves `test-results/http-log.txt` and preserves the test exit code.
+
+The historical results below describe the earlier suite, not the current count.
 
 ## Fixed Issues (May 10 2026)
 

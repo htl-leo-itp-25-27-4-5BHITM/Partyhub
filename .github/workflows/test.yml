@@ -46,7 +46,7 @@ jobs:
       - name: Start Quarkus server for HTTPYac tests
         run: |
           mvn quarkus:dev -Dquarkus.http.host=0.0.0.0 -Dquarkus.http.port=8080 \
-            -Dquarkus.log.level=INFO &
+            -Dquarkus.log.level=INFO -Dpartyhub.auth.bypass-enabled=true &
           QUARKUS_PID=$!
           echo $QUARKUS_PID > /tmp/quarkus.pid
           
@@ -80,7 +80,10 @@ jobs:
           working-directory: api
 
       - name: Run HTTPYac API tests (sequential)
-        run: npx httpyac --all --timeout 10000 --verbose --output ./test-results/ *.http
+        run: |
+          set -o pipefail
+          mkdir -p test-results
+          npx httpyac --all --timeout 10000 --verbose *.http 2>&1 | tee test-results/http-log.txt
         working-directory: api
         timeout-minutes: 10
         env:
