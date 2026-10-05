@@ -120,6 +120,37 @@ body {
   width: 100%;
 }
 
+.registration-notice,
+.registration-error {
+  width: min(100%, 460px);
+  margin: 0 auto 16px;
+  padding: 12px 14px;
+  border-radius: 12px;
+  font-size: 14px;
+  line-height: 1.45;
+}
+
+.registration-notice {
+  color: var(--ph-text-primary);
+  background: rgba(62, 193, 243, 0.14);
+  border: 1px solid rgba(62, 193, 243, 0.45);
+}
+
+.registration-error,
+.field-error {
+  color: #ffd2dc;
+  background: rgba(255, 46, 99, 0.16);
+  border: 1px solid rgba(255, 46, 99, 0.55);
+}
+
+.field-error {
+  margin: -10px 0 18px;
+  padding: 8px 10px;
+  border-radius: 10px;
+  font-size: 13px;
+  line-height: 1.35;
+}
+
 form {
   width: 100%;
 }
