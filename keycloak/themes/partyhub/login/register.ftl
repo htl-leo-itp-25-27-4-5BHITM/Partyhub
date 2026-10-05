@@ -12,7 +12,7 @@
         </div>
 
         <div class="registration-notice" role="status">
-            After registering, please verify your email address before you can use your account.
+            Du musst deine E-Mail bestätigen, bevor du deinen Account verwenden kannst.
         </div>
 
         <#if hasFieldErrors>
