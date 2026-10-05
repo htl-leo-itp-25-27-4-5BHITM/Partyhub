@@ -315,7 +315,24 @@ input[type="submit"]:hover,
 }
 
 #kc-info-wrapper {
-  padding: 0;
+  padding: 20px 24px;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid var(--ph-border);
+  border-radius: 16px;
+  color: var(--ph-text-primary);
+  line-height: 1.55;
+}
+
+/* Keycloak's email-verification template uses plain text nodes here. */
+#kc-info-wrapper,
+#kc-info-wrapper *,
+#kc-content .instruction {
+  color: var(--ph-text-primary) !important;
+}
+
+#kc-info-wrapper a {
+  color: #ff8baa !important;
+  font-weight: 700;
 }
 
 .kc-feedback-text {
