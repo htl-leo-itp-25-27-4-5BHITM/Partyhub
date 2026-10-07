@@ -3,7 +3,7 @@
 Protokoll zum Testen von SmartSeat
 
 **Datum:** 24.06.2026
-**Tester:innen:** Anna Reder, Carla Dimmler, Martin Briefeneder
+**Tester:innen:** Anna Reder, Carla Dimmler, Martin Briefeneder, Viktora Vejmelek
 
 ---
 
@@ -18,11 +18,11 @@ Protokoll zum Testen von SmartSeat
 | 5 | Speichern ohne Namensänderung | Kojen verwalten | Martin Briefeneder |
 | 6 | Einheit bei der Dauer | Kojen verwalten | Anna Reder, Martin Briefeneder |
 | 7 | Verständlichkeit des Dashboards | Dashboard & Daten | Anna Reder |
-| 8 | Scrollen im Leaderboard | Layout & Responsive | Anna Reder |
+| 8 | Scrollen im Leaderboard | Layout & Responsive | Viktoria Vejmelek |
 | 9 | Einheitliches Responsive Design | Layout & Responsive | Anna Reder |
 | 10 | Bedeutung der Zahlen | Dashboard & Daten | *nicht angegeben* |
 | 11 | Aktive Seite in der Navigation | Navigation | Anna Reder |
-| 12 | Werte im Chart sichtbar | Dashboard & Daten | Anna Reder |
+| 12 | Werte im Chart sichtbar | Dashboard & Daten | Viktoria Vejmelek |
 | 13 | Pfeil zur Ebenen-Auswahl | Interaktion | Carla Dimmler |
 
 
@@ -132,7 +132,7 @@ Protokoll zum Testen von SmartSeat
 | **Datum** | 24.06.2026 |
 | **Erwartetes Ergebnis** | Scrollen im Leaderboard, um auch bei kleinen Laptops etwas lesen zu können. |
 | **Tatsächliches Ergebnis** | Man sieht nur die Hälfte, oder mehr oder weniger, das weiß man nicht. |
-| **Author** | Anna Reder |
+| **Author** | Viktora Vejmelek |
 
 > **Bemerkung:** –
 
@@ -192,7 +192,7 @@ Protokoll zum Testen von SmartSeat
 | **Datum** | 24.06.2026 |
 | **Erwartetes Ergebnis** | Bei großen Unterschieden sieht man die Info beim Chart trotzdem überall. |
 | **Tatsächliches Ergebnis** | Man kann nur über einen Chart drüber hovern und das Ergebnis sehen. |
-| **Author** | Anna Reder |
+| **Author** | Viktoria Vejmelek |
 
 > **Bemerkung:** –
 
