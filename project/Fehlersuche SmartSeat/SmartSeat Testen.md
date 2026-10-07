@@ -39,7 +39,7 @@ Protokoll zum Testen von SmartSeat
 
 > **Bemerkung:** Ich will sehen, wie lange jemand schon drinnen ist, um ca. eine Einschätzung zu haben, wann sie gehen könnten.
 
-![Screenshot Test 1](SmartSeat%20Screenshots/test01.png)
+![Screenshot Test 1](Screenshots/test01.png)
 
 ---
 
@@ -54,7 +54,7 @@ Protokoll zum Testen von SmartSeat
 
 > **Bemerkung:** Rechtschreibfehler
 
-![Screenshot Test 2](SmartSeat%20Screenshots/test02.png)
+![Screenshot Test 2](Screenshots/test02.png)
 
 ---
 
@@ -69,7 +69,7 @@ Protokoll zum Testen von SmartSeat
 
 > **Bemerkung:** Statt „Map“ eher als „Dashboard“ betiteln.
 
-![Screenshot Test 3](SmartSeat%20Screenshots/test03.png)
+![Screenshot Test 3](Screenshots/test03.png)
 
 ---
 
@@ -136,7 +136,7 @@ Protokoll zum Testen von SmartSeat
 
 > **Bemerkung:** –
 
-![Screenshot Test 8](SmartSeat%20Screenshots/test08.png)
+![Screenshot Test 8](Screenshots/test08.png)
 
 ---
 
@@ -151,7 +151,7 @@ Protokoll zum Testen von SmartSeat
 
 > **Bemerkung:** –
 
-![Screenshot Test 9](SmartSeat%20Screenshots/test09.png)
+![Screenshot Test 9](Screenshots/test09.png)
 
 ---
 
@@ -166,7 +166,7 @@ Protokoll zum Testen von SmartSeat
 
 > **Bemerkung:** Es wäre schön, wenn man weiß, wofür die Zahlen stehen.
 
-![Screenshot Test 10](SmartSeat%20Screenshots/test10.png)
+![Screenshot Test 10](Screenshots/test10.png)
 
 ---
 
@@ -181,7 +181,7 @@ Protokoll zum Testen von SmartSeat
 
 > **Bemerkung:** –
 
-![Screenshot Test 11](SmartSeat%20Screenshots/test11.png)
+![Screenshot Test 11](Screenshots/test11.png)
 
 ---
 
@@ -196,9 +196,9 @@ Protokoll zum Testen von SmartSeat
 
 > **Bemerkung:** –
 
-![Screenshot Test 12 (1)](SmartSeat%20Screenshots/test12a.png)
+![Screenshot Test 12 (1)](Screenshots/test12a.png)
 
-![Screenshot Test 12 (2)](SmartSeat%20Screenshots/test12b.png)
+![Screenshot Test 12 (2)](Screenshots/test12b.png)
 
 ---
 
@@ -214,4 +214,4 @@ Protokoll zum Testen von SmartSeat
 > **Bemerkung:** Als User würde ich eher verstehen, dass der Pfeil eine Funktionalität hat.
 > Ich würde es eventuell so veranschaulichen, dass der Rahmen der Ebene grün umrandet ist und somit „aktiv“ andeutet. Wenn ich auf die andere Ebene klicke, sollte dort der Rahmen grün sein.
 
-![Screenshot Test 13](SmartSeat%20Screenshots/test13.png)
+![Screenshot Test 13](Screenshots/test13.png)
