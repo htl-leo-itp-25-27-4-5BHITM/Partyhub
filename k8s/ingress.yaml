@@ -21,4 +21,5 @@ spec:
           service:
             name: keycloak
             port:
+              # Match the Service port (8180), not its container targetPort (8080).
               number: 8180

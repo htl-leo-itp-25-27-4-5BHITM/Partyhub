@@ -46,7 +46,7 @@ jobs:
       - name: Apply manifests
         run: |
           echo "Applying Kubernetes manifests"
-          kubectl apply -f k8s/postgres.yaml -f k8s/keycloak.yaml -f k8s/quarkus.yaml
+          kubectl apply -f k8s/postgres.yaml -f k8s/keycloak.yaml -f k8s/quarkus.yaml -f k8s/ingress.yaml
 
       - name: Roll out images
         run: |
