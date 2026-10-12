@@ -162,6 +162,7 @@
       codeVerifier,
       redirectTo,
       createdAt: Date.now(),
+      expiredRetry: Boolean(options.expiredRetry),
     });
 
     const kcAction = options.kcAction || "";
@@ -258,6 +259,16 @@
 
     const params = new URLSearchParams(window.location.search);
     const error = params.get("error");
+    if (error === "temporarily_unavailable" && params.get("error_description") === "authentication_expired") {
+      // Another tab finished signing in first, which expires this tab's
+      // Keycloak login session. The SSO session exists now, so a fresh
+      // authorization request completes without asking for credentials.
+      const expiredTransaction = readJson(LOGIN_TRANSACTION_KEY);
+      if (!expiredTransaction?.expiredRetry) {
+        await login({ redirectTo: expiredTransaction?.redirectTo || "/index.html", expiredRetry: true });
+        return;
+      }
+    }
     if (error) {
       clearAuthState();
       throw new Error(params.get("error_description") || error);
@@ -518,6 +529,12 @@
     storeUser,
     clearAuth: clearAuthState,
   };
+
+  // A page restored from the back/forward cache may have started a login
+  // before it was left; allow it to start a new one.
+  window.addEventListener("pageshow", (event) => {
+    if (event.persisted) authNavigationStarted = false;
+  });
 
   init({ requireLogin: false }).catch((error) => {
     console.error("Auth initialization failed", error);

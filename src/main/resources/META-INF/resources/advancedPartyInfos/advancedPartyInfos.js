@@ -330,6 +330,14 @@ async function loadPartyMembers(partyId, party = null) {
     currentPartyIsPrivate = isPrivateParty(party);
   }
 
+  // Public party details are visible anonymously, member lists are not.
+  // Don't let the member request redirect anonymous visitors to the login.
+  const loggedIn = await window.authService?.init?.().catch(() => false);
+  if (!loggedIn) {
+    renderMembersLoginHint();
+    return;
+  }
+
   if (currentPartyIsPrivate) {
     await loadInvitedMembers(partyId);
   } else {
@@ -424,6 +432,26 @@ function renderInvitedMembers(invitedMembers) {
     item.appendChild(status);
     list.appendChild(item);
   });
+}
+
+function renderMembersLoginHint() {
+  const list = document.querySelector(".invited-list");
+  const toggleText = document.querySelector(".invited-toggle span:first-child");
+
+  if (!list) {
+    return;
+  }
+
+  list.innerHTML = "";
+
+  if (toggleText) {
+    toggleText.textContent = currentPartyIsPrivate ? "Invited Members" : "Joined Members";
+  }
+
+  const hint = document.createElement("li");
+  hint.className = "invited-empty";
+  hint.textContent = "Log in to see who's going";
+  list.appendChild(hint);
 }
 
 function renderJoinedMembers(joinedMembers) {

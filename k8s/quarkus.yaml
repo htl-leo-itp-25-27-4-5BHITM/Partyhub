@@ -33,6 +33,10 @@ spec:
           env:
           - name: QUARKUS_PROFILE
             value: prod
+          # Party times are stored as local Linz wall-clock times; compare
+          # them against local time, not the container's UTC default.
+          - name: TZ
+            value: Europe/Vienna
           - name: KEYCLOAK_ISSUER
             value: "https://it220274.cloud.htl-leonding.ac.at/keycloak/realms/partyhub"
           - name: PARTYHUB_AUTH_BYPASS_ENABLED
