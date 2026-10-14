@@ -21,4 +21,4 @@
 - [x] 4.2 Open the map in the browser app and verify seeded users still show their Linz locations; restart dev mode and verify no Vienna locations appear in `user_location`
   - Note: Claude in Chrome was not connected, so the map was not checked visually. Verified via `GET /api/users/location/{id}` with a Keycloak token (Linz coordinates) and the DB after a dev restart (10 rows, 0 in Vienna). Pre-existing, unrelated: `index.js` calls `/api/users/{id}/location`, which does not exist (backend path is `/api/users/location/{id}`).
 - [x] 4.3 Run `./run-http-tests.sh` (or `api/follow.http`) and verify it passes
-- [ ] 4.4 Open a PR from `carla/cleanup` with a note on the new migration (insert-only, no DROP/DELETE) and the pre-check results; update `docs/cleanup-audit.md` item 1.1 to reference this change
+- [x] 4.4 Open a PR from `carla/cleanup` with a note on the new migration (insert-only, no DROP/DELETE) and the pre-check results; update `docs/cleanup-audit.md` item 1.1 to reference this change
