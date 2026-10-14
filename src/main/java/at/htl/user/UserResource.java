@@ -386,51 +386,6 @@ public class UserResource {
     }
 
     @GET
-    @jakarta.ws.rs.Path("/location/{id}")
-    @Produces(MediaType.APPLICATION_JSON)
-    public Response getUserLocation(@PathParam("id") long userId) {
-        at.htl.user_location.UserLocation location = em.find(at.htl.user_location.UserLocation.class, userId);
-        if (location == null) {
-            return Response.status(Response.Status.NOT_FOUND).build();
-        }
-        return Response.ok(location).build();
-    }
-
-    @PUT
-    @jakarta.ws.rs.Path("/location")
-    @Consumes(MediaType.APPLICATION_JSON)
-    @Produces(MediaType.APPLICATION_JSON)
-    @Transactional
-    @Authenticated
-    public Response updateUserLocation(@Valid at.htl.user_location.UserLocationUpdateDto dto) {
-        Long userId = currentUserResolver.requireCurrentUserId();
-        if (userId == null) {
-            return Response.status(Response.Status.BAD_REQUEST).build();
-        }
-
-        User user = em.find(User.class, userId);
-        if (user == null) {
-            return Response.status(Response.Status.NOT_FOUND).build();
-        }
-
-        at.htl.user_location.UserLocation existingLocation = em.find(at.htl.user_location.UserLocation.class, userId);
-
-        if (existingLocation != null) {
-            existingLocation.setLatitude(dto.latitude());
-            existingLocation.setLongitude(dto.longitude());
-            em.merge(existingLocation);
-            return Response.ok(existingLocation).build();
-        } else {
-            at.htl.user_location.UserLocation newLocation = new at.htl.user_location.UserLocation();
-            newLocation.setUser(user);
-            newLocation.setLatitude(dto.latitude());
-            newLocation.setLongitude(dto.longitude());
-            em.persist(newLocation);
-            return Response.ok(newLocation).build();
-        }
-    }
-
-    @GET
     @jakarta.ws.rs.Path("/{id}/media")
     @Produces(MediaType.APPLICATION_JSON)
     public Response getUserMedia(@PathParam("id") long userId) {

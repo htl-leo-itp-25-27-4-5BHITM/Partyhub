@@ -63,6 +63,9 @@ Two endpoints do the same thing, and both use a native `UPDATE users SET device_
 
 **Fix:** change the fetch to `/api/users/location/${currentUserId}` and check the response shape against the endpoint. This is a behaviour fix, so it gets its own PR (not PR 2).
 
+**Status:** resolved differently in [PR #162](https://github.com/htl-leo-itp-25-27-4-5BHITM/Partyhub/pull/162) (OpenSpec change `secure-user-location-endpoints`). The accepted requirement "Current device location remains private client context" forbids storing or exposing user and attendee coordinates at all. Meanwhile, `GET /api/parties/{id}/locations` and `GET /api/users/location/{id}` were readable without login (including private-party attendees), and `PUT /api/users/location` stored coordinates. All three routes were removed. The web home map no longer shows attendees, and the iOS app no longer uploads or fetches locations.
+- Follow-up (needs explicit approval, deletes data): drop the `user_location` table, the `UserLocation` entity/repository, the seed rows, and the now-unreachable iOS `PartyAttendeeMapView`/`UserLocationListView`.
+
 ---
 
 ## 2. Dead or duplicated code

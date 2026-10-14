@@ -32,73 +32,11 @@ class UserLocationViewModel {
     var isLoading = false
     var errorMessage: String?
     var coordinateProvider: (() -> CLLocationCoordinate2D?)?
-    private var cachedLocation: CLLocationCoordinate2D?
 
-    private var lastFetchedPartyId: Int64?
-
+    // The accepted spec keeps device location client-side: PartyHub does not
+    // store or share attendee locations, so there is nothing to fetch or upload.
     func fetchLocations(partyId: Int64?) {
-        guard let partyId = partyId else { return }
-        guard partyId != lastFetchedPartyId || locations.isEmpty else { return }
-        lastFetchedPartyId = partyId
-
-        guard let url = URL(string: "\(Config.backendURL)/api/parties/\(partyId)/locations") else { return }
-
-        isLoading = true
-        URLSession.shared.dataTask(with: url) { [weak self] data, _, error in
-            DispatchQueue.main.async {
-                self?.isLoading = false
-                if let error = error {
-                    self?.errorMessage = error.localizedDescription
-                    return
-                }
-                guard let data = data else { return }
-                do {
-                    self?.locations = try JSONDecoder().decode([UserLocation].self, from: data)
-                } catch {
-                    self?.errorMessage = error.localizedDescription
-                }
-            }
-        }.resume()
-    }
-
-    func uploadUserLocation(userId: Int64) {
-        guard let url = URL(string: "\(Config.backendURL)/api/users/location") else { return }
-        guard let deviceLocation = getCurrentDeviceLocation() else { return }
-
-        let body: [String: Any] = [
-            "latitude": deviceLocation.latitude,
-            "longitude": deviceLocation.longitude
-        ]
-        guard let jsonData = try? JSONSerialization.data(withJSONObject: body) else { return }
-
-        var request = URLRequest(url: url)
-        request.httpMethod = "PUT"
-        request.httpBody = jsonData
-        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
-
-        Task { @MainActor in
-            do {
-                let token = try await KeycloakAuthService.shared.validAccessToken()
-                request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
-                URLSession.shared.dataTask(with: request) { _, _, _ in }.resume()
-            } catch {
-                print("uploadUserLocation: no auth token: \(error.localizedDescription)")
-            }
-        }
-    }
-
-    private func getCurrentDeviceLocation() -> CLLocationCoordinate2D? {
-        if let providedLocation = coordinateProvider?() {
-            cachedLocation = providedLocation
-            return providedLocation
-        }
-        if let location = cachedLocation { return location }
-        let manager = CLLocationManager()
-        manager.requestWhenInUseAuthorization()
-        if let location = manager.location {
-            cachedLocation = location.coordinate
-            return location.coordinate
-        }
-        return nil
+        isLoading = false
+        locations = []
     }
 }
