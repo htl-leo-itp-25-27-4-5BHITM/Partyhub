@@ -8,6 +8,11 @@ on:
       - 'api/**'
       - 'pom.xml'
       - 'docker-compose.yaml'
+      - 'Dockerfile.keycloak'
+      - 'k8s/**'
+      - 'scripts/**'
+      - 'deploy-local.sh'
+      - 'sync-import.sh'
       - '.github/workflows/**'
   workflow_dispatch:
 jobs:
@@ -23,22 +28,11 @@ jobs:
           java-version: '21'
           cache: 'maven'
 
-      - name: Start PostgreSQL Database
-        run: docker compose up -d
-
-      - name: Wait for database to be ready
+      - name: Start databases and Keycloak
         run: |
-          for i in {1..120}; do
-          if docker compose exec -T postgres pg_isready -U demo -d demo > /dev/null 2>&1; then
-           echo "PostgreSQL is ready!"
-           exit 0
-          fi
-           echo "Waiting for PostgreSQL... ($i/120)"
-           sleep 1
-           done
-          echo "PostgreSQL failed to start"
-          docker compose logs postgres
-          exit 1
+          docker compose config --quiet
+          bash -n deploy-local.sh sync-import.sh scripts/migrate-keycloak-db.sh
+          docker compose up -d --wait --wait-timeout 600
 
       - name: Build with Maven (run tests)
         run: mvn clean test
