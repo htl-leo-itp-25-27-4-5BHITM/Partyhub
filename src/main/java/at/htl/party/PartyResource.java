@@ -3,7 +3,6 @@ package at.htl.party;
 import java.util.List;
 import java.util.Map;
 
-import at.htl.FilterDto;
 import at.htl.auth.CurrentUserResolver;
 import at.htl.media.MediaRepository;
 import at.htl.user_location.UserLocationRepository;

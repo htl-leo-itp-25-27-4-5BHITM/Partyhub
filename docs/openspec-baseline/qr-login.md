@@ -15,7 +15,7 @@ Read this with the accepted [identity specification](../../openspec/specs/user-a
 | Q5 | [welcome.html](../../src/main/resources/templates/emails/welcome.html) and [welcome.txt](../../src/main/resources/templates/emails/welcome.txt): numeric-user login deep links sent by the welcome path. |
 | Q6 | [QrServiceTest.java](../../src/test/java/at/htl/qr/QrServiceTest.java), [QrLoginRepositoryTest.java](../../src/test/java/at/htl/repository/QrLoginRepositoryTest.java) and [QrResourceTest.java](../../src/test/java/at/htl/resource/QrResourceTest.java): static unit/repository/resource evidence. |
 | Q7 | [api/qr.http](../../api/qr.http): nine basic request examples, several using the numeric bypass header. |
-| Q8 | [openapi.yaml](../../openapi.yaml), [import.sql](../../src/main/resources/import.sql) and the historical [functional narrative](../functional-spec-codex.md): exposed API/schema/sample-data and older QR-login description. |
+| Q8 | root `openapi.yaml` (removed in cleanup PR 2; see git history), [import.sql](../../src/main/resources/import.sql) and the historical [functional narrative](../functional-spec-codex.md): exposed API/schema/sample-data and older QR-login description. |
 
 ## Observed endpoint and state-flow comparison
 

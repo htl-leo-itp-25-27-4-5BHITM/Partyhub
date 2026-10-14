@@ -55,7 +55,7 @@ public Response createParty(@Valid PartyCreateDto dto) { ... }
 | HTTPYac API tests | `./run-http-tests.sh` |
 | Re-apply seed to running local DB | `./sync-import.sh --local-only` |
 
-- App http://localhost:8080, Swagger `/q/swagger-ui/`, OpenAPI `/q/openapi` (root `openapi.yaml` is outdated).
+- App http://localhost:8080, Swagger `/q/swagger-ui/`, OpenAPI `/q/openapi`.
 - Keycloak http://localhost:8000 (admin/admin). Demo users: password = username, e.g. `viki_vej`.
 - Dev mode allows an `X-User-Id` bypass - don't use it to verify real login.
 - Keycloak imports a realm only if it doesn't exist; after editing `realm-dev.json`, recreate the volume or re-import the realm.
@@ -79,4 +79,3 @@ Persistent: https://it220274.cloud.htl-leonding.ac.at. Push to `main` -> Test ->
 | Missing `@Valid` on a new endpoint | Add it; validation is silently skipped otherwise |
 | Running `deploy-local.sh` expecting to keep local Keycloak users | It runs `docker-compose down -v` |
 | Realm change not visible | Realm already exists; re-import or recreate volume |
-| Trusting `openapi.yaml` | Use `/q/openapi` or `docs/openspec-baseline/api-contract-matrix.md` |
