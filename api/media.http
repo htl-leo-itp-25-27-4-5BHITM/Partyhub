@@ -1,24 +1,123 @@
 @host = http://localhost:8080
 
 ###########################################
-### Seed: media for party 1
+### Seed: media for public party 1 (anonymous)
 ###########################################
 GET {{host}}/api/parties/1/media
 
 ?? status == 200
+?? js response.parsedBody.length > 0
+?? js response.parsedBody[0].url == undefined
 
 
 ###########################################
-### Seed: media for party without images still returns list
+### Seed: public-party image is served to anonymous callers
+###########################################
+GET {{host}}/api/media/1
+
+?? status == 200
+?? header content-type == image/webp
+?? header x-content-type-options == nosniff
+
+
+###########################################
+### Private party 4 media list is hidden from anonymous callers
 ###########################################
 GET {{host}}/api/parties/4/media
+
+?? status == 404
+
+
+###########################################
+### Joined attendee sees private party 4 media list
+###########################################
+GET {{host}}/api/parties/4/media
+X-User-Id: 1
 
 ?? status == 200
 
 
 ###########################################
-### Seed: media uploaded by Anna
+### Unknown media item
+###########################################
+GET {{host}}/api/media/999999
+
+?? status == 404
+
+
+###########################################
+### Seed: media uploaded by Anna (only parties the caller can view)
 ###########################################
 GET {{host}}/api/users/1/media
 
 ?? status == 200
+
+
+###########################################
+### Upload requires authentication
+###########################################
+POST {{host}}/api/parties/1/media/upload
+Content-Type: multipart/form-data; boundary=PartyHubBoundary
+
+--PartyHubBoundary
+Content-Disposition: form-data; name="file"; filename="testing.jpg"
+Content-Type: image/jpeg
+
+< ./testing.jpg
+--PartyHubBoundary--
+
+?? status == 401
+
+
+###########################################
+### Non-image content is rejected even with an image name
+###########################################
+POST {{host}}/api/parties/4/media/upload
+X-User-Id: 1
+Content-Type: multipart/form-data; boundary=PartyHubBoundary
+
+--PartyHubBoundary
+Content-Disposition: form-data; name="file"; filename="notes.jpg"
+Content-Type: image/jpeg
+
+this is not an image
+--PartyHubBoundary--
+
+?? status == 400
+
+
+###########################################
+### Joined attendee uploads to private party 4 (WebP named .jpg)
+###########################################
+# @name uploaded
+POST {{host}}/api/parties/4/media/upload
+X-User-Id: 1
+Content-Type: multipart/form-data; boundary=PartyHubBoundary
+
+--PartyHubBoundary
+Content-Disposition: form-data; name="file"; filename="testing.jpg"
+Content-Type: image/jpeg
+
+< ./testing.jpg
+--PartyHubBoundary--
+
+?? status == 200
+?? js response.parsedBody.length == 1
+
+
+###########################################
+### Uploaded image is served with its detected type to a viewer
+###########################################
+GET {{host}}/api/media/{{uploaded[0].id}}
+X-User-Id: 1
+
+?? status == 200
+?? header content-type == image/webp
+
+
+###########################################
+### Uploaded private-party image is hidden from anonymous callers
+###########################################
+GET {{host}}/api/media/{{uploaded[0].id}}
+
+?? status == 404

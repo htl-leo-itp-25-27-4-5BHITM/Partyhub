@@ -78,7 +78,6 @@ extension PartyDetailView {
         PartyDateTimeSection(party: party)
         PartyDetailsSection(party: party)
         LocationSection(party: party, resolvedAddress: $resolvedAddress)
-        participantsSection
         AttendanceSection(party: party, now: now)
         PastVisitsSection(entries: finished)
         /*#if DEBUG
@@ -156,26 +155,6 @@ extension PartyDetailView {
         }
     }
 
-    @ViewBuilder
-    private var participantsSection: some View {
-        Section("Participants") {
-            NavigationLink {
-                PartyAttendeeMapView(
-                    party: party,
-                    locationManager: locationManager
-                )
-            } label: {
-                Label("Show participants on map", systemImage: "person.2.fill")
-            }
-
-            NavigationLink {
-                UserLocationListView(parties: [party])
-            } label: {
-                Label("List of participants", systemImage: "list.bullet")
-            }
-        }
-    }
-    
     var body: some View {
         List {
             listContent()

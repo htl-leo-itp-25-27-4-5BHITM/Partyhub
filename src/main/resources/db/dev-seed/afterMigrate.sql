@@ -170,12 +170,12 @@ INSERT INTO party_user (party_id, user_id) VALUES
 -- MEDIA
 -- =========================
 INSERT INTO media (id, party_id, user_id, file) VALUES
-    (1, 1, 1, '/uploads/party1/afterwork_hauptplatz.jpg'),
-    (2, 2, 2, '/uploads/party2/2026-04-28T14:28:18.521898Z_testing.jpg'),
-    (3, 3, 3, '/uploads/party3/donau_sunset.jpg'),
-    (4, 5, 5, '/uploads/party5/cocktail_night.jpg'),
-    (5, 8, 8, '/uploads/party8/hafen_indie.jpg'),
-    (6, 10, 10, '/uploads/party10/jku_kickoff.jpg');
+    (1, 1, 1, 'party1/demo.webp'),
+    (2, 2, 2, 'party2/demo.webp'),
+    (3, 3, 3, 'party3/demo.webp'),
+    (4, 5, 5, 'party5/demo.webp'),
+    (5, 8, 8, 'party8/demo.webp'),
+    (6, 10, 10, 'party10/demo.webp');
 
 -- =========================
 -- INVITATIONS

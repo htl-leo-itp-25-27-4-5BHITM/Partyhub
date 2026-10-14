@@ -268,6 +268,7 @@ Java paths below start at `src/main/java/at/htl/`; browser paths at `src/main/re
 - **Disposition:** Source access/serving mismatch and missing surface against accepted MEDIA-01, not a runtime exploit reproduction. **Priority:** high. **Owner:** bounded media backend/API implementation; exact route/status/envelope Step 11/Q014.
 - **Next action:** Implement one Viewer check for list/item/user projections and an authorized item-serving surface, then test anonymous public, each private Viewer role, unrelated caller, missing record and missing file with normal bearer identity.
 
+- **Status (2026-10-14):** addressed by OpenSpec change `fix-party-media-upload-and-serving`; see `src/test/java/at/htl/resource/MediaResourceTest.java`.
 ## G037 Gallery upload validation and persistence are not one consistent operation
 
 - **Expected:** D001/D009/D019 and MEDIA-03 require authenticated Viewer upload at any party time, non-empty JPEG/PNG/GIF/WebP up to 5 MiB, a server-owned safe reference and no usable record whose accepted backing file was not stored.
@@ -275,6 +276,7 @@ Java paths below start at `src/main/java/at/htl/`; browser paths at `src/main/re
 - **Disposition:** Authorization, content-validation and logical consistency mismatch against accepted MEDIA-03; no failed move or malicious upload was executed. Physical retention remains Q006 rather than an implied immediate-delete rule. **Priority:** high. **Owner:** bounded media upload implementation; storage lifecycle Step 11.
 - **Next action:** Enforce Viewer eligibility and server-side content validation before side effects, make file/metadata publication failure-consistent, and test anonymous/non-Viewer/invalid/oversize/unsafe-name/storage-failure cases without adding unapproved deletion semantics.
 
+- **Status (2026-10-14):** addressed by OpenSpec change `fix-party-media-upload-and-serving`; see `src/test/java/at/htl/resource/MediaResourceTest.java`.
 ## G038 Browser and iOS party-photo state represent different stores
 
 - **Expected:** D019/MEDIA-02 distinguish the shared server gallery from device-local photos. Clients may expose different controls, but local files cannot be presented as uploaded PartyHub media.
@@ -424,6 +426,7 @@ Java paths below start at `src/main/java/at/htl/`; browser paths at `src/main/re
 - **Disposition:** Storage/serving mismatch against an accepted requirement. **Priority:** high for gallery use. **Owner:** bounded media implementation change.
 - **Next action:** Store gallery files under a configurable persistent upload directory (like profile pictures), serve them through a Viewer-checked route, and add persistence/serving tests.
 
+- **Status (2026-10-14):** addressed by OpenSpec change `fix-party-media-upload-and-serving`; see `src/test/java/at/htl/resource/MediaResourceTest.java`.
 ## G059 Schema evolution has no migration record
 
 - **Expected:** Schema changes that preserve accepted persisted state (SOC-08, PARTY-14) are applied predictably in every environment.

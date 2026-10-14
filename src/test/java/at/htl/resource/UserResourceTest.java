@@ -6,6 +6,7 @@ import io.quarkus.test.security.TestSecurity;
 import io.restassured.http.ContentType;
 import org.junit.jupiter.api.Test;
 
+
 import static io.restassured.RestAssured.given;
 import static org.hamcrest.Matchers.*;
 
@@ -145,11 +146,31 @@ public class UserResourceTest extends TestBase {
     }
 
     @Test
-    void testGetUserLocation_notFound() {
+    void testUserLocationIsNotExposed_anonymous() {
         given()
-            .when().get("/api/users/location/999")
+            .when().get("/api/users/location/1")
             .then()
             .statusCode(404);
+    }
+
+    @Test
+    @TestSecurity(user = "test-sub")
+    void testUserLocationIsNotExposed_authenticated() {
+        given()
+            .when().get("/api/users/location/1")
+            .then()
+            .statusCode(404);
+    }
+
+    @Test
+    @TestSecurity(user = "test-sub")
+    void testUserLocationIsNotStored() {
+        given()
+            .contentType(ContentType.JSON)
+            .body("{\"latitude\": 48.3, \"longitude\": 14.3}")
+            .when().put("/api/users/location")
+            .then()
+            .statusCode(anyOf(is(404), is(405)));
     }
 
     @Test

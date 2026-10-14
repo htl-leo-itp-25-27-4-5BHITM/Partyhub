@@ -57,11 +57,17 @@ Two endpoints do the same thing, and both use a native `UPDATE users SET device_
 - Move `FileUploadInput` to `media/`.
 - Add `@Valid` and a `@NotNull`/size constraint.
 
+**Status:** fixed by OpenSpec change `fix-party-media-upload-and-serving`. Upload now uses `@Valid media/FileUploadInput`, checks that the caller can view the party, detects the image type from the file content, validates every file before storing anything, and stores under a server-generated name in `partyhub.media.upload-dir` (prod `/app/uploads/media` on the PVC). New `GET /api/media/{id}` serves images behind the party Viewer rule. The party and user media lists only show visible parties and no longer return the storage path.
+- **New finding (2026-10-14, read-only check):** production has **no upload volume**. Deployment `quarkus` was last applied from an old manifest without the `profile-uploads-pvc` mount, the PVC doesn't exist, and the deploy workflow hasn't run since 2026-06-24. Profile and gallery uploads are lost on every pod restart, which breaks the `deployment-environment` spec. Fixing it means applying `k8s/quarkus.yaml` (creates the PVC, adds the mount) and repairing the deploy pipeline. It needs the owner's go-ahead, because it changes the cluster.
+
 ### 1.5 Map never loads the user's own location from the API
 
 `src/main/resources/META-INF/resources/index.js:396` fetches `/api/users/${currentUserId}/location`, but the backend only serves `GET /api/users/location/{id}` (`UserResource.java:389`). The request fails, the error is only logged with `console.debug`, and the own-location marker never comes from the API. This is already on `main`.
 
 **Fix:** change the fetch to `/api/users/location/${currentUserId}` and check the response shape against the endpoint. This is a behaviour fix, so it gets its own PR (not PR 2).
+
+**Status:** resolved differently in [PR #162](https://github.com/htl-leo-itp-25-27-4-5BHITM/Partyhub/pull/162) (OpenSpec change `secure-user-location-endpoints`). The accepted requirement "Current device location remains private client context" forbids storing or exposing user and attendee coordinates at all. Meanwhile, `GET /api/parties/{id}/locations` and `GET /api/users/location/{id}` were readable without login (including private-party attendees), and `PUT /api/users/location` stored coordinates. All three routes were removed. The web home map no longer shows attendees, and the iOS app no longer uploads or fetches locations.
+- Follow-up (needs explicit approval, deletes data): drop the `user_location` table, the `UserLocation` entity/repository, the seed rows, and the now-unreachable iOS `PartyAttendeeMapView`/`UserLocationListView`.
 
 ---
 
@@ -74,7 +80,7 @@ Two endpoints do the same thing, and both use a native `UPDATE users SET device_
 | `META-INF/resources/api.js` | Not referenced by any page. | Delete. **Done in PR 2.** |
 | `META-INF/resources/test.html` | A debug page ("Output in console") that is served publicly in production. | Delete. **Done in PR 2.** |
 | `META-INF/resources/script.js` | Only referenced by a commented-out tag in `test.html`. | Delete. **Done in PR 2.** |
-| `src/main/resources/uploads/` | 14 test uploads (4.3 MB) packaged into the jar. **Not dead:** `MediaRepository` reads party media from the classpath `uploads/` + url (line 71) and writes new party uploads to `src/main/resources/uploads/party<id>/` (line 129); `UserResource` keeps it as `LEGACY_UPLOAD_DIR`. The seed names `profile_N.jpg`, but the files are `pp_N.jpg`. | Left out of PR 2 (behaviour change). Handle together with 1.4 in PR 5: move uploads out of the classpath, then remove the folder and fix the seed file names. |
+| `src/main/resources/uploads/` | 14 test uploads (4.3 MB) packaged into the jar. **Not dead:** `MediaRepository` reads party media from the classpath `uploads/` + url (line 71) and writes new party uploads to `src/main/resources/uploads/party<id>/` (line 129); `UserResource` keeps it as `LEGACY_UPLOAD_DIR`. The seed names `profile_N.jpg`, but the files are `pp_N.jpg`. | Left out of PR 2 (behaviour change). **Done in OpenSpec change `fix-party-media-upload-and-serving`:** the folder moved to `dev-uploads/` (dev only, not in the jar), and the seed file names now match. The four identical `party2` images became one `partyN/demo.webp` per seeded party. |
 
 ## 3. Code structure
 
@@ -117,7 +123,7 @@ Two endpoints do the same thing, and both use a native `UPDATE users SET device_
 Each PR goes on its own branch, because a push to `main` deploys to production. Run `./mvnw clean test` and `./run-http-tests.sh` before each merge.
 
 1. **`fix: stop DataSeeder from running in production`.** Covers 1.1: a new migration for follow statuses; `DataSeeder` deleted ([#156](https://github.com/htl-leo-itp-25-27-4-5BHITM/Partyhub/pull/156)).
-2. **`chore: remove unused root files and dead frontend files`.** Covers sections 2 and 4, except `project/`. No behaviour change.
+2. **`chore: remove unused root files and dead frontend files`.** Covers sections 2 and 4, except `project/`, `PushNotificationService` and `uploads/`. No behaviour change ([#157](https://github.com/htl-leo-itp-25-27-4-5BHITM/Partyhub/pull/157)).
 3. **`chore: move school deliverables out of the repo`.** Covers `project/`. Agree on where they go first.
 4. **`fix: consolidate device-token endpoint`** and the push decision. Covers 1.2 and 1.3; check the iOS client and the spec.
 5. **`fix: validate media upload input`.** Covers 1.4.

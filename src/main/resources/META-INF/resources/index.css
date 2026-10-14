@@ -33,46 +33,6 @@
   font-family: var(--font-body);
 }
 
-.control-card {
-  padding: 14px;
-}
-
-.control-card__label {
-  display: block;
-  margin-bottom: 8px;
-  font-size: 0.92rem;
-  font-weight: 700;
-  color: var(--text-primary);
-  font-family: var(--font-body);
-}
-
-.select-wrap {
-  position: relative;
-}
-
-.party-select {
-  width: 100%;
-  appearance: none;
-  border: 1px solid rgba(255, 255, 255, 0.14);
-  background: rgba(11, 8, 24, 0.45);
-  color: var(--text-primary);
-  border-radius: 14px;
-  padding: 12px 14px;
-  font-size: 0.98rem;
-  outline: none;
-  font-family: var(--font-body);
-  transition: border-color 0.2s ease, box-shadow 0.2s ease;
-}
-
-.party-select:focus {
-  border-color: var(--accent-color);
-  box-shadow: 0 0 0 4px rgba(255, 46, 99, 0.16);
-}
-
-.party-select option {
-  color: #111;
-}
-
 .map-section {
   flex: 1;
   min-height: 0;

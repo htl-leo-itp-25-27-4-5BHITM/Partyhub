@@ -1,0 +1,9 @@
+# Images referenced by src/main/resources/db/dev-seed/afterMigrate.sql are tracked.
+# Anything uploaded while running dev mode is not.
+*
+!.gitignore
+!media/
+!media/party*/
+!media/party*/demo.webp
+!profiles/
+!profiles/profile_*.*

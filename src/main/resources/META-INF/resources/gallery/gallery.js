@@ -66,9 +66,39 @@ async function loadGallery(partyId) {
   }
 }
 
+// Images are fetched with the access token (private-party media requires it,
+// and an <img src> cannot send one), then shown through object URLs.
+const mediaObjectUrls = new Map();
+
+function loadMediaImage(mediaId) {
+  if (!mediaObjectUrls.has(mediaId)) {
+    const request = (window.authService?.apiCall || fetch)(`/api/media/${encodeURIComponent(mediaId)}`, {
+      authRequired: false
+    })
+      .then(response => {
+        if (!response.ok) throw new Error(`Image ${mediaId} unavailable (${response.status})`);
+        return response.blob();
+      })
+      .then(blob => URL.createObjectURL(blob));
+    // Drop failed requests so a later attempt can retry
+    request.catch(() => mediaObjectUrls.delete(mediaId));
+    mediaObjectUrls.set(mediaId, request);
+  }
+  return mediaObjectUrls.get(mediaId);
+}
+
+function revokeMediaImages() {
+  mediaObjectUrls.forEach(request => request.then(url => URL.revokeObjectURL(url)).catch(() => {}));
+  mediaObjectUrls.clear();
+}
+
+window.addEventListener('pagehide', revokeMediaImages);
+
 function displayGallery(mediaList) {
   const galleryGrid = document.getElementById('galleryGrid');
   if (!galleryGrid) return;
+
+  revokeMediaImages();
 
   // Clear loading message
   galleryGrid.innerHTML = '';
@@ -86,15 +116,19 @@ function displayGallery(mediaList) {
     galleryItem.setAttribute('data-index', index);
 
     const img = document.createElement('img');
-    img.src = `/api/media/${media.id}`;
     img.alt = `Party photo ${index + 1}`;
     img.loading = 'lazy';
 
-    // Add error handling for broken images
-    img.onerror = function() {
-      this.style.display = 'none';
+    const showUnavailable = () => {
       galleryItem.innerHTML = '<div style="width: 100%; height: 100%; background: var(--bg-secondary); display: flex; align-items: center; justify-content: center; color: rgba(255,255,255,0.5);">Image unavailable</div>';
     };
+    img.onerror = showUnavailable;
+    loadMediaImage(media.id)
+      .then(url => { img.src = url; })
+      .catch(error => {
+        console.error('Error loading image:', error);
+        showUnavailable();
+      });
 
     galleryItem.appendChild(img);
     galleryItem.addEventListener('click', () => openModal(mediaList, index));
@@ -163,8 +197,7 @@ function openModal(mediaList, index) {
   const prevBtn = modal.querySelector('.modal-prev');
   const nextBtn = modal.querySelector('.modal-next');
 
-  modalImage.src = `/api/media/${mediaList[index].id}`;
-  modalImage.alt = `Party photo ${index + 1}`;
+  showModalImage(modalImage, mediaList[index].id, index);
 
   // Show/hide navigation buttons
   prevBtn.style.display = mediaList.length > 1 ? 'block' : 'none';
@@ -174,6 +207,17 @@ function openModal(mediaList, index) {
 
   // Prevent body scroll when modal is open
   document.body.style.overflow = 'hidden';
+}
+
+function showModalImage(modalImage, mediaId, index) {
+  modalImage.alt = `Party photo ${index + 1}`;
+  modalImage.removeAttribute('src');
+  loadMediaImage(mediaId)
+    .then(url => {
+      // Ignore late responses after the user moved on to another image
+      if (currentMediaList[currentIndex]?.id === mediaId) modalImage.src = url;
+    })
+    .catch(() => { modalImage.alt = 'Image unavailable'; });
 }
 
 function closeModal() {
@@ -192,8 +236,7 @@ function navigateModal(direction) {
   const modal = document.querySelector('.image-modal');
   const modalImage = modal.querySelector('.modal-image');
 
-  modalImage.src = `/api/media/${currentMediaList[currentIndex].id}`;
-  modalImage.alt = `Party photo ${currentIndex + 1}`;
+  showModalImage(modalImage, currentMediaList[currentIndex].id, currentIndex);
 }
 
 function showError(message) {

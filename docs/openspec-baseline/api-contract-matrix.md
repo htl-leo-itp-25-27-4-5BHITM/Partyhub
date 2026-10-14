@@ -49,10 +49,10 @@ Legend: **B** browser (`src/main/resources/META-INF/resources/`), **I** iOS (`Pa
 | 23 | GET `/api/parties/{id}/invited-members` | path id | 200, 404 | `InvitedMemberDto[]` | B `advancedPartyInfos.js:348`, `addParty.js:568`; I `PartyAttendeeMapView.swift:179`, `UserLocationListView.swift:31` | Match on route. Audience G032; iOS attendee-location use is deferred (D022, G053). |
 | 24 | GET `/api/parties/{id}/joined-members` | path id | 200, 404 | member list | B `advancedPartyInfos.js:373` | Match. |
 | 25 | GET `/api/parties/{id}/invitation-stats` | path id | 200, 404, 400 (`BadRequestException`) | `InvitationStatsDto` | No client | Server-only surface. |
-| 26 | POST `/api/parties/{partyId}/media/upload` | multipart `FileUploadInput` | 200, 400, 404, 500 | media reference JSON | No client (browser gallery has no upload call; iOS photos are local) | Server-only. UI gap G014/G038; storage G037/G058. |
+| 26 | POST `/api/parties/{partyId}/media/upload` | multipart `@Valid FileUploadInput` (1-20 files); authenticated party Viewer | 200, 400, 401, 404, 500 | `MediaDto[]` of the created items | No client (browser gallery has no upload call; iOS photos are local) | Server-only. UI gap G014/G038. Validation and storage fixed by `fix-party-media-upload-and-serving` (G037/G058). |
 | 27 | GET `/api/parties/{id}/can-edit` | path id | 200, 404 | `{canEdit, role, partyId, userId}` | No client | Server-only. |
-| 28 | GET `/api/parties/{id}/locations` | path id | 200, 404 | `UserLocation` list | B `index.js:72`; I `UserLocationViewModel.swift:44` | **Deferred/unsupported** (D022). Containment is a backlog item; G051/G053. |
-| 29 | GET `/api/parties/{id}/media` | path id | 200, 404 | `MediaDto[]` | B `backend-functions.js:162`, `gallery.js:45`, `advancedPartyInfos.js:598`; H | Match on route. Viewer boundary G036. |
+| 28 | GET `/api/parties/{id}/locations` | path id | 200, 404 | `UserLocation` list | none | **Removed** by `secure-user-location-endpoints` (PR #162); returns 404. The spec forbids an attendee-location roster (D022). |
+| 29 | GET `/api/parties/{id}/media` | path id; party Viewer (anonymous for public parties) | 200, 404 | `MediaDto[]` (`id`, `partyId`) | B `backend-functions.js:162`, `gallery.js:45`, `advancedPartyInfos.js:598`; H | Match on route. Viewer boundary added by `fix-party-media-upload-and-serving` (G036). |
 | 30 | GET `/api/qr/generate` | optional ignored `userId` | 200, 500 | QR payload | B `profile.js:698`, `register_login/qr-login.html:115`; H | **Deferred** (D021); G046/G049. |
 | 31 | GET `/api/qr/status/{token}` | path token | 200, 404 | status | B `qr-login.html:137`; H | Deferred; G047. |
 | 32 | GET `/api/qr/image/user/{userId}` | path id | 200 PNG, 404, 500 | image | No client; H | Deferred; G047. |
@@ -78,9 +78,9 @@ Legend: **B** browser (`src/main/resources/META-INF/resources/`), **I** iOS (`Pa
 | 52 | POST `/api/users/{id}/follow?targetUserId=` | query target; path `id` ignored | 201, 400, 409 | follow / empty | B `backend-functions.js:380`, `profile.js:243`; H | Match on route; path meaning G024. |
 | 53 | PUT `/api/users/{id}/followers/{followerId}` | path ids; `id` ignored | 200, 404 | follow | B `notifications.js:338` | Match; G024. |
 | 54 | DELETE `/api/users/{id}/followers/{followerId}` | path ids; removes caller → `id` | 204, 404 | empty | B `backend-functions.js:409`, `profile.js:269`, `notifications.js:351` | Match on route; inconsistent path meaning G024. |
-| 55 | GET `/api/users/location/{id}` | path id used as the location primary key | 200, 404 | `UserLocation` | No matching client (browser calls `/api/users/{id}/location`); H | **Deferred** (D022); G051/G052. |
-| 56 | PUT `/api/users/location` | JSON `UserLocationUpdateDto` with lat/long range | 200, 400, 404 | `UserLocation` | I `UserLocationViewModel.swift:65`; H | **Deferred**; G052/G053. |
-| 57 | GET `/api/users/{id}/media` | path id | 200 | media list | No client; H | Server-only; Viewer boundary G036. |
+| 55 | GET `/api/users/location/{id}` | path id used as the location primary key | 200, 404 | `UserLocation` | none | **Removed** by `secure-user-location-endpoints` (PR #162); returns 404 (D022). |
+| 56 | PUT `/api/users/location` | JSON `UserLocationUpdateDto` with lat/long range | 200, 400, 404 | `UserLocation` | none | **Removed** by `secure-user-location-endpoints` (PR #162); coordinates are no longer stored (D022). |
+| 57 | GET `/api/users/{id}/media` | path id | 200 | `MediaDto[]`, only parties visible to the caller | No client; H | Server-only; Viewer filter added by `fix-party-media-upload-and-serving` (G036). |
 | 58 | PUT `/api/users/device-token?token=` | query token | 200, 400 (empty) | empty | No client | Duplicate of row 19; push unsupported. |
 
 ## Client calls without a matching endpoint
@@ -88,9 +88,9 @@ Legend: **B** browser (`src/main/resources/META-INF/resources/`), **I** iOS (`Pa
 | Client call site | Call | Nearest backend contract | Disposition |
 |---|---|---|---|
 | B `backend-functions.js:112` | POST `/api/party/{id}` | Row 18 PUT `/api/parties/{id}` | Stale singular route (G006). D024: no redirect; fix the client. |
-| B `gallery.js:89,166,195` | GET `/api/media/{id}` (image `src`) | No REST route; `MediaRepository.getMediaById` helper only | Missing serving route (G036). The media item contract is MEDIA-01/MEDIA-03; the route choice is a remediation item. |
+| B `gallery.js` (`loadMediaImage`) | GET `/api/media/{id}` via `apiCall` → blob URL | `MediaResource.getMedia` (party Viewer, 404 otherwise) | Route added by `fix-party-media-upload-and-serving` (G036). |
 | B `script.js:4,50` | `${BASE_URL}/api/users`, `/api/media/1` on an old remote host | Rows 37 / none | Prototype script (inventory); retire or fix in Step 12 backlog. |
-| B `index.js:396` | GET `/api/users/{id}/location` | Row 55 uses `/api/users/location/{id}` | Deferred feature plus route mismatch (D022, G053). |
+| B `index.js:396` | GET `/api/users/{id}/location` | Row 55 uses `/api/users/location/{id}` | Client call removed by `secure-user-location-endpoints` (PR #162). |
 | I `Partynotificationsystem.swift:390` | GET `/api/party/{id}/attendees` | Rows 23/24 | Stale singular route (G006). |
 | I `Partynotificationsystem.swift:419` | GET `/api/party/{id}` | Row 16 | Stale singular route (G006). |
 | I `PartyView/PartyDetailView.swift:339` | PUT `/api/party/{id}?user=` | Row 18 | `#if DEBUG` simulation, unreachable; remove with G006. |

@@ -291,9 +291,18 @@ public class PartyResourceTest extends TestBase {
     }
 
     @Test
-    void testGetPartyLocations_notFound() {
+    void testPartyAttendeeLocationsAreNotExposed_anonymous() {
         given()
-            .when().get("/api/parties/999/locations")
+            .when().get("/api/parties/{id}/locations", testPartyId)
+            .then()
+            .statusCode(404);
+    }
+
+    @Test
+    @TestSecurity(user = "test-sub")
+    void testPartyAttendeeLocationsAreNotExposed_host() {
+        given()
+            .when().get("/api/parties/{id}/locations", testPartyId)
             .then()
             .statusCode(404);
     }

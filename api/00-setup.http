@@ -136,7 +136,7 @@ Content-Type: application/json
 ?? status == 201
 
 ###########################################
-### CI setup: create user location expected by smoke tests
+### Locations are not stored on the server (spec: device location stays client-side)
 ###########################################
 PUT {{usersUrl}}/location
 X-User-Id: 1
@@ -147,7 +147,7 @@ Content-Type: application/json
   "longitude": 14.251920
 }
 
-?? status == 200
+?? js response.statusCode == 404 || response.statusCode == 405
 
 ###########################################
 ### CI setup: create parties expected by smoke tests

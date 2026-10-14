@@ -213,3 +213,13 @@ X-User-Id: {{anna}}
 
 ?? status == 400
 
+
+
+
+###########################################
+### Attendee locations are not exposed, even to the host of private party 4
+###########################################
+GET {{baseUrl}}/4/locations
+X-User-Id: {{thomas}}
+
+?? status == 404
