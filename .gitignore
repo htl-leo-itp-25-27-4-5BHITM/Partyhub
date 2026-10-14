@@ -37,7 +37,6 @@ nb-configuration.xml
 *.rej
 
 CLAUDE.md
-AGENTS.md
 # Local environment
 .env
 
@@ -50,7 +49,6 @@ app/
 
 api/node_modules
 
-prompts
 .opencode
 
 xcuserdata/

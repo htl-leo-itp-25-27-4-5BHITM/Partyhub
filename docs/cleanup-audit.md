@@ -55,18 +55,24 @@ Two endpoints do the same thing, and both use a native `UPDATE users SET device_
 - Move `FileUploadInput` to `media/`.
 - Add `@Valid` and a `@NotNull`/size constraint.
 
+### 1.5 Map never loads the user's own location from the API
+
+`src/main/resources/META-INF/resources/index.js:396` fetches `/api/users/${currentUserId}/location`, but the backend only serves `GET /api/users/location/{id}` (`UserResource.java:389`). The request fails, the error is only logged with `console.debug`, and the own-location marker never comes from the API. This is already on `main`.
+
+**Fix:** change the fetch to `/api/users/location/${currentUserId}` and check the response shape against the endpoint. This is a behaviour fix, so it gets its own PR (not PR 2).
+
 ---
 
 ## 2. Dead or duplicated code
 
 | Item | Finding | Action |
 |---|---|---|
-| `src/main/java/at/htl/FilterDto.java` | Only imported by `PartyResource` and never used. Replaced by `party/FilterParams`. | Delete it and `FilterDtoTest`. |
+| `src/main/java/at/htl/FilterDto.java` | Only imported by `PartyResource` and never used. Replaced by `party/FilterParams`. | Delete it and `FilterDtoTest`. **Done in PR 2.** |
 | `PushNotificationService` | Not called anywhere (see 1.2). | Wire it in or delete it. |
-| `META-INF/resources/api.js` | Not referenced by any page. | Delete. |
-| `META-INF/resources/test.html` | A debug page ("Output in console") that is served publicly in production. | Delete. |
-| `META-INF/resources/script.js` | Only referenced by a commented-out tag in `test.html`. | Delete. |
-| `src/main/resources/uploads/` | 14 test uploads (4.3 MB) that get packaged into the jar. Dev writes uploads to `uploads/profiles` relative to the working directory, not here. | Remove from git, move needed demo images to the seed, add to `.gitignore`. |
+| `META-INF/resources/api.js` | Not referenced by any page. | Delete. **Done in PR 2.** |
+| `META-INF/resources/test.html` | A debug page ("Output in console") that is served publicly in production. | Delete. **Done in PR 2.** |
+| `META-INF/resources/script.js` | Only referenced by a commented-out tag in `test.html`. | Delete. **Done in PR 2.** |
+| `src/main/resources/uploads/` | 14 test uploads (4.3 MB) packaged into the jar. **Not dead:** `MediaRepository` reads party media from the classpath `uploads/` + url (line 71) and writes new party uploads to `src/main/resources/uploads/party<id>/` (line 129); `UserResource` keeps it as `LEGACY_UPLOAD_DIR`. The seed names `profile_N.jpg`, but the files are `pp_N.jpg`. | Left out of PR 2 (behaviour change). Handle together with 1.4 in PR 5: move uploads out of the classpath, then remove the folder and fix the seed file names. |
 
 ## 3. Code structure
 
@@ -82,18 +88,18 @@ Two endpoints do the same thing, and both use a native `UPDATE users SET device_
 | Path | Size | Finding | Action |
 |---|---|---|---|
 | `project/` | 133 MB tracked | School deliverables: videos, a 32 MB zip, pptx/docx, a Word lock file `~$A Sprechtext.docx`, posters, diagrams. Not part of the app. | Move out of the repo (or into Git LFS / a separate repo). This is the biggest reason the clone is slow. |
-| `create-tables.sql` | | Old schema; Flyway `V1__baseline.sql` replaces it. Not referenced. | Delete. |
-| `test-data.sql` | | Old seed; `afterMigrate.sql` replaces it. Not referenced. | Delete. |
-| `wrapper/maven-wrapper.properties` | | Identical copy of `.mvn/wrapper/maven-wrapper.properties`. | Delete. |
-| `openapi.yaml` | | Outdated per the project rules; the live spec is `/q/openapi`. | Delete, and point README to `/q/openapi`. |
-| `continuations/` | | Agent hand-off notes from finished work. | Delete (git history keeps them). |
-| `prompts/` | | Listed in `.gitignore` but tracked anyway. | `git rm --cached`, or remove from `.gitignore` if it should stay. |
-| `SWIFT_FILTER_IMPLEMENTATION.md`, `SwiftVertiefungREADME.md` | | Marked as historical notes. | Move to `docs/history/` or `PartyHubiOS/`. |
-| `image.png` | | Used by README. | Move to `docs/images/`. |
-| `logo.png` | 940 KB | Used by README. | Move to `docs/images/` and compress. |
-| `e2e/` | | Contains only a `.gitignore`; no tests. | Delete, or add the Playwright tests it was meant for. |
-| `.agents/`, `.codex/` | | Duplicate copies of the OpenSpec skills that are also in `.claude/skills/`. | Keep one tool's copy if only one tool is used. |
-| `AGENTS.md` | | Listed in `.gitignore` but tracked. Mentions `login.css` and `footer.ftl`, which don't exist. | Fix the content and remove it from `.gitignore`. |
+| `create-tables.sql` | | Old schema; Flyway `V1__baseline.sql` replaces it. Not referenced. | Delete. **Done in PR 2.** |
+| `test-data.sql` | | Old seed; `afterMigrate.sql` replaces it. Not referenced. | Delete. **Done in PR 2.** |
+| `wrapper/maven-wrapper.properties` | | Identical copy of `.mvn/wrapper/maven-wrapper.properties`. | Delete. **Done in PR 2.** |
+| `openapi.yaml` | | Outdated per the project rules; the live spec is `/q/openapi`. | Delete, and point README to `/q/openapi`. **Done in PR 2.** |
+| `continuations/` | | Agent hand-off notes from finished work. | Delete (git history keeps them). **Done in PR 2.** |
+| `prompts/` | | Listed in `.gitignore` but tracked anyway. | Keep tracked; removed from `.gitignore`. **Done in PR 2.** |
+| `SWIFT_FILTER_IMPLEMENTATION.md`, `SwiftVertiefungREADME.md` | | Marked as historical notes. | Move to `docs/history/` or `PartyHubiOS/`. **Done in PR 2** (`docs/history/`). |
+| `image.png` | | Used by README. | Move to `docs/images/`. **Done in PR 2.** |
+| `logo.png` | 940 KB | Used by README. | Move to `docs/images/` and compress. **Done in PR 2.** Resized to 400 px (961 KB → 231 KB). |
+| `e2e/` | | Contains only a `.gitignore`; no tests. | Delete, or add the Playwright tests it was meant for. **Done in PR 2.** |
+| `.agents/`, `.codex/` | | Duplicate copies of the OpenSpec skills that are also in `.claude/skills/`. | Keep one tool's copy if only one tool is used. **Done in PR 2:** `.agents/` deleted; `.claude/` and `.codex/` kept. |
+| `AGENTS.md` | | Listed in `.gitignore` but tracked. Mentions `login.css` and `footer.ftl`, which don't exist. | Fix the content and remove it from `.gitignore`. `.gitignore` entry removed in PR 2; content fix stays in PR 7. |
 | `api/node_modules` | 59 MB | Ignored correctly; local only. | Nothing to do. |
 
 ## 5. Docs
@@ -109,7 +115,7 @@ Two endpoints do the same thing, and both use a native `UPDATE users SET device_
 Each PR goes on its own branch, because a push to `main` deploys to production. Run `./mvnw clean test` and `./run-http-tests.sh` before each merge.
 
 1. **`fix: stop DataSeeder from running in production`.** Covers 1.1: a new migration for follow statuses and seed locations moved to `afterMigrate.sql`.
-2. **`chore: remove unused root files and dead frontend files`.** Covers sections 2 and 4, except `project/`. No behaviour change.
+2. **`chore: remove unused root files and dead frontend files`.** Covers sections 2 and 4, except `project/`, `PushNotificationService` and `uploads/`. No behaviour change.
 3. **`chore: move school deliverables out of the repo`.** Covers `project/`. Agree on where they go first.
 4. **`fix: consolidate device-token endpoint`** and the push decision. Covers 1.2 and 1.3; check the iOS client and the spec.
 5. **`fix: validate media upload input`.** Covers 1.4.

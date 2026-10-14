@@ -1,7 +1,7 @@
 # PartyHub
 
 <p align="center">
-  <img src="logo.png" alt="PartyHub Logo" width="200">
+  <img src="docs/images/logo.png" alt="PartyHub Logo" width="200">
 </p>
 <p align="center">
   <a href="https://github.com/htl-leo-itp-25-27-4-5BHITM/Partyhub/actions/workflows/push.yaml"><img src="https://img.shields.io/github/actions/workflow/status/htl-leo-itp-25-27-4-5BHITM/Partyhub/push.yaml?branch=main&style=for-the-badge" alt="Build and deploy status"></a>
@@ -187,9 +187,9 @@ Authentication is handled by Keycloak; clients read the issuer from
 
 The complete method/path/status list is in
 [`docs/openspec-baseline/api-contract-matrix.md`](docs/openspec-baseline/api-contract-matrix.md);
-the live OpenAPI document is served at `/q/openapi` (the root `openapi.yaml` is outdated).
+the live OpenAPI document is served at `/q/openapi`.
 ### Codex commands
-![alt text](image.png)
+![alt text](docs/images/image.png)
 
 ## Sprint Review Dates
 

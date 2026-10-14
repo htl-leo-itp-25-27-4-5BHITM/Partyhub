@@ -27,7 +27,7 @@ Hard rules for working in this repo. How-to details are in the `partyhub-develop
 
 ## Behaviour and specs
 - `openspec/specs/` is the source of truth for product behaviour. Before changing behaviour, read the matching spec. If the change contradicts it, propose an OpenSpec change (`/opsx:propose`) instead of silently diverging.
-- Don't treat the root `openapi.yaml` as the API contract; it is outdated. Use `/q/openapi` or `docs/openspec-baseline/api-contract-matrix.md`.
+- The API contract is `/q/openapi` (generated) or `docs/openspec-baseline/api-contract-matrix.md`. The old root `openapi.yaml` was removed.
 
 ## Verification
 - Before claiming backend work is done, run `./mvnw clean test`. If endpoints changed, also run `./run-http-tests.sh` or the relevant `api/*.http` file.
