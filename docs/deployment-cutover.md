@@ -18,9 +18,13 @@ Keycloak accounts registered since the last reset are **not** carried over,
 unless step 3 is run. PartyHub rows in `demo` are kept, and users whose email matches are
 re-linked on their next login.
 
-All commands assume the `default` namespace and a shell with the cluster kubeconfig.
+All commands need a shell whose kubeconfig points at the **deployment target**: the
+namespace that the repository secret `KUBE_CONFIG_DATA` deploys to, whose ingress serves
+`it220274.cloud.htl-leonding.ac.at` (`k8s/ingress.yaml`). Each student has their own
+namespace on the school cloud, so a working `kubectl` is not enough. Check it first:
 
 ```bash
+kubectl get ingress -o jsonpath='{.items[*].spec.rules[*].host}{"\n"}'   # must print it220274.cloud.htl-leonding.ac.at
 POD=$(kubectl get pods -l app=postgres -o jsonpath="{.items[0].metadata.name}")
 ```
 

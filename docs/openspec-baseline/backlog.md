@@ -12,7 +12,7 @@ Priority: **P1** = identity, access, privacy or data loss; **P2** = accepted beh
 - **Source areas:** `.github/workflows/deploy.yml` (remove `DROP SCHEMA` and `import.sql` replay; gate on `workflow_run.conclusion == 'success'`), `k8s/keycloak.yaml` (own database or schema instead of `demo`), `k8s/postgres.yaml`/init (create the Keycloak DB), `application.properties` `%prod` schema handling, a versioned migration tool (Flyway or Liquibase) absorbing `NotificationSchemaCompatibility`.
 - **Acceptance scenarios:** all 8 DEPLOY scenarios, in particular *Application data survives a deployment*, *Keycloak accounts survive a deployment*, *Failed pipeline does not deploy*, *Seed data is not replayed*, *Existing realm is not overwritten*.
 - **Dependencies:** none. Do this first, because until it lands every deploy still erases school-cloud data. The first run needs a one-time plan for moving Keycloak out of the `demo` database.
-- **Status:** Implemented in change `persistent-school-cloud-deployment` (Flyway V1/V2, Keycloak `keycloak` database, gated in-place deploy). It is complete once the one-time cut-over in [`../deployment-cutover.md`](../deployment-cutover.md) has run on the school cloud. Follow-up: scheduled backups (G067, B21).
+- **Status:** Done. Implemented in change `persistent-school-cloud-deployment` and cut over on the school cloud by PR #149 (merge `d4a3d22`, 2026-09-30): deploys are gated and in place, Flyway baselined `demo`, Keycloak runs on its own `keycloak` database. The in-cluster checks and the cleanup of the old Keycloak tables are B23. Follow-up: scheduled backups (G067, B21).
 
 ### B02 Remove the identity bypass from production and numeric subjects
 - **Gaps:** G002, G019.
@@ -147,6 +147,11 @@ Priority: **P1** = identity, access, privacy or data loss; **P2** = accepted beh
 ### B20 Optional product expansion (not scheduled)
 - **Gaps:** G028 (iOS profile/social parity).
 - **Note:** product choice, not a defect.
+
+### B23 Finish the B01 in-cluster checks on it220274
+- **Why:** B01's tasks 5.3 and 5.4 need `kubectl` access to the `it220274` namespace, which the repository's `KUBE_CONFIG_DATA` deploys to.
+- **Do:** with that access, follow [`../deployment-cutover.md`](../deployment-cutover.md) steps 5 and 6: record the row counts, check that they survive the next deploy, then drop the old Keycloak tables from `demo.public`. Take a fresh `pg_dump` of `demo` first, because no pre-merge backup of `it220274` exists.
+- **Dependencies:** B01.
 
 ## Closed or deferred without implementation
 
