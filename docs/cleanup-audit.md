@@ -30,6 +30,8 @@ This breaks the rule that seed data belongs only in `db/dev-seed/afterMigrate.sq
 - Move the follow statuses into a Flyway migration (they are reference data, not seed data).
 - Move the test locations into `afterMigrate.sql`.
 - Delete `DataSeeder`.
+
+**Status:** done in [PR #156](https://github.com/htl-leo-itp-25-27-4-5BHITM/Partyhub/pull/156); OpenSpec change `stop-dataseeder-in-production` is synced into `deployment-environment` and archived. Moving the locations turned out to be unnecessary, because `afterMigrate.sql` already seeds ten Linz locations. A read-only check found 0 fake Vienna locations in production.
 - Check the production `user_location` rows by hand (read-only) before deciding whether they need cleanup.
 
 ### 1.2 Push notifications are never sent
@@ -114,8 +116,8 @@ Two endpoints do the same thing, and both use a native `UPDATE users SET device_
 
 Each PR goes on its own branch, because a push to `main` deploys to production. Run `./mvnw clean test` and `./run-http-tests.sh` before each merge.
 
-1. **`fix: stop DataSeeder from running in production`.** Covers 1.1: a new migration for follow statuses and seed locations moved to `afterMigrate.sql`.
-2. **`chore: remove unused root files and dead frontend files`.** Covers sections 2 and 4, except `project/`, `PushNotificationService` and `uploads/`. No behaviour change.
+1. **`fix: stop DataSeeder from running in production`.** Covers 1.1: a new migration for follow statuses; `DataSeeder` deleted ([#156](https://github.com/htl-leo-itp-25-27-4-5BHITM/Partyhub/pull/156)).
+2. **`chore: remove unused root files and dead frontend files`.** Covers sections 2 and 4, except `project/`. No behaviour change.
 3. **`chore: move school deliverables out of the repo`.** Covers `project/`. Agree on where they go first.
 4. **`fix: consolidate device-token endpoint`** and the push decision. Covers 1.2 and 1.3; check the iOS client and the spec.
 5. **`fix: validate media upload input`.** Covers 1.4.
