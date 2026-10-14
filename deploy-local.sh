@@ -1,10 +1,11 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-echo ">> docker compose down and removing volumes"
-docker-compose down -v;
-echo ">> Starting services"
-docker-compose up -d;
+cd "$(dirname "${BASH_SOURCE[0]}")"
+echo ">> Preparing databases (preserving existing volumes and accounts)"
+./scripts/migrate-keycloak-db.sh
+echo ">> Starting services and waiting for readiness"
+docker compose up -d --build --wait --wait-timeout 600
 
 echo ">> Building project"
 chmod +x mvnw
