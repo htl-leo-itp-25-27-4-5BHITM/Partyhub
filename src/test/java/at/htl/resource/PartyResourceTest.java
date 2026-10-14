@@ -5,8 +5,6 @@ import at.htl.invitation.Invitation;
 import at.htl.location.Location;
 import at.htl.party.Party;
 import at.htl.user.User;
-import at.htl.user_location.UserLocation;
-import io.quarkus.narayana.jta.QuarkusTransaction;
 import io.quarkus.test.junit.QuarkusTest;
 import io.quarkus.test.security.TestSecurity;
 import io.restassured.http.ContentType;
@@ -293,81 +291,20 @@ public class PartyResourceTest extends TestBase {
     }
 
     @Test
-    void testGetPartyLocations_noUser() {
+    void testPartyAttendeeLocationsAreNotExposed_anonymous() {
         given()
             .when().get("/api/parties/{id}/locations", testPartyId)
             .then()
-            .statusCode(401);
-    }
-
-    @Test
-    @TestSecurity(user = "test-sub")
-    void testGetPartyLocations_notFound() {
-        given()
-            .when().get("/api/parties/999/locations")
-            .then()
-            .statusCode(404);
-    }
-
-    @Test
-    @TestSecurity(user = "other-sub")
-    void testGetPartyLocations_privatePartyNonViewer() {
-        Long privatePartyId = createPrivatePartyWithLocatedAttendee();
-        given()
-            .when().get("/api/parties/{id}/locations", privatePartyId)
-            .then()
             .statusCode(404);
     }
 
     @Test
     @TestSecurity(user = "test-sub")
-    void testGetPartyLocations_viewerGetsBoundedProjection() {
-        Long privatePartyId = createPrivatePartyWithLocatedAttendee();
+    void testPartyAttendeeLocationsAreNotExposed_host() {
         given()
-            .when().get("/api/parties/{id}/locations", privatePartyId)
+            .when().get("/api/parties/{id}/locations", testPartyId)
             .then()
-            .statusCode(200)
-            .body("size()", is(1))
-            .body("[0].latitude", is(48.3f))
-            .body("[0].longitude", is(14.3f))
-            .body("[0].user.displayName", is("Located Attendee"))
-            .body("[0].user.distinctName", is("located"))
-            .body("[0].user", not(hasKey("email")))
-            .body("[0].user", not(hasKey("biography")))
-            .body("[0].user", not(hasKey("keycloakId")));
-    }
-
-    private Long createPrivatePartyWithLocatedAttendee() {
-        return QuarkusTransaction.requiringNew().call(this::persistPrivatePartyWithLocatedAttendee);
-    }
-
-    private Long persistPrivatePartyWithLocatedAttendee() {
-        User host = entityManager.find(User.class, testUser.getId());
-        Location location = entityManager.find(Location.class, testLocation.getId());
-        User attendee = new User();
-        attendee.setDisplayName("Located Attendee");
-        attendee.setDistinctName("located");
-        attendee.setEmail("located@example.com");
-        attendee.setBiography("secret bio");
-        entityManager.persist(attendee);
-
-        Party party = new Party();
-        party.setTitle("Private Party");
-        party.setHost_user(host);
-        party.setLocation(location);
-        party.setVisibility("PRIVATE");
-        party.setTime_start(java.time.LocalDateTime.now());
-        party.setTime_end(java.time.LocalDateTime.now().plusHours(4));
-        party.setUsers(new java.util.HashSet<>(java.util.Set.of(attendee)));
-        entityManager.persist(party);
-
-        UserLocation attendeeLocation = new UserLocation();
-        attendeeLocation.setUser(attendee);
-        attendeeLocation.setLatitude(48.3);
-        attendeeLocation.setLongitude(14.3);
-        entityManager.persist(attendeeLocation);
-
-        return party.getId();
+            .statusCode(404);
     }
 
     @Test

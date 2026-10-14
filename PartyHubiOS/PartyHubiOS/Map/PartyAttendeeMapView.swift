@@ -483,10 +483,6 @@ struct PartyAttendeeMapView: View {
                 locationManager.requestPermission()
                 locationManager.ensureLocationUpdates()
                 viewModel.coordinateProvider = { locationManager.currentLocation }
-
-                if let userId = UserDefaults.standard.object(forKey: "currentUserId") as? Int64 {
-                    viewModel.uploadUserLocation(userId: userId)
-                }
                 loadData()
             }
 

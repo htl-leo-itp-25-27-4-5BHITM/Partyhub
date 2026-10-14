@@ -16,10 +16,6 @@ import at.htl.auth.CurrentUserResolver;
 import at.htl.follow.FollowRepository;
 import at.htl.media.MediaRepository;
 import at.htl.profile_picture.ProfilePicture;
-import at.htl.user_location.UserLocation;
-import at.htl.user_location.UserLocationDto;
-import at.htl.user_location.UserLocationRepository;
-import at.htl.user_location.UserLocationUpdateDto;
 import io.quarkus.security.Authenticated;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
@@ -51,8 +47,6 @@ public class UserResource {
     MediaRepository mediaRepository;
     @Inject
     CurrentUserResolver currentUserResolver;
-    @Inject
-    UserLocationRepository userLocationRepository;
     @Inject
     EntityManager em;
     @Inject
@@ -389,50 +383,6 @@ public class UserResource {
     public Response unfollowUser(@PathParam("id") long id,
                                 @PathParam("followerId") long followerId) {
         return followRepository.removeFollow(currentUserResolver.requireCurrentUserId(), id);
-    }
-
-    @GET
-    @jakarta.ws.rs.Path("/location/{id}")
-    @Produces(MediaType.APPLICATION_JSON)
-    @Authenticated
-    public Response getUserLocation(@PathParam("id") long userId) {
-        Long currentUserId = currentUserResolver.requireCurrentUserId();
-        if (currentUserId != userId) {
-            return Response.status(Response.Status.FORBIDDEN).build();
-        }
-        UserLocation location = userLocationRepository.findByUserId(currentUserId);
-        if (location == null) {
-            return Response.status(Response.Status.NOT_FOUND).build();
-        }
-        return Response.ok(UserLocationDto.from(location)).build();
-    }
-
-    @PUT
-    @jakarta.ws.rs.Path("/location")
-    @Consumes(MediaType.APPLICATION_JSON)
-    @Produces(MediaType.APPLICATION_JSON)
-    @Transactional
-    @Authenticated
-    public Response updateUserLocation(@Valid UserLocationUpdateDto dto) {
-        Long userId = currentUserResolver.requireCurrentUserId();
-        if (userId == null) {
-            return Response.status(Response.Status.BAD_REQUEST).build();
-        }
-
-        User user = em.find(User.class, userId);
-        if (user == null) {
-            return Response.status(Response.Status.NOT_FOUND).build();
-        }
-
-        UserLocation location = userLocationRepository.findByUserId(userId);
-        if (location == null) {
-            location = new UserLocation();
-            location.setUser(user);
-        }
-        location.setLatitude(dto.latitude());
-        location.setLongitude(dto.longitude());
-        userLocationRepository.saveOrUpdate(location);
-        return Response.ok(UserLocationDto.from(location)).build();
     }
 
     @GET

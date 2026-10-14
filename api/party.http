@@ -215,30 +215,11 @@ X-User-Id: {{anna}}
 
 
 
-###########################################
-### Attendee locations require authentication
-###########################################
-GET {{baseUrl}}/4/locations
-
-?? status == 401
-
 
 ###########################################
-### Host of private party 4 sees attendee locations (bounded projection)
+### Attendee locations are not exposed, even to the host of private party 4
 ###########################################
 GET {{baseUrl}}/4/locations
 X-User-Id: {{thomas}}
-
-?? status == 200
-?? js response.parsedBody.length > 0
-?? js response.parsedBody[0].user.distinctName != undefined
-?? js response.parsedBody[0].user.biography == undefined
-
-
-###########################################
-### Non-viewer of private party 4 gets 404 for attendee locations
-###########################################
-GET {{baseUrl}}/4/locations
-X-User-Id: {{elias}}
 
 ?? status == 404
