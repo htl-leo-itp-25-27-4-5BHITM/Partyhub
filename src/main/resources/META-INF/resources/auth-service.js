@@ -12,7 +12,7 @@
     clientId: "frontend",
     issuer: DEFAULT_ISSUER,
     redirectUri: `${window.location.origin}/auth/callback.html`,
-    postLogoutRedirectUri: `${window.location.origin}/register_login/start.html`,
+    postLogoutRedirectUri: `${window.location.origin}/index.html`,
   };
 
   function buildEndpoints() {

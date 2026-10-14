@@ -35,13 +35,20 @@
     <script src="./backend-functions.js?v=20260429-fresh-db" defer></script>
     <script src="./index.js?v=20260429-fresh-db" defer></script>
     <script src="./nav.js" defer></script>
+    <script src="./auth/home-account.js" defer></script>
   </head>
 
   <body class="bg-light">
     <div class="app-shell">
       <main class="container">
         <header class="hero">
-          <div class="hero__badge">PartyHub</div>
+          <div class="home-account">
+            <span class="home-brand">PartyHub</span>
+            <div id="accountActions" class="home-account-actions" hidden>
+              <a href="/register_login/login/login.html">Sign in</a>
+              <a href="/register_login/register/register.html">Create account</a>
+            </div>
+          </div>
           <h1 class="hero__title">Find your next party</h1>
           <p class="hero__subtitle">
             Choose an event and discover attendees directly on the map.
@@ -127,5 +134,8 @@
         </a>
       </nav>
     </div>
-  </body>
+  <!-- impeccable-live-start -->
+<script src="http://localhost:8400/live.js?token=d72ea5ca-fe6f-4474-b90c-bcc3506b3754"></script>
+<!-- impeccable-live-end -->
+</body>
 </html>

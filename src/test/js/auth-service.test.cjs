@@ -15,7 +15,7 @@ function harness(initial={}) {
 (async()=>{
  const h=harness({'partyhub_keycloak_session':JSON.stringify({accessToken:'expired',refreshToken:'original',expiresAt:1}), 'partyhub_current_user':JSON.stringify({id:1})});
  await h.auth.init();assert.equal(h.refreshes,1);await Promise.all([h.auth.updateToken(1000),h.auth.updateToken(1000),h.auth.updateToken(1000)]);assert.equal(h.refreshes,2);h.store.set('partyhub_keycloak_session',JSON.stringify({accessToken:'expired',refreshToken:'original',expiresAt:1}));await h.auth.init();assert.equal(h.refreshes,3);
- h.auth.clearAuth();assert.equal(h.auth.isLoggedIn(),false);
+ h.auth.logout();assert.equal(h.auth.isLoggedIn(),false);assert.equal(new URL(h.navigations.at(-1)).searchParams.get('post_logout_redirect_uri'),'http://localhost:8080/index.html');
  const r=harness();await r.auth.init();await Promise.all([r.auth.register(),r.auth.register()]);assert.equal(r.navigations.length,1);assert.equal(new URL(r.navigations[0]).searchParams.get('redirect_uri'),'http://localhost:8080/auth/callback.html');
  const t=harness();await t.auth.init();t.window.location.search='?code=untrusted&state=missing';await t.auth.handleCallback();assert.deepEqual(t.navigations,['/register_login/login/login.html']);assert.equal(t.auth.isLoggedIn(),false);
  const expired=harness({'partyhub_oidc_transaction':JSON.stringify({state:'s',nonce:'n',codeVerifier:'v',redirectTo:'/notifications/notifications.html',createdAt:Date.now()})});

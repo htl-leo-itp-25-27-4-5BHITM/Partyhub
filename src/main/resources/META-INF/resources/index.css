@@ -2,20 +2,30 @@
   padding: 4px 4px 0;
 }
 
-.hero__badge {
-  display: inline-flex;
+.home-account {
+  display: flex;
+  flex-wrap: wrap;
   align-items: center;
-  padding: 7px 12px;
-  margin-bottom: 10px;
-  border-radius: 999px;
-  background: rgba(255, 46, 99, 0.14);
-  border: 1px solid rgba(255, 46, 99, 0.25);
-  color: #ffd2e1;
-  font-size: var(--font-size-xs);
-  font-weight: 700;
-  letter-spacing: 0.04em;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 16px;
   font-family: var(--font-body);
 }
+.home-brand { font-weight: 700; }
+.home-account-actions { display: flex; flex-wrap: wrap; gap: 8px 20px; }
+.home-account-actions a {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  color: var(--text-primary);
+  text-underline-offset: 4px;
+}
+.home-account-actions a:hover { color: var(--accent-color-green); }
+.home-account-actions a:focus-visible {
+  outline: 2px solid var(--accent-color-green);
+  outline-offset: 4px;
+}
+[hidden] { display: none !important; }
 
 .hero__title {
   font-family: var(--font-display);

@@ -1,0 +1,29 @@
+.auth-flow {
+  min-height: 100dvh;
+  max-width: 44rem;
+  margin: 0 auto;
+  padding: clamp(24px, 6vw, 64px);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 20px;
+  overflow-wrap: anywhere;
+}
+.auth-flow h1 { font-family: var(--font-display); font-size: clamp(28px, 6vw, 40px); }
+.auth-flow p { color: var(--text-secondary); line-height: 1.5; }
+.auth-flow-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 16px; }
+.auth-flow a { color: var(--text-primary); text-underline-offset: 4px; }
+.auth-flow button {
+  min-height: 44px;
+  padding: 10px 18px;
+  border: 1px solid var(--border-soft);
+  border-radius: 12px;
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  font: inherit;
+  cursor: pointer;
+}
+.auth-flow button:hover { background: var(--surface-secondary, #221a4d); }
+.auth-flow :focus-visible { outline: 2px solid var(--accent-color-green); outline-offset: 4px; }
+
+.auth-flow [hidden] { display: none !important; }

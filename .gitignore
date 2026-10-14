@@ -37,6 +37,15 @@ nb-configuration.xml
 *.rej
 
 CLAUDE.md
+AGENTS.md
+# Local agent and design-tool configuration
+/.impeccable/
+/.agents/
+/.claude/
+/.codex/
+/DESIGN.md
+/PRODUCT.md
+
 # Local environment
 .env
 
@@ -49,6 +58,7 @@ app/
 
 api/node_modules
 
+prompts
 .opencode
 
 xcuserdata/
