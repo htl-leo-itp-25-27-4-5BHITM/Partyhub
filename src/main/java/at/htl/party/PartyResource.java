@@ -4,6 +4,7 @@ import java.util.List;
 import java.util.Map;
 
 import at.htl.auth.CurrentUserResolver;
+import at.htl.media.FileUploadInput;
 import at.htl.media.MediaRepository;
 import io.quarkus.security.Authenticated;
 import jakarta.enterprise.context.ApplicationScoped;
@@ -220,7 +221,7 @@ public class PartyResource {
     @Produces(MediaType.APPLICATION_JSON)
     @Transactional
     @Authenticated
-    public Response upload(MediaRepository.FileUploadInput input,
+    public Response upload(@Valid FileUploadInput input,
                            @PathParam("partyId") long partyId) {
         Long actualUserId = currentUserResolver.requireCurrentUserId();
 
@@ -266,9 +267,10 @@ public class PartyResource {
     @GET
     @Path("/{id}/media")
     @Produces(MediaType.APPLICATION_JSON)
+    @Transactional
     public Response getPartyMedia(@PathParam("id") Long partyId) {
-        Party party = em.find(Party.class, partyId);
-        if (party == null) {
+        Long callerId = currentUserResolver.currentUserIdIfAuthenticated().orElse(null);
+        if (partyRepository.getPartyByIdIfVisible(partyId, callerId) == null) {
             return Response.status(Response.Status.NOT_FOUND).build();
         }
         return Response.ok().entity(mediaRepository.getMediaByParty(partyId)).build();

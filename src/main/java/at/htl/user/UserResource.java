@@ -56,7 +56,6 @@ public class UserResource {
     @ConfigProperty(name = "partyhub.profile-picture.upload-dir", defaultValue = "uploads/profiles")
     String uploadDir;
 
-    private static final String LEGACY_UPLOAD_DIR = "src/main/resources/uploads/profiles";
     private static final String DEFAULT_IMAGE = "/META-INF/resources/images/default_profile-picture.svg";
 
     @POST
@@ -220,17 +219,8 @@ public class UserResource {
     }
 
     private Path resolveExistingProfilePicturePath(String filename) {
-        Path primary = Paths.get(uploadDir).resolve(filename);
-        if (Files.exists(primary)) {
-            return primary;
-        }
-
-        Path legacy = Paths.get(LEGACY_UPLOAD_DIR).resolve(filename);
-        if (Files.exists(legacy)) {
-            return legacy;
-        }
-
-        return null;
+        Path path = Paths.get(uploadDir).resolve(filename);
+        return Files.exists(path) ? path : null;
     }
 
     private Response serveDefaultImage() {
@@ -388,8 +378,10 @@ public class UserResource {
     @GET
     @jakarta.ws.rs.Path("/{id}/media")
     @Produces(MediaType.APPLICATION_JSON)
+    @Transactional
     public Response getUserMedia(@PathParam("id") long userId) {
-        return Response.ok().entity(mediaRepository.getMediaByUser(userId)).build();
+        Long callerId = currentUserResolver.currentUserIdIfAuthenticated().orElse(null);
+        return Response.ok().entity(mediaRepository.getVisibleMediaByUser(userId, callerId)).build();
     }
 
     private String getFileExtension(String filename) {

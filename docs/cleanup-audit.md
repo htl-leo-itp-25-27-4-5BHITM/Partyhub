@@ -57,6 +57,9 @@ Two endpoints do the same thing, and both use a native `UPDATE users SET device_
 - Move `FileUploadInput` to `media/`.
 - Add `@Valid` and a `@NotNull`/size constraint.
 
+**Status:** fixed by OpenSpec change `fix-party-media-upload-and-serving`. Upload now uses `@Valid media/FileUploadInput`, checks that the caller can view the party, detects the image type from the file content, validates every file before storing anything, and stores under a server-generated name in `partyhub.media.upload-dir` (prod `/app/uploads/media` on the PVC). New `GET /api/media/{id}` serves images behind the party Viewer rule. The party and user media lists only show visible parties and no longer return the storage path.
+- **New finding (2026-10-14, read-only check):** production has **no upload volume**. Deployment `quarkus` was last applied from an old manifest without the `profile-uploads-pvc` mount, the PVC doesn't exist, and the deploy workflow hasn't run since 2026-06-24. Profile and gallery uploads are lost on every pod restart, which breaks the `deployment-environment` spec. Fixing it means applying `k8s/quarkus.yaml` (creates the PVC, adds the mount) and repairing the deploy pipeline. It needs the owner's go-ahead, because it changes the cluster.
+
 ### 1.5 Map never loads the user's own location from the API
 
 `src/main/resources/META-INF/resources/index.js:396` fetches `/api/users/${currentUserId}/location`, but the backend only serves `GET /api/users/location/{id}` (`UserResource.java:389`). The request fails, the error is only logged with `console.debug`, and the own-location marker never comes from the API. This is already on `main`.
@@ -77,7 +80,7 @@ Two endpoints do the same thing, and both use a native `UPDATE users SET device_
 | `META-INF/resources/api.js` | Not referenced by any page. | Delete. **Done in PR 2.** |
 | `META-INF/resources/test.html` | A debug page ("Output in console") that is served publicly in production. | Delete. **Done in PR 2.** |
 | `META-INF/resources/script.js` | Only referenced by a commented-out tag in `test.html`. | Delete. **Done in PR 2.** |
-| `src/main/resources/uploads/` | 14 test uploads (4.3 MB) packaged into the jar. **Not dead:** `MediaRepository` reads party media from the classpath `uploads/` + url (line 71) and writes new party uploads to `src/main/resources/uploads/party<id>/` (line 129); `UserResource` keeps it as `LEGACY_UPLOAD_DIR`. The seed names `profile_N.jpg`, but the files are `pp_N.jpg`. | Left out of PR 2 (behaviour change). Handle together with 1.4 in PR 5: move uploads out of the classpath, then remove the folder and fix the seed file names. |
+| `src/main/resources/uploads/` | 14 test uploads (4.3 MB) packaged into the jar. **Not dead:** `MediaRepository` reads party media from the classpath `uploads/` + url (line 71) and writes new party uploads to `src/main/resources/uploads/party<id>/` (line 129); `UserResource` keeps it as `LEGACY_UPLOAD_DIR`. The seed names `profile_N.jpg`, but the files are `pp_N.jpg`. | Left out of PR 2 (behaviour change). **Done in OpenSpec change `fix-party-media-upload-and-serving`:** the folder moved to `dev-uploads/` (dev only, not in the jar), and the seed file names now match. The four identical `party2` images became one `partyN/demo.webp` per seeded party. |
 
 ## 3. Code structure
 
