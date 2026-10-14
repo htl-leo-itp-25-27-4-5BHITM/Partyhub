@@ -120,7 +120,7 @@ Two endpoints do the same thing, and both use a native `UPDATE users SET device_
 Each PR goes on its own branch, because a push to `main` deploys to production. Run `./mvnw clean test` and `./run-http-tests.sh` before each merge.
 
 1. **`fix: stop DataSeeder from running in production`.** Covers 1.1: a new migration for follow statuses; `DataSeeder` deleted ([#156](https://github.com/htl-leo-itp-25-27-4-5BHITM/Partyhub/pull/156)).
-2. **`chore: remove unused root files and dead frontend files`.** Covers sections 2 and 4, except `project/`. No behaviour change.
+2. **`chore: remove unused root files and dead frontend files`.** Covers sections 2 and 4, except `project/`, `PushNotificationService` and `uploads/`. No behaviour change ([#157](https://github.com/htl-leo-itp-25-27-4-5BHITM/Partyhub/pull/157)).
 3. **`chore: move school deliverables out of the repo`.** Covers `project/`. Agree on where they go first.
 4. **`fix: consolidate device-token endpoint`** and the push decision. Covers 1.2 and 1.3; check the iOS client and the spec.
 5. **`fix: validate media upload input`.** Covers 1.4.
