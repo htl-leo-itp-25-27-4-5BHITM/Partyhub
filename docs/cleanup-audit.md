@@ -63,7 +63,7 @@ Two endpoints do the same thing, and both use a native `UPDATE users SET device_
 
 **Fix:** change the fetch to `/api/users/location/${currentUserId}` and check the response shape against the endpoint. This is a behaviour fix, so it gets its own PR (not PR 2).
 
-**Status:** fixed by OpenSpec change `secure-user-location-endpoints` (PR pending). While fixing it, a bigger problem turned up: both location reads (`GET /api/parties/{id}/locations` and `GET /api/users/location/{id}`) needed no login and had no visibility check, so anonymous callers could read the coordinates, name and biography of attendees of **private** parties. Both now require login, apply the party Viewer rule or self-only access, and return a bounded `UserLocationDto`. The single-user GET and the PUT looked up the location by its own primary key instead of `user_id`; they now use `findByUserId`.
+**Status:** fixed by OpenSpec change `secure-user-location-endpoints` ([PR #162](https://github.com/htl-leo-itp-25-27-4-5BHITM/Partyhub/pull/162)). While fixing it, a bigger problem turned up: both location reads (`GET /api/parties/{id}/locations` and `GET /api/users/location/{id}`) needed no login and had no visibility check, so anonymous callers could read the coordinates, name and biography of attendees of **private** parties. Both now require login, apply the party Viewer rule or self-only access, and return a bounded `UserLocationDto`. The single-user GET and the PUT looked up the location by its own primary key instead of `user_id`; they now use `findByUserId`.
 - Follow-up: `user_location.user_id` has no unique constraint. Check production for duplicate rows (read-only, ask first) before adding one in a migration.
 
 ---
