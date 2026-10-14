@@ -31,7 +31,7 @@ This breaks the rule that seed data belongs only in `db/dev-seed/afterMigrate.sq
 - Move the test locations into `afterMigrate.sql`.
 - Delete `DataSeeder`.
 
-**Status:** in progress as OpenSpec change `stop-dataseeder-in-production`, [PR #156](https://github.com/htl-leo-itp-25-27-4-5BHITM/Partyhub/pull/156). Moving the locations turned out to be unnecessary, because `afterMigrate.sql` already seeds ten Linz locations. A read-only check found 0 fake Vienna locations in production.
+**Status:** done in [PR #156](https://github.com/htl-leo-itp-25-27-4-5BHITM/Partyhub/pull/156); OpenSpec change `stop-dataseeder-in-production` is synced into `deployment-environment` and archived. Moving the locations turned out to be unnecessary, because `afterMigrate.sql` already seeds ten Linz locations. A read-only check found 0 fake Vienna locations in production.
 - Check the production `user_location` rows by hand (read-only) before deciding whether they need cleanup.
 
 ### 1.2 Push notifications are never sent
