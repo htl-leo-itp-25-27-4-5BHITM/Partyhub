@@ -104,11 +104,32 @@ X-User-Id: 1
 
 
 ###########################################
-### Get user location from import.sql
+### User location requires authentication
 ###########################################
 GET {{baseUrl}}/location/{{anna}}
 
+?? status == 401
+
+
+###########################################
+### User reads their own location (bounded projection)
+###########################################
+GET {{baseUrl}}/location/{{anna}}
+X-User-Id: {{anna}}
+
 ?? status == 200
+?? js response.parsedBody.user.id == {{anna}}
+?? js response.parsedBody.user.email == undefined
+?? js response.parsedBody.user.biography == undefined
+
+
+###########################################
+### User cannot read another user's location
+###########################################
+GET {{baseUrl}}/location/{{michael}}
+X-User-Id: {{anna}}
+
+?? status == 403
 
 
 ###########################################

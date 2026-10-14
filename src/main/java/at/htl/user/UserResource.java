@@ -16,6 +16,10 @@ import at.htl.auth.CurrentUserResolver;
 import at.htl.follow.FollowRepository;
 import at.htl.media.MediaRepository;
 import at.htl.profile_picture.ProfilePicture;
+import at.htl.user_location.UserLocation;
+import at.htl.user_location.UserLocationDto;
+import at.htl.user_location.UserLocationRepository;
+import at.htl.user_location.UserLocationUpdateDto;
 import io.quarkus.security.Authenticated;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
@@ -47,6 +51,8 @@ public class UserResource {
     MediaRepository mediaRepository;
     @Inject
     CurrentUserResolver currentUserResolver;
+    @Inject
+    UserLocationRepository userLocationRepository;
     @Inject
     EntityManager em;
     @Inject
@@ -388,12 +394,17 @@ public class UserResource {
     @GET
     @jakarta.ws.rs.Path("/location/{id}")
     @Produces(MediaType.APPLICATION_JSON)
+    @Authenticated
     public Response getUserLocation(@PathParam("id") long userId) {
-        at.htl.user_location.UserLocation location = em.find(at.htl.user_location.UserLocation.class, userId);
+        Long currentUserId = currentUserResolver.requireCurrentUserId();
+        if (currentUserId != userId) {
+            return Response.status(Response.Status.FORBIDDEN).build();
+        }
+        UserLocation location = userLocationRepository.findByUserId(currentUserId);
         if (location == null) {
             return Response.status(Response.Status.NOT_FOUND).build();
         }
-        return Response.ok(location).build();
+        return Response.ok(UserLocationDto.from(location)).build();
     }
 
     @PUT
@@ -402,7 +413,7 @@ public class UserResource {
     @Produces(MediaType.APPLICATION_JSON)
     @Transactional
     @Authenticated
-    public Response updateUserLocation(@Valid at.htl.user_location.UserLocationUpdateDto dto) {
+    public Response updateUserLocation(@Valid UserLocationUpdateDto dto) {
         Long userId = currentUserResolver.requireCurrentUserId();
         if (userId == null) {
             return Response.status(Response.Status.BAD_REQUEST).build();
@@ -413,21 +424,15 @@ public class UserResource {
             return Response.status(Response.Status.NOT_FOUND).build();
         }
 
-        at.htl.user_location.UserLocation existingLocation = em.find(at.htl.user_location.UserLocation.class, userId);
-
-        if (existingLocation != null) {
-            existingLocation.setLatitude(dto.latitude());
-            existingLocation.setLongitude(dto.longitude());
-            em.merge(existingLocation);
-            return Response.ok(existingLocation).build();
-        } else {
-            at.htl.user_location.UserLocation newLocation = new at.htl.user_location.UserLocation();
-            newLocation.setUser(user);
-            newLocation.setLatitude(dto.latitude());
-            newLocation.setLongitude(dto.longitude());
-            em.persist(newLocation);
-            return Response.ok(newLocation).build();
+        UserLocation location = userLocationRepository.findByUserId(userId);
+        if (location == null) {
+            location = new UserLocation();
+            location.setUser(user);
         }
+        location.setLatitude(dto.latitude());
+        location.setLongitude(dto.longitude());
+        userLocationRepository.saveOrUpdate(location);
+        return Response.ok(UserLocationDto.from(location)).build();
     }
 
     @GET

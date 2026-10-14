@@ -43,22 +43,40 @@ class UserLocationViewModel {
 
         guard let url = URL(string: "\(Config.backendURL)/api/parties/\(partyId)/locations") else { return }
 
+        var request = URLRequest(url: url)
         isLoading = true
-        URLSession.shared.dataTask(with: url) { [weak self] data, _, error in
-            DispatchQueue.main.async {
-                self?.isLoading = false
-                if let error = error {
-                    self?.errorMessage = error.localizedDescription
-                    return
-                }
-                guard let data = data else { return }
-                do {
-                    self?.locations = try JSONDecoder().decode([UserLocation].self, from: data)
-                } catch {
-                    self?.errorMessage = error.localizedDescription
-                }
+
+        Task { @MainActor in
+            do {
+                let token = try await KeycloakAuthService.shared.validAccessToken()
+                request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
+            } catch {
+                // Attendee locations are only visible to logged-in party viewers
+                self.isLoading = false
+                self.locations = []
+                return
             }
-        }.resume()
+
+            URLSession.shared.dataTask(with: request) { [weak self] data, response, error in
+                DispatchQueue.main.async {
+                    self?.isLoading = false
+                    if let error = error {
+                        self?.errorMessage = error.localizedDescription
+                        return
+                    }
+                    if let http = response as? HTTPURLResponse, http.statusCode == 401 || http.statusCode == 404 {
+                        self?.locations = []
+                        return
+                    }
+                    guard let data = data else { return }
+                    do {
+                        self?.locations = try JSONDecoder().decode([UserLocation].self, from: data)
+                    } catch {
+                        self?.errorMessage = error.localizedDescription
+                    }
+                }
+            }.resume()
+        }
     }
 
     func uploadUserLocation(userId: Int64) {

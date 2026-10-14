@@ -69,7 +69,9 @@ document.addEventListener("DOMContentLoaded", async () => {
     if (!partyId) return;
     
     try {
-      const response = await fetch(`/api/parties/${partyId}/locations`);
+      const response = await publicRequest(`/api/parties/${partyId}/locations`);
+      // Attendee locations are only visible to logged-in party viewers
+      if (response.status === 401 || response.status === 404) return;
       if (!response.ok) throw new Error("Failed to fetch user locations");
       const locations = await response.json();
       
@@ -393,7 +395,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     if (!currentUserId) return;
     
     try {
-      const response = await fetch(`/api/users/${currentUserId}/location`);
+      const response = await publicRequest(`/api/users/location/${currentUserId}`);
       if (!response.ok) return;
       const location = await response.json();
       

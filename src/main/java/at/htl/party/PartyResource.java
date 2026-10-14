@@ -5,6 +5,7 @@ import java.util.Map;
 
 import at.htl.auth.CurrentUserResolver;
 import at.htl.media.MediaRepository;
+import at.htl.user_location.UserLocationDto;
 import at.htl.user_location.UserLocationRepository;
 import io.quarkus.security.Authenticated;
 import jakarta.enterprise.context.ApplicationScoped;
@@ -269,12 +270,17 @@ public class PartyResource {
     @GET
     @Path("/{id}/locations")
     @Produces(MediaType.APPLICATION_JSON)
+    @Transactional
+    @Authenticated
     public Response getPartyLocations(@PathParam("id") Long partyId) {
-        Party party = em.find(Party.class, partyId);
-        if (party == null) {
+        Long userId = currentUserResolver.requireCurrentUserId();
+        if (partyRepository.getPartyByIdIfVisible(partyId, userId) == null) {
             return Response.status(Response.Status.NOT_FOUND).build();
         }
-        return Response.ok(userLocationRepository.getLocationsByPartyId(partyId)).build();
+        List<UserLocationDto> locations = userLocationRepository.getLocationsByPartyId(partyId).stream()
+                .map(UserLocationDto::from)
+                .toList();
+        return Response.ok(locations).build();
     }
 
     @GET
