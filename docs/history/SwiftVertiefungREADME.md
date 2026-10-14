@@ -1,6 +1,6 @@
 # Starting Project 24.02.2026
 
-> **Historische Projektnotiz.** Das akzeptierte Verhalten der Zeiterfassung (optional, explizit aktiviert, nur lokal auf dem Gerät) steht in PARTY-18 in [`openspec/specs/party-discovery-and-management`](openspec/specs/party-discovery-and-management/spec.md); offene Umsetzungslücken siehe G055 in [`docs/openspec-baseline/gaps.md`](docs/openspec-baseline/gaps.md).
+> **Historische Projektnotiz.** Das akzeptierte Verhalten der Zeiterfassung (optional, explizit aktiviert, nur lokal auf dem Gerät) steht in PARTY-18 in [`openspec/specs/party-discovery-and-management`](../../openspec/specs/party-discovery-and-management/spec.md); offene Umsetzungslücken siehe G055 in [`docs/openspec-baseline/gaps.md`](../openspec-baseline/gaps.md).
 
 In Swift.
 Ich will, das die Zeit getrackt bin wann ich auch der Party bin.
