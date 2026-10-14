@@ -104,11 +104,12 @@ X-User-Id: 1
 
 
 ###########################################
-### Get user location from import.sql
+### Stored user locations are not exposed (spec: device location stays client-side)
 ###########################################
 GET {{baseUrl}}/location/{{anna}}
+X-User-Id: {{anna}}
 
-?? status == 200
+?? status == 404
 
 
 ###########################################
