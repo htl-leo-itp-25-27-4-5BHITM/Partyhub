@@ -14,7 +14,7 @@
     <link rel="icon" href="/icons/icon-192.png" sizes="192x192" type="image/png" />
 
     <link rel="stylesheet" href="./global.css" />
-    <link rel="stylesheet" href="./index.css?v=20261016-home-logo" />
+    <link rel="stylesheet" href="./index.css?v=20261016-home-spacing" />
 
     <link
       rel="stylesheet"
@@ -33,7 +33,7 @@
     <script src="./user-utils.js" defer></script>
     <script src="./auth-service.js" defer></script>
     <script src="./backend-functions.js?v=20260429-fresh-db" defer></script>
-    <script src="./index.js?v=20260429-fresh-db" defer></script>
+    <script src="./index.js?v=20261016-home-search" defer></script>
     <script src="./nav.js?v=20261016-design" defer></script>
     <link rel="stylesheet" href="/design-system.css?v=20261016-1" />
 </head>
@@ -49,12 +49,13 @@
           </p>
         </header>
 
-        <section class="map-section">
-          <div class="section-heading">
-            <h2 class="section-title">Live map</h2>
-            <span class="section-chip">Parties</span>
-          </div>
+        <section class="card home-search" aria-label="Search parties">
+          <label for="homePartySearch">Search parties</label>
+          <input type="search" id="homePartySearch" placeholder="Search by party name or location" autocomplete="off" aria-controls="map" />
+          <p id="homeSearchStatus" role="status" aria-live="polite"></p>
+        </section>
 
+        <section class="map-section" aria-label="Party map">
           <div class="map-card">
             <div id="map"></div>
           </div>
