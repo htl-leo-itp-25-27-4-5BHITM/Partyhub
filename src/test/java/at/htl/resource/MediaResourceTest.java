@@ -21,6 +21,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.HashSet;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Stream;
@@ -50,7 +51,7 @@ public class MediaResourceTest extends TestBase {
     Long attendeeId;
 
     @BeforeEach
-    void setUp() {
+    void setUp() throws IOException {
         QuarkusTransaction.requiringNew().run(() -> {
             em.createQuery("DELETE FROM Notification").executeUpdate();
             em.createQuery("DELETE FROM Invitation").executeUpdate();
@@ -84,6 +85,10 @@ public class MediaResourceTest extends TestBase {
             invitation.setStatus("PENDING");
             em.persist(invitation);
         });
+        // H2 restarts its IDs on each run; files from an earlier run can
+        // otherwise be mistaken for uploads made by this test.
+        removePartyFiles(publicPartyId);
+        removePartyFiles(privatePartyId);
     }
 
     // Other test classes delete parties without deleting invitations first.
@@ -96,11 +101,21 @@ public class MediaResourceTest extends TestBase {
     }
 
     @AfterEach
-    void restoreWritableDirs() throws IOException {
-        Path base = Paths.get(uploadDir);
-        if (Files.exists(base)) {
-            try (Stream<Path> paths = Files.walk(base)) {
-                paths.filter(Files::isDirectory).forEach(dir -> dir.toFile().setWritable(true));
+    void removeUploadedFiles() throws IOException {
+        removePartyFiles(publicPartyId);
+        removePartyFiles(privatePartyId);
+    }
+
+    private void removePartyFiles(Long partyId) throws IOException {
+        if (partyId == null) return;
+        Path directory = Paths.get(uploadDir, "party" + partyId);
+        if (!Files.exists(directory)) return;
+        try (Stream<Path> paths = Files.walk(directory)) {
+            paths.filter(Files::isDirectory).forEach(dir -> dir.toFile().setWritable(true));
+        }
+        try (Stream<Path> paths = Files.walk(directory)) {
+            for (Path path : paths.sorted(Comparator.reverseOrder()).toList()) {
+                Files.deleteIfExists(path);
             }
         }
     }
