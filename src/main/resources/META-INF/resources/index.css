@@ -301,3 +301,84 @@
     margin-bottom: 6px;
   }
 }
+
+@media (min-width: 900px) {
+  .home-page .container {
+    grid-template-columns: minmax(0, 1fr) minmax(300px, 420px);
+    grid-template-rows: auto minmax(300px, 1fr);
+    column-gap: 24px;
+  }
+
+  .home-page .hero {
+    margin-bottom: 0;
+  }
+
+  .home-page .home-search {
+    width: 100%;
+    min-width: 0;
+  }
+}
+
+/* Quiet, aligned toolbar above the map. */
+body.home-page main.container {
+  gap: 24px;
+  padding-top: 20px;
+}
+body.home-page .hero {
+  column-gap: 16px;
+  margin-bottom: 0;
+}
+body.home-page .home-search {
+  position: relative;
+  padding: 0;
+  background: transparent;
+  border: 0;
+  box-shadow: none;
+}
+.home-search .home-search__label {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+.home-search__field {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 48px;
+  padding: 0 14px;
+  border: 1px solid var(--border-soft);
+  border-radius: 12px;
+  background: rgba(255, 255, 255, .035);
+  transition: border-color .18s ease, background .18s ease, box-shadow .18s ease;
+}
+.home-search__field:hover { border-color: rgba(216, 204, 245, .28); }
+.home-search__field:focus-within {
+  border-color: #a99aff;
+  background: rgba(169, 154, 255, .06);
+  box-shadow: 0 0 0 3px rgba(169, 154, 255, .1);
+}
+.home-search__icon { flex-shrink: 0; color: var(--text-muted); }
+body.home-page .home-search input {
+  min-width: 0;
+  min-height: 46px;
+  padding: 10px 0;
+  background: transparent;
+  border: 0;
+  outline: none;
+  box-shadow: none;
+  font-size: .875rem;
+}
+.home-search #homeSearchStatus {
+  position: absolute;
+  top: calc(100% + 3px);
+  right: 0;
+  font-size: .6875rem;
+}
+@media (max-width: 899px) {
+  body.home-page main.container { gap: 18px; padding-top: 14px; }
+}
