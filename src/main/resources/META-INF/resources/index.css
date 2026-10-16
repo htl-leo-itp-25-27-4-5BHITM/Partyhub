@@ -156,3 +156,149 @@
     border-radius: 22px;
   }
 }
+
+/* Keep the map visible above navigation, including on shorter laptop screens. */
+.home-page .app-shell {
+  height: 100dvh;
+}
+
+.home-page .container {
+  gap: 10px;
+  overflow-y: auto;
+}
+
+.home-page .hero,
+.home-page .control-card,
+.home-page .section-heading {
+  flex-shrink: 0;
+}
+
+.home-page .hero__badge {
+  padding: 4px 10px;
+  margin-bottom: 6px;
+}
+
+.home-page .hero__subtitle {
+  margin-top: 5px;
+}
+
+.home-page .control-card {
+  padding: 10px 12px;
+}
+
+.home-page .control-card__label {
+  margin-bottom: 5px;
+}
+
+.home-page .party-select {
+  min-height: 44px;
+  padding: 10px 12px;
+}
+
+.home-page .map-section {
+  min-height: 280px;
+  gap: 6px;
+}
+
+.home-page .map-card {
+  min-height: 240px;
+  border-radius: 20px;
+}
+
+@media (min-width: 768px) {
+  .home-page {
+    --nav-height: 68px;
+  }
+
+  .home-page .container {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: auto auto minmax(300px, 1fr);
+    align-items: center;
+    gap: 8px 20px;
+    padding: 10px 16px calc(var(--nav-height) + 22px);
+  }
+
+  .home-page .hero {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    align-items: center;
+    gap: 4px 10px;
+    padding: 0;
+  }
+
+  .home-page .hero__badge {
+    font-size: 0.75rem;
+    padding: 3px 9px;
+    margin-bottom: 0;
+  }
+
+  .home-page .hero__title {
+    font-size: clamp(1.3rem, 2vw, 1.7rem);
+  }
+
+  .home-page .hero__subtitle {
+    grid-column: 1 / -1;
+    margin-top: 0;
+    font-size: 0.8rem;
+  }
+
+  .home-page .control-card {
+    padding: 8px 10px;
+    border-radius: 16px;
+  }
+
+  .home-page .control-card__label {
+    font-size: 0.8rem;
+    margin-bottom: 3px;
+  }
+
+  .home-page .map-section {
+    grid-column: 1 / -1;
+    align-self: stretch;
+  }
+
+  .home-page .bottom-nav {
+    padding: 6px 12px;
+    border-radius: 22px;
+  }
+
+  .home-page .nav-btn {
+    height: 54px;
+    padding: 5px 10px;
+    border-radius: 16px;
+  }
+}
+
+/* Compact brand mark beside the homepage heading. */
+.home-page .hero {
+  display: grid;
+  grid-template-columns: 48px minmax(0, 1fr);
+  align-items: center;
+  gap: 3px 12px;
+}
+
+.home-page .hero__logo {
+  grid-row: 1 / 3;
+  display: block;
+  width: 48px;
+  height: 48px;
+  object-fit: contain;
+}
+
+.home-page .hero__subtitle {
+  grid-column: 2;
+  margin-top: 0;
+}
+
+@media (max-width: 480px) {
+  .home-page .hero {
+    grid-template-columns: 40px minmax(0, 1fr);
+    column-gap: 9px;
+  }
+
+  .home-page .hero__logo {
+    width: 40px;
+    height: 40px;
+  }
+}

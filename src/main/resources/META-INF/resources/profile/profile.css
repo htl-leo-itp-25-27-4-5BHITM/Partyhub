@@ -522,7 +522,7 @@ body.bg-light .container {
 
 #searchInput {
   max-width: none;
-  font-family: fontnormal !important;
+  font-family: var(--font-family);
 }
 
 #profileDetails {
