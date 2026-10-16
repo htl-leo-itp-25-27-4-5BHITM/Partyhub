@@ -5,11 +5,13 @@ ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 SQL_FILE="$ROOT_DIR/src/main/resources/db/dev-seed/afterMigrate.sql"
 NAMESPACE="${NAMESPACE:-default}"
 APPLY_LOCAL=true
-APPLY_K8S=true
+APPLY_K8S=false
 
 usage() {
   cat <<'EOF'
 Usage: ./sync-import.sh [options]
+
+Default: reseed local application data only. Kubernetes requires --k8s-only.
 
 Options:
   --sql <path>         Path to SQL file (default: src/main/resources/db/dev-seed/afterMigrate.sql)

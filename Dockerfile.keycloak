@@ -1,4 +1,6 @@
-FROM quay.io/keycloak/keycloak:26.5.0
+FROM quay.io/keycloak/keycloak:26.5.0 AS theme
 
 COPY keycloak/themes/partyhub /opt/keycloak/themes/partyhub
+
+FROM theme AS deployment
 COPY keycloak/realm-staging.json /opt/keycloak/data/import/realm-staging.json

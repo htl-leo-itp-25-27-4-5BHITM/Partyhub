@@ -17,3 +17,8 @@ Der Host kann regelmäßige Partys erstellen, zum Beispiel einen Spieleabend jed
 
 ## Entwürfe speichern
 Der Host kann eine Party als Entwurf speichern und später weiterbearbeiten, bevor sie veröffentlicht wird. Der Entwurf ist nur für den Host sichtbar, sodass auch unvollständige Angaben gespeichert werden können.
+
+## Dashboard
+Als User sieht man , wie viele Partys man erstellt hat und im zeitraum wie viele leute sich eingeschrieben haben usw. Einfach generell, Statistiken.
+
+## Vorschlag bei Party hinzufügen

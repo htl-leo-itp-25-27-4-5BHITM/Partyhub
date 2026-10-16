@@ -1,5 +1,11 @@
 # One-time cut-over to persistent deployments (B01)
 
+This is the historical migration to a separate logical database on the shared
+Postgres server. The current setup moves that database to a dedicated server;
+use [keycloak-database-migration.md](keycloak-database-migration.md) for that cutover.
+The initContainer described below existed in the B01 deployment, and is removed
+by the dedicated-database change.
+
 This runbook moves the school cloud from "reset on every deploy" to persistent,
 incremental deployments (change `persistent-school-cloud-deployment`, DEPLOY-01/DEPLOY-02).
 It is run **once**, by someone with `kubectl` access to the school cloud, and

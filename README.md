@@ -43,7 +43,7 @@ cd Partyhub
 ./deploy-local.sh
 ```
 
-`deploy-local.sh` **deletes the local Docker volumes** (`docker-compose down -v`, including the local Keycloak database), starts Postgres and Keycloak, builds the project (running the tests) and starts `./mvnw quarkus:dev`. In dev mode Flyway cleans the local `demo` schema on every start, applies the migrations in `src/main/resources/db/migration/` and then loads the seed data from `src/main/resources/db/dev-seed/afterMigrate.sql`; the `X-User-Id` test bypass is enabled; do not rely on it to verify real login.
+`deploy-local.sh` preserves Docker volumes, migrates any legacy local Keycloak database to its dedicated Postgres service, waits for database and Keycloak readiness, builds the project (running the tests) and starts `./mvnw quarkus:dev`. In dev mode Flyway cleans the local `demo` schema on every start, applies the migrations in `src/main/resources/db/migration/` and then loads the seed data from `src/main/resources/db/dev-seed/afterMigrate.sql`; the `X-User-Id` test bypass is enabled; do not rely on it to verify real login.
 
 ### 3. Schema changes (Flyway)
 
@@ -51,17 +51,17 @@ The database schema is owned by versioned Flyway migrations in `src/main/resourc
 
 ### 4. Sync seed data to Local and Server DB
 
-If you change seed data in `src/main/resources/db/dev-seed/afterMigrate.sql`, the next `quarkus:dev` start loads it automatically. To apply it to a running database, use the script below. The seed starts with `TRUNCATE ... CASCADE`, so **every target database is emptied and reseeded**. The default targets both local and Kubernetes databases; always use `--local-only`.
+If you change seed data in `src/main/resources/db/dev-seed/afterMigrate.sql`, the next `quarkus:dev` start loads it automatically. To apply it to a running database, use the script below. The seed starts with `TRUNCATE ... CASCADE`, so **every target database is emptied and reseeded**. The default targets only the local database; cloud reseeding requires `--k8s-only`.
 
-> **Warning:** the school cloud is persistent. `./sync-import.sh` without `--local-only`, and `--k8s-only` in particular, **permanently deletes all school-cloud application data** (users, parties, invitations, follows, notifications) and replaces it with demo data. There is no automatic backup.
+> **Warning:** the school cloud is persistent. `./sync-import.sh --k8s-only` **permanently deletes all school-cloud application data** (users, parties, invitations, follows, notifications) and replaces it with demo data. There is no automatic backup.
 
 ```bash
 ./sync-import.sh
 ```
 
-This updates:
-- local docker-compose Postgres (`postgres` service)
-- Kubernetes Postgres pod (`app=postgres`, namespace `default`)
+This updates local docker-compose Postgres (`postgres` service). With `--k8s-only`,
+it updates the Kubernetes application Postgres pod (`app=postgres`, namespace
+`default`). Neither mode touches the dedicated Keycloak database.
 
 Common variants:
 
@@ -98,15 +98,22 @@ Password: viki_vej
 
 Each demo user matches exactly one seeded PartyHub user (seed users are stored
 without a Keycloak ID) and is linked on first login. If the `frontend` client
-or demo users do not appear after changing `realm-dev.json`, recreate the local
-Postgres volume or delete and re-import the `partyhub` realm, because Keycloak
+or demo users do not appear after changing `realm-dev.json`, deliberately delete
+and re-import the local `partyhub` realm, because Keycloak
 only imports a realm that does not exist yet.
+
+Local database storage is independent: `postgres` holds application data and
+`keycloak-db` holds identity data. Only the app database is published on localhost
+port 5432. `docker compose down` preserves both volumes; `down -v` deletes both.
+See [database migration and improvement notes](docs/keycloak-database-migration.md).
 
 ## Production
 
 **Website**: https://it220274.cloud.htl-leonding.ac.at
 
 The school cloud is persistent ([`deployment-environment`](openspec/specs/deployment-environment/spec.md)):
+its dedicated Keycloak database cutover was completed on 2026-10-14, preserving
+existing accounts (see the [cutover record](docs/keycloak-database-migration.md#completed-cloud-cutover-2026-10-14)).
 deployments keep application data, Keycloak accounts and uploaded files.
 
 - **Gated:** a push to `main` runs `Test`; only if it succeeds does `Build and Push`
@@ -120,8 +127,10 @@ deployments keep application data, Keycloak accounts and uploaded files.
   Rollback: `kubectl rollout undo deployment/quarkus` (and `deployment/keycloak`).
 - **Schema:** Quarkus applies new Flyway migrations at startup (see
   [Schema changes](#3-schema-changes-flyway)); seed data is never loaded outside dev.
-- **Keycloak:** uses its own `keycloak` database in the same Postgres (created by an
-  initContainer if missing). `--import-realm` only imports `realm-staging.json` when
+- **Keycloak:** uses the dedicated `keycloak-db` Postgres service, credentials and
+  PVC. Existing installations must complete the account-preserving
+  [database migration](docs/keycloak-database-migration.md) before deployment;
+  the pipeline checks its completion marker. `--import-realm` only imports `realm-staging.json` when
   the `partyhub` realm does not exist yet, so realm changes after that are made in
   the Admin Console (`/keycloak/admin`) or by a deliberate, documented re-import;
   a redeploy never overwrites the realm or its users.
@@ -149,7 +158,7 @@ Partyhub/
 ├── k8s/                       # School-cloud manifests
 ├── openspec/                  # Specifications and changes
 ├── docs/openspec-baseline/    # Specification evidence and handoff
-├── docker-compose.yaml        # Local Postgres + Keycloak
+├── docker-compose.yaml        # Local app DB + Keycloak DB + Keycloak
 └── deploy-local.sh / sync-import.sh / run-http-tests.sh
 ```
 
@@ -206,3 +215,6 @@ the live OpenAPI document is served at `/q/openapi`.
 11. Sprint: 08.04.2026
 12. Sprint: 29.04.2026
 13. Sprint: 13.05.2026
+
+5BHITM
+1. Sprint: 21.10.2026

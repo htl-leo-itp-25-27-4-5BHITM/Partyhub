@@ -20,8 +20,8 @@ Accepted contract: [local-keycloak-environment](../../openspec/specs/local-keycl
 | Realm inputs | mounted `realm-dev.json` **and** image-baked `realm-staging.json`, both realm `partyhub` (G018) | same image | image-baked `realm-staging.json` only |
 | Keycloak admin bootstrap | env bootstrap admin (values in Compose) | same | env bootstrap admin in manifest (values not repeated here) |
 | Mail | `%dev.quarkus.mailer.mock=false`, SMTP from env | JUnit `quarkus.mailer.mock=true` | secret `partyhub-smtp-secret` via `envFrom` |
-| Profile uploads | `%dev` `uploads/profiles` (relative to working dir) | test default | `%prod` `/app/uploads/profiles` on PVC `profile-uploads-pvc` 5Gi |
-| Party media | `src/main/resources/uploads/party{id}` relative to working dir | same code path | `/app/src/main/resources/uploads/...` — outside the PVC mount (G058) |
+| Profile uploads | `%dev` `dev-uploads/profiles` (seed images tracked in git) | `target/test-uploads/profiles` | `%prod` `/app/uploads/profiles` on PVC `profile-uploads-pvc` 5Gi |
+| Party media | `partyhub.media.upload-dir`: `%dev` `dev-uploads/media` | `target/test-uploads/media` | `%prod` `/app/uploads/media` on the same PVC (G058 addressed) |
 
 `%staging` sets bypass true, `postgres:5432/demo`, real mailer with example SMTP defaults and no upload directory. No workflow, script or manifest in the repository selects the staging profile. The `realm-staging.json` name therefore does not mean a staging application profile is deployed with it.
 
