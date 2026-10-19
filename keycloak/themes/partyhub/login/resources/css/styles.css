@@ -602,3 +602,34 @@ body > div, #kc-content, #kc-content-wrapper { width: 100%; max-width: 460px; }
   #kc-form { padding: 24px 18px; }
   input[type="text"], input[type="email"], input[type="password"] { font-size: 16px; }
 }
+
+/* Match the browser app's shared visual language. */
+@font-face {
+  font-family: "PartyHub Sans";
+  src: url("../fonts/Lunasima-Regular.ttf") format("truetype");
+  font-display: swap;
+}
+:root {
+  --ph-primary: #151128;
+  --ph-bg-secondary: #211b38;
+  --ph-bg-tertiary: #2a2344;
+  --ph-text-secondary: #c6bfd7;
+  --ph-border: rgba(216, 204, 245, .14);
+}
+body { background: #151128; font-family: "PartyHub Sans", system-ui, sans-serif; }
+.brand-header h1 { font-family: inherit; font-size: 2rem; letter-spacing: -.04em; }
+.brand-header::before {
+  content: "";
+  display: block;
+  width: 64px;
+  height: 64px;
+  margin: 0 auto 16px;
+  background: url("../images/logo-transparent.png") center / contain no-repeat;
+}
+#kc-form, #kc-register-form, .pf-c-login__main {
+  background: #211b38;
+  border-radius: 16px;
+  box-shadow: 0 8px 24px rgba(8, 5, 20, .16);
+}
+#kc-login, .pf-c-button.pf-m-primary { border-radius: 10px !important; box-shadow: none; }
+input:not([type="checkbox"]):not([type="submit"]) { border-radius: 10px; }

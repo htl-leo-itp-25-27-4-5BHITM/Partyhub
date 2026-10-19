@@ -53,3 +53,8 @@ api/node_modules
 
 xcuserdata/
 *.xcuserstate
+
+# Local design tooling
+/DESIGN.md
+/PRODUCT.md
+/.impeccable/

@@ -171,6 +171,30 @@ public class PartyResourceTest extends TestBase {
 
     @Test
     @TestSecurity(user = "test-sub")
+    void hostCannotJoinOwnParty() {
+        given().when().post("/api/parties/{id}/join", testPartyId)
+            .then().statusCode(403);
+        given().when().get("/api/parties/{id}/join/status", testPartyId)
+            .then().statusCode(200).body("attending", is(false)).body("count", is(0));
+    }
+
+    @Test
+    @TestSecurity(user = "other-sub")
+    void guestCanJoinIdempotentlyAndLeave() {
+        for (int attempt = 0; attempt < 2; attempt++) {
+            given().when().post("/api/parties/{id}/join", testPartyId)
+                .then().statusCode(204);
+        }
+        given().when().get("/api/parties/{id}/join/status", testPartyId)
+            .then().statusCode(200).body("attending", is(true)).body("count", is(1));
+        given().when().delete("/api/parties/{id}/join", testPartyId)
+            .then().statusCode(200);
+        given().when().get("/api/parties/{id}/join/status", testPartyId)
+            .then().statusCode(200).body("attending", is(false)).body("count", is(0));
+    }
+
+    @Test
+    @TestSecurity(user = "test-sub")
     void testJoinParty_notFound() {
         given()
             .when().post("/api/parties/999/join")
