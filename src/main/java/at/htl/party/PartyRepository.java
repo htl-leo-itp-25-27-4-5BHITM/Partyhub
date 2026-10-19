@@ -577,6 +577,12 @@ public class PartyRepository {
                     .build();
         }
 
+        if (party.getHost_user() != null && Objects.equals(party.getHost_user().getId(), userId)) {
+            return Response.status(Response.Status.FORBIDDEN)
+                    .entity(Map.of("error", "Hosts cannot join their own party"))
+                    .build();
+        }
+
         User user = entityManager.find(User.class, userId);
         if (user == null) {
             return Response.status(Response.Status.NOT_FOUND)

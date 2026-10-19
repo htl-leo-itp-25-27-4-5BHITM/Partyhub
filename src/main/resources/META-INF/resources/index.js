@@ -240,6 +240,12 @@ document.addEventListener("DOMContentLoaded", async () => {
   // ---------------------------
   // Load and display parties
   // ---------------------------
+  const partySearch = document.getElementById("homePartySearch");
+  const searchStatus = document.getElementById("homeSearchStatus");
+  let upcomingParties = [];
+
+  partySearch?.addEventListener("input", renderPartiesOnMap);
+
   async function loadAllPartiesToMap() {
     const parties = window.backend?.getAllParties
       ? await window.backend.getAllParties()
@@ -257,10 +263,20 @@ document.addEventListener("DOMContentLoaded", async () => {
       `loadAllPartiesToMap: ${parties.length} total, ${filtered.length} in next 14 days`,
     );
 
+    upcomingParties = filtered;
+    renderPartiesOnMap();
+  }
+
+  function renderPartiesOnMap() {
+    const query = (partySearch?.value || "").trim().toLocaleLowerCase();
+    const matches = upcomingParties.filter(party =>
+      !query || [party.title, party.location?.address, party.location_address]
+        .filter(Boolean).join(" ").toLocaleLowerCase().includes(query)
+    );
     partyLayer.clearLayers();
     const bounds = [];
 
-    for (const party of filtered) {
+    for (const party of matches) {
       const ll = extractLatLng(party);
       if (!ll) {
         console.debug(
@@ -273,6 +289,12 @@ document.addEventListener("DOMContentLoaded", async () => {
       const marker = L.marker([ll.lat, ll.lng]).addTo(partyLayer);
       marker.bindPopup(partyPopupHtml(party));
       bounds.push([ll.lat, ll.lng]);
+    }
+
+    if (searchStatus) {
+      searchStatus.textContent = query
+        ? `${bounds.length} ${bounds.length === 1 ? "party" : "parties"} on the map in the next 14 days`
+        : "";
     }
 
     // Zoom to markers when present

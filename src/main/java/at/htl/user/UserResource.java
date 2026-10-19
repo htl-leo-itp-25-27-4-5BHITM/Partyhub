@@ -8,6 +8,13 @@ import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 
 import java.util.List;
+import java.util.Map;
+import java.util.UUID;
+
+import at.htl.media.ImageType;
+import jakarta.transaction.Status;
+import jakarta.transaction.Synchronization;
+import jakarta.transaction.TransactionSynchronizationRegistry;
 
 import org.jboss.logging.Logger;
 import org.jboss.resteasy.reactive.multipart.FileUpload;
@@ -51,6 +58,9 @@ public class UserResource {
     EntityManager em;
     @Inject
     Logger logger;
+
+    @Inject
+    TransactionSynchronizationRegistry transactions;
 
     // Persistenter Upload-Pfad (prod/dev überschreibbar via Quarkus config)
     @ConfigProperty(name = "partyhub.profile-picture.upload-dir", defaultValue = "uploads/profiles")
@@ -219,8 +229,14 @@ public class UserResource {
     }
 
     private Path resolveExistingProfilePicturePath(String filename) {
-        Path path = Paths.get(uploadDir).resolve(filename);
-        return Files.exists(path) ? path : null;
+        Path base = Paths.get(uploadDir).toAbsolutePath().normalize();
+        Path path = base.resolve(filename).normalize();
+        if (!path.startsWith(base) || !Files.isRegularFile(path)) return null;
+        try {
+            return path.toRealPath().startsWith(base.toRealPath()) ? path : null;
+        } catch (IOException e) {
+            return null;
+        }
     }
 
     private Response serveDefaultImage() {
@@ -273,38 +289,63 @@ public class UserResource {
                     .build();
         }
 
-        try {
-            em.createQuery("DELETE FROM ProfilePicture p WHERE p.user.id = :userId")
-              .setParameter("userId", id)
-              .executeUpdate();
+        if (fileUpload == null || fileUpload.size() == 0) {
+            return Response.status(Response.Status.BAD_REQUEST)
+                    .entity(Map.of("error", "An image file is required")).build();
+        }
 
-            User user = em.find(User.class, id);
-            if (user == null) {
-                return Response.status(Response.Status.NOT_FOUND)
-                    .entity("{\"error\": \"User not found\"}").build();
+        Path target = null;
+        try {
+            ImageType type = ImageType.detect(fileUpload.uploadedFile()).orElse(null);
+            if (type == null) {
+                return Response.status(Response.Status.BAD_REQUEST)
+                        .entity(Map.of("error", "Upload a JPEG, PNG, GIF or WebP image")).build();
             }
-            
-            Path uploadPath = Paths.get(uploadDir);
-            Files.createDirectories(uploadPath);
-            String fileExtension = getFileExtension(fileUpload.fileName());
-            String newFilename = "profile_" + id + fileExtension;
-            Path targetLocation = uploadPath.resolve(newFilename);
-            
-            logger.info("Moving file to: " + targetLocation);
-            Files.move(fileUpload.uploadedFile(), targetLocation, StandardCopyOption.REPLACE_EXISTING);
-            
-            ProfilePicture profilePicture = new ProfilePicture(newFilename, user);
-            em.persist(profilePicture);
-            
-            user.setProfilePicture(profilePicture);
-            em.merge(user);
-            
-            return Response.ok().entity("{\"filename\": \"" + newFilename + "\"}").build();
-        } catch (Exception e) {
-            logger.error("Failed to upload profile picture: " + e.getMessage(), e);
+
+            Path base = Paths.get(uploadDir).toAbsolutePath().normalize();
+            Files.createDirectories(base);
+            String newFilename = "profile_" + id + "_" + UUID.randomUUID() + "." + type.extension();
+            target = base.resolve(newFilename);
+            Files.copy(fileUpload.uploadedFile(), target, StandardCopyOption.REPLACE_EXISTING);
+
+            ProfilePicture picture = currentUser.getProfilePicture();
+            Path previous = picture == null || picture.getPicture_name() == null
+                    ? null : resolveExistingProfilePicturePath(picture.getPicture_name());
+            Path uploaded = target;
+            // Only remove the previous file once its replacement is committed.
+            // If persistence fails, remove the new file instead.
+            transactions.registerInterposedSynchronization(new Synchronization() {
+                @Override
+                public void beforeCompletion() {}
+
+                @Override
+                public void afterCompletion(int status) {
+                    deleteProfileFile(status == Status.STATUS_COMMITTED ? previous : uploaded);
+                }
+            });
+
+            if (picture == null) {
+                picture = new ProfilePicture(newFilename, currentUser);
+                em.persist(picture);
+                currentUser.setProfilePicture(picture);
+            } else {
+                picture.setPicture_name(newFilename);
+            }
+            return Response.ok(Map.of("filename", newFilename)).build();
+        } catch (IOException e) {
+            deleteProfileFile(target);
+            logger.error("Failed to store profile picture for user " + id, e);
             return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
-                .entity("{\"error\": \"Failed to upload profile picture: " + e.getMessage() + "\"}")
-                .build();
+                    .entity(Map.of("error", "Failed to store profile picture")).build();
+        }
+    }
+
+    private void deleteProfileFile(Path path) {
+        if (path == null) return;
+        try {
+            Files.deleteIfExists(path);
+        } catch (IOException e) {
+            logger.warn("Could not remove profile picture file " + path, e);
         }
     }
 
@@ -384,13 +425,6 @@ public class UserResource {
         return Response.ok().entity(mediaRepository.getVisibleMediaByUser(userId, callerId)).build();
     }
 
-    private String getFileExtension(String filename) {
-        int lastDotIndex = filename.lastIndexOf('.');
-        if (lastDotIndex > 0) {
-            return filename.substring(lastDotIndex);
-        }
-        return ".jpg";
-    }
     @PUT
 @jakarta.ws.rs.Path("/device-token")
 @Transactional

@@ -3,6 +3,15 @@ function highlightActiveNav() {
     if (!nav) return;
 
     const links = nav.querySelectorAll('.nav-btn');
+    const navLabels = ['Home', 'Parties', 'Inbox', 'Profile'];
+    links.forEach((link, index) => {
+        if (!link.querySelector('.nav-label') && navLabels[index]) {
+            const label = document.createElement('span');
+            label.className = 'nav-label';
+            label.textContent = navLabels[index];
+            link.appendChild(label);
+        }
+    });
     const currentPath = window.location.pathname.toLowerCase();
 
     links.forEach(a => {
