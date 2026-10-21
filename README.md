@@ -207,10 +207,8 @@ the live OpenAPI document is served at `/q/openapi`.
 - /opsx: archive
 - commit
 - /clear 
-- read '/folder' and write me a continuetion file for a new cold thread.
-  
+- read '/folder' and write me a continuation file for a new cold thread.
 
-![alt text](docs/images/image.png)
 
 ## Sprint Review Dates
 
