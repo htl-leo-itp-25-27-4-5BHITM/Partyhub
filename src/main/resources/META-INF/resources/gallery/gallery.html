@@ -14,13 +14,13 @@
     <link rel="icon" href="/icons/icon-192.png" sizes="192x192" type="image/png" />
 
     <link href="../global.css" rel="stylesheet" />
-    <link href="./gallery.css" rel="stylesheet" />
+    <link href="./gallery.css?v=20261021-upload" rel="stylesheet" />
     <link href="../index.css" rel="stylesheet" />
     <script src="../user-utils.js" defer></script>
     <script src="../auth-service.js" defer></script>
     <script src="../nav.js?v=20261016-design" defer></script>
     <script src="../backend-functions.js?v=20260429-fresh-db" defer></script>
-    <script src="./gallery.js?v=20261014-media" defer></script>
+    <script src="./gallery.js?v=20261021-upload" defer></script>
     <link rel="stylesheet" href="/design-system.css?v=20261016-1" />
   </head>
   <body class="bg-light">
@@ -35,6 +35,13 @@
           <span class="sep">•</span>
           <span id="photo-count">0 photos</span>
         </div>
+      </section>
+
+      <section class="gallery-actions" aria-label="Gallery actions">
+        <button type="button" id="addPhotosBtn" class="btn-primary gallery-action-btn" hidden>Add photos</button>
+        <button type="button" id="loginToAddBtn" class="btn-secondary gallery-action-btn" hidden>Log in to add photos</button>
+        <input type="file" id="photoInput" accept="image/jpeg,image/png,image/gif,image/webp" multiple hidden />
+        <div id="galleryStatus" class="gallery-status" role="status" aria-live="polite" hidden></div>
       </section>
 
       <section class="gallery-content">
