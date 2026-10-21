@@ -105,6 +105,74 @@
   font-style: italic;
 }
 
+/* Upload controls and status */
+.gallery-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px;
+}
+
+.gallery-action-btn[hidden],
+.gallery-status[hidden] {
+  display: none;
+}
+
+.gallery-status {
+  flex-basis: 100%;
+  padding: 10px 14px;
+  border-radius: 10px;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-soft);
+  color: var(--text-secondary);
+  font-size: 14px;
+}
+
+.gallery-status.is-error {
+  border-color: rgba(255, 46, 99, 0.5);
+  color: var(--text-primary);
+}
+
+.gallery-status ul {
+  margin: 6px 0 0;
+  padding-left: 18px;
+}
+
+/* Delete control on tiles: always visible on touch, on hover/focus with a mouse */
+.media-delete-btn {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  width: 34px;
+  height: 34px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  border: none;
+  border-radius: 50%;
+  background: rgba(21, 17, 40, 0.75);
+  color: var(--text-primary);
+  cursor: pointer;
+  z-index: 1;
+  transition: opacity 0.2s ease, background-color 0.2s ease;
+}
+
+.media-delete-btn:hover {
+  background: rgba(255, 46, 99, 0.85);
+}
+
+@media (hover: hover) {
+  .gallery-item .media-delete-btn {
+    opacity: 0;
+  }
+
+  .gallery-item:hover .media-delete-btn,
+  .gallery-item:focus-within .media-delete-btn {
+    opacity: 1;
+  }
+}
+
 /* Modal/Lightbox styles */
 .image-modal {
   position: fixed;
@@ -138,6 +206,18 @@
   max-height: 100%;
   object-fit: contain;
   border-radius: 8px;
+}
+
+.modal-delete {
+  position: absolute;
+  top: -50px;
+  right: 48px;
+  width: 40px;
+  height: 40px;
+}
+
+.modal-delete[hidden] {
+  display: none;
 }
 
 .modal-close {
@@ -201,5 +281,14 @@
   .modal-close {
     top: 10px;
     right: 10px;
+  }
+
+  .modal-delete {
+    top: 14px;
+    right: 58px;
+  }
+
+  .gallery-action-btn {
+    flex: 1 1 100%;
   }
 }

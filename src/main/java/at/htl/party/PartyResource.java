@@ -273,6 +273,6 @@ public class PartyResource {
         if (partyRepository.getPartyByIdIfVisible(partyId, callerId) == null) {
             return Response.status(Response.Status.NOT_FOUND).build();
         }
-        return Response.ok().entity(mediaRepository.getMediaByParty(partyId)).build();
+        return Response.ok().entity(mediaRepository.getMediaByParty(partyId, callerId)).build();
     }
 }

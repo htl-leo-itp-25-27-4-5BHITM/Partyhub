@@ -31,7 +31,7 @@ import static org.hamcrest.Matchers.*;
 import static org.junit.jupiter.api.Assertions.*;
 
 /**
- * Party gallery over HTTP: upload, item serving and list visibility
+ * Party gallery over HTTP: upload, item serving, list visibility and deletion
  * (openspec/specs/party-media-gallery/spec.md).
  */
 @QuarkusTest
@@ -49,6 +49,7 @@ public class MediaResourceTest extends TestBase {
     Long publicPartyId;
     Long privatePartyId;
     Long attendeeId;
+    Long inviteeId;
 
     @BeforeEach
     void setUp() throws IOException {
@@ -77,6 +78,7 @@ public class MediaResourceTest extends TestBase {
             Party privateParty = party("PRIVATE", host, attendee, location);
             privatePartyId = privateParty.getId();
             attendeeId = attendee.getId();
+            inviteeId = invitee.getId();
 
             Invitation invitation = new Invitation();
             invitation.setParty(privateParty);
@@ -162,15 +164,23 @@ public class MediaResourceTest extends TestBase {
 
     /** Stores a media row plus its backing file, committed, and returns the media id. */
     private Long storedMedia(Long partyId, byte[] content) throws IOException {
+        return storedMedia(partyId, content, attendeeId);
+    }
+
+    private Long storedMedia(Long partyId, byte[] content, Long uploaderId) throws IOException {
         Path dir = Files.createDirectories(Paths.get(uploadDir, "party" + partyId));
         String name = "fixture-" + System.nanoTime() + ".img";
         Files.write(dir.resolve(name), content);
         return QuarkusTransaction.requiringNew().call(() -> {
-            Media media = new Media(em.find(Party.class, partyId), em.find(User.class, attendeeId),
+            Media media = new Media(em.find(Party.class, partyId), em.find(User.class, uploaderId),
                     "party" + partyId + "/" + name);
             em.persist(media);
             return media.getId();
         });
+    }
+
+    private boolean mediaExists(Long mediaId) {
+        return QuarkusTransaction.requiringNew().call(() -> em.find(Media.class, mediaId) != null);
     }
 
     // ---------- Upload ----------
@@ -412,5 +422,130 @@ public class MediaResourceTest extends TestBase {
             .then()
             .statusCode(200)
             .body("id", contains(publicItem.intValue()));
+    }
+
+    // ---------- Delete permission flag ----------
+
+    @Test
+    @TestSecurity(user = "attendee-sub")
+    void partyList_uploaderSeesOnlyOwnItemsAsDeletable() throws IOException {
+        Long own = storedMedia(publicPartyId, PNG, attendeeId);
+        Long others = storedMedia(publicPartyId, PNG, inviteeId);
+        given()
+            .when().get("/api/parties/{id}/media", publicPartyId)
+            .then()
+            .statusCode(200)
+            .body("find { it.id == %s }.canDelete".formatted(own), is(true))
+            .body("find { it.id == %s }.canDelete".formatted(others), is(false));
+    }
+
+    @Test
+    @TestSecurity(user = "host-sub")
+    void partyList_hostSeesEveryItemAsDeletable() throws IOException {
+        storedMedia(publicPartyId, PNG, attendeeId);
+        storedMedia(publicPartyId, PNG, inviteeId);
+        given()
+            .when().get("/api/parties/{id}/media", publicPartyId)
+            .then()
+            .statusCode(200)
+            .body("canDelete", everyItem(is(true)));
+    }
+
+    @Test
+    void partyList_anonymousSeesNothingAsDeletable() throws IOException {
+        storedMedia(publicPartyId, PNG);
+        given()
+            .when().get("/api/parties/{id}/media", publicPartyId)
+            .then()
+            .statusCode(200)
+            .body("size()", is(1))
+            .body("canDelete", everyItem(is(false)));
+    }
+
+    @Test
+    @TestSecurity(user = "attendee-sub")
+    void upload_responseMarksNewItemsDeletableForUploader() {
+        given()
+            .multiPart("file", "photo.png", PNG, "image/png")
+            .when().post("/api/parties/{id}/media/upload", publicPartyId)
+            .then()
+            .statusCode(200)
+            .body("[0].canDelete", is(true));
+    }
+
+    // ---------- Delete ----------
+
+    @Test
+    @TestSecurity(user = "attendee-sub")
+    void delete_uploaderRemovesRowAndFile() throws IOException {
+        Long mediaId = storedMedia(privatePartyId, PNG, attendeeId);
+        given().when().delete("/api/media/{id}", mediaId).then().statusCode(204);
+        assertFalse(mediaExists(mediaId));
+        assertTrue(storedFiles(privatePartyId).isEmpty());
+        given().when().get("/api/media/{id}", mediaId).then().statusCode(404);
+    }
+
+    @Test
+    @TestSecurity(user = "host-sub")
+    void delete_hostRemovesAnotherUsersItem() throws IOException {
+        Long mediaId = storedMedia(publicPartyId, PNG, attendeeId);
+        given().when().delete("/api/media/{id}", mediaId).then().statusCode(204);
+        assertFalse(mediaExists(mediaId));
+        assertTrue(storedFiles(publicPartyId).isEmpty());
+    }
+
+    @Test
+    @TestSecurity(user = "invitee-sub")
+    void delete_otherViewer_isForbiddenAndKeepsItem() throws IOException {
+        Long mediaId = storedMedia(privatePartyId, PNG, attendeeId);
+        given().when().delete("/api/media/{id}", mediaId).then().statusCode(403);
+        assertTrue(mediaExists(mediaId));
+        assertEquals(1, storedFiles(privatePartyId).size());
+    }
+
+    @Test
+    void delete_anonymous_isRejected() throws IOException {
+        Long mediaId = storedMedia(publicPartyId, PNG);
+        given().when().delete("/api/media/{id}", mediaId).then().statusCode(401);
+        assertTrue(mediaExists(mediaId));
+        assertEquals(1, storedFiles(publicPartyId).size());
+    }
+
+    @Test
+    @TestSecurity(user = "stranger-sub")
+    void delete_nonViewerOfPrivateParty_isNotFound() throws IOException {
+        Long mediaId = storedMedia(privatePartyId, PNG);
+        given().when().delete("/api/media/{id}", mediaId).then().statusCode(404);
+        assertTrue(mediaExists(mediaId));
+        assertEquals(1, storedFiles(privatePartyId).size());
+    }
+
+    @Test
+    @TestSecurity(user = "host-sub")
+    void delete_unknownId_isNotFound() {
+        given().when().delete("/api/media/999999").then().statusCode(404);
+    }
+
+    @Test
+    @TestSecurity(user = "attendee-sub")
+    void delete_rowWithoutBackingFile_stillSucceeds() {
+        Long mediaId = QuarkusTransaction.requiringNew().call(() -> {
+            Media media = new Media(em.find(Party.class, publicPartyId), em.find(User.class, attendeeId),
+                    "party" + publicPartyId + "/missing.png");
+            em.persist(media);
+            return media.getId();
+        });
+        given().when().delete("/api/media/{id}", mediaId).then().statusCode(204);
+        assertFalse(mediaExists(mediaId));
+    }
+
+    @Test
+    @TestSecurity(user = "attendee-sub")
+    void delete_removedItemDisappearsFromLists() throws IOException {
+        Long kept = storedMedia(publicPartyId, PNG, attendeeId);
+        Long removed = storedMedia(publicPartyId, PNG, attendeeId);
+        given().when().delete("/api/media/{id}", removed).then().statusCode(204);
+        given().when().get("/api/parties/{id}/media", publicPartyId).then().body("id", contains(kept.intValue()));
+        given().when().get("/api/users/{id}/media", attendeeId).then().body("id", contains(kept.intValue()));
     }
 }

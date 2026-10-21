@@ -123,7 +123,7 @@ public class MediaRepositoryTest {
 
     @Test
     void testGetMediaByParty_empty() {
-        assertTrue(mediaRepository.getMediaByParty(party("PUBLIC").getId()).isEmpty());
+        assertTrue(mediaRepository.getMediaByParty(party("PUBLIC").getId(), null).isEmpty());
     }
 
     @Test
@@ -131,9 +131,9 @@ public class MediaRepositoryTest {
         Party party = party("PUBLIC");
         Media media = media(party, host, "party1/secret-name.jpg");
 
-        List<MediaDto> result = mediaRepository.getMediaByParty(party.getId());
+        List<MediaDto> result = mediaRepository.getMediaByParty(party.getId(), null);
 
-        assertEquals(List.of(new MediaDto(media.getId(), party.getId())), result);
+        assertEquals(List.of(new MediaDto(media.getId(), party.getId(), false)), result);
     }
 
     @Test
