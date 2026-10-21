@@ -360,9 +360,10 @@
     controls.append(input, el("span", "ba-max", `max ${maxForMe}`), save);
 
     if (own) {
-      const withdraw = el("button", "ba-btn ba-btn-ghost", "Withdraw");
+      const withdraw = el("button", "ba-btn ba-btn-ghost", "Withdraw 1");
       withdraw.type = "button";
-      withdraw.addEventListener("click", () => withdrawPledge(item));
+      withdraw.setAttribute("aria-label", `Withdraw one ${decode(item.name)}`);
+      withdraw.addEventListener("click", () => withdrawOne(item, own, withdraw));
       controls.append(withdraw);
     }
     return controls;
@@ -473,8 +474,13 @@
     await reload();
   }
 
-  async function withdrawPledge(item) {
-    const response = await send(`${base()}/items/${item.id}/pledge`, "DELETE");
+  // Gives back one unit; the last unit removes the pledge.
+  async function withdrawOne(item, own, button) {
+    button.disabled = true;
+    const url = `${base()}/items/${item.id}/pledge`;
+    const response =
+      own.quantity > 1 ? await send(url, "PUT", { quantity: own.quantity - 1 }) : await send(url, "DELETE");
+    button.disabled = false;
     if (!response) {
       return;
     }
