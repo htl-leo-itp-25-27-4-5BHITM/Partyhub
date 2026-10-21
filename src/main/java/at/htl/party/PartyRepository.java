@@ -13,6 +13,8 @@ import java.util.Set;
 
 import at.htl.location.Location;
 import at.htl.location.LocationRepository;
+import at.htl.bringalong.BringAlongChanged;
+import at.htl.bringalong.BringAlongService;
 import at.htl.user.User;
 import at.htl.invitation.Invitation;
 import at.htl.notification.Notification;
@@ -20,6 +22,7 @@ import at.htl.notification.NotificationRepository;
 import at.htl.notification.OutOfAppNotificationService;
 import at.htl.follow.FollowRepository;
 import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.enterprise.event.Event;
 import jakarta.inject.Inject;
 import jakarta.persistence.EntityManager;
 import jakarta.transaction.Transactional;
@@ -31,6 +34,12 @@ import jakarta.ws.rs.core.UriBuilder;
 @ApplicationScoped
 @Transactional
 public class PartyRepository {
+
+    @Inject
+    BringAlongService bringAlongService;
+
+    @Inject
+    Event<BringAlongChanged> bringAlongChanged;
 
     @Inject
     EntityManager entityManager;
@@ -141,6 +150,7 @@ public class PartyRepository {
                 .getResultList();
         notifications.forEach(entityManager::remove);
         entityManager.remove(party);
+        bringAlongChanged.fire(new BringAlongChanged(party.getId()));
         return Response.noContent().build();
     }
 
@@ -633,6 +643,8 @@ public class PartyRepository {
         Set<User> attendees = ensureUsers(party);
 
         if (attendees.contains(user)) {
+            // A leaving guest no longer brings anything; free their pledges for others.
+            bringAlongService.removePledgesOf(party.getId(), user.getId());
             attendees.remove(user);
             Optional<Invitation> invitation = findInvitationForRecipient(party, user);
             if (invitation.isPresent()) {

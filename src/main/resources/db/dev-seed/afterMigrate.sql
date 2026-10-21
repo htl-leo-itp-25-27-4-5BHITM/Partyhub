@@ -1,4 +1,6 @@
 TRUNCATE TABLE
+    bring_along_pledge,
+    bring_along_item,
     notification,
     invitation,
     media,
@@ -236,6 +238,19 @@ SELECT setval('users_id_seq', COALESCE((SELECT MAX(id) FROM users), 1), true);
 SELECT setval('profile_picture_id_seq', COALESCE((SELECT MAX(id) FROM profile_picture), 1), true);
 SELECT setval('user_location_id_seq', COALESCE((SELECT MAX(id) FROM user_location), 1), true);
 SELECT setval('location_id_seq', COALESCE((SELECT MAX(id) FROM location), 1), true);
+-- =========================
+-- BRING-ALONG LIST (Graduation Gala: host 1, attendees 2-6)
+-- =========================
+INSERT INTO bring_along_item (party_id, name, unit, quantity, created_at) VALUES
+    (11, 'Chips', 'Packung', 3, '2026-10-20 10:00:00'),
+    (11, 'Cola', 'Flaschen', 4, '2026-10-20 10:01:00'),
+    (11, 'Pappbecher', 'Stk.', 50, '2026-10-20 10:02:00');
+
+INSERT INTO bring_along_pledge (item_id, user_id, quantity) VALUES
+    ((SELECT id FROM bring_along_item WHERE party_id = 11 AND name = 'Chips'), 2, 1),
+    ((SELECT id FROM bring_along_item WHERE party_id = 11 AND name = 'Chips'), 3, 2),
+    ((SELECT id FROM bring_along_item WHERE party_id = 11 AND name = 'Cola'), 4, 2);
+
 SELECT setval('party_id_seq', COALESCE((SELECT MAX(id) FROM party), 1), true);
 SELECT setval('media_id_seq', COALESCE((SELECT MAX(id) FROM media), 1), true);
 SELECT setval('invitation_id_seq', COALESCE((SELECT MAX(id) FROM invitation), 1), true);
