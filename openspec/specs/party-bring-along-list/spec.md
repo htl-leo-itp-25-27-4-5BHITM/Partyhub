@@ -123,7 +123,7 @@ Pledges SHALL only exist for current party members. When an attendee leaves a pa
 - **THEN** the system SHALL delete all items and pledges of that party
 
 ### Requirement: Party detail page shows the bring-along list
-The web party detail page SHALL show the bring-along list to the host and joined attendees. Each item SHALL show its name, unit, pledged and required quantity (e.g. "2 / 3 Packung"), the members who pledged with their quantities, and a green check mark when the item is fulfilled. Members SHALL be able to set, change and withdraw their own pledge; the quantity input SHALL accept only whole numbers from 1 up to what is still open for that member. The host SHALL additionally be able to add, edit and delete items. Non-members SHALL NOT see the list content.
+The web party detail page SHALL show the bring-along list to the host and joined attendees. Each item SHALL show its name, unit, pledged and required quantity (e.g. "2 / 3 Packung"), the members who pledged with their quantities, and a green check mark when the item is fulfilled. Members SHALL be able to set, change and withdraw their own pledge; the withdraw control SHALL lower the member's own pledge by exactly one per use and SHALL remove the pledge only when it was 1; the quantity input SHALL accept only whole numbers from 1 up to what is still open for that member. The host SHALL additionally be able to add, edit and delete items. Non-members SHALL NOT see the list content.
 
 #### Scenario: Fulfilled item is marked
 - **WHEN** a member opens the detail page and an item's pledges cover its required quantity
@@ -149,6 +149,14 @@ The web party detail page SHALL show the bring-along list to the host and joined
 #### Scenario: Non-member opens the detail page
 - **WHEN** a user who has not joined the party and is not the host opens the detail page
 - **THEN** the page SHALL NOT show the list content and SHALL show a hint that joining the party is required to see it
+
+#### Scenario: Member withdraws one unit
+- **WHEN** a member who pledged 3 of an item presses "Withdraw"
+- **THEN** their pledge SHALL become 2, the item SHALL show one more open unit, and the member SHALL still be listed with quantity 2
+
+#### Scenario: Member withdraws the last unit
+- **WHEN** a member whose pledge is 1 presses "Withdraw"
+- **THEN** their pledge SHALL be removed and they SHALL no longer be listed for that item
 
 ### Requirement: Bring-along list stays current without reloading
 The system SHALL keep every member's open view of a bring-along list up to date automatically. After any committed change to a party's list – item added, edited or deleted, pledge set, changed or withdrawn, pledges removed because an attendee left, or the party deleted – the system SHALL notify all connected members of that party, and the web detail page SHALL show the new state within 5 seconds without any user action. Change notifications SHALL only be delivered to callers who pass the same access check as reading the list, and SHALL NOT contain item names, quantities or user data; clients SHALL fetch the current list after a notification. Notifications SHALL only be sent after the change is committed; a rejected or rolled-back request SHALL NOT produce one. If the live connection is lost or unavailable, the page SHALL keep refreshing the list at least every 5 seconds while the page is visible and reconnect automatically.
@@ -180,3 +188,35 @@ The system SHALL keep every member's open view of a bring-along list up to date 
 #### Scenario: Page becomes visible again
 - **WHEN** a member returns to a detail page that was in a background tab
 - **THEN** the page SHALL fetch the current list immediately
+
+### Requirement: Party wizard includes a bring-along step
+The web add-party and edit-party wizard SHALL contain an optional "Bring-along" step after the "Details" step and before the final "Map" step. In this step the host SHALL be able to add, edit and remove bring-along items using the same item rules as elsewhere (name 1–100 characters plain text, whole-number quantity 1–10000, optional unit up to 30 characters). Invalid item input SHALL be marked at the field and SHALL NOT be added to the list. The host SHALL be able to continue with an empty list. Item changes made in the wizard SHALL only be stored when the host saves the party; leaving the wizard without saving SHALL NOT change the stored list.
+
+#### Scenario: Host creates a party with items
+- **WHEN** the host adds "Chips" ×3 "Packung" and "Cola" ×4 in the Bring-along step and creates the party
+- **THEN** the system SHALL create the party and both items, and the party's bring-along list SHALL show them with nothing pledged
+
+#### Scenario: Host skips the step
+- **WHEN** the host continues past the Bring-along step without adding items and creates the party
+- **THEN** the system SHALL create the party with an empty bring-along list
+
+#### Scenario: Invalid item in the wizard
+- **WHEN** the host tries to add an item with an empty name, a decimal quantity such as 1.5, or a quantity outside 1–10000
+- **THEN** the wizard SHALL show a message at the item form and SHALL NOT add the item
+
+#### Scenario: Host edits a party's items
+- **WHEN** the host opens the edit wizard of an existing party
+- **THEN** the Bring-along step SHALL show the current items with their pledged and required quantity
+- **AND** added, changed and removed items SHALL be stored when the host saves the party
+
+#### Scenario: Host removes an item that has pledges
+- **WHEN** the host removes an item with pledges in the edit wizard
+- **THEN** the wizard SHALL ask for confirmation stating that the pledges are removed too, and only remove the item after confirmation
+
+#### Scenario: Host leaves without saving
+- **WHEN** the host changes items in the Bring-along step and leaves the wizard without saving
+- **THEN** the stored bring-along list SHALL stay unchanged
+
+#### Scenario: Some items cannot be stored
+- **WHEN** the party is saved but storing one or more items fails
+- **THEN** the wizard SHALL tell the host which items were not saved and SHALL open the party detail page, where the host can add them
