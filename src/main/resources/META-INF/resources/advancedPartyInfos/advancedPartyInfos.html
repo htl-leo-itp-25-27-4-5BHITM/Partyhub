@@ -21,8 +21,8 @@
     <script src="../auth-service.js" defer></script>
     <script src="../nav.js?v=20261016-design" defer></script>
     <script src="../backend-functions.js?v=20260429-fresh-db" defer></script>
-    <script src="./advancedPartyInfos.js?v=20260513-member-profiles" defer></script>
-    <link rel="stylesheet" href="/design-system.css?v=20261016-1" />
+    <script src="./advancedPartyInfos.js?v=20261019-favorite-actions" defer></script>
+    <link rel="stylesheet" href="/design-system.css?v=20261019-favorite-actions" />
 </head>
 
   <body class="bg-light">
@@ -33,6 +33,7 @@
             <header class="card-header">
               <button class="back-btn" aria-label="Back">‹</button>
               <h1 class="party-title">Loading party...</h1>
+
             </header>
 
             <div class="meta-row">
@@ -75,6 +76,7 @@
             </section>
 
             <div class="action-group">
+              <div class="party-primary-actions">
               <button class="join-party-btn" id="joinPartyBtn" style="display: none;">
                 <span class="btn-text">Join Party</span>
                 <span class="btn-icon">
@@ -83,6 +85,12 @@
                   </svg>
                 </span>
               </button>
+              <button class="favorite-toggle" id="favoritePartyBtn" type="button" aria-label="Add to favorites" title="Add to favorites" aria-pressed="false" disabled>
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.7l-1.1-1.1a5.5 5.5 0 0 0-7.8 7.8L12 21l8.8-8.6a5.5 5.5 0 0 0 0-7.8Z" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" /></svg>
+              </button>
+              </div>
+
+              <p id="favoriteFeedback" class="favorite-feedback" role="status" aria-live="polite"></p>
 
               <button class="secondary-btn photos-btn">
                 <span>View Gallery</span>

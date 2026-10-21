@@ -22,8 +22,8 @@
     <script src="../route-guard.js" defer></script>
     <script src="../nav.js?v=20261016-design" defer></script>
     <script src="../backend-functions.js?v=20260429-fresh-db" defer></script>
-    <script src="./profile.js?v=20260603-search-dropdown-close-2" defer></script>
-    <link rel="stylesheet" href="/design-system.css?v=20261016-1" />
+    <script src="./profile.js?v=20261019-favorites" defer></script>
+    <link rel="stylesheet" href="/design-system.css?v=20261019-favorites" />
 </head>
 
   <body class="bg-light profile-page" data-auth-required>
@@ -277,7 +277,7 @@
                 <template id="favorite-template">
                   <article class="favorite-card" data-id="">
                     <header class="favorite-header">
-                      <h4 class="favorite-title">Favorite title</h4>
+                      <h4 class="favorite-title"><a class="favorite-link" href="#">Party</a></h4>
                       <div class="favorite-actions">
                         <button class="icon-btn delete-btn" aria-label="Remove from favorites" title="Remove">
                           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" focusable="false">
@@ -290,10 +290,11 @@
                     </header>
 
                     <div class="favorite-body">
-                      <div class="content-placeholder">Favorite content</div>
+                      <p class="favorite-meta"></p>
                     </div>
                   </article>
                 </template>
+                <div id="favoritesContainer" class="party-grid favorites-grid" aria-live="polite"></div>
               </section>
             </div>
           </div>

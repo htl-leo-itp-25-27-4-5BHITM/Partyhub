@@ -20,6 +20,7 @@ document.addEventListener("DOMContentLoaded", function () {
   setupPhotosButton();
   setupBackButton();
   setupJoinPartyButton();
+  setupFavoriteButton();
 });
 
 let currentPartyIsPrivate = false;
@@ -1071,4 +1072,54 @@ function isSameDay(date1, date2) {
     date1.getMonth() === date2.getMonth() &&
     date1.getDate() === date2.getDate()
   );
+}
+
+
+async function setupFavoriteButton() {
+  const button = document.getElementById("favoritePartyBtn");
+  const feedback = document.getElementById("favoriteFeedback");
+  const partyId = getPartyIdFromUrl();
+  if (!button || !partyId) return;
+  let saved = false;
+  const endpoint = `/api/parties/${encodeURIComponent(partyId)}/favorite`;
+  const updateButton = () => {
+    button.setAttribute("aria-pressed", String(saved));
+    const label = saved ? "Remove from favorites" : "Add to favorites";
+    button.setAttribute("aria-label", label);
+    button.title = label;
+  };
+  const initialize = async () => {
+    await window.authService.init({ requireLogin: false });
+    if (getCurrentUserIdSafe()) {
+      const response = await window.authService.apiCall(endpoint);
+      if (!response.ok) throw new Error("Could not load favorite status.");
+      saved = (await response.json()).favorite === true;
+    }
+    updateButton();
+    button.disabled = false;
+  };
+  button.addEventListener("click", async () => {
+    if (!getCurrentUserIdSafe()) {
+      await window.authService.login({ redirectTo: window.location.pathname + window.location.search });
+      return;
+    }
+    button.disabled = true;
+    feedback.textContent = "";
+    try {
+      const response = await window.authService.apiCall(endpoint, { method: saved ? "DELETE" : "PUT" });
+      if (!response.ok) throw new Error("Could not update favorites. Please try again.");
+      saved = !saved;
+      updateButton();
+      feedback.textContent = "";
+    } catch (error) {
+      feedback.textContent = error.message;
+    } finally {
+      button.disabled = false;
+    }
+  });
+  try {
+    await initialize();
+  } catch (error) {
+    feedback.textContent = "Favorites could not be loaded. Reload the page to try again.";
+  }
 }

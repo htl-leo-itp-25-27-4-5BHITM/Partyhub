@@ -15,6 +15,7 @@ A social event platform for organizing and discovering parties, meetups, and soc
 - **User Management**: Keycloak registration and login (browser and iOS), profiles with pictures and biographies
 - **Event Creation**: Hosts create public or private parties with details, a theme and a location
 - **Social Features**: Follow requests, mutual contacts, private-party invitations, joining and leaving parties
+- **Favorites**: signed-in users can save a party from its detail page and open or remove saved parties in their own profile. Favorites are private and do not count as joining a party.
 - **Media Sharing**: Party galleries for party viewers
 - **Location-Based**: Parties on a map with coordinates and addresses; the iOS map filters by distance using the device location locally
 - **Age and Capacity Info**: Minimum/maximum age and capacity are shown and filterable; they do not block joining
@@ -185,12 +186,13 @@ mvn clean package
 ## API Reference
 
 Authentication is handled by Keycloak; clients read the issuer from
-`GET /api/config/public` and send bearer tokens. The REST API has 58 endpoints:
+`GET /api/config/public` and send bearer tokens. The REST API includes these endpoints:
 
 - **Users and profiles**: `/api/users/*` (profiles, `/me`, profile pictures, followers/following and follow requests under `/api/users/{id}/...`)
 - **Notification settings**: `/api/users/{id}/notification-settings`
 - **Parties**: `/api/parties/*` (CRUD, join/leave, members, invitation stats, party media under `/api/parties/{id}/media`)
 - **Invitations**: `/api/invitations/*`
+- **Favorites**: `GET /api/favorites` lists your visible saved parties; `GET`, `PUT` and `DELETE /api/parties/{id}/favorite` read, save and remove your own favorite. Repeated saves do not create duplicates.
 - **Notifications**: `/api/notifications/*`
 - **QR login**: `/api/qr/*` (deferred prototype, not a supported login)
 

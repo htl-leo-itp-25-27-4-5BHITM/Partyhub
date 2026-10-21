@@ -1014,6 +1014,9 @@ document.addEventListener("DOMContentLoaded", async function () {
 
   async function updateUserProfile(user) {
     viewedUserId = user?.id ?? null;
+    const favoritesTab = document.getElementById("tabFavorites");
+    if (favoritesTab) favoritesTab.style.display = String(viewedUserId) === String(getStoredUserId()) ? "" : "none";
+    document.getElementById("favoritesContainer")?.replaceChildren();
     viewedUserFollowStatus = "not_following";
     closeFollowMenu();
 
@@ -1716,6 +1719,58 @@ document.addEventListener("DOMContentLoaded", async function () {
     });
   }
 
+  async function loadFavorites() {
+    const container = document.getElementById("favoritesContainer");
+    const template = document.getElementById("favorite-template");
+    const message = document.querySelector(".no-favorites");
+    const requestedUser = viewedUserId;
+    if (!container || !template || !message) return;
+    container.replaceChildren();
+    if (!requestedUser || String(requestedUser) !== String(getStoredUserId())) {
+      message.textContent = "Favorites are only visible in your own profile.";
+      message.style.display = "block";
+      return;
+    }
+    message.textContent = "Loading favorites…";
+    message.style.display = "block";
+    try {
+      const response = await window.authService.apiCall("/api/favorites", { cache: "no-store" });
+      if (!response.ok) throw new Error("Could not load favorites. Please try again.");
+      const parties = await response.json();
+      if (viewedUserId !== requestedUser) return;
+      message.textContent = "No favorites yet. Save a party from its detail page.";
+      message.style.display = parties.length ? "none" : "block";
+      for (const party of parties) {
+        const node = template.content.cloneNode(true);
+        node.querySelector(".favorite-card").dataset.id = party.id;
+        const link = node.querySelector(".favorite-link");
+        link.textContent = party.title || "Party";
+        link.href = `/advancedPartyInfos/advancedPartyInfos.html?id=${encodeURIComponent(party.id)}`;
+        node.querySelector(".favorite-meta").textContent = [
+          formatDate(getPartyDate(party)), party.location?.address
+        ].filter(Boolean).join(" · ");
+        const remove = node.querySelector(".delete-btn");
+        remove.addEventListener("click", async () => {
+          remove.disabled = true;
+          try {
+            const result = await window.authService.apiCall(`/api/parties/${encodeURIComponent(party.id)}/favorite`, { method: "DELETE" });
+            if (!result.ok) throw new Error("Could not remove favorite. Please try again.");
+            await loadFavorites();
+          } catch (error) {
+            message.textContent = error.message;
+            message.style.display = "block";
+            remove.disabled = false;
+          }
+        });
+        container.appendChild(node);
+      }
+    } catch (error) {
+      if (viewedUserId !== requestedUser) return;
+      message.textContent = error.message;
+      message.style.display = "block";
+    }
+  }
+
   // -----------------------------
   // Tabs
   // -----------------------------
@@ -1735,6 +1790,8 @@ document.addEventListener("DOMContentLoaded", async function () {
           section.style.display = key === name ? "block" : "none";
         }
       });
+
+      if (name === "Favorites") loadFavorites();
 
       if (name === "Parties" && viewedUserId != null) {
         loadUserParties().catch(() => {});

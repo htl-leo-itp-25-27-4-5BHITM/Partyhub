@@ -281,3 +281,63 @@ body .party-meta > div { font-size: .8125rem; line-height: 1.5; }
   body .party-meta { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 10px 16px; }
   body .party-attendees { justify-self: start; }
 }
+
+
+/* Saved parties use the same card system as the profile party grid. */
+body .favorite-toggle[aria-pressed="true"] {
+  color: #ff5c8a;
+  border-color: rgba(255, 92, 138, .35);
+  background: rgba(255, 92, 138, .1);
+}
+.favorite-toggle[aria-pressed="true"] svg { fill: currentColor; }
+.favorite-feedback { font-size: .8125rem; color: var(--text-secondary); }
+.favorite-feedback:empty { display: none; }
+.favorites-grid .favorite-card {
+  min-width: 0;
+  padding: 16px;
+  background: var(--bg-surface);
+  border: 1px solid var(--border-soft);
+  border-radius: var(--ui-radius);
+}
+.favorite-header { display: flex; align-items: start; justify-content: space-between; gap: 12px; }
+.favorite-title { min-width: 0; font-size: 1rem; line-height: 1.4; overflow-wrap: anywhere; }
+.favorite-link:hover { color: #c9bdff; text-decoration: underline; }
+.favorite-meta { margin-top: 10px; font-size: .8125rem; color: var(--text-secondary); }
+.favorite-actions .delete-btn {
+  display: grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  border: 1px solid var(--border-soft);
+  border-radius: 10px;
+  background: var(--bg-tertiary);
+  color: var(--text-secondary);
+  cursor: pointer;
+}
+.favorite-actions .delete-btn:hover { color: #ff8fae; }
+
+.party-primary-actions {
+  display: flex;
+  align-items: stretch;
+  gap: 10px;
+}
+.party-primary-actions .join-party-btn {
+  flex: 1;
+  min-width: 0;
+  width: auto;
+}
+.party-primary-actions .favorite-toggle {
+  display: grid;
+  place-items: center;
+  flex: 0 0 48px;
+  width: 48px;
+  min-height: 46px;
+  padding: 0;
+  border: 1px solid var(--border-soft);
+  border-radius: 10px;
+  background: transparent;
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: color .18s ease, background .18s ease;
+}
+.party-primary-actions .favorite-toggle:hover { color: #ff5c8a; background: rgba(255, 92, 138, .08); }
