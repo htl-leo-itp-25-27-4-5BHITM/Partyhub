@@ -200,6 +200,16 @@ The complete method/path/status list is in
 [`docs/openspec-baseline/api-contract-matrix.md`](docs/openspec-baseline/api-contract-matrix.md);
 the live OpenAPI document is served at `/q/openapi`.
 ### Codex commands
+
+- /opsx:propose
+- /opsx:explore
+- /opsx: apply
+- /opsx: archive
+- commit
+- /clear 
+- read '/folder' and write me a continuetion file for a new cold thread.
+  
+
 ![alt text](docs/images/image.png)
 
 ## Sprint Review Dates
