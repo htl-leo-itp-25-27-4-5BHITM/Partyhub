@@ -228,3 +228,4 @@ the live OpenAPI document is served at `/q/openapi`.
 
 5BHITM
 1. Sprint: 21.10.2026
+2. Sprint: 18.11.2026
