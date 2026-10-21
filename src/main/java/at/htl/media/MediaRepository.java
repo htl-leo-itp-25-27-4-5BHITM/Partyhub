@@ -21,6 +21,9 @@ import at.htl.user.UserRepository;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import jakarta.persistence.EntityManager;
+import jakarta.transaction.Status;
+import jakarta.transaction.Synchronization;
+import jakarta.transaction.TransactionSynchronizationRegistry;
 import jakarta.ws.rs.core.Response;
 
 @ApplicationScoped
@@ -44,6 +47,8 @@ public class MediaRepository {
     UserRepository userRepository;
     @Inject
     Logger logger;
+    @Inject
+    TransactionSynchronizationRegistry transactionRegistry;
 
     @ConfigProperty(name = "partyhub.media.upload-dir", defaultValue = "uploads/media")
     String uploadDir;
@@ -54,13 +59,14 @@ public class MediaRepository {
     private record AcceptedUpload(FileUpload file, ImageType type) {
     }
 
-    public List<MediaDto> getMediaByParty(Long partyId) {
+    /** All items of a party; the caller (null = anonymous) only decides each item's canDelete flag. */
+    public List<MediaDto> getMediaByParty(Long partyId, Long callerId) {
         return entityManager.createQuery(
                         "SELECT m FROM Media m WHERE m.party.id = :partyId ORDER BY m.id",
                         Media.class)
                 .setParameter("partyId", partyId)
                 .getResultStream()
-                .map(this::toMediaDto)
+                .map(media -> toMediaDto(media, callerId))
                 .toList();
     }
 
@@ -72,7 +78,7 @@ public class MediaRepository {
                 .setParameter("userId", userId)
                 .setParameter("callerId", callerId == null ? -1L : callerId)
                 .getResultStream()
-                .map(this::toMediaDto)
+                .map(media -> toMediaDto(media, callerId))
                 .toList();
     }
 
@@ -87,14 +93,62 @@ public class MediaRepository {
                 .findFirst();
     }
 
+    /** The uploader and the party host may delete an item; anonymous callers never. */
+    public boolean canDelete(Media media, Long callerId) {
+        if (callerId == null) {
+            return false;
+        }
+        User uploader = media.getUser();
+        User host = media.getParty().getHost_user();
+        return (uploader != null && callerId.equals(uploader.getId()))
+                || (host != null && callerId.equals(host.getId()));
+    }
+
+    /**
+     * Deletes a gallery item for its uploader or the party host. Items the caller cannot view are
+     * reported as 404 so the response does not reveal private media. The row is removed inside the
+     * caller's transaction and the file only after commit, so a rollback never leaves a listed item
+     * without its image. Must run inside a transaction.
+     */
+    public Response delete(long mediaId, long callerId) {
+        Optional<Media> found = findVisibleMedia(mediaId, callerId);
+        if (found.isEmpty()) {
+            return error(Response.Status.NOT_FOUND, "Media not found");
+        }
+        Media media = found.get();
+        if (!canDelete(media, callerId)) {
+            return error(Response.Status.FORBIDDEN, "Only the uploader or the party host can delete this photo");
+        }
+
+        Optional<Path> file = storedFilePath(media);
+        // Party.media cascades ALL and is loaded eagerly; without this the flush would re-persist the item
+        media.getParty().getMedia().remove(media);
+        entityManager.remove(media);
+        entityManager.flush();
+        file.ifPresent(path -> transactionRegistry.registerInterposedSynchronization(new Synchronization() {
+            @Override
+            public void beforeCompletion() {
+            }
+
+            @Override
+            public void afterCompletion(int status) {
+                if (status == Status.STATUS_COMMITTED) {
+                    deleteQuietly(List.of(path));
+                }
+            }
+        }));
+        logger.infof("Deleted gallery media %d by user %d", mediaId, callerId);
+        return Response.noContent().build();
+    }
+
     /** The stored image behind a media item, if the file exists inside the upload directory and is a valid image. */
     public Optional<StoredImage> resolveStoredImage(Media media) {
-        Path base = Paths.get(uploadDir).toAbsolutePath().normalize();
-        Path path = base.resolve(media.getFile()).normalize();
-        if (!path.startsWith(base) || !Files.isRegularFile(path)) {
+        Optional<Path> stored = storedFilePath(media);
+        if (stored.isEmpty() || !Files.isRegularFile(stored.get())) {
             logger.warnf("Backing image for media %d is unavailable", media.getId());
             return Optional.empty();
         }
+        Path path = stored.get();
         try {
             return ImageType.detect(path).map(type -> new StoredImage(path, type));
         } catch (IOException e) {
@@ -163,7 +217,14 @@ public class MediaRepository {
             throw e;
         }
         logger.infof("Stored %d gallery image(s) for party %d", created.size(), partyId);
-        return Response.ok(created.stream().map(this::toMediaDto).toList()).build();
+        return Response.ok(created.stream().map(media -> toMediaDto(media, userId)).toList()).build();
+    }
+
+    /** The media's file path, if its stored reference stays inside the upload directory. */
+    private Optional<Path> storedFilePath(Media media) {
+        Path base = Paths.get(uploadDir).toAbsolutePath().normalize();
+        Path path = base.resolve(media.getFile()).normalize();
+        return path.startsWith(base) ? Optional.of(path) : Optional.empty();
     }
 
     private void deleteQuietly(List<Path> files) {
@@ -171,7 +232,7 @@ public class MediaRepository {
             try {
                 Files.deleteIfExists(file);
             } catch (IOException e) {
-                logger.warnf("Could not remove %s after a failed upload: %s", file, e.getMessage());
+                logger.warnf("Could not remove %s: %s", file, e.getMessage());
             }
         }
     }
@@ -180,7 +241,7 @@ public class MediaRepository {
         return Response.status(status).entity(Map.of("error", message)).build();
     }
 
-    private MediaDto toMediaDto(Media media) {
-        return new MediaDto(media.getId(), media.getParty().getId());
+    private MediaDto toMediaDto(Media media, Long callerId) {
+        return new MediaDto(media.getId(), media.getParty().getId(), canDelete(media, callerId));
     }
 }
