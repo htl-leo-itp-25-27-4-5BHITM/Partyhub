@@ -57,9 +57,7 @@ document.addEventListener("DOMContentLoaded", async () => {
             iconAnchor: [12, 41],
           }),
         })
-          .bindPopup(
-            `<strong>${escapeHtml(party.title)}</strong><br>${escapeHtml(party.location_address)}`,
-          )
+          .bindPopup(partyPopupHtml(party), partyPopupOptions())
           .addTo(partyLayer);
       }
     });
@@ -131,39 +129,54 @@ document.addEventListener("DOMContentLoaded", async () => {
     return p.title ?? p.name ?? `Party #${p.id ?? "?"}`;
   }
 
+  function partyPopupOptions() {
+    return {
+      className: "party-map-popup",
+      minWidth: Math.min(240, Math.max(160, mapEl.clientWidth - 64)),
+      maxWidth: Math.min(320, Math.max(160, mapEl.clientWidth - 64)),
+      maxHeight: Math.max(160, Math.min(340, mapEl.clientHeight - 80)),
+      autoPanPadding: [18, 18],
+    };
+  }
+
   function partyPopupHtml(p) {
     const title = escapeHtml(partyTitle(p));
-    const desc = escapeHtml(p.description ?? "");
-    const start = escapeHtml(p.time_start ?? "");
-    const end = escapeHtml(p.time_end ?? "");
-    const locName = escapeHtml(p.location?.name ?? "");
-    const category = escapeHtml(p.category?.name ?? "");
-
-    const detailsUrl = `/advancedPartyInfos/advancedPartyInfos.html?id=${encodeURIComponent(
-      String(p.id ?? "")
-    )}`;
+    const description = escapeHtml(p.description ?? "");
+    const location = escapeHtml(p.location?.address ?? p.location?.name ?? p.location_address ?? "");
+    const theme = escapeHtml(p.theme ?? p.category?.name ?? "");
+    const start = parsePartyStart(p);
+    const date = start ? escapeHtml(new Intl.DateTimeFormat("de-AT", {
+      weekday: "short", day: "numeric", month: "short", year: "numeric"
+    }).format(start)) : "";
+    const time = start ? escapeHtml(new Intl.DateTimeFormat("de-AT", {
+      hour: "2-digit", minute: "2-digit"
+    }).format(start)) : "";
+    const fee = p.fee == null ? null : toNumber(p.fee);
+    const price = fee === null ? "" : fee === 0 ? "Free entry" : escapeHtml(
+      new Intl.NumberFormat("de-AT", { style: "currency", currency: "EUR" }).format(fee)
+    );
+    const detailsUrl = `/advancedPartyInfos/advancedPartyInfos.html?id=${encodeURIComponent(String(p.id ?? ""))}`;
 
     return `
-      <div style="min-width:200px;position:relative;">
-        <div style="font-weight:700;margin-bottom:6px;display:flex;align-items:center;justify-content:space-between">
-          <div style="flex:1;margin-right:8px">${title}</div>
-          <!-- Details / fullscreen icon -->
-          <a href="${detailsUrl}" title="Open details" style="text-decoration:none;color:inherit;display:inline-flex;align-items:center" aria-label="Open party details">
-            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-              <path d="M8 3H5a2 2 0 0 0-2 2v3"></path>
-              <path d="M16 3h3a2 2 0 0 1 2 2v3"></path>
-              <path d="M8 21H5a2 2 0 0 1-2-2v-3"></path>
-              <path d="M16 21h3a2 2 0 0 0 2-2v-3"></path>
-            </svg>
-          </a>
+      <article class="map-event">
+        ${theme ? `<span class="map-event__theme">${theme}</span>` : ""}
+        <h3 class="map-event__title">${title}</h3>
+        <div class="map-event__meta">
+          ${date ? `<div class="map-event__row">
+            <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><rect x="4" y="5" width="16" height="16" rx="3"/><path d="M8 3v4m8-4v4M4 11h16"/></svg>
+            <span>${date}<span class="map-event__time">${time}</span></span>
+          </div>` : ""}
+          ${location ? `<div class="map-event__row">
+            <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M19 10c0 5-7 11-7 11S5 15 5 10a7 7 0 1 1 14 0Z"/><circle cx="12" cy="10" r="2.5"/></svg>
+            <span>${location}</span>
+          </div>` : ""}
         </div>
-        <div style="opacity:.85;margin-bottom:8px">
-          ${category ? `${category}<br>` : ""}
-          ${start || end ? `${start}${end ? " → " + end : ""}<br>` : ""}
-          ${locName ? `${locName}` : ""}
-        </div>
-        ${desc ? `<div>${desc}</div>` : ""}
-      </div>
+        ${description ? `<p class="map-event__description">${description}</p>` : ""}
+        <footer class="map-event__footer">
+          ${price ? `<span class="map-event__price">${price}</span>` : ""}
+          ${p.id != null ? `<a class="map-event__link" href="${detailsUrl}">View party <span aria-hidden="true">↗</span></a>` : ""}
+        </footer>
+      </article>
     `;
   }
 
@@ -287,7 +300,7 @@ document.addEventListener("DOMContentLoaded", async () => {
       }
 
       const marker = L.marker([ll.lat, ll.lng]).addTo(partyLayer);
-      marker.bindPopup(partyPopupHtml(party));
+      marker.bindPopup(partyPopupHtml(party), partyPopupOptions());
       bounds.push([ll.lat, ll.lng]);
     }
 
