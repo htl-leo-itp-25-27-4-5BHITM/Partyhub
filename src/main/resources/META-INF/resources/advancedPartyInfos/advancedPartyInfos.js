@@ -624,7 +624,10 @@ async function updateMediaCount(party) {
   }
 
   try {
-    const mediaResponse = await fetch(`/api/parties/${encodeURIComponent(party.id)}/media`);
+    // Send the token when logged in: private-party media is only listed for its viewers
+    const mediaResponse = await (window.authService?.apiCall || fetch)(`/api/parties/${encodeURIComponent(party.id)}/media`, {
+      authRequired: false
+    });
 
     if (mediaResponse.ok) {
       const media = await mediaResponse.json();
