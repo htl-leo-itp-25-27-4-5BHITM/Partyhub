@@ -25,6 +25,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   const steps = document.querySelectorAll(".step");
   const wizardSteps = document.querySelectorAll(".wizard-step");
 
+  const LAST_STEP = 5; // map preview; "Continue" there saves the party
   let currentStep = 1;
   let visibility = "private";
   let selectedUsers = [];
@@ -69,7 +70,8 @@ document.addEventListener("DOMContentLoaded", async () => {
     1: isEditMode ? "Edit Party" : "Add new Party",
     2: "Who can attend the party?",
     3: "Other Infos",
-    4: "Map Preview",
+    4: "What should guests bring?",
+    5: "Map Preview",
   };
 
   init();
@@ -83,6 +85,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     if (isEditMode) {
       continueBtn.textContent = "Continue";
       await loadPartyForEdit(editPartyId);
+      await window.BringAlongStep?.load(editPartyId);
     }
 
     await loadUsers();
@@ -129,7 +132,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     continueBtn.addEventListener("click", async () => {
       clearFeedback();
 
-      if (currentStep < 4) {
+      if (currentStep < LAST_STEP) {
         if (!validateStep(currentStep)) {
           return;
         }
@@ -139,7 +142,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         return;
       }
 
-      if (!validateStep(4)) {
+      if (!validateStep(LAST_STEP)) {
         return;
       }
 
@@ -197,10 +200,11 @@ document.addEventListener("DOMContentLoaded", async () => {
       const value = addressInput.value.trim();
 
       state.location_address = value;
+      // Typed text no longer matches the last picked suggestion; geocode it again later.
+      state.latitude = null;
+      state.longitude = null;
 
       if (!value) {
-        state.latitude = null;
-        state.longitude = null;
         clearAddressSuggestions();
         return;
       }
@@ -653,6 +657,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     party.lat ??
     party.location_latitude ??
     party.locationLatitude ??
+    party.location?.latitude ??
     null;
 
   const longitude =
@@ -661,6 +666,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     party.lng ??
     party.location_longitude ??
     party.locationLongitude ??
+    party.location?.longitude ??
     null;
 
   state.title = title;
@@ -883,7 +889,7 @@ function parseBackendDate(value) {
 
     updateWizard(stepNumber);
 
-    if (stepNumber === 4) {
+    if (stepNumber === LAST_STEP) {
       continueBtn.textContent = isEditMode ? "Save changes" : "Create party";
       showMapPreview();
     } else {
@@ -981,7 +987,7 @@ function parseBackendDate(value) {
     }
 
     if (stepNumber === 4) {
-      return true;
+      return window.BringAlongStep ? window.BringAlongStep.validate() : true;
     }
 
     return true;
@@ -1249,6 +1255,33 @@ function parseBackendDate(value) {
 
     console.log("Saved party:", savedParty);
 
+    const partyId = isEditMode ? editPartyId : partyIdFromLocation(response.headers.get("Location"));
+    const bringAlong = window.BringAlongStep;
+
+    if (bringAlong?.hasChanges()) {
+      if (!partyId) {
+        showFeedback("Party was created, but the bring-along list could not be saved. Add it on the party page.", "error");
+        window.setTimeout(() => {
+          window.location.href = "../listPartys/listPartys.html";
+        }, 2500);
+        return;
+      }
+
+      const failed = await bringAlong.apply(partyId);
+
+      if (failed.length > 0) {
+        // Send the host to the party page, where the list can be completed.
+        showFeedback(
+          `Party was saved, but these items could not be saved: ${failed.join(", ")}. Please add them on the party page.`,
+          "error"
+        );
+        window.setTimeout(() => {
+          window.location.href = `../advancedPartyInfos/advancedPartyInfos.html?id=${encodeURIComponent(partyId)}`;
+        }, 3000);
+        return;
+      }
+    }
+
     showFeedback(isEditMode ? "Party was saved." : "Party was created.", "success");
 
     window.setTimeout(() => {
@@ -1289,7 +1322,7 @@ function parseBackendDate(value) {
     continueBtn.disabled = isSaving;
     continueBtn.textContent = isSaving
       ? "Saving..."
-      : currentStep === 4
+      : currentStep === LAST_STEP
         ? isEditMode ? "Save changes" : "Create party"
         : "Continue";
   }
@@ -1315,6 +1348,11 @@ function parseBackendDate(value) {
     const seconds = pad(date.getSeconds());
 
     return `${year}-${month}-${day}T${hours}:${minutes}:${seconds}`;
+  }
+
+  function partyIdFromLocation(location) {
+    const match = /\/api\/parties\/(\d+)\/?$/.exec(location || "");
+    return match ? match[1] : null;
   }
 
   function pad(value) {
