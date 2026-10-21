@@ -301,6 +301,7 @@ async function handleJoinParty(partyId) {
     if (response.ok) {
       await checkAttendanceStatus(partyId, currentParty);
       await loadPartyMembers(partyId, currentParty);
+      window.bringAlong?.reload();
     } else {
       const errorText = await response.text().catch(() => "");
       console.error("Failed to update party attendance:", response.status, errorText);

@@ -15,13 +15,14 @@
 
     <link href="../global.css" rel="stylesheet" />
     <link href="../index.css" rel="stylesheet" />
-    <link href="./advancedPartyInfos.css?v=20260513-member-profiles" rel="stylesheet" />
+    <link href="./advancedPartyInfos.css?v=20261021-bring-along" rel="stylesheet" />
 
     <script src="../user-utils.js" defer></script>
     <script src="../auth-service.js" defer></script>
     <script src="../nav.js?v=20261016-design" defer></script>
     <script src="../backend-functions.js?v=20260429-fresh-db" defer></script>
-    <script src="./advancedPartyInfos.js?v=20261019-favorite-actions" defer></script>
+    <script src="./advancedPartyInfos.js?v=20261021-bring-along" defer></script>
+    <script src="./bringAlong.js?v=20261021-bring-along" defer></script>
     <link rel="stylesheet" href="/design-system.css?v=20261019-favorite-actions" />
 </head>
 
@@ -101,6 +102,22 @@
                 </span>
               </button>
             </div>
+
+            <section class="details-card bring-along" id="bring-along-section" aria-labelledby="bring-along-title">
+              <header class="ba-header">
+                <h2 class="ba-title" id="bring-along-title">Bring-along list</h2>
+                <span class="ba-live" id="bring-along-live" role="status" aria-live="polite" hidden></span>
+              </header>
+              <p class="ba-hint" id="bring-along-hint">Loading…</p>
+              <ul class="ba-list" id="bring-along-list" aria-live="polite"></ul>
+              <form class="ba-add" id="bring-along-add" novalidate hidden>
+                <input class="ba-input" name="name" type="text" maxlength="100" placeholder="e.g. Chips" aria-label="Item" required />
+                <input class="ba-input ba-input-qty" name="quantity" type="number" min="1" max="10000" step="1" inputmode="numeric" value="1" aria-label="Quantity" required />
+                <input class="ba-input ba-input-unit" name="unit" type="text" maxlength="30" placeholder="Unit" aria-label="Unit (optional)" />
+                <button class="ba-btn ba-btn-primary" type="submit">Add</button>
+                <p class="ba-error" id="bring-along-add-error" role="alert"></p>
+              </form>
+            </section>
 
             <section class="invited-section">
               <button class="secondary-btn invited-toggle">

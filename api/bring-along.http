@@ -1,0 +1,171 @@
+@host = http://localhost:8080
+@baseUrl = {{host}}/api/parties/1/bring-along
+# Seed party 1: host = user 1, attendees = users 2, 3, 7; user 4 has not joined.
+@hostUser = 1
+@michael = 2
+@katrin = 3
+@mia = 7
+@outsider = 4
+
+###########################################
+### Anonymous caller is rejected
+###########################################
+GET {{baseUrl}}
+
+?? status == 401
+
+
+###########################################
+### Visible party, but not joined -> 403
+###########################################
+GET {{baseUrl}}
+X-User-Id: {{outsider}}
+
+?? status == 403
+
+
+###########################################
+### Attendee cannot add items
+###########################################
+POST {{baseUrl}}/items
+X-User-Id: {{michael}}
+Content-Type: application/json
+
+{ "name": "Chips", "quantity": 3, "unit": "Packung" }
+
+?? status == 403
+
+
+###########################################
+### Decimal quantity is rejected
+###########################################
+POST {{baseUrl}}/items
+X-User-Id: {{hostUser}}
+Content-Type: application/json
+
+{ "name": "Chips", "quantity": 1.5 }
+
+?? status == 400
+
+
+###########################################
+### Host adds an item
+###########################################
+# @name chips
+POST {{baseUrl}}/items
+X-User-Id: {{hostUser}}
+Content-Type: application/json
+
+{ "name": "Chips", "quantity": 3, "unit": "Packung" }
+
+?? status == 201
+?? js response.parsedBody.fulfilled == false
+?? js response.parsedBody.remaining == 3
+
+
+###########################################
+### Attendee pledges 1
+###########################################
+PUT {{baseUrl}}/items/{{chips.id}}/pledge
+X-User-Id: {{michael}}
+Content-Type: application/json
+
+{ "quantity": 1 }
+
+?? status == 200
+?? js response.parsedBody.remaining == 2
+
+
+###########################################
+### Second attendee completes the item
+###########################################
+PUT {{baseUrl}}/items/{{chips.id}}/pledge
+X-User-Id: {{katrin}}
+Content-Type: application/json
+
+{ "quantity": 2 }
+
+?? status == 200
+?? js response.parsedBody.fulfilled == true
+
+
+###########################################
+### A fourth pack is not accepted
+###########################################
+PUT {{baseUrl}}/items/{{chips.id}}/pledge
+X-User-Id: {{mia}}
+Content-Type: application/json
+
+{ "quantity": 1 }
+
+?? status == 409
+?? js response.parsedBody.remaining == 0
+
+
+###########################################
+### Lowering a pledge frees quantity for others
+###########################################
+PUT {{baseUrl}}/items/{{chips.id}}/pledge
+X-User-Id: {{katrin}}
+Content-Type: application/json
+
+{ "quantity": 1 }
+
+?? status == 200
+?? js response.parsedBody.remaining == 1
+
+PUT {{baseUrl}}/items/{{chips.id}}/pledge
+X-User-Id: {{mia}}
+Content-Type: application/json
+
+{ "quantity": 1 }
+
+?? status == 200
+?? js response.parsedBody.fulfilled == true
+
+
+###########################################
+### Withdraw a pledge
+###########################################
+DELETE {{baseUrl}}/items/{{chips.id}}/pledge
+X-User-Id: {{mia}}
+
+?? status == 204
+
+
+###########################################
+### List shows who brings how much
+###########################################
+GET {{baseUrl}}
+X-User-Id: {{mia}}
+
+?? status == 200
+?? js response.parsedBody[0].pledges.length == 2
+
+
+###########################################
+### Non-member cannot open the live stream
+###########################################
+GET {{baseUrl}}/events
+X-User-Id: {{outsider}}
+Accept: text/event-stream
+
+?? status == 403
+
+
+###########################################
+### Host edits and deletes the item
+###########################################
+PUT {{baseUrl}}/items/{{chips.id}}
+X-User-Id: {{hostUser}}
+Content-Type: application/json
+
+{ "name": "Chips", "quantity": 4, "unit": "Packung" }
+
+?? status == 200
+?? js response.parsedBody.remaining == 2
+
+DELETE {{baseUrl}}/items/{{chips.id}}
+X-User-Id: {{hostUser}}
+
+?? status == 204

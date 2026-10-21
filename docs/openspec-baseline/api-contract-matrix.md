@@ -82,6 +82,13 @@ Legend: **B** browser (`src/main/resources/META-INF/resources/`), **I** iOS (`Pa
 | 56 | PUT `/api/users/location` | JSON `UserLocationUpdateDto` with lat/long range | 200, 400, 404 | `UserLocation` | none | **Removed** by `secure-user-location-endpoints` (PR #162); coordinates are no longer stored (D022). |
 | 57 | GET `/api/users/{id}/media` | path id | 200 | `MediaDto[]`, only parties visible to the caller | No client; H | Server-only; Viewer filter added by `fix-party-media-upload-and-serving` (G036). |
 | 58 | PUT `/api/users/device-token?token=` | query token | 200, 400 (empty) | empty | No client | Duplicate of row 19; push unsupported. |
+| 59 | GET `/api/parties/{id}/bring-along` | path id; host or joined attendee | 200, 401, 403, 404 | `BringAlongItemDto[]` (id, name, unit, quantity, pledged, remaining, fulfilled, pledges[userId, displayName, quantity]); text HTML-encoded | B `advancedPartyInfos/bringAlong.js`; H `bring-along.http` | Added by `add-party-bring-along-list`. |
+| 60 | GET `/api/parties/{id}/bring-along/events` | path id; host or joined attendee; `Accept: text/event-stream` | 200 (stream), 401, 403, 404 | SSE `event: changed` with `{partyId, at}` after each committed list change; `: ping` every 25 s | B `bringAlong.js`; H | Added by `add-party-bring-along-list`. Clients refetch row 59 on each event. |
+| 61 | POST `/api/parties/{id}/bring-along/items` | `@Valid BringAlongItemRequest` (name 1–100 `@SafeText @NoHtml`, unit ≤30, quantity whole 1–10000); host only | 201, 400, 401, 403, 404 | `BringAlongItemDto` | B; H | Added by `add-party-bring-along-list`. |
+| 62 | PUT `/api/parties/{id}/bring-along/items/{itemId}` | as row 61; host only | 200, 400, 401, 403, 404 | `BringAlongItemDto` | B; H | Added by `add-party-bring-along-list`. Quantity may drop below pledged total. |
+| 63 | DELETE `/api/parties/{id}/bring-along/items/{itemId}` | host only; removes the item's pledges | 204, 401, 403, 404 | empty | B; H | Added by `add-party-bring-along-list`. |
+| 64 | PUT `/api/parties/{id}/bring-along/items/{itemId}/pledge` | `@Valid BringAlongPledgeRequest` (quantity whole 1–10000); upserts the caller's pledge | 200, 400, 401, 403, 404, 409 | `BringAlongItemDto`; 409 `{error, remaining, item}` when the pledge would exceed the required quantity | B; H | Added by `add-party-bring-along-list`. |
+| 65 | DELETE `/api/parties/{id}/bring-along/items/{itemId}/pledge` | caller's own pledge; idempotent | 204, 401, 403, 404 | empty | B; H | Added by `add-party-bring-along-list`. |
 
 ## Client calls without a matching endpoint
 
