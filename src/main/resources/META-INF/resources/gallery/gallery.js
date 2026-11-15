@@ -153,6 +153,9 @@ function setupModal() {
       <button class="modal-nav modal-prev" aria-label="Previous image">&larr;</button>
       <img class="modal-image" src="" alt="">
       <button class="modal-nav modal-next" aria-label="Next image">&rarr;</button>
+      <p class="modal-details">
+        <a class="modal-uploader"></a><span class="modal-uploaded-at"></span>
+      </p>
     </div>
   `;
   document.body.appendChild(modal);
@@ -225,6 +228,7 @@ function openModal(mediaList, index) {
 function showModalImage(modalImage, mediaId, index) {
   const deleteBtn = document.querySelector('.image-modal .modal-delete');
   if (deleteBtn) deleteBtn.hidden = !currentMediaList[index]?.canDelete;
+  showModalDetails(currentMediaList[index]);
   modalImage.alt = `Party photo ${index + 1}`;
   modalImage.removeAttribute('src');
   loadMediaImage(mediaId)
@@ -233,6 +237,27 @@ function showModalImage(modalImage, mediaId, index) {
       if (currentMediaList[currentIndex]?.id === mediaId) modalImage.src = url;
     })
     .catch(() => { modalImage.alt = 'Image unavailable'; });
+}
+
+const UPLOAD_TIME_FORMAT = new Intl.DateTimeFormat('de-AT', {
+  day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit'
+});
+
+function showModalDetails(media) {
+  const uploader = document.querySelector('.image-modal .modal-uploader');
+  const uploadedAt = document.querySelector('.image-modal .modal-uploaded-at');
+
+  // textContent only: display names are user input
+  if (media?.uploaderHandle) {
+    uploader.textContent = media.uploaderDisplayName || media.uploaderHandle;
+    uploader.href = `/profile/profile.html?handle=${encodeURIComponent(media.uploaderHandle)}`;
+  } else {
+    uploader.textContent = 'Unknown user';
+    uploader.removeAttribute('href');
+  }
+
+  const time = media?.uploadedAt ? new Date(media.uploadedAt) : null;
+  uploadedAt.textContent = time && !isNaN(time) ? ` · ${UPLOAD_TIME_FORMAT.format(time)}` : '';
 }
 
 function closeModal() {

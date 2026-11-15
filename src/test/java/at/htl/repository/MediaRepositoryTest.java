@@ -21,6 +21,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.time.LocalDateTime;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
@@ -133,7 +134,44 @@ public class MediaRepositoryTest {
 
         List<MediaDto> result = mediaRepository.getMediaByParty(party.getId(), null);
 
-        assertEquals(List.of(new MediaDto(media.getId(), party.getId(), false)), result);
+        assertEquals(List.of(new MediaDto(media.getId(), party.getId(), false,
+                host.getId(), "host", "host", media.getUploadedAt())), result);
+    }
+
+    @Test
+    void testNewMedia_recordsUploadTime() {
+        LocalDateTime before = LocalDateTime.now();
+        Media media = media(party("PUBLIC"), host, "party1/a.jpg");
+
+        assertNotNull(media.getUploadedAt());
+        assertFalse(media.getUploadedAt().isBefore(before));
+    }
+
+    @Test
+    void testGetMediaByParty_itemWithoutUploadTime_reportsNoTime() {
+        Party party = party("PUBLIC");
+        Media media = media(party, host, "party1/old.jpg");
+        media.setUploadedAt(null);
+        entityManager.flush();
+
+        MediaDto dto = mediaRepository.getMediaByParty(party.getId(), null).getFirst();
+
+        assertNull(dto.uploadedAt());
+        assertEquals(host.getId(), dto.uploaderId());
+        assertEquals("host", dto.uploaderDisplayName());
+    }
+
+    @Test
+    void testGetMediaByParty_itemWithoutUploader_reportsNoUploader() {
+        Party party = party("PUBLIC");
+        media(party, null, "party1/orphan.jpg");
+
+        MediaDto dto = mediaRepository.getMediaByParty(party.getId(), null).getFirst();
+
+        assertNull(dto.uploaderId());
+        assertNull(dto.uploaderHandle());
+        assertNull(dto.uploaderDisplayName());
+        assertNotNull(dto.uploadedAt());
     }
 
     @Test

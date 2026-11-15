@@ -212,6 +212,24 @@
   border-radius: 8px;
 }
 
+.modal-details {
+  margin: 10px 0 0;
+  color: var(--text-secondary);
+  font-size: 14px;
+  text-align: center;
+}
+
+.modal-uploader {
+  color: var(--text-primary);
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.modal-uploader[href]:hover,
+.modal-uploader[href]:focus-visible {
+  text-decoration: underline;
+}
+
 .modal-delete {
   position: absolute;
   top: -50px;
