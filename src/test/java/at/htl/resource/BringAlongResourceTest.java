@@ -110,6 +110,30 @@ class BringAlongResourceTest extends TestBase {
     private String pledge(int itemId) { return base() + "/items/" + itemId + "/pledge"; }
 
     @Test
+    void hostReceivesNotificationsOnlyForActualGuestPledgeChanges() {
+        String pledgeUrl = pledge(createItem("Chips", 4));
+        as(anna).body("{\"quantity\":2}").put(pledgeUrl).then().statusCode(200);
+        as(anna).body("{\"quantity\":2}").put(pledgeUrl).then().statusCode(200);
+        as(anna).body("{\"quantity\":5}").put(pledgeUrl).then().statusCode(409);
+        as(anna).body("{\"quantity\":1}").put(pledgeUrl).then().statusCode(200);
+        as(anna).delete(pledgeUrl).then().statusCode(204);
+        as(anna).delete(pledgeUrl).then().statusCode(204);
+        as(hostId).body("{\"quantity\":1}").put(pledgeUrl).then().statusCode(200);
+
+        List<String> messages = QuarkusTransaction.requiringNew().call(() -> em.createQuery(
+                        "select n.message from Notification n where n.party.id = :partyId"
+                                + " and n.recipient.id = :hostId and n.sender.id = :guestId order by n.id", String.class)
+                .setParameter("partyId", partyId).setParameter("hostId", hostId).setParameter("guestId", anna)
+                .getResultList());
+        org.hamcrest.MatcherAssert.assertThat(messages, contains(
+                "bring-anna will bring 2 Packung of Chips.",
+                "bring-anna will bring 1 Packung of Chips.",
+                "bring-anna will no longer bring Chips."));
+        as(hostId).get("/api/notifications").then().statusCode(200)
+                .body("size()", is(3));
+    }
+
+    @Test
     void hostAndAttendeesCanReadNonMembersCannot() {
         createItem("Chips", 3);
         as(hostId).get(base()).then().statusCode(200).body("size()", is(1)).body("[0].name", is("Chips"));
