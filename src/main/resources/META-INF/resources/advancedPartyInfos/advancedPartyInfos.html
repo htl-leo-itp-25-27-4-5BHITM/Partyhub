@@ -15,14 +15,14 @@
 
     <link href="../global.css" rel="stylesheet" />
     <link href="../index.css" rel="stylesheet" />
-    <link href="./advancedPartyInfos.css?v=20261021-bring-along" rel="stylesheet" />
+    <link href="./advancedPartyInfos.css?v=bring-along-spacing" rel="stylesheet" />
 
     <script src="../user-utils.js" defer></script>
     <script src="../auth-service.js" defer></script>
     <script src="../nav.js?v=20261016-design" defer></script>
     <script src="../backend-functions.js?v=20260429-fresh-db" defer></script>
     <script src="./advancedPartyInfos.js?v=20261021-bring-along" defer></script>
-    <script src="./bringAlong.js?v=20261021-withdraw-one" defer></script>
+    <script src="./bringAlong.js?v=bring-along-compact" defer></script>
     <link rel="stylesheet" href="/design-system.css?v=20261019-favorite-actions" />
 </head>
 
@@ -103,11 +103,15 @@
               </button>
             </div>
 
-            <section class="details-card bring-along" id="bring-along-section" aria-labelledby="bring-along-title">
-              <header class="ba-header">
-                <h2 class="ba-title" id="bring-along-title">Bring-along list</h2>
-                <span class="ba-live" id="bring-along-live" role="status" aria-live="polite" hidden></span>
-              </header>
+            <button class="secondary-btn ba-toggle" id="bring-along-toggle" type="button"
+                    aria-expanded="false" aria-controls="bring-along-section">
+              <span>Bring-along list</span>
+              <span class="arrow" aria-hidden="true">
+                <svg viewBox="0 0 24 24" width="14" height="14"><path d="M9 6l6 6-6 6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              </span>
+            </button>
+            <section class="details-card bring-along" id="bring-along-section" aria-labelledby="bring-along-toggle" hidden>
+              <p class="ba-live" id="bring-along-live" role="status" hidden></p>
               <p class="ba-hint" id="bring-along-hint">Loading…</p>
               <ul class="ba-list" id="bring-along-list" aria-live="polite"></ul>
               <form class="ba-add" id="bring-along-add" novalidate hidden>

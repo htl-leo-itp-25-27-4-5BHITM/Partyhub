@@ -390,12 +390,11 @@ body {
 
 /* ---------- Bring-along list ---------- */
 .bring-along { display: flex; flex-direction: column; gap: 10px; }
-.ba-header { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
-.ba-title { margin: 0; font-size: 1rem; font-weight: 700; color: var(--text); }
-.ba-live { font-size: 0.72rem; font-weight: 600; color: var(--muted); display: inline-flex; align-items: center; gap: 6px; }
-.ba-live::before { content: ""; width: 7px; height: 7px; border-radius: 50%; background: var(--muted); }
-.ba-live.is-live { color: var(--success); }
-.ba-live.is-live::before { background: var(--success); box-shadow: 0 0 0 3px rgba(86, 242, 124, 0.18); }
+.bring-along[hidden], .ba-live[hidden] { display: none; }
+.ba-toggle { width: 100%; margin-top: 10px; }
+.bring-along + .invited-section { margin-top: 10px; }
+.ba-toggle[aria-expanded="true"] .arrow { transform: rotate(90deg); }
+.ba-live { margin: 0; font-size: 0.8rem; color: var(--muted); }
 .ba-hint { margin: 0; font-size: 0.85rem; color: var(--muted); }
 .ba-hint[hidden] { display: none; }
 .ba-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 8px; }
@@ -411,27 +410,15 @@ body {
   transition: border-color 0.2s ease, background 0.2s ease;
 }
 .ba-item.is-fulfilled { border-color: rgba(86, 242, 124, 0.45); background: rgba(86, 242, 124, 0.07); }
-.ba-item-head { display: flex; align-items: center; gap: 8px; min-width: 0; }
-.ba-check {
-  flex: none;
-  width: 22px;
-  height: 22px;
-  border-radius: 50%;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  border: 1.5px solid var(--border);
-  color: transparent;
-}
-.ba-item.is-fulfilled .ba-check { background: var(--success); border-color: var(--success); color: #10301a; }
-.ba-name { flex: 1; min-width: 0; font-weight: 600; overflow-wrap: anywhere; }
-.ba-count { flex: none; font-size: 0.85rem; color: var(--text-soft); font-variant-numeric: tabular-nums; }
-.ba-item.is-fulfilled .ba-count { color: var(--success); font-weight: 600; }
-
-.ba-progress { height: 5px; border-radius: 999px; background: rgba(255, 255, 255, 0.08); overflow: hidden; }
-.ba-progress-bar { height: 100%; border-radius: inherit; background: var(--accent); transition: width 0.3s ease; }
-.ba-item.is-fulfilled .ba-progress-bar { background: var(--success); }
-
+.ba-item-row { display: flex; align-items: center; justify-content: space-between; gap: 10px 18px; flex-wrap: wrap; }
+.ba-item-info { flex: 1 1 120px; min-width: 0; display: grid; gap: 3px; }
+.ba-name { font-weight: 700; color: var(--text); overflow-wrap: anywhere; }
+.ba-availability { font-size: 0.85rem; color: var(--text-soft); }
+.ba-total { font-size: 0.75rem; color: var(--text-soft); }
+.ba-item.is-fulfilled .ba-availability { color: var(--success); }
+.ba-pledge { display: grid; justify-items: center; gap: 4px; }
+.ba-stepper-label { font-size: 0.75rem; font-weight: 600; color: var(--text-soft); }
+.ba-stepper { display: grid; grid-template-columns: 44px minmax(26px, auto) 44px; align-items: center; gap: 3px; }
 .ba-pledgers { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: 6px; }
 .ba-pledger {
   display: inline-flex;
@@ -442,10 +429,9 @@ body {
   background: rgba(255, 255, 255, 0.07);
   color: var(--text-soft);
 }
-.ba-pledger.is-me { background: rgba(123, 97, 255, 0.22); color: var(--text); }
 .ba-pledger-qty { font-weight: 700; font-variant-numeric: tabular-nums; }
 
-.ba-pledge, .ba-edit, .ba-add { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+.ba-edit, .ba-add { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
 .ba-input {
   min-width: 0;
   height: 36px;
@@ -460,12 +446,11 @@ body {
 }
 .ba-input:focus { outline: 2px solid var(--accent); outline-offset: 1px; }
 .ba-input.is-invalid { border-color: var(--danger); outline-color: var(--danger); }
-.ba-pledge .ba-input { width: 72px; }
+.ba-stepper .ba-btn { height: 44px; padding: 0; font-size: 1.15rem; }
 .ba-add .ba-input[name="name"], .ba-edit .ba-input[type="text"]:first-child { flex: 1 1 140px; }
 .ba-input-qty, .ba-edit .ba-input[type="number"] { width: 72px; }
 .ba-input-unit, .ba-edit .ba-input[type="text"]:nth-child(3) { width: 96px; }
-.ba-max { font-size: 0.75rem; color: var(--muted); }
-.ba-covered { font-size: 0.82rem; font-weight: 600; color: var(--success); }
+.ba-own-quantity { font-weight: 700; text-align: center; font-variant-numeric: tabular-nums; }
 
 .ba-btn {
   height: 36px;
@@ -497,5 +482,4 @@ body {
 }
 @media (prefers-reduced-motion: reduce) {
   .ba-item.shake { animation: none; }
-  .ba-progress-bar, .ba-item { transition: none; }
 }
