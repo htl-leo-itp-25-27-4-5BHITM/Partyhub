@@ -16,6 +16,7 @@
     drafts: new Map(), // input key -> unsent value
     errors: new Map(), // item id -> message
     editingItemId: null,
+    pendingPledges: new Set(),
     loading: false,
     reloadQueued: false,
     stream: null, // AbortController of the open stream
@@ -31,6 +32,13 @@
     if (!state.partyId || !document.getElementById("bring-along-section")) {
       return;
     }
+    const toggle = document.getElementById("bring-along-toggle");
+    const panel = document.getElementById("bring-along-section");
+    toggle.addEventListener("click", () => {
+      panel.hidden = !panel.hidden;
+      toggle.setAttribute("aria-expanded", String(!panel.hidden));
+      if (!panel.hidden) reload();
+    });
     setupAddForm();
     document.addEventListener("visibilitychange", () => {
       if (!document.hidden && state.isMember) {
@@ -236,9 +244,9 @@
     if (!indicator) {
       return;
     }
-    indicator.hidden = !visible;
+    indicator.hidden = !visible || live;
     indicator.classList.toggle("is-live", live);
-    indicator.textContent = live ? "Live" : "Reconnecting…";
+    indicator.textContent = "Reconnecting…";
   }
 
   // ---------- Rendering ----------
@@ -283,32 +291,24 @@
     const own = item.pledges.find((pledge) => pledge.userId === state.userId);
     const unit = item.unit ? ` ${decode(item.unit)}` : "";
 
-    const head = el("div", "ba-item-head");
-    const check = el("span", "ba-check");
-    check.setAttribute("aria-hidden", "true");
-    check.innerHTML =
-      '<svg viewBox="0 0 24 24" width="16" height="16"><path d="M5 12.5l4.5 4.5L19 7.5" stroke="currentColor" stroke-width="2.6" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>';
-    const name = el("span", "ba-name", decode(item.name));
-    const count = el("span", "ba-count", `${item.pledged} / ${item.quantity}${unit}`);
-    if (item.fulfilled) {
-      count.setAttribute("aria-label", `${item.pledged} of ${item.quantity}${unit}, covered`);
-    }
-    head.append(check, name, count);
-    li.append(head);
+    const row = el("div", "ba-item-row");
+    const info = el("div", "ba-item-info");
+    const availability = item.fulfilled ? "All covered" : `${item.remaining}${unit} still needed`;
+    info.append(
+      el("span", "ba-name", decode(item.name)),
+      el("span", "ba-availability", availability),
+      el("span", "ba-total", `${item.quantity}${unit} needed in total`)
+    );
+    row.append(info, renderPledgeControls(item, own));
+    li.append(row);
 
-    const progress = el("div", "ba-progress");
-    const bar = el("div", "ba-progress-bar");
-    bar.style.width = `${Math.min(100, Math.round((item.pledged / item.quantity) * 100))}%`;
-    progress.append(bar);
-    li.append(progress);
-
-    if (item.pledges.length) {
+    const otherPledges = item.pledges.filter((pledge) => pledge.userId !== state.userId);
+    if (otherPledges.length) {
       const pledgers = el("ul", "ba-pledgers");
-      for (const pledge of item.pledges) {
-        const isMe = pledge.userId === state.userId;
-        const entry = el("li", isMe ? "ba-pledger is-me" : "ba-pledger");
+      for (const pledge of otherPledges) {
+        const entry = el("li", "ba-pledger");
         entry.append(
-          el("span", "ba-pledger-name", isMe ? "You" : decode(pledge.displayName)),
+          el("span", "ba-pledger-name", decode(pledge.displayName)),
           el("span", "ba-pledger-qty", `${pledge.quantity}${unit}`)
         );
         pledgers.append(entry);
@@ -316,7 +316,6 @@
       li.append(pledgers);
     }
 
-    li.append(renderPledgeControls(item, own));
     if (state.isHost) {
       li.append(renderHostControls(item));
     }
@@ -326,46 +325,23 @@
 
   function renderPledgeControls(item, own) {
     const controls = el("div", "ba-pledge");
-    const maxForMe = item.remaining + (own?.quantity ?? 0);
-
-    if (maxForMe <= 0) {
-      controls.append(el("span", "ba-covered", "Covered – nothing more needed"));
-      return controls;
-    }
-
-    const key = `pledge-${item.id}`;
-    const input = el("input", "ba-input");
-    input.type = "number";
-    input.inputMode = "numeric";
-    input.min = "1";
-    input.step = "1";
-    input.max = String(maxForMe);
-    input.dataset.focusKey = key;
-    input.setAttribute("aria-label", `How many ${decode(item.name)} you bring`);
-    input.value = state.drafts.get(key) ?? String(own?.quantity ?? Math.min(1, maxForMe));
-    input.addEventListener("input", () => {
-      state.drafts.set(key, input.value);
-      input.classList.remove("is-invalid");
-    });
-    input.addEventListener("keydown", (event) => {
-      if (event.key === "Enter") {
-        submitPledge(item, input, maxForMe);
-      }
-    });
-
-    const save = el("button", "ba-btn ba-btn-primary", own ? "Update" : "I'll bring");
-    save.type = "button";
-    save.addEventListener("click", () => submitPledge(item, input, maxForMe));
-
-    controls.append(input, el("span", "ba-max", `max ${maxForMe}`), save);
-
-    if (own) {
-      const withdraw = el("button", "ba-btn ba-btn-ghost", "Withdraw 1");
-      withdraw.type = "button";
-      withdraw.setAttribute("aria-label", `Withdraw one ${decode(item.name)}`);
-      withdraw.addEventListener("click", () => withdrawOne(item, own, withdraw));
-      controls.append(withdraw);
-    }
+    const quantity = own?.quantity ?? 0;
+    const name = decode(item.name);
+    const pending = state.pendingPledges.has(item.id);
+    const minus = el("button", "ba-btn ba-btn-ghost", "−");
+    const plus = el("button", "ba-btn ba-btn-primary", "+");
+    for (const button of [minus, plus]) button.type = "button";
+    minus.dataset.focusKey = `pledge-minus-${item.id}`;
+    plus.dataset.focusKey = `pledge-plus-${item.id}`;
+    minus.setAttribute("aria-label", `Bring one less: ${name}`);
+    plus.setAttribute("aria-label", `Bring one more: ${name}`);
+    minus.disabled = pending || quantity === 0;
+    plus.disabled = pending || item.remaining <= 0;
+    minus.addEventListener("click", () => changePledge(item, quantity - 1));
+    plus.addEventListener("click", () => changePledge(item, quantity + 1));
+    const stepper = el("div", "ba-stepper");
+    stepper.append(minus, el("span", "ba-own-quantity", String(quantity)), plus);
+    controls.append(el("span", "ba-stepper-label", "You bring"), stepper);
     return controls;
   }
 
@@ -437,59 +413,32 @@
 
   // ---------- Actions ----------
 
-  async function submitPledge(item, input, maxForMe) {
-    const quantity = parseWholeNumber(input.value);
-    if (quantity === null || quantity < 1) {
-      return invalid(item.id, input, "Enter a whole number of at least 1.");
+  async function changePledge(item, quantity) {
+    if (state.pendingPledges.has(item.id)) return;
+    const focus = captureFocus();
+    state.pendingPledges.add(item.id);
+    render();
+    try {
+      const url = `${base()}/items/${item.id}/pledge`;
+      const response = quantity === 0 ? await send(url, "DELETE") : await send(url, "PUT", { quantity });
+      if (!response) return;
+      if (response.status === 409) {
+        showItemError(item.id, "The available quantity changed. Check the updated list.");
+        await reload();
+        return;
+      }
+      if (!response.ok) {
+        showItemError(item.id, await errorMessage(response));
+        return;
+      }
+      state.errors.delete(item.id);
+      await reload();
+    } finally {
+      state.pendingPledges.delete(item.id);
+      const active = document.activeElement;
+      render();
+      if (active === document.body) restoreFocus(focus);
     }
-    if (quantity > maxForMe) {
-      return invalid(
-        item.id,
-        input,
-        maxForMe === 1 ? "Only 1 is still needed." : `Only ${maxForMe} are still needed.`
-      );
-    }
-
-    const response = await send(`${base()}/items/${item.id}/pledge`, "PUT", { quantity });
-    if (!response) {
-      return;
-    }
-    if (response.status === 409) {
-      const body = await response.json().catch(() => ({}));
-      const remaining = Number(body.remaining ?? 0);
-      state.drafts.delete(`pledge-${item.id}`);
-      showItemError(
-        item.id,
-        remaining === 0
-          ? "Someone was faster – this item is already covered."
-          : `Too many – only ${remaining} still needed.`
-      );
-      return reload();
-    }
-    if (!response.ok) {
-      return showItemError(item.id, await errorMessage(response));
-    }
-    state.drafts.delete(`pledge-${item.id}`);
-    state.errors.delete(item.id);
-    await reload();
-  }
-
-  // Gives back one unit; the last unit removes the pledge.
-  async function withdrawOne(item, own, button) {
-    button.disabled = true;
-    const url = `${base()}/items/${item.id}/pledge`;
-    const response =
-      own.quantity > 1 ? await send(url, "PUT", { quantity: own.quantity - 1 }) : await send(url, "DELETE");
-    button.disabled = false;
-    if (!response) {
-      return;
-    }
-    if (!response.ok) {
-      return showItemError(item.id, await errorMessage(response));
-    }
-    state.drafts.delete(`pledge-${item.id}`);
-    state.errors.delete(item.id);
-    await reload();
   }
 
   async function saveItem(item, nameInput, qtyInput, unitInput) {
@@ -614,11 +563,6 @@
       body?.error ||
       (response.status === 400 ? "Please check your input." : "Something went wrong – please try again.")
     );
-  }
-
-  function invalid(itemId, input, message) {
-    input.classList.add("is-invalid");
-    showItemError(itemId, message);
   }
 
   function showItemError(itemId, message) {
