@@ -169,13 +169,14 @@ INSERT INTO party_user (party_id, user_id) VALUES
 -- =========================
 -- MEDIA
 -- =========================
-INSERT INTO media (id, party_id, user_id, file) VALUES
-    (1, 1, 1, 'party1/demo.webp'),
-    (2, 2, 2, 'party2/demo.webp'),
-    (3, 3, 3, 'party3/demo.webp'),
-    (4, 5, 5, 'party5/demo.webp'),
-    (5, 8, 8, 'party8/demo.webp'),
-    (6, 10, 10, 'party10/demo.webp');
+-- Item 6 has no uploaded_at on purpose: it shows how photos from before the column existed look.
+INSERT INTO media (id, party_id, user_id, file, uploaded_at) VALUES
+    (1, 1, 1, 'party1/demo.webp', '2026-04-29 21:15:00'),
+    (2, 2, 2, 'party2/demo.webp', '2026-04-30 01:40:00'),
+    (3, 3, 3, 'party3/demo.webp', '2026-04-30 19:05:00'),
+    (4, 5, 5, 'party5/demo.webp', '2026-05-01 22:30:00'),
+    (5, 8, 8, 'party8/demo.webp', '2026-05-02 23:50:00'),
+    (6, 10, 10, 'party10/demo.webp', NULL);
 
 -- =========================
 -- INVITATIONS

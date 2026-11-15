@@ -4,6 +4,8 @@ import at.htl.party.Party;
 import at.htl.user.User;
 import jakarta.persistence.*;
 
+import java.time.LocalDateTime;
+
 @Entity
 @TableGenerator(name="media")
 @Table(name="media")
@@ -19,6 +21,9 @@ public class Media {
     private User user;
     @Column(name = "file")
     private String file;
+    /** Null for items stored before upload times were recorded. */
+    @Column(name = "uploaded_at")
+    private LocalDateTime uploadedAt;
 
     public Media() {
 
@@ -28,6 +33,7 @@ public class Media {
         this.party = party;
         this.user = user;
         this.file = file;
+        this.uploadedAt = LocalDateTime.now();
     }
 
     public Long getId() {
@@ -60,6 +66,14 @@ public class Media {
 
     public void setFile(String file) {
         this.file = file;
+    }
+
+    public LocalDateTime getUploadedAt() {
+        return uploadedAt;
+    }
+
+    public void setUploadedAt(LocalDateTime uploadedAt) {
+        this.uploadedAt = uploadedAt;
     }
 
     public String getUrl() {
