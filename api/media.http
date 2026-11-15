@@ -1,7 +1,7 @@
 @host = http://localhost:8080
 
 ###########################################
-### Seed: media for public party 1 (anonymous)
+### Seed: media for public party 1 (anonymous), with uploader and upload time
 ###########################################
 GET {{host}}/api/parties/1/media
 
@@ -9,6 +9,10 @@ GET {{host}}/api/parties/1/media
 ?? js response.parsedBody.length > 0
 ?? js response.parsedBody[0].url == undefined
 ?? js response.parsedBody.filter(item => item.canDelete).length == 0
+?? js response.parsedBody[0].uploaderId == 1
+?? js response.parsedBody[0].uploaderHandle == viki_vejmelek
+?? js response.parsedBody[0].uploaderDisplayName == Victoria Vejmelek
+?? js response.parsedBody[0].uploadedAt != null
 
 
 ###########################################
@@ -187,3 +191,13 @@ DELETE {{host}}/api/media/999999
 X-User-Id: 1
 
 ?? status == 404
+
+
+###########################################
+### Seed: media uploaded before upload times were recorded (party 10) reports no time
+###########################################
+GET {{host}}/api/parties/10/media
+
+?? status == 200
+?? js response.parsedBody[0].uploaderId == 10
+?? js response.parsedBody[0].uploadedAt == null

@@ -201,11 +201,33 @@
   position: relative;
 }
 
+/* Size from the viewport: a % max-height is ignored because .modal-content has no fixed height */
 .modal-image {
-  max-width: 100%;
-  max-height: 100%;
+  display: block;
+  max-width: 90vw;
+  max-height: 85vh;
+  width: auto;
+  height: auto;
   object-fit: contain;
   border-radius: 8px;
+}
+
+.modal-details {
+  margin: 10px 0 0;
+  color: var(--text-secondary);
+  font-size: 14px;
+  text-align: center;
+}
+
+.modal-uploader {
+  color: var(--text-primary);
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.modal-uploader[href]:hover,
+.modal-uploader[href]:focus-visible {
+  text-decoration: underline;
 }
 
 .modal-delete {
