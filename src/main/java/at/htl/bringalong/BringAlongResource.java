@@ -127,16 +127,22 @@ public class BringAlongResource {
                     "remaining", available,
                     "item", BringAlongItemDto.from(item, pledges))).build();
         }
+        int previousQuantity = own == null ? 0 : own.quantity;
+        if (previousQuantity == request.quantity()) {
+            return Response.ok(BringAlongItemDto.from(item, pledges)).build();
+        }
+        User guest = own == null ? em.find(User.class, member.userId()) : own.user;
         if (own == null) {
             BringAlongPledge pledge = new BringAlongPledge();
             pledge.item = item;
-            pledge.user = em.find(User.class, member.userId());
+            pledge.user = guest;
             pledge.quantity = request.quantity();
             em.persist(pledge);
         } else {
             own.quantity = request.quantity();
         }
         em.flush();
+        parties.notifyHostOfBringAlongChange(member.party(), guest, item.name, item.unit, request.quantity());
         changed.fire(new BringAlongChanged(partyId));
         return Response.ok(BringAlongItemDto.from(item, pledgesOf(itemId))).build();
     }
@@ -146,10 +152,14 @@ public class BringAlongResource {
     @Transactional
     public Response withdrawPledge(@PathParam("partyId") Long partyId, @PathParam("itemId") Long itemId) {
         Member member = requireMember(partyId);
-        requireItem(partyId, itemId, LockModeType.NONE);
+        BringAlongItem item = requireItem(partyId, itemId, LockModeType.PESSIMISTIC_WRITE);
         int removed = em.createQuery("delete from BringAlongPledge p where p.item.id = :itemId and p.user.id = :userId")
                 .setParameter("itemId", itemId).setParameter("userId", member.userId()).executeUpdate();
-        if (removed > 0) changed.fire(new BringAlongChanged(partyId));
+        if (removed > 0) {
+            parties.notifyHostOfBringAlongChange(member.party(), em.getReference(User.class, member.userId()),
+                    item.name, item.unit, 0);
+            changed.fire(new BringAlongChanged(partyId));
+        }
         return Response.noContent().build();
     }
 

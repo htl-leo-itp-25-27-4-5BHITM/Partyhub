@@ -799,6 +799,21 @@ public class PartyRepository {
         return party.getUsers();
     }
 
+    public void notifyHostOfBringAlongChange(Party party, User guest, String item, String unit, int quantity) {
+        if (party.getHost_user() == null || party.getHost_user().getId().equals(guest.getId())) {
+            return;
+        }
+        String name = displayName(guest);
+        if (name.codePointCount(0, name.length()) > 80) {
+            name = name.substring(0, name.offsetByCodePoints(0, 79)) + "…";
+        }
+        String amount = unit == null ? Integer.toString(quantity) : quantity + " " + unit;
+        String message = quantity == 0
+                ? name + " will no longer bring " + item + "."
+                : name + " will bring " + amount + " of " + item + ".";
+        notifyHost(party, guest, message);
+    }
+
     private void notifyHost(Party party, User actor, String message) {
         User host = party.getHost_user();
         if (host == null || actor == null) {
