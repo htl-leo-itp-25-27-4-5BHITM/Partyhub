@@ -242,6 +242,11 @@ public class MediaRepository {
     }
 
     private MediaDto toMediaDto(Media media, Long callerId) {
-        return new MediaDto(media.getId(), media.getParty().getId(), canDelete(media, callerId));
+        User uploader = media.getUser();
+        return new MediaDto(media.getId(), media.getParty().getId(), canDelete(media, callerId),
+                uploader == null ? null : uploader.getId(),
+                uploader == null ? null : uploader.getDistinctName(),
+                uploader == null ? null : uploader.getDisplayName(),
+                media.getUploadedAt());
     }
 }

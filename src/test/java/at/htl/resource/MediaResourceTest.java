@@ -462,6 +462,34 @@ public class MediaResourceTest extends TestBase {
             .body("canDelete", everyItem(is(false)));
     }
 
+    // ---------- Uploader and upload time ----------
+
+    @Test
+    void partyList_anonymousSeesUploaderAndUploadTime() throws IOException {
+        storedMedia(publicPartyId, PNG, attendeeId);
+        given()
+            .when().get("/api/parties/{id}/media", publicPartyId)
+            .then()
+            .statusCode(200)
+            .body("[0].uploaderId", is(attendeeId.intValue()))
+            .body("[0].uploaderHandle", is("attendee"))
+            .body("[0].uploaderDisplayName", is("attendee"))
+            .body("[0].uploadedAt", notNullValue());
+    }
+
+    @Test
+    @TestSecurity(user = "attendee-sub")
+    void upload_responseReportsUploaderAndUploadTime() {
+        given()
+            .multiPart("file", "photo.png", PNG, "image/png")
+            .when().post("/api/parties/{id}/media/upload", publicPartyId)
+            .then()
+            .statusCode(200)
+            .body("[0].uploaderId", is(attendeeId.intValue()))
+            .body("[0].uploaderDisplayName", is("attendee"))
+            .body("[0].uploadedAt", notNullValue());
+    }
+
     @Test
     @TestSecurity(user = "attendee-sub")
     void upload_responseMarksNewItemsDeletableForUploader() {
