@@ -325,8 +325,11 @@ document.addEventListener("DOMContentLoaded", async () => {
   // Show device location (client-side only, never sent to the server)
   // ---------------------------
   let centeredOnce = false;
+  let geolocationWatchId = null;
 
   function showUserLocation(lat, lng, accuracy) {
+    if (!Number.isFinite(lat) || !Number.isFinite(lng)) return;
+
     currentUserLayer.clearLayers();
     L.marker([lat, lng], {
       icon: L.icon({
@@ -337,9 +340,9 @@ document.addEventListener("DOMContentLoaded", async () => {
         popupAnchor: [1, -34],
         shadowSize: [41, 41]
       })
-    }).addTo(currentUserLayer).bindPopup("Du bist hier (HTL Leonding)");
+    }).addTo(currentUserLayer).bindPopup("Du bist hier");
 
-    if (accuracy) {
+    if (Number.isFinite(accuracy) && accuracy > 0) {
       L.circle([lat, lng], { radius: accuracy }).addTo(currentUserLayer);
     }
 
@@ -350,20 +353,45 @@ document.addEventListener("DOMContentLoaded", async () => {
   }
 
   function startGeolocation() {
-    if (!("geolocation" in navigator)) return;
+    const geolocation = navigator.geolocation;
+    if (
+      geolocationWatchId !== null ||
+      !geolocation ||
+      typeof geolocation.watchPosition !== "function"
+    ) return;
 
-    navigator.geolocation.watchPosition(
-      (pos) => {
-        showUserLocation(
-          pos.coords.latitude,
-          pos.coords.longitude,
-          pos.coords.accuracy,
-        );
-      },
-      (err) => console.warn("Geolocation error:", err.message),
-      { enableHighAccuracy: true, timeout: 10000, maximumAge: 5000 },
-    );
+    try {
+      geolocationWatchId = geolocation.watchPosition(
+        (pos) => {
+          showUserLocation(
+            pos.coords.latitude,
+            pos.coords.longitude,
+            pos.coords.accuracy,
+          );
+        },
+        (err) => {
+          if (err.code === 1) currentUserLayer.clearLayers();
+          console.warn("Geolocation error:", err.message);
+        },
+        { enableHighAccuracy: true, timeout: 10000, maximumAge: 5000 },
+      );
+    } catch (err) {
+      geolocationWatchId = null;
+      console.warn("Geolocation unavailable:", err.message);
+    }
   }
+
+  function stopGeolocation() {
+    if (geolocationWatchId === null) return;
+
+    navigator.geolocation?.clearWatch?.(geolocationWatchId);
+    geolocationWatchId = null;
+  }
+
+  window.addEventListener("pagehide", stopGeolocation);
+  window.addEventListener("pageshow", (event) => {
+    if (event.persisted) startGeolocation();
+  });
 
   // ---------------------------
   // “Tile-Salat”/Layout Fix
@@ -410,108 +438,3 @@ async function getAllParties() {
     return null;
   }
 }
-
-(function setFakeGeolocationToHtlLeonding() {
-  const fakeLat = 48.268572985384395;
-  const fakeLng = 14.251785383426006;
-  const fakeAcc = 8;
-
-  try {
-    const originalGeo = navigator.geolocation
-      ? { ...navigator.geolocation }
-      : null;
-    const watchers = new Map();
-    let nextWatchId = 1;
-
-    const geo = {
-      getCurrentPosition(success, error, opts) {
-
-        setTimeout(() => {
-          success({
-            coords: {
-              latitude: fakeLat,
-              longitude: fakeLng,
-              accuracy: fakeAcc,
-              altitude: null,
-              altitudeAccuracy: null,
-              heading: null,
-              speed: null,
-            },
-            timestamp: Date.now(),
-          });
-        }, 50);
-      },
-      watchPosition(success, error, opts) {
-        const id = nextWatchId++;
-
-        success({
-          coords: {
-            latitude: fakeLat,
-            longitude: fakeLng,
-            accuracy: fakeAcc,
-            altitude: null,
-            altitudeAccuracy: null,
-            heading: null,
-            speed: null,
-          },
-          timestamp: Date.now(),
-        });
-
-        const handle = setInterval(() => {
-          success({
-            coords: {
-              latitude: fakeLat,
-              longitude: fakeLng,
-              accuracy: fakeAcc,
-              altitude: null,
-              altitudeAccuracy: null,
-              heading: null,
-              speed: null,
-            },
-            timestamp: Date.now(),
-          });
-        }, 5000);
-        watchers.set(id, handle);
-        return id;
-      },
-      clearWatch(id) {
-        const h = watchers.get(id);
-        if (h) {
-          clearInterval(h);
-          watchers.delete(id);
-        }
-      },
-    };
-
-    try {
-      Object.defineProperty(navigator, "geolocation", {
-        value: geo,
-        configurable: true,
-        writable: true,
-      });
-      console.info("Fake geolocation installed: HTL Leonding (48.2684811,14.2535381)");
-    } catch (e) {
-      try {
-        navigator.geolocation = geo;
-        console.info("Fake geolocation assigned: HTL Leonding");
-      } catch (_) {}
-    }
-
-    window.__restoreOriginalGeolocation = function () {
-      try {
-        if (originalGeo) {
-          Object.defineProperty(navigator, "geolocation", {
-            value: originalGeo,
-            configurable: true,
-            writable: true,
-          });
-          console.info("Geolocation restored to original.");
-        }
-      } catch (e) {
-        console.warn("Could not restore original geolocation.", e);
-      }
-    };
-  } catch (err) {
-    console.warn("Failed to set fake geolocation", err);
-  }
-})();
