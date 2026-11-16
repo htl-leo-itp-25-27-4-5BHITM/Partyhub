@@ -200,7 +200,15 @@ The complete method/path/status list is in
 [`docs/openspec-baseline/api-contract-matrix.md`](docs/openspec-baseline/api-contract-matrix.md);
 the live OpenAPI document is served at `/q/openapi`.
 ### Codex commands
-![alt text](docs/images/image.png)
+
+- /opsx:propose
+- /opsx:explore
+- /opsx: apply
+- /opsx: archive
+- commit
+- /clear
+- read '/folder' and write me a continuation file for a new cold thread.
+
 
 ## Sprint Review Dates
 
@@ -220,3 +228,4 @@ the live OpenAPI document is served at `/q/openapi`.
 
 5BHITM
 1. Sprint: 21.10.2026
+2. Sprint: 18.11.2026
