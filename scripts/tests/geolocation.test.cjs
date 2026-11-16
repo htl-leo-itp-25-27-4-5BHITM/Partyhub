@@ -8,17 +8,23 @@ const source = fs.readFileSync(path.join(__dirname, '../../src/main/resources/ME
 async function boot(mode) {
   const events = {}, layers = [], markers = [], centers = [], clears = [];
   let ready, onPosition, onError, watches = 0;
-  const chain = { addTo() { return this; }, bindPopup() { return this; }, setView(p) { centers.push(p); return this; }, invalidateSize() {} };
+  const chain = { addTo() { return this; }, bindPopup() { return this; }, setView(p) { centers.push(p); return this; }, invalidateSize() {}, on() { return this; }, zoomControl: { setPosition() {} } };
   const geolocation = mode === 'unsupported' ? undefined : {
     watchPosition(success, error) { watches++; onPosition = success; onError = error; return 0; },
     clearWatch(id) { clears.push(id); }
   };
   const navigator = { geolocation };
+  const elements = new Map();
+  const element = id => {
+    if (!elements.has(id)) elements.set(id, {clientWidth:800, clientHeight:600, value:'', hidden:true, disabled:true, classList:{remove(){},add(){}}, addEventListener(){}, getElement(){return null}, setAttribute(){}, focus(){}, innerHTML:''});
+    return elements.get(id);
+  };
+  const Control = {extend: () => class {addTo(){ return this; }}};
   const context = vm.createContext({
-    document: { addEventListener(_, callback) { ready = callback; }, getElementById(id) { return id === 'map' ? {} : null; } },
+    document: { addEventListener(_, callback) { ready = callback; }, getElementById: element, querySelectorAll(){return []}, querySelector(){return element('locate')} },
     window: { addEventListener(name, callback) { events[name] = callback; }, backend: { getAllParties: async () => [] } },
     navigator, localStorage: { getItem() { return null; } },
-    L: { map: () => chain, tileLayer: () => chain, layerGroup() { const layer = { addTo() { return this; }, clearLayers() { this.cleared = true; } }; layers.push(layer); return layer; }, marker(position) { markers.push(position); return chain; }, circle: () => chain, icon: () => ({}) },
+    L: { Control, divIcon: () => ({}), map: () => chain, tileLayer: () => chain, layerGroup() { const layer = { addTo() { return this; }, clearLayers() { this.cleared = true; } }; layers.push(layer); return layer; }, marker(position) { markers.push(position); return chain; }, circle: () => chain, icon: () => ({}) },
     console: { debug() {}, warn() {} }, requestAnimationFrame() {}, setTimeout() {}, setInterval() {}, Date, Number
   });
   vm.runInContext(source, context);

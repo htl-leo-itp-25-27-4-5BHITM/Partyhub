@@ -172,7 +172,7 @@ document.addEventListener("DOMContentLoaded", async () => {
             <span>${location}</span>
           </div>` : ""}
         </div>
-        ${description ? `<p class="map-event__description">${description}</p>` : ""}
+        ${window.partySocial?.html(p) || ""}
         <footer class="map-event__footer">
           ${price ? `<span class="map-event__price">${price}</span>` : ""}
           ${p.id != null ? `<a class="map-event__link" href="${detailsUrl}">View party <span aria-hidden="true">↗</span></a>` : ""}
@@ -314,7 +314,7 @@ document.addEventListener("DOMContentLoaded", async () => {
       const nearby = [...groups.entries()].find(([, group]) => {
         const first = extractLatLng(group[0]);
         const anchor = map.project([first.lat,first.lng],map.getZoom());
-        return Math.abs(anchor.x-point.x) < 94 && Math.abs(anchor.y-point.y) < 56;
+        return Math.abs(anchor.x-point.x) < 94 && Math.abs(anchor.y-point.y) < 78;
       });
       const key = nearby ? nearby[0] : groups.size;
       if (!groups.has(key)) groups.set(key, []);
@@ -325,8 +325,10 @@ document.addEventListener("DOMContentLoaded", async () => {
         const points = group.map(party => { const ll = extractLatLng(party); return [ll.lat,ll.lng]; });
         bounds.push(...points);
         const center = L.latLngBounds(points).getCenter();
-        const cluster = L.marker(center, {icon:L.divIcon({className:"event-cluster",html:`<span>${group.length}</span>`,iconSize:[48,48],iconAnchor:[24,24]}),title:`${group.length} parties. Zoom to explore.`,keyboard:true}).addTo(partyLayer);
-        cluster.getElement()?.setAttribute("aria-label", `${group.length} parties. Zoom to explore.`);
+        const friendParties = group.filter(party => (window.partySocial?.summary(party).count || 0) > 0).length;
+        const clusterLabel = `${group.length} parties. Zoom to explore.${friendParties ? ` Friends are going to ${friendParties} of these parties.` : ""}`;
+        const cluster = L.marker(center, {icon:L.divIcon({className:"event-cluster",html:`<span>${group.length}</span>${friendParties ? `<span class="cluster-friends" aria-hidden="true">${friendParties} with friends</span>` : ""}`,iconSize:[48,48],iconAnchor:[24,24]}),title:clusterLabel,keyboard:true}).addTo(partyLayer);
+        cluster.getElement()?.setAttribute("aria-label", clusterLabel);
         cluster.on("click", () => {
           if (map.getZoom() < 18) map.fitBounds(points, {padding:[70,70],maxZoom:Math.min(18,map.getZoom()+2)});
           else {
@@ -353,12 +355,14 @@ document.addEventListener("DOMContentLoaded", async () => {
       const start = parsePartyStart(party);
       const time = new Intl.DateTimeFormat("de-AT", {hour:"2-digit", minute:"2-digit"}).format(start);
       const day = new Intl.DateTimeFormat("en-GB", {weekday:"short"}).format(start);
+      const friendCount = window.partySocial?.summary(party).count || 0;
+      const markerLabel = `${partyTitle(party)}, ${day} ${time}${friendCount ? `, ${friendCount} ${friendCount === 1 ? "friend is" : "friends are"} going` : ""}`;
       const marker = L.marker([ll.lat, ll.lng], {
-        icon:L.divIcon({className:"event-pin",html:`<span class="event-pin__body"><span>${escapeHtml(day)}</span><strong>${escapeHtml(time)}</strong></span>`,iconSize:[76,44],iconAnchor:[38,48]}),
-        title:`${partyTitle(party)}, ${day} ${time}`, alt:partyTitle(party), keyboard:true
+        icon:L.divIcon({className:"event-pin",html:`<span class="event-pin__body"><span>${escapeHtml(day)}</span><strong>${escapeHtml(time)}</strong></span>${window.partySocial?.pinHtml(party) || ""}`,iconSize:[76,44],iconAnchor:[38,48]}),
+        title:markerLabel, alt:partyTitle(party), keyboard:true
       }).addTo(partyLayer);
       const markerEl = marker.getElement();
-      markerEl?.setAttribute("aria-label", `${partyTitle(party)}, ${day} ${time}`);
+      markerEl?.setAttribute("aria-label", markerLabel);
       markerEl?.setAttribute("aria-expanded", "false");
       marker.on("click", () => {
         closeSelection();
