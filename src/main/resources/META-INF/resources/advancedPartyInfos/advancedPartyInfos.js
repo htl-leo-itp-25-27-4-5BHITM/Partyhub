@@ -561,6 +561,7 @@ function normalizeInvitationStatus(status) {
 
 async function updatePartyDisplay(party) {
   updatePartyTitle(party);
+  updateHostDisplay(party);
   updateVisibilityDisplay(party);
   await updateMediaCount(party);
   updateLocationDisplay(party);
@@ -589,6 +590,28 @@ function updatePartyTitle(party) {
   }
 
   titleElement.textContent = party.title || party.name || "Loading...";
+}
+
+function updateHostDisplay(party) {
+  const hostElement = document.getElementById("party-host");
+  const hostLink = document.getElementById("party-host-link");
+  const host = party?.host_user;
+
+  if (!hostElement || !hostLink || !host) {
+    return;
+  }
+
+  hostLink.textContent = host.displayName || host.distinctName || host.username || "Unknown user";
+
+  if (host.distinctName) {
+    hostLink.href = `/profile/profile.html?handle=${encodeURIComponent(host.distinctName)}`;
+  } else if (host.id != null) {
+    hostLink.href = `/profile/profile.html?id=${encodeURIComponent(host.id)}`;
+  } else {
+    hostLink.removeAttribute("href");
+  }
+
+  hostElement.hidden = false;
 }
 
 function updateVisibilityDisplay(party) {
