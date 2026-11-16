@@ -119,12 +119,20 @@ function displayGallery(mediaList) {
     galleryItem.setAttribute('data-media-id', media.id);
     galleryItem.setAttribute('data-index', index);
 
+    const opener = document.createElement('button');
+    opener.type = 'button';
+    opener.className = 'gallery-open-btn';
+    opener.setAttribute('aria-label', `Open party photo ${index + 1}`);
+
     const img = document.createElement('img');
     img.alt = `Party photo ${index + 1}`;
     img.loading = 'lazy';
 
     const showUnavailable = () => {
-      galleryItem.innerHTML = '<div style="width: 100%; height: 100%; background: var(--bg-secondary); display: flex; align-items: center; justify-content: center; color: rgba(255,255,255,0.5);">Image unavailable</div>';
+      const unavailable = document.createElement('span');
+      unavailable.className = 'gallery-image-unavailable';
+      unavailable.textContent = 'Image unavailable';
+      opener.replaceChildren(unavailable);
     };
     img.onerror = showUnavailable;
     loadMediaImage(media.id)
@@ -134,11 +142,12 @@ function displayGallery(mediaList) {
         showUnavailable();
       });
 
-    galleryItem.appendChild(img);
+    opener.appendChild(img);
+    opener.addEventListener('click', () => openModal(mediaList, index, opener));
+    galleryItem.appendChild(opener);
     if (media.canDelete) {
       galleryItem.appendChild(createDeleteButton(media.id));
     }
-    galleryItem.addEventListener('click', () => openModal(mediaList, index));
     galleryGrid.appendChild(galleryItem);
   });
 }
@@ -146,12 +155,17 @@ function displayGallery(mediaList) {
 function setupModal() {
   const modal = document.createElement('div');
   modal.className = 'image-modal';
+  modal.setAttribute('role', 'dialog');
+  modal.setAttribute('aria-modal', 'true');
+  modal.setAttribute('aria-label', 'Photo viewer');
+  modal.setAttribute('aria-hidden', 'true');
+  modal.tabIndex = -1;
   modal.innerHTML = `
     <div class="modal-content">
       <button class="modal-close" aria-label="Close">&times;</button>
       <button class="media-delete-btn modal-delete" aria-label="Delete photo" hidden>${TRASH_ICON}</button>
       <button class="modal-nav modal-prev" aria-label="Previous image">&larr;</button>
-      <img class="modal-image" src="" alt="">
+      <img class="modal-image" alt="">
       <button class="modal-nav modal-next" aria-label="Next image">&rarr;</button>
       <p class="modal-details">
         <a class="modal-uploader"></a><span class="modal-uploaded-at"></span>
@@ -176,7 +190,11 @@ function setupModal() {
     if (!modal.classList.contains('active')) return;
 
     switch (e.key) {
+      case 'Tab':
+        trapModalFocus(e, modal);
+        break;
       case 'Escape':
+        e.preventDefault();
         closeModal();
         break;
       case 'ArrowLeft':
@@ -203,12 +221,22 @@ function setupModal() {
 
 let currentMediaList = [];
 let currentIndex = 0;
+let modalOpener = null;
+let modalOpenerMediaId = null;
+let modalOpenerIndex = 0;
+let previousBodyOverflow = '';
 
-function openModal(mediaList, index) {
+function openModal(mediaList, index, opener) {
+  const media = mediaList[index];
+  const modal = document.querySelector('.image-modal');
+  if (!modal || !media) return;
+
   currentMediaList = mediaList;
   currentIndex = index;
+  modalOpener = opener instanceof HTMLElement ? opener : document.activeElement;
+  modalOpenerMediaId = String(media.id);
+  modalOpenerIndex = index;
 
-  const modal = document.querySelector('.image-modal');
   const modalImage = modal.querySelector('.modal-image');
   const prevBtn = modal.querySelector('.modal-prev');
   const nextBtn = modal.querySelector('.modal-next');
@@ -216,18 +244,29 @@ function openModal(mediaList, index) {
   showModalImage(modalImage, mediaList[index].id, index);
 
   // Show/hide navigation buttons
-  prevBtn.style.display = mediaList.length > 1 ? 'block' : 'none';
-  nextBtn.style.display = mediaList.length > 1 ? 'block' : 'none';
+  prevBtn.hidden = mediaList.length <= 1;
+  nextBtn.hidden = mediaList.length <= 1;
 
   modal.classList.add('active');
+  modal.setAttribute('aria-hidden', 'false');
 
   // Prevent body scroll when modal is open
+  previousBodyOverflow = document.body.style.overflow;
   document.body.style.overflow = 'hidden';
+
+  modal.querySelector('.modal-close').focus({ preventScroll: true });
 }
 
 function showModalImage(modalImage, mediaId, index) {
   const deleteBtn = document.querySelector('.image-modal .modal-delete');
-  if (deleteBtn) deleteBtn.hidden = !currentMediaList[index]?.canDelete;
+  if (deleteBtn) {
+    const hideDelete = !currentMediaList[index]?.canDelete;
+    const deleteHadFocus = document.activeElement === deleteBtn;
+    deleteBtn.hidden = hideDelete;
+    if (hideDelete && deleteHadFocus) {
+      document.querySelector('.image-modal .modal-close')?.focus({ preventScroll: true });
+    }
+  }
   showModalDetails(currentMediaList[index]);
   modalImage.alt = `Party photo ${index + 1}`;
   modalImage.removeAttribute('src');
@@ -260,12 +299,91 @@ function showModalDetails(media) {
   uploadedAt.textContent = time && !isNaN(time) ? ` · ${UPLOAD_TIME_FORMAT.format(time)}` : '';
 }
 
-function closeModal() {
+function isVisibleFocusTarget(element) {
+  if (!(element instanceof HTMLElement) || !element.isConnected || element.hidden) return false;
+  if (element.matches(':disabled, [aria-hidden="true"]')) return false;
+  const style = window.getComputedStyle(element);
+  return style.display !== 'none' && style.visibility !== 'hidden';
+}
+
+function modalFocusableElements(modal) {
+  const selector = [
+    'a[href]',
+    'button:not([disabled])',
+    'input:not([disabled])',
+    'select:not([disabled])',
+    'textarea:not([disabled])',
+    '[tabindex]:not([tabindex="-1"])'
+  ].join(',');
+  return Array.from(modal.querySelectorAll(selector)).filter(isVisibleFocusTarget);
+}
+
+function trapModalFocus(event, modal) {
+  const focusable = modalFocusableElements(modal);
+  if (focusable.length === 0) {
+    event.preventDefault();
+    modal.focus({ preventScroll: true });
+    return;
+  }
+
+  const first = focusable[0];
+  const last = focusable[focusable.length - 1];
+  const active = document.activeElement;
+  const activeIndex = focusable.indexOf(active);
+
+  if (activeIndex === -1 || (event.shiftKey && active === first) || (!event.shiftKey && active === last)) {
+    event.preventDefault();
+    (event.shiftKey ? last : first).focus({ preventScroll: true });
+  }
+}
+
+function galleryOpeners() {
+  return Array.from(document.querySelectorAll('.gallery-open-btn'));
+}
+
+function matchingGalleryOpener(mediaId) {
+  if (mediaId === null) return null;
+  const item = Array.from(document.querySelectorAll('.gallery-item'))
+    .find(candidate => candidate.dataset.mediaId === String(mediaId));
+  return item?.querySelector('.gallery-open-btn') || null;
+}
+
+function focusGalleryOpener({ preferredElement = null, mediaId = null, index = 0 } = {}) {
+  let target = isVisibleFocusTarget(preferredElement) ? preferredElement : matchingGalleryOpener(mediaId);
+  if (!isVisibleFocusTarget(target)) {
+    const openers = galleryOpeners().filter(isVisibleFocusTarget);
+    target = openers[Math.min(Math.max(index, 0), openers.length - 1)] || null;
+  }
+  if (!isVisibleFocusTarget(target)) {
+    target = ['#addPhotosBtn', '#loginToAddBtn', '.back-btn']
+      .map(selector => document.querySelector(selector))
+      .find(isVisibleFocusTarget) || null;
+  }
+  target?.focus({ preventScroll: true });
+}
+
+function closeModal({ restoreFocus = true } = {}) {
   const modal = document.querySelector('.image-modal');
+  if (!modal?.classList.contains('active')) return;
+
+  const opener = modalOpener;
+  const openerMediaId = modalOpenerMediaId;
+  const openerIndex = modalOpenerIndex;
+
+  modalOpener = null;
+  modalOpenerMediaId = null;
+
+  if (restoreFocus) {
+    focusGalleryOpener({ preferredElement: opener, mediaId: openerMediaId, index: openerIndex });
+  } else {
+    document.querySelector('.back-btn')?.focus({ preventScroll: true });
+  }
+
   modal.classList.remove('active');
+  modal.setAttribute('aria-hidden', 'true');
 
   // Restore body scroll
-  document.body.style.overflow = '';
+  document.body.style.overflow = previousBodyOverflow;
 }
 
 function navigateModal(direction) {
@@ -411,6 +529,14 @@ function createDeleteButton(mediaId) {
 
 async function deleteMedia(mediaId) {
   if (!window.confirm('Delete this photo from the party gallery? This cannot be undone.')) return;
+
+  const modal = document.querySelector('.image-modal');
+  const modalWasOpen = Boolean(modal?.classList.contains('active'));
+  const galleryItems = Array.from(document.querySelectorAll('.gallery-item'));
+  const deletedIndex = modalWasOpen
+    ? currentIndex
+    : Math.max(galleryItems.findIndex(item => item.dataset.mediaId === String(mediaId)), 0);
+
   try {
     const response = await window.authService.apiCall(`/api/media/${encodeURIComponent(mediaId)}`, {
       method: 'DELETE'
@@ -424,8 +550,12 @@ async function deleteMedia(mediaId) {
     showStatus('The photo could not be deleted: network error', { error: true });
     return;
   }
-  closeModal();
+
+  if (modalWasOpen) {
+    closeModal({ restoreFocus: false });
+  }
   await loadGallery(currentPartyId);
+  focusGalleryOpener({ index: deletedIndex });
   showStatus('Photo deleted.');
 }
 
