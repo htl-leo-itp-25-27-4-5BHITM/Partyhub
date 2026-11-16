@@ -1617,15 +1617,12 @@ document.addEventListener("DOMContentLoaded", async function () {
       const node = template.content.cloneNode(true);
 
       const article = node.querySelector(".party-card");
+      const link = node.querySelector(".party-open-link");
+      link.textContent = party.title || party.name || "Party";
 
-      if (article && party.id != null) {
+      if (party.id != null) {
         article.dataset.id = party.id;
-      }
-
-      const nameEl = node.querySelector(".party-name");
-
-      if (nameEl) {
-        nameEl.textContent = party.title || party.name || "Party";
+        link.href = `/advancedPartyInfos/advancedPartyInfos.html?id=${encodeURIComponent(party.id)}`;
       }
 
       const infoValues = node.querySelectorAll(".info-value");
