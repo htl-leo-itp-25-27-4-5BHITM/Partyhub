@@ -990,8 +990,22 @@ function formatPartyTime(date) {
   });
 }
 
-function formatRelativeTime(date) {
-  const now = new Date();
+function getLocalCalendarDayDifference(date, referenceDate) {
+  const dateDay = Date.UTC(
+    date.getFullYear(),
+    date.getMonth(),
+    date.getDate()
+  );
+  const referenceDay = Date.UTC(
+    referenceDate.getFullYear(),
+    referenceDate.getMonth(),
+    referenceDate.getDate()
+  );
+
+  return Math.round((dateDay - referenceDay) / (1000 * 60 * 60 * 24));
+}
+
+function formatRelativeTime(date, now = new Date()) {
   const diffMs = date - now;
   const diffHours = diffMs / (1000 * 60 * 60);
   const diffMinutes = Math.abs(diffMs) / (1000 * 60);
@@ -1016,12 +1030,24 @@ function formatRelativeTime(date) {
       return `in ${hours}h ${minutes}m`;
     }
 
-    if (diffHours < 48) {
+    const calendarDayDifference = getLocalCalendarDayDifference(date, now);
+
+    if (calendarDayDifference === 1) {
       return "tomorrow";
     }
 
-    const days = Math.floor(diffHours / 24);
-    return `in ${days} days`;
+    if (calendarDayDifference > 1) {
+      return `in ${calendarDayDifference} days`;
+    }
+
+    const hours = Math.floor(diffHours);
+    const minutes = Math.floor((diffHours - hours) * 60);
+
+    if (minutes === 0) {
+      return `in ${hours}h`;
+    }
+
+    return `in ${hours}h ${minutes}m`;
   }
 
   if (diffMinutes < 60) {
@@ -1043,8 +1069,22 @@ function formatRelativeTime(date) {
     return `${hours}h ${minutes}m ago`;
   }
 
-  const days = Math.floor(Math.abs(diffHours) / 24);
-  return `${days} days ago`;
+  const calendarDayDifference = Math.abs(
+    getLocalCalendarDayDifference(date, now)
+  );
+
+  if (calendarDayDifference > 0) {
+    return `${calendarDayDifference} days ago`;
+  }
+
+  const hours = Math.floor(Math.abs(diffHours));
+  const minutes = Math.floor((Math.abs(diffHours) - hours) * 60);
+
+  if (minutes === 0) {
+    return `${hours}h ago`;
+  }
+
+  return `${hours}h ${minutes}m ago`;
 }
 
 function formatTimeSpan(startDate, endDate) {
