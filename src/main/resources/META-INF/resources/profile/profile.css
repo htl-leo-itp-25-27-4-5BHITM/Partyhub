@@ -958,6 +958,9 @@ body.bg-light .container {
   gap: 6px;
 }
 
+.party-card[data-id]:not([data-id=""]) { cursor: pointer; }
+.party-open-link { color: inherit; text-decoration: none; }
+
 .party-card .info-box {
   display: none !important;
 }
@@ -1338,6 +1341,11 @@ body.bg-light.profile-page .app-shell > .container {
   background: var(--bg-surface);
   border: 1px solid var(--border-soft);
   border-radius: var(--ui-radius, 16px);
+}
+
+#partiesContainer > .party-card[data-id]:not([data-id=""]):is(:hover, :active),
+#partiesContainer > .party-card:has(.party-open-link:focus-visible) {
+  background-color: color-mix(in srgb, var(--bg-surface), white 13%);
 }
 
 #partiesContainer .party-name {

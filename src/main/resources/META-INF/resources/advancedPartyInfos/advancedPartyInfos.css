@@ -387,3 +387,99 @@ body {
     font-size: 0.88rem;
   }
 }
+
+/* ---------- Bring-along list ---------- */
+.bring-along { display: flex; flex-direction: column; gap: 10px; }
+.bring-along[hidden], .ba-live[hidden] { display: none; }
+.ba-toggle { width: 100%; margin-top: 10px; }
+.bring-along + .invited-section { margin-top: 10px; }
+.ba-toggle[aria-expanded="true"] .arrow { transform: rotate(90deg); }
+.ba-live { margin: 0; font-size: 0.8rem; color: var(--muted); }
+.ba-hint { margin: 0; font-size: 0.85rem; color: var(--muted); }
+.ba-hint[hidden] { display: none; }
+.ba-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 8px; }
+
+.ba-item {
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background: rgba(255, 255, 255, 0.04);
+  padding: 10px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  transition: border-color 0.2s ease, background 0.2s ease;
+}
+.ba-item.is-fulfilled { border-color: rgba(86, 242, 124, 0.45); background: rgba(86, 242, 124, 0.07); }
+.ba-item-row { display: flex; align-items: center; justify-content: space-between; gap: 10px 18px; flex-wrap: wrap; }
+.ba-item-info { flex: 1 1 120px; min-width: 0; display: grid; gap: 3px; }
+.ba-name { font-weight: 700; color: var(--text); overflow-wrap: anywhere; }
+.ba-availability { font-size: 0.85rem; color: var(--text-soft); }
+.ba-total { font-size: 0.75rem; color: var(--text-soft); }
+.ba-item.is-fulfilled .ba-availability { color: var(--success); }
+.ba-pledge { display: grid; justify-items: center; gap: 4px; }
+.ba-stepper-label { font-size: 0.75rem; font-weight: 600; color: var(--text-soft); }
+.ba-stepper { display: grid; grid-template-columns: 44px minmax(26px, auto) 44px; align-items: center; gap: 3px; }
+.ba-pledgers { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: 6px; }
+.ba-pledger {
+  display: inline-flex;
+  gap: 6px;
+  font-size: 0.78rem;
+  padding: 3px 9px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.07);
+  color: var(--text-soft);
+}
+.ba-pledger-qty { font-weight: 700; font-variant-numeric: tabular-nums; }
+
+.ba-edit, .ba-add { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+.ba-input {
+  min-width: 0;
+  height: 36px;
+  padding: 0 10px;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  background: rgba(255, 255, 255, 0.06);
+  color: var(--text);
+  font: inherit;
+  font-size: 0.88rem;
+  box-sizing: border-box;
+}
+.ba-input:focus { outline: 2px solid var(--accent); outline-offset: 1px; }
+.ba-input.is-invalid { border-color: var(--danger); outline-color: var(--danger); }
+.ba-stepper .ba-btn { height: 44px; padding: 0; font-size: 1.15rem; }
+.ba-add .ba-input[name="name"], .ba-edit .ba-input[type="text"]:first-child { flex: 1 1 140px; }
+.ba-input-qty, .ba-edit .ba-input[type="number"] { width: 72px; }
+.ba-input-unit, .ba-edit .ba-input[type="text"]:nth-child(3) { width: 96px; }
+.ba-own-quantity { font-weight: 700; text-align: center; font-variant-numeric: tabular-nums; }
+
+.ba-btn {
+  height: 36px;
+  padding: 0 14px;
+  border-radius: 10px;
+  border: 1px solid transparent;
+  font: inherit;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+.ba-btn:disabled { opacity: 0.6; cursor: default; }
+.ba-btn-primary { background: var(--accent); color: white; }
+.ba-btn-ghost { background: transparent; color: var(--text-soft); border-color: var(--border); }
+.ba-host { display: flex; gap: 14px; }
+.ba-link { background: none; border: none; padding: 0; color: var(--text-soft); font: inherit; font-size: 0.8rem; text-decoration: underline; cursor: pointer; }
+.ba-link-danger { color: var(--danger); }
+
+.ba-error { margin: 0; font-size: 0.8rem; font-weight: 600; color: var(--danger); flex-basis: 100%; }
+.ba-error:empty { display: none; }
+.ba-item.shake { animation: ba-shake 0.4s ease; border-color: var(--danger); }
+.ba-add { padding-top: 4px; border-top: 1px solid var(--border); }
+.ba-add[hidden] { display: none; }
+
+@keyframes ba-shake {
+  0%, 100% { transform: translateX(0); }
+  20%, 60% { transform: translateX(-5px); }
+  40%, 80% { transform: translateX(5px); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .ba-item.shake { animation: none; }
+}
