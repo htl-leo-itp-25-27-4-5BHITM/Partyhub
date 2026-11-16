@@ -6,17 +6,18 @@ document.addEventListener("DOMContentLoaded", async () => {
   const map = L.map("map", {
     preferCanvas: true,
     zoomControl: true,
+    attributionControl: false,
     inertia: true,
     updateWhenZooming: false,
     updateWhenIdle: true,
   }).setView([48.3069, 14.2858], 13);
 
-  L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+  const tiles = L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
     maxZoom: 19,
     keepBuffer: 2,
     updateWhenIdle: true,
     updateWhenZooming: false,
-    attribution: "&copy; OpenStreetMap contributors",
+    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap contributors</a>',
   }).addTo(map);
 
   const partyLayer = L.layerGroup().addTo(map);
@@ -24,46 +25,58 @@ document.addEventListener("DOMContentLoaded", async () => {
   // Current user's location layer (different color)
   const currentUserLayer = L.layerGroup().addTo(map);
 
-  function currentUserRequest() {
-    const userId = window.getCurrentUserId?.() ?? window.authService?.getCurrentUserId?.() ?? null;
-    return {
-      userId,
-      headers: {}
-    };
+  const selection = document.getElementById("mapSelection");
+  const selectionContent = document.getElementById("mapSelectionContent");
+  const status = document.getElementById("mapStatus");
+  const fitButton = document.getElementById("fitParties");
+  let selectedMarker = null;
+  let matchingBounds = [];
+  let dateFilter = "all";
+  let hasInitialView = false;
+  let latestPosition = null;
+  let userNavigated = false;
+  map.on("dragstart zoomstart", event => {
+    if (event.originalEvent || event.type === "dragstart") userNavigated = true;
+  });
+  const setStatus = message => { status.textContent = message; status.hidden = !message; };
+  let tileFailures = 0;
+  tiles.on("tileerror", () => { if (++tileFailures >= 3) setStatus("Map unavailable. Check your connection and reload."); });
+  tiles.on("load", () => { tileFailures = 0; });
+  function closeSelection(restoreFocus = false) {
+    selection.hidden = true;
+    selectedMarker?.getElement()?.classList.remove("is-selected");
+    selectedMarker?.getElement()?.setAttribute("aria-expanded", "false");
+    if (restoreFocus) selectedMarker?.getElement()?.focus();
+    selectedMarker = null;
   }
-
-  // Load parties from localStorage and add to map
-  function loadPartiesFromLocalStorage() {
-    try {
-      const partiesJSON = localStorage.getItem("parties");
-      if (!partiesJSON) return [];
-      const parties = JSON.parse(partiesJSON);
-      return Array.isArray(parties) ? parties : [];
-    } catch (err) {
-      return [];
+  document.getElementById("closeMapSelection").addEventListener("click", () => closeSelection(true));
+  document.addEventListener("keydown", event => { if (event.key === "Escape" && !selection.hidden) closeSelection(true); });
+  fitButton.addEventListener("click", () => {
+    if (matchingBounds.length) map.fitBounds(matchingBounds, {padding:[55,55], maxZoom:15});
+  });
+  document.querySelectorAll("[data-date]").forEach(button => button.addEventListener("click", () => {
+    dateFilter = button.dataset.date;
+    document.querySelectorAll("[data-date]").forEach(item => item.setAttribute("aria-pressed", String(item === button)));
+    renderPartiesOnMap();
+  }));
+  map.zoomControl.setPosition("topright");
+  const Locate = L.Control.extend({
+    options:{position:"topright"},
+    onAdd() {
+      const box = L.DomUtil.create("div", "leaflet-bar leaflet-control");
+      const button = L.DomUtil.create("button", "map-locate", box);
+      button.type = "button";
+      button.disabled = true;
+      button.title = "Return to your location";
+      button.setAttribute("aria-label", "Return to your location");
+      button.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/><path d="M12 2v4m0 12v4M2 12h4m12 0h4"/></svg>';
+      button.addEventListener("click", () => { if (latestPosition) map.setView(latestPosition,15); });
+      L.DomEvent.disableClickPropagation(box);
+      box.append(button);
+      return box;
     }
-  }
-
-  // Add party markers from localStorage to map
-  function addLocalStoragePartiesToMap() {
-    const localParties = loadPartiesFromLocalStorage();
-    localParties.forEach((party) => {
-      if (party.latitude && party.longitude) {
-        const marker = L.marker([party.latitude, party.longitude], {
-          icon: L.icon({
-            iconUrl:
-              "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png",
-            iconSize: [25, 41],
-            iconAnchor: [12, 41],
-          }),
-        })
-          .bindPopup(partyPopupHtml(party), partyPopupOptions())
-          .addTo(partyLayer);
-      }
-    });
-  }
-
-  addLocalStoragePartiesToMap();
+  });
+  new Locate().addTo(map);
 
   // ---------------------------
   // Helpers
@@ -129,21 +142,10 @@ document.addEventListener("DOMContentLoaded", async () => {
     return p.title ?? p.name ?? `Party #${p.id ?? "?"}`;
   }
 
-  function partyPopupOptions() {
-    return {
-      className: "party-map-popup",
-      minWidth: Math.min(240, Math.max(160, mapEl.clientWidth - 64)),
-      maxWidth: Math.min(320, Math.max(160, mapEl.clientWidth - 64)),
-      maxHeight: Math.max(160, Math.min(340, mapEl.clientHeight - 80)),
-      autoPanPadding: [18, 18],
-    };
-  }
-
   function partyPopupHtml(p) {
     const title = escapeHtml(partyTitle(p));
     const description = escapeHtml(p.description ?? "");
     const location = escapeHtml(p.location?.address ?? p.location?.name ?? p.location_address ?? "");
-    const theme = escapeHtml(p.theme ?? p.category?.name ?? "");
     const start = parsePartyStart(p);
     const date = start ? escapeHtml(new Intl.DateTimeFormat("de-AT", {
       weekday: "short", day: "numeric", month: "short", year: "numeric"
@@ -159,7 +161,6 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     return `
       <article class="map-event">
-        ${theme ? `<span class="map-event__theme">${theme}</span>` : ""}
         <h3 class="map-event__title">${title}</h3>
         <div class="map-event__meta">
           ${date ? `<div class="map-event__row">
@@ -260,14 +261,20 @@ document.addEventListener("DOMContentLoaded", async () => {
   partySearch?.addEventListener("input", renderPartiesOnMap);
 
   async function loadAllPartiesToMap() {
-    const parties = window.backend?.getAllParties
-      ? await window.backend.getAllParties()
-      : await getAllParties();
+    let parties;
+    try {
+      parties = window.backend?.getAllParties
+        ? await window.backend.getAllParties()
+        : await getAllParties();
+    } catch (error) {
+      setStatus("Parties could not load. Reload to try again.");
+      return;
+    }
 
     // Debug: show what we received
     console.debug("loadAllPartiesToMap: received parties:", parties);
     if (!Array.isArray(parties)) {
-      console.warn("Received parties are not an array:", parties);
+      setStatus("Parties could not load. Reload to try again.");
       return;
     }
 
@@ -282,14 +289,57 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   function renderPartiesOnMap() {
     const query = (partySearch?.value || "").trim().toLocaleLowerCase();
-    const matches = upcomingParties.filter(party =>
-      !query || [party.title, party.location?.address, party.location_address]
-        .filter(Boolean).join(" ").toLocaleLowerCase().includes(query)
-    );
+    const today = startOfDayLocal(new Date());
+    const saturday = new Date(today);
+    const weekday = today.getDay();
+    saturday.setDate(today.getDate() + (weekday === 0 ? -1 : (6 - weekday)));
+    const monday = new Date(saturday);
+    monday.setDate(saturday.getDate() + 2);
+    const matches = upcomingParties.filter(party => {
+      const day = startOfDayLocal(parsePartyStart(party));
+      const dateMatches = dateFilter === "all" || (dateFilter === "today" ? day.getTime() === today.getTime() : day >= saturday && day < monday);
+      return dateMatches && (!query || [party.title, party.location?.address, party.location_address]
+        .filter(Boolean).join(" ").toLocaleLowerCase().includes(query));
+    });
+    closeSelection();
     partyLayer.clearLayers();
     const bounds = [];
 
+    const groups = new Map();
     for (const party of matches) {
+      const ll = extractLatLng(party);
+      if (!ll || Math.abs(ll.lat) > 90 || Math.abs(ll.lng) > 180) continue;
+      const point = map.project([ll.lat,ll.lng],map.getZoom());
+      // Compare actual screen positions so pins across a grid boundary also cluster.
+      const nearby = [...groups.entries()].find(([, group]) => {
+        const first = extractLatLng(group[0]);
+        const anchor = map.project([first.lat,first.lng],map.getZoom());
+        return Math.abs(anchor.x-point.x) < 94 && Math.abs(anchor.y-point.y) < 56;
+      });
+      const key = nearby ? nearby[0] : groups.size;
+      if (!groups.has(key)) groups.set(key, []);
+      groups.get(key).push(party);
+    }
+    for (const group of groups.values()) {
+      if (group.length > 1) {
+        const points = group.map(party => { const ll = extractLatLng(party); return [ll.lat,ll.lng]; });
+        bounds.push(...points);
+        const center = L.latLngBounds(points).getCenter();
+        const cluster = L.marker(center, {icon:L.divIcon({className:"event-cluster",html:`<span>${group.length}</span>`,iconSize:[48,48],iconAnchor:[24,24]}),title:`${group.length} parties. Zoom to explore.`,keyboard:true}).addTo(partyLayer);
+        cluster.getElement()?.setAttribute("aria-label", `${group.length} parties. Zoom to explore.`);
+        cluster.on("click", () => {
+          if (map.getZoom() < 18) map.fitBounds(points, {padding:[70,70],maxZoom:Math.min(18,map.getZoom()+2)});
+          else {
+            closeSelection();
+            selectedMarker = cluster;
+            selectionContent.innerHTML = group.map(partyPopupHtml).join("");
+            selection.hidden = false;
+            document.getElementById("closeMapSelection").focus({preventScroll:true});
+          }
+        });
+        continue;
+      }
+      const party = group[0];
       const ll = extractLatLng(party);
       if (!ll) {
         console.debug(
@@ -299,8 +349,27 @@ document.addEventListener("DOMContentLoaded", async () => {
         continue;
       }
 
-      const marker = L.marker([ll.lat, ll.lng]).addTo(partyLayer);
-      marker.bindPopup(partyPopupHtml(party), partyPopupOptions());
+      if (Math.abs(ll.lat) > 90 || Math.abs(ll.lng) > 180) continue;
+      const start = parsePartyStart(party);
+      const time = new Intl.DateTimeFormat("de-AT", {hour:"2-digit", minute:"2-digit"}).format(start);
+      const day = new Intl.DateTimeFormat("en-GB", {weekday:"short"}).format(start);
+      const marker = L.marker([ll.lat, ll.lng], {
+        icon:L.divIcon({className:"event-pin",html:`<span class="event-pin__body"><span>${escapeHtml(day)}</span><strong>${escapeHtml(time)}</strong></span>`,iconSize:[76,44],iconAnchor:[38,48]}),
+        title:`${partyTitle(party)}, ${day} ${time}`, alt:partyTitle(party), keyboard:true
+      }).addTo(partyLayer);
+      const markerEl = marker.getElement();
+      markerEl?.setAttribute("aria-label", `${partyTitle(party)}, ${day} ${time}`);
+      markerEl?.setAttribute("aria-expanded", "false");
+      marker.on("click", () => {
+        closeSelection();
+        selectedMarker = marker;
+        markerEl?.classList.add("is-selected");
+        markerEl?.setAttribute("aria-expanded", "true");
+        marker.setZIndexOffset(1000);
+        selectionContent.innerHTML = partyPopupHtml(party);
+        selection.hidden = false;
+        document.getElementById("closeMapSelection").focus({preventScroll:true});
+      });
       bounds.push([ll.lat, ll.lng]);
     }
 
@@ -310,16 +379,16 @@ document.addEventListener("DOMContentLoaded", async () => {
         : "";
     }
 
-    // Zoom to markers when present
-    if (bounds.length === 1) {
-      map.setView(bounds[0], 14);
-    } else if (bounds.length > 1) {
-      map.fitBounds(bounds, { padding: [30, 30] });
-    } else {
-      // No parties in the next 2 weeks -> default view
-      map.setView([48.3069, 14.2858], 8);
+    matchingBounds = bounds;
+    fitButton.disabled = bounds.length === 0;
+    setStatus(bounds.length ? "" : "No parties match. Try another date or search.");
+    if (!hasInitialView && bounds.length) {
+      hasInitialView = true;
+      map.fitBounds(bounds, {padding:[55,55], maxZoom:14});
     }
   }
+
+  map.on("zoomend", () => { if (hasInitialView) renderPartiesOnMap(); });
 
   // ---------------------------
   // Show device location (client-side only, never sent to the server)
@@ -331,23 +400,19 @@ document.addEventListener("DOMContentLoaded", async () => {
     if (!Number.isFinite(lat) || !Number.isFinite(lng)) return;
 
     currentUserLayer.clearLayers();
+    latestPosition = [lat,lng];
+    document.querySelector(".map-locate").disabled = false;
     L.marker([lat, lng], {
-      icon: L.icon({
-        iconUrl: "https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-green.png",
-        shadowUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png",
-        iconSize: [25, 41],
-        iconAnchor: [12, 41],
-        popupAnchor: [1, -34],
-        shadowSize: [41, 41]
-      })
-    }).addTo(currentUserLayer).bindPopup("Du bist hier");
+      icon:L.divIcon({className:"user-location",html:'<span></span>',iconSize:[22,22],iconAnchor:[11,11]}),
+      title:"Your location", alt:"Your location"
+    }).addTo(currentUserLayer).bindPopup("Your location");
 
     if (Number.isFinite(accuracy) && accuracy > 0) {
-      L.circle([lat, lng], { radius: accuracy }).addTo(currentUserLayer);
+      L.circle([lat, lng], { radius: accuracy, color:"#1a1040", weight:1, fillColor:"#4f3b9a", fillOpacity:0.08 }).addTo(currentUserLayer);
     }
 
     if (!centeredOnce) {
-      map.setView([lat, lng], 15);
+      if (!hasInitialView && !userNavigated) map.setView([lat, lng], 15);
       centeredOnce = true;
     }
   }
@@ -370,7 +435,11 @@ document.addEventListener("DOMContentLoaded", async () => {
           );
         },
         (err) => {
-          if (err.code === 1) currentUserLayer.clearLayers();
+          if (err.code === 1) {
+            currentUserLayer.clearLayers();
+            latestPosition = null;
+            document.querySelector(".map-locate").disabled = true;
+          }
           console.warn("Geolocation error:", err.message);
         },
         { enableHighAccuracy: true, timeout: 10000, maximumAge: 5000 },
