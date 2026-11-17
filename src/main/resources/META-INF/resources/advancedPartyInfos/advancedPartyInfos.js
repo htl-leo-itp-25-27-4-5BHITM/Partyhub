@@ -572,6 +572,7 @@ async function updatePartyDisplay(party) {
   updateTimeDisplay(party);
   updateAgeRestriction(party);
   updateMaxAttendees(party);
+  updateHost(party);
 
   console.log("Party details updated:", party);
 }
@@ -852,6 +853,28 @@ function updateAgeRestriction(party) {
   }
 
   ageElement.textContent = ageText;
+}
+
+function updateHost(party) {
+  const hostElement = document.getElementById("party-host");
+
+  if (!hostElement) {
+    return;
+  }
+
+  const host = party.host_user ?? party.hostUser ?? null;
+
+  if (!host) {
+    hostElement.textContent = "Unknown";
+    hostElement.removeAttribute("href");
+    return;
+  }
+
+  hostElement.textContent = host.displayName || host.distinctName || "Unknown";
+  hostElement.href = getInvitedMemberProfileUrl({
+    distinctName: host.distinctName,
+    userId: host.id,
+  });
 }
 
 function updateMaxAttendees(party) {
