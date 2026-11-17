@@ -2,6 +2,7 @@ package at.htl.resource;
 
 import at.htl.TestBase;
 import at.htl.bringalong.BringAlongChangedRecorder;
+import at.htl.invitation.Invitation;
 import at.htl.location.Location;
 import at.htl.party.Party;
 import at.htl.user.User;
@@ -89,6 +90,8 @@ class BringAlongResourceTest extends TestBase {
             List<Long> users = List.of(anna, ben, cleo, outsider, hostId);
             em.createQuery("delete from Notification n where n.party.id = :partyId or n.recipient.id in :users or n.sender.id in :users")
                     .setParameter("partyId", partyId).setParameter("users", users).executeUpdate();
+            em.createQuery("delete from Invitation i where i.party.id = :partyId")
+                    .setParameter("partyId", partyId).executeUpdate();
             Party party = em.find(Party.class, partyId);
             if (party != null) em.remove(party);
             for (Long id : users) em.remove(em.find(User.class, id));
@@ -134,16 +137,41 @@ class BringAlongResourceTest extends TestBase {
     }
 
     @Test
-    void hostAndAttendeesCanReadNonMembersCannot() {
-        createItem("Chips", 3);
-        as(hostId).get(base()).then().statusCode(200).body("size()", is(1)).body("[0].name", is("Chips"));
-        as(anna).get(base()).then().statusCode(200).body("[0].quantity", is(3)).body("[0].fulfilled", is(false));
-        as(outsider).get(base()).then().statusCode(403);
-        given().get(base()).then().statusCode(401);
+    void membersReadFullListVisitorsOfPublicPartyReadAnonymisedList() {
+        int id = createItem("Chips", 3);
+        as(anna).body("{\"quantity\":2}").put(pledge(id)).then().statusCode(200);
 
+        as(hostId).get(base()).then().statusCode(200).body("size()", is(1)).body("[0].name", is("Chips"))
+                .body("[0].pledges[0].displayName", is("bring-anna"));
+        as(anna).get(base()).then().statusCode(200).body("[0].quantity", is(3)).body("[0].pledges.size()", is(1));
+
+        for (RequestSpecification visitor : List.of(as(outsider), given())) {
+            visitor.get(base()).then().statusCode(200)
+                    .body("[0].name", is("Chips")).body("[0].quantity", is(3))
+                    .body("[0].pledged", is(2)).body("[0].remaining", is(1)).body("[0].fulfilled", is(false))
+                    .body("[0]", not(hasKey("pledges")))
+                    .body(not(containsString("bring-anna")));
+        }
+    }
+
+    @Test
+    void privatePartyListStaysMembersOnly() {
+        createItem("Chips", 3);
         QuarkusTransaction.requiringNew().run(() -> em.find(Party.class, partyId).setVisibility("PRIVATE"));
+
+        as(anna).get(base()).then().statusCode(200).body("[0].pledges.size()", is(0));
         as(outsider).get(base()).then().statusCode(404);
+        given().get(base()).then().statusCode(404);
         as(anna).get("/api/parties/9223372036854775807/bring-along").then().statusCode(404);
+
+        QuarkusTransaction.requiringNew().run(() -> {
+            Invitation invitation = new Invitation();
+            invitation.setParty(em.find(Party.class, partyId));
+            invitation.setSender(em.find(User.class, hostId));
+            invitation.setRecipient(em.find(User.class, outsider));
+            em.persist(invitation);
+        });
+        as(outsider).get(base()).then().statusCode(403);
     }
 
     @Test
@@ -263,7 +291,7 @@ class BringAlongResourceTest extends TestBase {
         as(ben).get(base()).then().body("[0].remaining", is(2)).body("[0].fulfilled", is(false))
                 .body("[0].pledges.size()", is(1));
         as(cleo).body("{\"quantity\":2}").put(pledge(id)).then().statusCode(200).body("fulfilled", is(true));
-        as(anna).get(base()).then().statusCode(403);
+        as(anna).get(base()).then().statusCode(200).body("[0]", not(hasKey("pledges")));
     }
 
     @Test
@@ -275,6 +303,29 @@ class BringAlongResourceTest extends TestBase {
             Assertions.assertEquals(0L, em.createQuery("select count(i) from BringAlongItem i", Long.class).getSingleResult());
             Assertions.assertEquals(0L, em.createQuery("select count(p) from BringAlongPledge p", Long.class).getSingleResult());
         });
+    }
+
+    @Test
+    void writesStayMembersOnlyOnPublicParty() {
+        int id = createItem("Chips", 3);
+        recorder.clear();
+        String item = "{\"name\":\"Cola\",\"quantity\":1}";
+        String qty = "{\"quantity\":1}";
+        given().contentType(ContentType.JSON).body(item).post(base() + "/items").then().statusCode(401);
+        given().contentType(ContentType.JSON).body(item).put(base() + "/items/" + id).then().statusCode(401);
+        given().delete(base() + "/items/" + id).then().statusCode(401);
+        given().contentType(ContentType.JSON).body(qty).put(pledge(id)).then().statusCode(401);
+        given().delete(pledge(id)).then().statusCode(401);
+
+        as(outsider).body(item).post(base() + "/items").then().statusCode(403);
+        as(outsider).body(item).put(base() + "/items/" + id).then().statusCode(403);
+        as(outsider).delete(base() + "/items/" + id).then().statusCode(403);
+        as(outsider).body(qty).put(pledge(id)).then().statusCode(403);
+        as(outsider).delete(pledge(id)).then().statusCode(403);
+
+        as(anna).get(base()).then().statusCode(200).body("size()", is(1)).body("[0].name", is("Chips"))
+                .body("[0].pledges.size()", is(0));
+        Assertions.assertEquals(0, recorder.count(partyId));
     }
 
     @Test

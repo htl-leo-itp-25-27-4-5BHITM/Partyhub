@@ -1,6 +1,7 @@
 package at.htl.bringalong;
 
 import at.htl.user.User;
+import com.fasterxml.jackson.annotation.JsonInclude;
 import org.owasp.encoder.Encode;
 import java.util.List;
 
@@ -12,7 +13,8 @@ public record BringAlongItemDto(
         int pledged,
         int remaining,
         boolean fulfilled,
-        List<PledgeDto> pledges
+        // Null (and omitted from JSON) in the anonymised view for non-members of public parties.
+        @JsonInclude(JsonInclude.Include.NON_NULL) List<PledgeDto> pledges
 ) {
     public record PledgeDto(Long userId, String displayName, int quantity) {}
 
@@ -29,6 +31,13 @@ public record BringAlongItemDto(
                 pledges.stream()
                         .map(p -> new PledgeDto(p.user.getId(), Encode.forHtml(displayName(p.user)), p.quantity))
                         .toList());
+    }
+
+    /** Same totals as {@link #from}, but without pledges, so no user data is exposed. */
+    public static BringAlongItemDto forPublic(BringAlongItem item, List<BringAlongPledge> pledges) {
+        BringAlongItemDto full = from(item, pledges);
+        return new BringAlongItemDto(full.id(), full.name(), full.unit(), full.quantity(), full.pledged(),
+                full.remaining(), full.fulfilled(), null);
     }
 
     private static String displayName(User user) {
