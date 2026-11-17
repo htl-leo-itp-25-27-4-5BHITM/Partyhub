@@ -1,13 +1,18 @@
 @host = http://localhost:8080
 
 ###########################################
-### Seed: media for public party 1 (anonymous)
+### Seed: media for public party 1 (anonymous), with uploader and upload time
 ###########################################
 GET {{host}}/api/parties/1/media
 
 ?? status == 200
 ?? js response.parsedBody.length > 0
 ?? js response.parsedBody[0].url == undefined
+?? js response.parsedBody.filter(item => item.canDelete).length == 0
+?? js response.parsedBody[0].uploaderId == 1
+?? js response.parsedBody[0].uploaderHandle == viki_vejmelek
+?? js response.parsedBody[0].uploaderDisplayName == Victoria Vejmelek
+?? js response.parsedBody[0].uploadedAt != null
 
 
 ###########################################
@@ -103,6 +108,7 @@ Content-Type: image/jpeg
 
 ?? status == 200
 ?? js response.parsedBody.length == 1
+?? js response.parsedBody[0].canDelete == true
 
 
 ###########################################
@@ -121,3 +127,77 @@ X-User-Id: 1
 GET {{host}}/api/media/{{uploaded[0].id}}
 
 ?? status == 404
+
+
+###########################################
+### Other attendee of party 4 sees the upload as not deletable
+###########################################
+GET {{host}}/api/parties/4/media
+X-User-Id: 5
+
+?? status == 200
+?? js response.parsedBody.filter(item => item.id == uploaded[0].id && !item.canDelete).length == 1
+
+
+###########################################
+### Delete requires authentication
+###########################################
+DELETE {{host}}/api/media/{{uploaded[0].id}}
+
+?? status == 401
+
+
+###########################################
+### Other attendee cannot delete someone else's photo
+###########################################
+DELETE {{host}}/api/media/{{uploaded[0].id}}
+X-User-Id: 5
+
+?? status == 403
+
+
+###########################################
+### Party 4 host sees the upload as deletable
+###########################################
+GET {{host}}/api/parties/4/media
+X-User-Id: 4
+
+?? status == 200
+?? js response.parsedBody.filter(item => item.id == uploaded[0].id && item.canDelete).length == 1
+
+
+###########################################
+### Uploader deletes their photo
+###########################################
+DELETE {{host}}/api/media/{{uploaded[0].id}}
+X-User-Id: 1
+
+?? status == 204
+
+
+###########################################
+### Deleted photo is no longer served
+###########################################
+GET {{host}}/api/media/{{uploaded[0].id}}
+X-User-Id: 1
+
+?? status == 404
+
+
+###########################################
+### Deleting an unknown item
+###########################################
+DELETE {{host}}/api/media/999999
+X-User-Id: 1
+
+?? status == 404
+
+
+###########################################
+### Seed: media uploaded before upload times were recorded (party 10) reports no time
+###########################################
+GET {{host}}/api/parties/10/media
+
+?? status == 200
+?? js response.parsedBody[0].uploaderId == 10
+?? js response.parsedBody[0].uploadedAt == null

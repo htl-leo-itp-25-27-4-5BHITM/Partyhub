@@ -1623,11 +1623,6 @@ document.addEventListener("DOMContentLoaded", async function () {
       if (party.id != null) {
         article.dataset.id = party.id;
         link.href = `/advancedPartyInfos/advancedPartyInfos.html?id=${encodeURIComponent(party.id)}`;
-        article.addEventListener("click", (event) => {
-          if (!event.defaultPrevented && !event.target.closest("a, button, .party-extra")) {
-            link.click();
-          }
-        });
       }
 
       const infoValues = node.querySelectorAll(".info-value");

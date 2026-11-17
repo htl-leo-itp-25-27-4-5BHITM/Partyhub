@@ -1,5 +1,7 @@
 name: Test
 on:
+  pull_request:
+    branches: [ "main" ]
   push:
     branches: [ "main" ]
     paths:
@@ -27,6 +29,9 @@ jobs:
           distribution: 'temurin'
           java-version: '21'
           cache: 'maven'
+
+      - name: Browser regression tests
+        run: node --test scripts/tests/*.test.cjs src/test/js/*.test.cjs
 
       - name: Start databases and Keycloak
         run: |

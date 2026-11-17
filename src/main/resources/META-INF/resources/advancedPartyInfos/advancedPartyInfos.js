@@ -562,6 +562,7 @@ function normalizeInvitationStatus(status) {
 
 async function updatePartyDisplay(party) {
   updatePartyTitle(party);
+  updateHostDisplay(party);
   updateVisibilityDisplay(party);
   await updateMediaCount(party);
   updateLocationDisplay(party);
@@ -591,6 +592,28 @@ function updatePartyTitle(party) {
   }
 
   titleElement.textContent = party.title || party.name || "Loading...";
+}
+
+function updateHostDisplay(party) {
+  const hostElement = document.getElementById("party-host");
+  const hostLink = document.getElementById("party-host-link");
+  const host = party?.host_user;
+
+  if (!hostElement || !hostLink || !host) {
+    return;
+  }
+
+  hostLink.textContent = host.displayName || host.distinctName || host.username || "Unknown user";
+
+  if (host.distinctName) {
+    hostLink.href = `/profile/profile.html?handle=${encodeURIComponent(host.distinctName)}`;
+  } else if (host.id != null) {
+    hostLink.href = `/profile/profile.html?id=${encodeURIComponent(host.id)}`;
+  } else {
+    hostLink.removeAttribute("href");
+  }
+
+  hostElement.hidden = false;
 }
 
 function updateVisibilityDisplay(party) {
@@ -626,7 +649,10 @@ async function updateMediaCount(party) {
   }
 
   try {
-    const mediaResponse = await fetch(`/api/parties/${encodeURIComponent(party.id)}/media`);
+    // Send the token when logged in: private-party media is only listed for its viewers
+    const mediaResponse = await (window.authService?.apiCall || fetch)(`/api/parties/${encodeURIComponent(party.id)}/media`, {
+      authRequired: false
+    });
 
     if (mediaResponse.ok) {
       const media = await mediaResponse.json();
@@ -987,8 +1013,22 @@ function formatPartyTime(date) {
   });
 }
 
-function formatRelativeTime(date) {
-  const now = new Date();
+function getLocalCalendarDayDifference(date, referenceDate) {
+  const dateDay = Date.UTC(
+    date.getFullYear(),
+    date.getMonth(),
+    date.getDate()
+  );
+  const referenceDay = Date.UTC(
+    referenceDate.getFullYear(),
+    referenceDate.getMonth(),
+    referenceDate.getDate()
+  );
+
+  return Math.round((dateDay - referenceDay) / (1000 * 60 * 60 * 24));
+}
+
+function formatRelativeTime(date, now = new Date()) {
   const diffMs = date - now;
   const diffHours = diffMs / (1000 * 60 * 60);
   const diffMinutes = Math.abs(diffMs) / (1000 * 60);
@@ -1013,12 +1053,24 @@ function formatRelativeTime(date) {
       return `in ${hours}h ${minutes}m`;
     }
 
-    if (diffHours < 48) {
+    const calendarDayDifference = getLocalCalendarDayDifference(date, now);
+
+    if (calendarDayDifference === 1) {
       return "tomorrow";
     }
 
-    const days = Math.floor(diffHours / 24);
-    return `in ${days} days`;
+    if (calendarDayDifference > 1) {
+      return `in ${calendarDayDifference} days`;
+    }
+
+    const hours = Math.floor(diffHours);
+    const minutes = Math.floor((diffHours - hours) * 60);
+
+    if (minutes === 0) {
+      return `in ${hours}h`;
+    }
+
+    return `in ${hours}h ${minutes}m`;
   }
 
   if (diffMinutes < 60) {
@@ -1040,8 +1092,22 @@ function formatRelativeTime(date) {
     return `${hours}h ${minutes}m ago`;
   }
 
-  const days = Math.floor(Math.abs(diffHours) / 24);
-  return `${days} days ago`;
+  const calendarDayDifference = Math.abs(
+    getLocalCalendarDayDifference(date, now)
+  );
+
+  if (calendarDayDifference > 0) {
+    return `${calendarDayDifference} days ago`;
+  }
+
+  const hours = Math.floor(Math.abs(diffHours));
+  const minutes = Math.floor((Math.abs(diffHours) - hours) * 60);
+
+  if (minutes === 0) {
+    return `${hours}h ago`;
+  }
+
+  return `${hours}h ${minutes}m ago`;
 }
 
 function formatTimeSpan(startDate, endDate) {

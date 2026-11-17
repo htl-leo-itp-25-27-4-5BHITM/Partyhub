@@ -41,6 +41,9 @@ public class PartyResource {
     @Inject
     EntityManager em;
 
+    @Inject
+    PartySocialService partySocialService;
+
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     @Path("")
@@ -77,8 +80,10 @@ public class PartyResource {
 
         try {
             FilterParams filters = new FilterParams(q, theme, userAge, free, userLatitude, userLongitude, distanceKm, limit, offset);
-            return Response.ok(partyRepository.findVisibleParties(filters, actualUserId, dateFrom, dateTo, sort,
-                    Boolean.TRUE.equals(includePast) && actualUserId != null)).build();
+            List<Party> parties = partyRepository.findVisibleParties(filters, actualUserId, dateFrom, dateTo, sort,
+                    Boolean.TRUE.equals(includePast) && actualUserId != null);
+            partySocialService.enrichVisibleParties(parties, actualUserId, false);
+            return Response.ok(parties).header("Cache-Control", "private, no-store").build();
         } catch (IllegalArgumentException | java.time.DateTimeException e) {
             return Response.status(400).entity("Invalid party filters").build();
         }
@@ -273,6 +278,6 @@ public class PartyResource {
         if (partyRepository.getPartyByIdIfVisible(partyId, callerId) == null) {
             return Response.status(Response.Status.NOT_FOUND).build();
         }
-        return Response.ok().entity(mediaRepository.getMediaByParty(partyId)).build();
+        return Response.ok().entity(mediaRepository.getMediaByParty(partyId, callerId)).build();
     }
 }
