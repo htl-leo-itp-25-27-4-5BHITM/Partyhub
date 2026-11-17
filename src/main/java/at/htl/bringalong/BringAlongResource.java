@@ -26,7 +26,6 @@ import java.util.stream.Collectors;
 
 @ApplicationScoped
 @Path("/api/parties/{partyId}/bring-along")
-@Authenticated
 @Produces(MediaType.APPLICATION_JSON)
 public class BringAlongResource {
     @Inject EntityManager em;
@@ -36,23 +35,30 @@ public class BringAlongResource {
     @Inject Event<BringAlongChanged> changed;
 
     private record Member(Party party, Long userId, boolean host) {}
+    private record Reader(Party party, boolean member) {}
 
+    // Not @Authenticated: public parties expose an anonymised list to visitors (see resolveReader).
     @GET
     @Transactional
     public List<BringAlongItemDto> list(@PathParam("partyId") Long partyId) {
-        Member member = requireMember(partyId);
+        Reader reader = resolveReader(partyId);
         List<BringAlongItem> items = em.createQuery(
                         "select i from BringAlongItem i where i.party.id = :partyId order by i.createdAt, i.id",
                         BringAlongItem.class)
-                .setParameter("partyId", member.party().getId()).getResultList();
+                .setParameter("partyId", reader.party().getId()).getResultList();
         Map<Long, List<BringAlongPledge>> pledges = em.createQuery(
                         "select p from BringAlongPledge p join fetch p.user where p.item.party.id = :partyId order by p.id",
                         BringAlongPledge.class)
-                .setParameter("partyId", member.party().getId()).getResultList().stream()
+                .setParameter("partyId", reader.party().getId()).getResultList().stream()
                 .collect(Collectors.groupingBy(p -> p.item.id));
-        return items.stream().map(i -> BringAlongItemDto.from(i, pledges.getOrDefault(i.id, List.of()))).toList();
+        return items.stream()
+                .map(i -> reader.member()
+                        ? BringAlongItemDto.from(i, pledges.getOrDefault(i.id, List.of()))
+                        : BringAlongItemDto.forPublic(i, pledges.getOrDefault(i.id, List.of())))
+                .toList();
     }
 
+    @Authenticated
     @GET
     @Path("/events")
     @Produces(MediaType.SERVER_SENT_EVENTS)
@@ -66,6 +72,7 @@ public class BringAlongResource {
         events.subscribe(partyId, sink, sse);
     }
 
+    @Authenticated
     @POST
     @Path("/items")
     @Consumes(MediaType.APPLICATION_JSON)
@@ -81,6 +88,7 @@ public class BringAlongResource {
         return Response.status(Response.Status.CREATED).entity(BringAlongItemDto.from(item, List.of())).build();
     }
 
+    @Authenticated
     @PUT
     @Path("/items/{itemId}")
     @Consumes(MediaType.APPLICATION_JSON)
@@ -94,6 +102,7 @@ public class BringAlongResource {
         return BringAlongItemDto.from(item, pledgesOf(itemId));
     }
 
+    @Authenticated
     @DELETE
     @Path("/items/{itemId}")
     @Transactional
@@ -107,6 +116,7 @@ public class BringAlongResource {
         return Response.noContent().build();
     }
 
+    @Authenticated
     @PUT
     @Path("/items/{itemId}/pledge")
     @Consumes(MediaType.APPLICATION_JSON)
@@ -147,6 +157,7 @@ public class BringAlongResource {
         return Response.ok(BringAlongItemDto.from(item, pledgesOf(itemId))).build();
     }
 
+    @Authenticated
     @DELETE
     @Path("/items/{itemId}/pledge")
     @Transactional
@@ -180,11 +191,33 @@ public class BringAlongResource {
         Party party = parties.getPartyByIdIfVisible(partyId, userId);
         if (party == null) throw error(Response.Status.NOT_FOUND, "Party not found");
         boolean host = party.getHost_user() != null && party.getHost_user().getId().equals(userId);
-        boolean attendee = em.createQuery(
-                        "select count(u) from Party p join p.users u where p.id = :partyId and u.id = :userId", Long.class)
-                .setParameter("partyId", partyId).setParameter("userId", userId).getSingleResult() > 0;
+        boolean attendee = isAttendee(partyId, userId);
         if (!host && !attendee) throw error(Response.Status.FORBIDDEN, "Join the party to use the bring-along list");
         return new Member(party, userId, host);
+    }
+
+    /**
+     * Members of any visible party, and everyone (also anonymous) for a visible public party.
+     * Non-members of a private party they can view get 403, like {@link #requireMember}.
+     */
+    private Reader resolveReader(Long partyId) {
+        Long userId = currentUser.currentUserIdIfAuthenticated().orElse(null);
+        Party party = parties.getPartyByIdIfVisible(partyId, userId);
+        if (party == null) throw error(Response.Status.NOT_FOUND, "Party not found");
+        if (userId != null) {
+            boolean host = party.getHost_user() != null && party.getHost_user().getId().equals(userId);
+            if (host || isAttendee(partyId, userId)) return new Reader(party, true);
+        }
+        if (!"PUBLIC".equalsIgnoreCase(party.getVisibility())) {
+            throw error(Response.Status.FORBIDDEN, "Join the party to use the bring-along list");
+        }
+        return new Reader(party, false);
+    }
+
+    private boolean isAttendee(Long partyId, Long userId) {
+        return em.createQuery(
+                        "select count(u) from Party p join p.users u where p.id = :partyId and u.id = :userId", Long.class)
+                .setParameter("partyId", partyId).setParameter("userId", userId).getSingleResult() > 0;
     }
 
     private Member requireHost(Long partyId) {
