@@ -206,7 +206,7 @@ the live OpenAPI document is served at `/q/openapi`.
 - /opsx: apply
 - /opsx: archive
 - commit
-- /clear 
+- /clear
 - read '/folder' and write me a continuation file for a new cold thread.
 
 
