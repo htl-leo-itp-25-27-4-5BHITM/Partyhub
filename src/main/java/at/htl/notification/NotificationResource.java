@@ -58,6 +58,17 @@ public class NotificationResource {
     }
 
     @POST
+    @Path("/read-all")
+    @Produces(MediaType.APPLICATION_JSON)
+    @Transactional
+    @Authenticated
+    public Response markAllAsRead() {
+        Long actualUserId = currentUserResolver.requireCurrentUserId();
+        int updated = notificationRepository.markAllAsRead(actualUserId);
+        return Response.ok(java.util.Map.of("updated", updated)).build();
+    }
+
+    @POST
     @Path("/{id}/read")
     @Transactional
     @Authenticated

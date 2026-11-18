@@ -88,6 +88,17 @@ public class NotificationRepository {
                 .getResultList();
     }
 
+    public int markAllAsRead(Long userId) {
+        if (userId == null) {
+            return 0;
+        }
+        return entityManager.createQuery(
+                "UPDATE Notification n SET n.status = 'READ' " +
+                        "WHERE n.recipient.id = :userId AND n.status = 'UNREAD'")
+                .setParameter("userId", userId)
+                .executeUpdate();
+    }
+
     public Response markAsRead(Long notificationId, Long userId) {
         if (notificationId == null || userId == null) {
             return Response.status(Response.Status.BAD_REQUEST).build();
