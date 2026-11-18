@@ -397,7 +397,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   }
 
   async function fetchUsers(url) {
-    const response = await fetch(url);
+    const response = await window.authService.apiCall(url, { cache: "no-store" });
 
     if (!response.ok) {
       throw new Error(`Users could not be loaded: ${response.status}`);

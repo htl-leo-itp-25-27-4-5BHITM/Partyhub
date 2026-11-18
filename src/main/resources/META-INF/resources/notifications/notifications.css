@@ -17,6 +17,11 @@
   box-shadow: none;
   border: 0;
   z-index: auto;
+  /* .container clips overflow, so the panel itself must scroll */
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
 }
 
 .notif-list {
