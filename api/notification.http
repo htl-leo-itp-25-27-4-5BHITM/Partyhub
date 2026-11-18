@@ -37,6 +37,15 @@ X-User-Id: 2
 
 
 ###########################################
+### Unread count for Michael
+###########################################
+GET {{baseUrl}}/unread/count
+X-User-Id: 2
+
+?? status == 200
+
+
+###########################################
 ### Mark all of Michael's notifications as read
 ###########################################
 POST {{baseUrl}}/read-all
