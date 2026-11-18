@@ -66,6 +66,12 @@ public class Party {
     @Column(name = "visibility", nullable = false)
     private String visibility = "PUBLIC";
 
+    @Transient
+    private PartySocialService.Summary discoverySocial;
+
+    public PartySocialService.Summary getDiscoverySocial() { return discoverySocial; }
+    public void setDiscoverySocial(PartySocialService.Summary summary) { discoverySocial = summary; }
+
     public Party() {}
 
     public Long getId() {

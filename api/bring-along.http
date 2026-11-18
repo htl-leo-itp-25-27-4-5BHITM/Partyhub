@@ -8,18 +8,46 @@
 @outsider = 4
 
 ###########################################
-### Anonymous caller is rejected
+### Anonymous caller reads the anonymised list of a public party
+### (seed party 11 has items and pledges; user 7 has not joined it)
 ###########################################
-GET {{baseUrl}}
+GET {{host}}/api/parties/11/bring-along
+
+?? status == 200
+?? js response.parsedBody.length > 0
+?? js JSON.stringify(response.parsedBody).includes("pledges") == false
+
+
+###########################################
+### Public party, logged in but not joined -> anonymised list
+###########################################
+GET {{host}}/api/parties/11/bring-along
+X-User-Id: {{mia}}
+
+?? status == 200
+?? js response.parsedBody[0].pledged > 0
+?? js JSON.stringify(response.parsedBody).includes("pledges") == false
+
+
+###########################################
+### Anonymous caller cannot add items
+###########################################
+POST {{baseUrl}}/items
+Content-Type: application/json
+
+{ "name": "Chips", "quantity": 3, "unit": "Packung" }
 
 ?? status == 401
 
 
 ###########################################
-### Visible party, but not joined -> 403
+### Public party, not joined -> cannot pledge
 ###########################################
-GET {{baseUrl}}
+PUT {{baseUrl}}/items/1/pledge
 X-User-Id: {{outsider}}
+Content-Type: application/json
+
+{ "quantity": 1 }
 
 ?? status == 403
 

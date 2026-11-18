@@ -1,6 +1,8 @@
 // Bring-along list on the party detail page.
 // The list stays live: the server pushes "changed" signals over SSE and the page refetches.
 // If the stream is down, the page polls every 4 s while it is visible.
+// Visitors of a public party (logged out or not joined) get a read-only list without names
+// and no live stream; it refreshes when the tab becomes visible again.
 
 (function () {
   const POLL_MS = 4000; // stays under the 5 s freshness target incl. request time
@@ -12,6 +14,7 @@
     items: [],
     isHost: false,
     isMember: false,
+    readOnly: false, // anonymised list of a public party for non-members
     userId: null,
     drafts: new Map(), // input key -> unsent value
     errors: new Map(), // item id -> message
@@ -41,7 +44,7 @@
     });
     setupAddForm();
     document.addEventListener("visibilitychange", () => {
-      if (!document.hidden && state.isMember) {
+      if (!document.hidden && (state.isMember || state.readOnly)) {
         reload();
       }
     });
@@ -81,20 +84,21 @@
   }
 
   async function load() {
-    if (!window.authService?.isLoggedIn?.()) {
-      setMember(false);
-      showHint("Log in and join the party to see what to bring.");
-      return;
-    }
+    const loggedIn = Boolean(window.authService?.isLoggedIn?.());
 
     let response;
     try {
-      response = await window.authService.apiCall(base());
+      response = loggedIn ? await window.authService.apiCall(base()) : await fetch(base());
     } catch (error) {
       console.warn("Bring-along list could not be loaded:", error);
       return; // keep the last state; polling or the stream will retry
     }
 
+    if (response.status === 401) {
+      setMember(false);
+      showHint("Log in and join the party to see what to bring.");
+      return;
+    }
     if (response.status === 403) {
       setMember(false);
       showHint("Join the party to see the bring-along list.");
@@ -110,13 +114,42 @@
       return;
     }
 
-    state.items = await response.json();
+    const items = await response.json();
+    if (!loggedIn || !(await isMemberList(items))) {
+      setMember(false);
+      state.readOnly = true;
+      state.items = items;
+      render();
+      return;
+    }
+
+    state.readOnly = false;
+    state.items = items;
     if (!state.isMember) {
       state.userId = Number(await currentUserId());
       state.isHost = await checkHost();
       setMember(true);
     }
     render();
+  }
+
+  // Members get pledges with every item; non-members of a public party get none.
+  // An empty list carries no such signal, so ask the server directly.
+  async function isMemberList(items) {
+    if (items.length) {
+      return Array.isArray(items[0].pledges);
+    }
+    try {
+      const response = await window.authService.apiCall(
+        `/api/parties/${encodeURIComponent(state.partyId)}/join/status`
+      );
+      if (response.ok && (await response.json()).attending === true) {
+        return true;
+      }
+    } catch (error) {
+      // fall through to the host check
+    }
+    return checkHost();
   }
 
   async function currentUserId() {
@@ -142,6 +175,7 @@
   function setMember(isMember) {
     const changed = state.isMember !== isMember;
     state.isMember = isMember;
+    state.readOnly = false;
     if (!isMember) {
       state.isHost = false;
       state.items = [];
@@ -264,7 +298,15 @@
     const hint = document.getElementById("bring-along-hint");
     const focus = captureFocus();
 
-    if (!state.items.length) {
+    if (state.readOnly) {
+      list.replaceChildren(...state.items.map(renderReadOnlyItem));
+      hint.textContent = !state.items.length
+        ? "The host hasn't added anything to bring yet."
+        : window.authService?.isLoggedIn?.()
+          ? "Join the party to pledge what you bring."
+          : "Log in and join the party to pledge what you bring.";
+      hint.hidden = false;
+    } else if (!state.items.length) {
       list.replaceChildren();
       hint.textContent = state.isHost
         ? "Nothing on the list yet. Add what your guests should bring."
@@ -320,6 +362,24 @@
       li.append(renderHostControls(item));
     }
     appendError(li, item.id);
+    return li;
+  }
+
+  // Visitors see totals only: no names, no pledge or host controls.
+  function renderReadOnlyItem(item) {
+    const li = el("li", "ba-item");
+    li.dataset.itemId = item.id;
+    li.classList.toggle("is-fulfilled", item.fulfilled);
+    const unit = item.unit ? ` ${decode(item.unit)}` : "";
+    const info = el("div", "ba-item-info");
+    info.append(
+      el("span", "ba-name", decode(item.name)),
+      el("span", "ba-availability", item.fulfilled ? "All covered" : `${item.remaining}${unit} still needed`),
+      el("span", "ba-total", `${item.pledged} / ${item.quantity}${unit}`)
+    );
+    const row = el("div", "ba-item-row");
+    row.append(info);
+    li.append(row);
     return li;
   }
 

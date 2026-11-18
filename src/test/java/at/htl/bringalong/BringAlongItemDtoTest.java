@@ -1,6 +1,7 @@
 package at.htl.bringalong;
 
 import at.htl.user.User;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Test;
 import java.util.List;
 import static org.junit.jupiter.api.Assertions.*;
@@ -66,5 +67,17 @@ class BringAlongItemDtoTest {
         BringAlongItemDto dto = BringAlongItemDto.from(item(1), List.of(pledge(1, "Tom \"T\"", 1)));
         assertEquals("Chips &amp; Dips", dto.name());
         assertEquals("Tom &#34;T&#34;", dto.pledges().get(0).displayName());
+    }
+
+    @Test
+    void publicViewKeepsTotalsButHidesPledges() throws Exception {
+        BringAlongItemDto dto = BringAlongItemDto.forPublic(item(3), List.of(pledge(7, "Anna", 2)));
+        assertEquals(2, dto.pledged());
+        assertEquals(1, dto.remaining());
+        assertFalse(dto.fulfilled());
+        assertNull(dto.pledges());
+        String json = new ObjectMapper().writeValueAsString(dto);
+        assertFalse(json.contains("pledges"));
+        assertFalse(json.contains("Anna"));
     }
 }
