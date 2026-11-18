@@ -88,6 +88,18 @@ public class NotificationRepository {
                 .getResultList();
     }
 
+    public long countUnreadNotifications(Long userId) {
+        if (userId == null) {
+            return 0;
+        }
+        return entityManager.createQuery(
+                "SELECT COUNT(n) FROM Notification n " +
+                        "WHERE n.recipient.id = :userId AND n.status = 'UNREAD'",
+                Long.class)
+                .setParameter("userId", userId)
+                .getSingleResult();
+    }
+
     public int markAllAsRead(Long userId) {
         if (userId == null) {
             return 0;

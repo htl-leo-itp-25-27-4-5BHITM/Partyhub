@@ -162,6 +162,23 @@ public class NotificationRepositoryTest {
     }
 
     @Test
+    void testCountUnreadNotifications() {
+        User sender = createUser("sender_count");
+        User recipient = createUser("recipient_count");
+
+        entityManager.persist(new Notification(recipient, sender, null, "One"));
+        entityManager.persist(new Notification(recipient, sender, null, "Two"));
+        Notification read = new Notification(recipient, sender, null, "Read");
+        read.setStatus("READ");
+        entityManager.persist(read);
+        entityManager.flush();
+
+        assertEquals(2, notificationRepository.countUnreadNotifications(recipient.getId()));
+        assertEquals(0, notificationRepository.countUnreadNotifications(sender.getId()));
+        assertEquals(0, notificationRepository.countUnreadNotifications(null));
+    }
+
+    @Test
     void testMarkAllAsRead_nullUserId() {
         assertEquals(0, notificationRepository.markAllAsRead(null));
     }

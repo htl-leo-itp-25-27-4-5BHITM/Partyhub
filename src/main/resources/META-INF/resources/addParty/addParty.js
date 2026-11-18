@@ -679,7 +679,9 @@ document.addEventListener("DOMContentLoaded", async () => {
     reverseGeocodeAddress(state.latitude, state.longitude);
   }
 
-  state.visibility = party.visibility || "private";
+  // The backend stores "PRIVATE"/"PUBLIC"; the wizard works with lowercase modes.
+  state.visibility =
+    String(party.visibility || "private").trim().toLowerCase() === "public" ? "public" : "private";
   visibility = state.visibility;
 
   state.entry_costs =

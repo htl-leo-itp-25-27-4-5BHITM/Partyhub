@@ -97,6 +97,24 @@ public class NotificationResourceTest extends TestBase {
     }
 
     @Test
+    void testUnreadCount_noUser() {
+        given()
+            .when().get("/api/notifications/unread/count")
+            .then()
+            .statusCode(401);
+    }
+
+    @Test
+    void testUnreadCount_withUser() {
+        given()
+            .header("X-User-Id", "2")
+            .when().get("/api/notifications/unread/count")
+            .then()
+            .statusCode(200)
+            .body("count", greaterThanOrEqualTo(0));
+    }
+
+    @Test
     void testMarkAllAsRead_noUser() {
         given()
             .when().post("/api/notifications/read-all")

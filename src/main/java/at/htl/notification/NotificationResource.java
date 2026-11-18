@@ -57,6 +57,17 @@ public class NotificationResource {
         return Response.ok().entity(notifications).build();
     }
 
+    @GET
+    @Produces(MediaType.APPLICATION_JSON)
+    @Path("/unread/count")
+    @Transactional
+    @Authenticated
+    public Response getUnreadCount() {
+        Long actualUserId = currentUserResolver.requireCurrentUserId();
+        long count = notificationRepository.countUnreadNotifications(actualUserId);
+        return Response.ok(java.util.Map.of("count", count)).build();
+    }
+
     @POST
     @Path("/read-all")
     @Produces(MediaType.APPLICATION_JSON)
