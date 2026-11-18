@@ -263,6 +263,36 @@ a {
   transition: transform 0.18s ease, background 0.18s ease, color 0.18s ease;
 }
 
+.nav-btn {
+  position: relative;
+}
+
+.nav-badge {
+  position: absolute;
+  top: 4px;
+  left: calc(50% + 4px);
+  min-width: 20px;
+  height: 20px;
+  padding: 0 6px;
+  border-radius: 999px;
+  background: var(--accent-color);
+  color: #fff;
+  border: 2px solid var(--primary-color);
+  font-family: var(--font-family);
+  font-size: 0.68rem;
+  font-weight: 800;
+  line-height: 16px;
+  text-align: center;
+  pointer-events: none;
+  box-shadow: 0 2px 8px rgba(255, 46, 99, 0.45);
+  animation: nav-badge-pop 0.25s ease-out;
+}
+
+@keyframes nav-badge-pop {
+  from { transform: scale(0.4); opacity: 0; }
+  to { transform: scale(1); opacity: 1; }
+}
+
 .nav-btn:hover {
   transform: translateY(-2px);
   background: rgba(255, 255, 255, 0.06);

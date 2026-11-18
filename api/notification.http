@@ -37,6 +37,23 @@ X-User-Id: 2
 
 
 ###########################################
+### Mark all of Michael's notifications as read
+###########################################
+POST {{baseUrl}}/read-all
+X-User-Id: 2
+
+?? status == 200
+
+
+###########################################
+### Mark all as read requires a user
+###########################################
+POST {{baseUrl}}/read-all
+
+?? status == 401
+
+
+###########################################
 ### Other users cannot mark Michael's notification
 ###########################################
 POST {{baseUrl}}/1/read

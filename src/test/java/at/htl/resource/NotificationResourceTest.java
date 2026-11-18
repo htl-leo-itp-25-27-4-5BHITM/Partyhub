@@ -97,6 +97,31 @@ public class NotificationResourceTest extends TestBase {
     }
 
     @Test
+    void testMarkAllAsRead_noUser() {
+        given()
+            .when().post("/api/notifications/read-all")
+            .then()
+            .statusCode(401);
+    }
+
+    @Test
+    void testMarkAllAsRead_withUser() {
+        given()
+            .header("X-User-Id", "2")
+            .when().post("/api/notifications/read-all")
+            .then()
+            .statusCode(200)
+            .body("updated", greaterThanOrEqualTo(0));
+
+        given()
+            .header("X-User-Id", "2")
+            .when().get("/api/notifications/unread")
+            .then()
+            .statusCode(200)
+            .body("size()", is(0));
+    }
+
+    @Test
     void testDeleteNotification_notFound() {
         given()
             .header("X-User-Id", "2")

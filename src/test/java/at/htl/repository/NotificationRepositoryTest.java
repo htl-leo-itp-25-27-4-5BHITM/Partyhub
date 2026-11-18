@@ -141,6 +141,32 @@ public class NotificationRepositoryTest {
     }
 
     @Test
+    void testMarkAllAsRead_onlyAffectsRecipient() {
+        User sender = createUser("sender_all");
+        User recipient = createUser("recipient_all");
+        User otherUser = createUser("other_all");
+
+        entityManager.persist(new Notification(recipient, sender, null, "First"));
+        entityManager.persist(new Notification(recipient, sender, null, "Second"));
+        Notification foreign = new Notification(otherUser, sender, null, "Foreign");
+        entityManager.persist(foreign);
+        entityManager.flush();
+
+        int updated = notificationRepository.markAllAsRead(recipient.getId());
+        entityManager.clear();
+
+        assertEquals(2, updated);
+        assertTrue(notificationRepository.getUnreadNotifications(recipient.getId()).isEmpty());
+        assertEquals(1, notificationRepository.getUnreadNotifications(otherUser.getId()).size());
+        assertEquals(0, notificationRepository.markAllAsRead(recipient.getId()));
+    }
+
+    @Test
+    void testMarkAllAsRead_nullUserId() {
+        assertEquals(0, notificationRepository.markAllAsRead(null));
+    }
+
+    @Test
     void testMarkAsRead_notFound() {
         User user = createUser("user3");
         Response response = notificationRepository.markAsRead(999L, user.getId());
