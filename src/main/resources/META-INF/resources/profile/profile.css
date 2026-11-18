@@ -1365,3 +1365,63 @@ body.bg-light.profile-page .app-shell > .container {
 #partiesContainer .party-name {
   overflow-wrap: anywhere;
 }
+
+/* Party/post action buttons (edit, delete, details) */
+:is(.party-actions, .post-actions) {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
+:is(.party-actions, .post-actions) .icon-btn {
+  display: inline-grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  padding: 0;
+  border: 1px solid var(--border-soft);
+  border-radius: 10px;
+  background: var(--bg-tertiary);
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: color .15s ease, border-color .15s ease, background-color .15s ease, transform .15s ease;
+}
+
+:is(.party-actions, .post-actions) .icon-btn svg {
+  display: block;
+  pointer-events: none;
+}
+
+:is(.party-actions, .post-actions) .icon-btn:hover {
+  color: var(--text-primary);
+  border-color: rgba(255, 255, 255, 0.28);
+}
+
+:is(.party-actions, .post-actions) .edit-btn:hover {
+  color: #56f27c;
+  border-color: rgba(86, 242, 124, 0.45);
+}
+
+:is(.party-actions, .post-actions) .delete-btn:hover {
+  color: #ff8fae;
+  border-color: rgba(255, 46, 99, 0.5);
+  background: rgba(255, 46, 99, 0.12);
+}
+
+:is(.party-actions, .post-actions) .icon-btn:active {
+  transform: scale(0.94);
+}
+
+:is(.party-actions, .post-actions) .icon-btn:focus-visible {
+  outline: 2px solid #56f27c;
+  outline-offset: 2px;
+}
+
+.party-actions .details-btn svg {
+  transition: transform .2s ease;
+}
+
+.party-actions .details-btn[aria-expanded="true"] svg {
+  transform: rotate(45deg);
+}
