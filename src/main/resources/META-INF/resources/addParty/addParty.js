@@ -74,6 +74,8 @@ document.addEventListener("DOMContentLoaded", async () => {
     5: "Map Preview",
   };
 
+  let draftStore = null;
+  let activeDraftId = null;
   init();
 
   async function init() {
@@ -88,9 +90,91 @@ document.addEventListener("DOMContentLoaded", async () => {
       await window.BringAlongStep?.load(editPartyId);
     }
 
+    setupDrafts();
     await loadUsers();
 
-    showStep(1);
+    showStep(currentStep);
+  }
+
+  // A new editor is always independent of previously saved drafts.
+  function setupDrafts() {
+    const save = document.getElementById("saveDraft");
+    document.getElementById("draftActions").hidden = isEditMode;
+    if (isEditMode) return;
+    const userId = getCurrentUserIdSafe();
+    if (!userId || !window.PartyDrafts) {
+      save.disabled = true;
+      return;
+    }
+    draftStore = window.PartyDrafts.forUser(userId);
+    const requestedId = params.get("draft");
+    if (requestedId) {
+      try {
+        const saved = draftStore.get(requestedId);
+        if (saved) {
+          activeDraftId = saved.id;
+          restoreDraft(saved);
+        } else {
+          showFeedback("Draft not found. You can start a new party.", "error");
+        }
+      } catch (error) {
+        console.warn("Draft could not be opened", error);
+        // Do not overwrite a draft we could not load.
+        save.disabled = true;
+        showFeedback("This draft could not be opened. Return to Drafts and try again.", "error");
+      }
+    }
+    function showSavedState(saved) {
+      save.dataset.saved = String(saved);
+      save.setAttribute("aria-disabled", String(saved));
+      document.getElementById("draftSaveLabel").textContent = saved ? "Saved" : "Save draft";
+    }
+    showSavedState(Boolean(activeDraftId) && !save.disabled);
+    form.addEventListener("input", () => showSavedState(false));
+    form.addEventListener("change", () => showSavedState(false));
+    form.addEventListener("click", (event) => {
+      if (event.target.closest(".vis-card, .ba-step-btn, .ba-step-link, .suggestion-item")) showSavedState(false);
+    });
+    save.addEventListener("click", () => {
+      if (save.dataset.saved === "true") return;
+      readFormIntoState();
+      const fields = {};
+      for (const input of form.querySelectorAll("input[name], textarea[name], select[name]")) {
+        if (input.type !== "checkbox" && input.type !== "file") fields[input.name] = input.value;
+      }
+      try {
+        const saved = draftStore.save({
+          fields, step: currentStep, visibility, selectedUsers,
+          latitude: state.latitude, longitude: state.longitude,
+          bringAlong: window.BringAlongStep?.snapshot(),
+        }, activeDraftId);
+        activeDraftId = saved.id;
+        const url = new URL(window.location.href);
+        url.searchParams.set("draft", activeDraftId);
+        window.history.replaceState(null, "", url);
+        clearFeedback();
+        showSavedState(true);
+      } catch {
+        showSavedState(false);
+        showFeedback("Draft could not be saved. Please try again.", "error");
+      }
+    });
+  }
+
+  function restoreDraft(saved) {
+    for (const input of form.querySelectorAll("input[name], textarea[name], select[name]")) {
+      if (Object.hasOwn(saved.fields, input.name)) input.value = saved.fields[input.name];
+    }
+    state.latitude = saved.latitude ?? null;
+    state.longitude = saved.longitude ?? null;
+    visibility = saved.visibility === "public" ? "public" : "private";
+    selectedUsers = saved.selectedUsers || [];
+    setVisibilityFromParty();
+    fpStart?.setDate(saved.fields.time_start || null, false, "d.m.Y H:i");
+    fpEnd?.setDate(saved.fields.time_end || null, false, "d.m.Y H:i");
+    readFormIntoState();
+    window.BringAlongStep?.restore(saved.bringAlong);
+    currentStep = Math.min(LAST_STEP, Math.max(1, Number(saved.step) || 1));
   }
 
   function setupFlatpickr() {
@@ -1011,13 +1095,9 @@ function parseBackendDate(value) {
     state.max_age = getNumberValue("max_age");
     state.website = emptyToNull(getInputValue("website"));
 
-    if (fpStart && fpStart.selectedDates.length > 0) {
-      state.time_start = fpStart.selectedDates[0];
-    }
+    if (fpStart) state.time_start = fpStart.selectedDates[0] || null;
 
-    if (fpEnd && fpEnd.selectedDates.length > 0) {
-      state.time_end = fpEnd.selectedDates[0];
-    }
+    if (fpEnd) state.time_end = fpEnd.selectedDates[0] || null;
   }
 
   function getInputValue(name) {
@@ -1177,6 +1257,13 @@ function parseBackendDate(value) {
   }
 
   async function saveParty() {
+  for (const step of [1, 3, 4]) {
+    if (!validateStep(step)) {
+      currentStep = step;
+      showStep(step);
+      return;
+    }
+  }
   readFormIntoState();
 
   if (!state.latitude || !state.longitude) {
@@ -1257,6 +1344,10 @@ function parseBackendDate(value) {
 
     console.log("Saved party:", savedParty);
 
+    // A successful create consumes the draft even if later bring-along requests fail.
+    if (!isEditMode && draftStore && activeDraftId) {
+      try { draftStore.remove(activeDraftId); } catch (error) { console.warn("Draft cleanup failed", error); }
+    }
     const partyId = isEditMode ? editPartyId : partyIdFromLocation(response.headers.get("Location"));
     const bringAlong = window.BringAlongStep;
 
@@ -1322,6 +1413,7 @@ function parseBackendDate(value) {
     }
 
     continueBtn.disabled = isSaving;
+    document.getElementById("saveDraft").disabled = isSaving;
     continueBtn.textContent = isSaving
       ? "Saving..."
       : currentStep === LAST_STEP
