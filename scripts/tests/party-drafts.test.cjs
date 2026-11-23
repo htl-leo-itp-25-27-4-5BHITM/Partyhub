@@ -11,7 +11,7 @@ async function boot(storage = new Map(), user = '1', search = '') {
     if (!nodes.has(id)) nodes.set(id, { value: '', name: id, type: 'text', hidden: true, disabled: false,
       handlers: {}, addEventListener(name, fn) { this.handlers[name] = fn; },
       classList: { add() {}, remove() {}, toggle() {} }, setAttribute() {}, removeAttribute() {},
-      textContent: '', innerHTML: '', style: {} });
+      textContent: '', innerHTML: '', style: {}, dataset: {} });
     return nodes.get(id);
   };
   const names = ['title', 'description', 'time_start', 'time_end', 'location_address', 'entry_costs', 'theme', 'min_age', 'max_age', 'website'];
@@ -45,7 +45,8 @@ test('saves incomplete values and restores only via its draft URL', async () => 
   first.node('description').value = 'Notes';
   first.node('time_start').value = '25.12.2026 20:00';
   first.click('saveDraft');
-  assert.equal(first.node('partyFeedback').textContent, 'Draft saved.');
+  assert.equal(first.node('draftSaveLabel').textContent, 'Saved');
+  assert.equal(first.node('partyFeedback').hidden, true);
   const draft = first.context.window.PartyDrafts.forUser('1').list()[0];
   const second = await boot(first.storage, '1', '?draft=' + draft.id);
   assert.equal(second.node('title').value, 'Unfinished party');
@@ -68,6 +69,7 @@ test('new forms stay blank and save independently while resumed saves update one
   const a = store.list().find(d => d.fields.title === 'Party A');
   const resumed = await boot(first.storage, '1', '?draft=' + a.id);
   resumed.node('title').value = 'Party A updated';
+  resumed.node('form').handlers.input();
   resumed.click('saveDraft');
   assert.equal(store.list().length, 2);
   assert.equal(store.get(a.id).fields.title, 'Party A updated');
@@ -97,4 +99,19 @@ test('failed storage writes show an error instead of claiming success', async ()
   app.click('saveDraft');
   assert.match(app.node('partyFeedback').textContent, /could not be saved/);
   assert.equal(app.storage.size, 0);
+});
+
+test('save feedback stays on the button and resets when the draft changes', async () => {
+  const app = await boot();
+  app.click('saveDraft');
+  assert.equal(app.node('draftSaveLabel').textContent, 'Saved');
+  assert.equal(app.node('saveDraft').dataset.saved, 'true');
+  assert.equal(app.node('partyFeedback').hidden, true);
+  app.node('title').value = 'Changed name';
+  app.node('form').handlers.input();
+  assert.equal(app.node('draftSaveLabel').textContent, 'Save draft');
+  app.click('saveDraft');
+  assert.equal(app.node('draftSaveLabel').textContent, 'Saved');
+  assert.equal(app.context.window.PartyDrafts.forUser('1').list().length, 1);
+  assert.equal(app.context.window.PartyDrafts.forUser('1').list()[0].fields.title, 'Changed name');
 });

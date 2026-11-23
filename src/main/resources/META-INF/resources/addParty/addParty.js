@@ -124,7 +124,19 @@ document.addEventListener("DOMContentLoaded", async () => {
         showFeedback("This draft could not be opened. Return to Drafts and try again.", "error");
       }
     }
+    function showSavedState(saved) {
+      save.dataset.saved = String(saved);
+      save.setAttribute("aria-disabled", String(saved));
+      document.getElementById("draftSaveLabel").textContent = saved ? "Saved" : "Save draft";
+    }
+    showSavedState(Boolean(activeDraftId) && !save.disabled);
+    form.addEventListener("input", () => showSavedState(false));
+    form.addEventListener("change", () => showSavedState(false));
+    form.addEventListener("click", (event) => {
+      if (event.target.closest(".vis-card, .ba-step-btn, .ba-step-link, .suggestion-item")) showSavedState(false);
+    });
     save.addEventListener("click", () => {
+      if (save.dataset.saved === "true") return;
       readFormIntoState();
       const fields = {};
       for (const input of form.querySelectorAll("input[name], textarea[name], select[name]")) {
@@ -140,8 +152,10 @@ document.addEventListener("DOMContentLoaded", async () => {
         const url = new URL(window.location.href);
         url.searchParams.set("draft", activeDraftId);
         window.history.replaceState(null, "", url);
-        showFeedback("Draft saved.");
+        clearFeedback();
+        showSavedState(true);
       } catch {
+        showSavedState(false);
         showFeedback("Draft could not be saved. Keep this page open and try again.", "error");
       }
     });

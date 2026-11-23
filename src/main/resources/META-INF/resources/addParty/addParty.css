@@ -498,3 +498,20 @@ body {
   text-underline-offset: 4px;
 }
 .editor-drafts-link:focus-visible { outline: 2px solid #56f27c; outline-offset: 2px; }
+
+#saveDraft {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-width: 124px;
+}
+.draft-saved-icon { display: none; flex: none; }
+#saveDraft[data-saved="true"] {
+  background: #193a2b;
+  border-color: #56f27c;
+  color: #a4f5ba;
+  cursor: default;
+}
+#saveDraft[data-saved="true"] .draft-saved-icon { display: block; }
+#saveDraft[data-saved="true"]:hover { background: #193a2b; border-color: #56f27c; }
