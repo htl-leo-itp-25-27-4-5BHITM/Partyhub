@@ -188,6 +188,8 @@ public class UserResource {
         user.setEmail(userCreateDto.email());
         user.setPhoneNumber(userCreateDto.phoneNumber());
         user.setBiography(userCreateDto.biography());
+        user.setGender(userCreateDto.gender());
+        user.setBirthDate(userCreateDto.birthDate());
         
         User merged = em.merge(user);
         logger.info("User merged successfully: " + merged.getId());

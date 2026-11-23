@@ -43,6 +43,10 @@ function populateForm(user) {
   document.getElementById("distinctName").value = user.distinctName || "";
   document.getElementById("email").value = user.email || "";
   document.getElementById("biography").value = user.biography || "";
+  document.getElementById("gender").value = user.gender || "";
+  const birthDateInput = document.getElementById("birthDate");
+  birthDateInput.value = user.birthDate || "";
+  birthDateInput.max = new Date(Date.now() - 86400000).toISOString().slice(0, 10);
 
   // Load profile picture - always use API endpoint (returns default if none exists)
   const profileImg = document.getElementById("currentProfileImg");
@@ -239,6 +243,8 @@ async function submitForm() {
       distinctName: document.getElementById("distinctName").value.trim(),
       email: document.getElementById("email").value.trim(),
       biography: document.getElementById("biography").value.trim(),
+      gender: document.getElementById("gender").value || null,
+      birthDate: document.getElementById("birthDate").value || null,
     };
 
     console.log("Sending PUT request to /api/users/" + userId, formData);

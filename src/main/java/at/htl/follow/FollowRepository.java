@@ -2,6 +2,8 @@ package at.htl.follow;
 
 import java.util.List;
 
+import at.htl.history.FollowEventType;
+import at.htl.history.HistoryRecorder;
 import at.htl.notification.Notification;
 import at.htl.notification.NotificationRepository;
 import at.htl.user.User;
@@ -19,6 +21,9 @@ public class FollowRepository {
 
     @Inject
     NotificationRepository notificationRepository;
+
+    @Inject
+    HistoryRecorder historyRecorder;
 
     public long getFollowerCount(long userId) {
         return entityManager.createQuery(
@@ -122,6 +127,7 @@ public class FollowRepository {
         FollowStatus acceptedStatus = entityManager.find(FollowStatus.class, 2L);
         follow.setStatus(acceptedStatus);
         entityManager.merge(follow);
+        historyRecorder.recordFollow(user1Id, user2Id, FollowEventType.FOLLOWED);
         notifyFollowAccepted(user1Id, user2Id);
 
         return Response.ok().entity("{\"message\": \"Follow request accepted\"}").build();
@@ -174,7 +180,12 @@ public Response removeFollow(long user1Id, long user2Id) {
                 .build();
     }
 
+    boolean wasAccepted = follow.getStatus() != null
+            && Long.valueOf(2L).equals(follow.getStatus().getStatus_id());
     entityManager.remove(follow);
+    if (wasAccepted) {
+        historyRecorder.recordFollow(user1Id, user2Id, FollowEventType.UNFOLLOWED);
+    }
     return Response.noContent().build();
 }
 }

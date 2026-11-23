@@ -1,0 +1,51 @@
+@host = http://localhost:8080
+@baseUrl = {{host}}/api/dashboard
+
+###
+### Seed: Victoria's dashboard, default range (30 days)
+###
+GET {{baseUrl}}
+X-User-Id: 1
+
+?? status == 200
+?? body range == 30d
+
+
+###
+### Seed: 7-day range has one timeline point per day
+###
+GET {{baseUrl}}?range=7d
+X-User-Id: 1
+
+?? status == 200
+?? body range == 7d
+?? body timeline.bucket == DAY
+?? js response.parsedBody.timeline.points.length == 7
+
+
+###
+### Seed: 6-month range uses weekly buckets and enough guests for the gender split
+###
+GET {{baseUrl}}?range=6m
+X-User-Id: 1
+
+?? status == 200
+?? body timeline.bucket == WEEK
+?? body gender.withheld == false
+
+
+###
+### Unsupported range is rejected
+###
+GET {{baseUrl}}?range=1y
+X-User-Id: 1
+
+?? status == 400
+
+
+###
+### Without login the dashboard is not available
+###
+GET {{baseUrl}}
+
+?? status == 401
