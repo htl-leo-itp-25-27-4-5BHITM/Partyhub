@@ -490,3 +490,20 @@ body {
   font-size: 14px;
 }
 .saved-draft-actions { display: flex; flex: none; gap: 4px; }
+
+#saveDraft {
+  min-height: 48px;
+  padding: 12px 16px;
+  border: 1px solid #a99bd7;
+  border-radius: 18px;
+  background: #2a2259;
+  color: #ffffff;
+  font-weight: 600;
+}
+#saveDraft:hover:not(:disabled) { background: #4f3b9a; border-color: #ffffff; }
+#saveDraft:disabled {
+  opacity: 1;
+  color: #c9c1df;
+  border-color: #796d99;
+  background: #221a4d;
+}

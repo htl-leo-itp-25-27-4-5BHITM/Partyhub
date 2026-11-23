@@ -178,7 +178,7 @@ document.addEventListener("DOMContentLoaded", async () => {
       try {
         localStorage.setItem(draftKey, JSON.stringify(draft));
         draftBelongsToForm = true;
-        showFeedback("Draft saved in this browser only.");
+        showFeedback("Draft saved.");
       } catch {
         showFeedback("Draft could not be saved. Browser storage may be full or unavailable. Keep this page open and try again.", "error");
       }

@@ -41,6 +41,7 @@ test('saves incomplete values without publishing, restores on a later visit', as
   first.node('description').value = 'Notes';
   first.node('time_start').value = '25.12.2026 20:00';
   first.click('saveDraft');
+  assert.equal(first.node('partyFeedback').textContent, 'Draft saved.');
   const second = await boot(first.storage);
   assert.equal(second.node('savedDraft').hidden, false);
   assert.equal(second.node('savedDraftTitle').textContent, 'Unfinished party · Draft');
