@@ -156,7 +156,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         showSavedState(true);
       } catch {
         showSavedState(false);
-        showFeedback("Draft could not be saved. Keep this page open and try again.", "error");
+        showFeedback("Draft could not be saved. Please try again.", "error");
       }
     });
   }
