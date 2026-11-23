@@ -363,3 +363,30 @@
     flex: 1 1 100%;
   }
 }
+
+/* Private party, not joined yet: explain why the gallery is closed */
+.gallery-join-hint {
+  grid-column: 1 / -1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  padding: 48px 16px;
+  text-align: center;
+  color: var(--text-secondary, rgba(255, 255, 255, 0.75));
+}
+
+.gallery-join-hint p {
+  margin: 0;
+  max-width: 32ch;
+}
+
+.gallery-join-link {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: auto;
+  padding: 12px 20px;
+  text-decoration: none;
+  font-style: normal;
+}

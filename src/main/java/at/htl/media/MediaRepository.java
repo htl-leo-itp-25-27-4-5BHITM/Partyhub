@@ -31,13 +31,15 @@ public class MediaRepository {
 
     static final long MAX_FILE_SIZE = 5 * 1024 * 1024; // 5 MiB
 
-    // Mirrors PartyRepository.getPartyByIdIfVisible: public, host, pending invitee or joined attendee.
-    // :callerId is -1 for anonymous callers, which matches no user.
-    private static final String VISIBLE_PARTY_PREDICATE =
+    // Who may see and add to a party's gallery: everyone for a public party, only the host and joined
+    // attendees for a private one (like the bring-along list). Pending invitees can see the party
+    // details but not its gallery until they join. :callerId is -1 for anonymous callers.
+    private static final String GALLERY_ACCESS_PREDICATE =
             "(UPPER(p.visibility) = 'PUBLIC'" +
             " OR p.host_user.id = :callerId" +
-            " OR EXISTS (SELECT i.id FROM Invitation i WHERE i.party = p AND i.status = 'PENDING' AND i.recipient.id = :callerId)" +
             " OR EXISTS (SELECT u.id FROM Party p2 JOIN p2.users u WHERE p2 = p AND u.id = :callerId))";
+
+    static final String JOIN_TO_SEE_GALLERY = "Join the party to see the gallery";
 
     @Inject
     EntityManager entityManager;
@@ -73,7 +75,7 @@ public class MediaRepository {
     public List<MediaDto> getVisibleMediaByUser(Long userId, Long callerId) {
         return entityManager.createQuery(
                         "SELECT m FROM Media m JOIN m.party p WHERE m.user.id = :userId AND "
-                                + VISIBLE_PARTY_PREDICATE + " ORDER BY m.id",
+                                + GALLERY_ACCESS_PREDICATE + " ORDER BY m.id",
                         Media.class)
                 .setParameter("userId", userId)
                 .setParameter("callerId", callerId == null ? -1L : callerId)
@@ -82,10 +84,28 @@ public class MediaRepository {
                 .toList();
     }
 
-    /** The media item, if it exists and its party is visible to the caller (null = anonymous). */
+    /** Whether the caller (null = anonymous) may see and add to the gallery of a party they can view. */
+    public boolean hasGalleryAccess(Party party, Long callerId) {
+        if ("PUBLIC".equalsIgnoreCase(party.getVisibility())) {
+            return true;
+        }
+        if (callerId == null) {
+            return false;
+        }
+        if (party.getHost_user() != null && callerId.equals(party.getHost_user().getId())) {
+            return true;
+        }
+        return entityManager.createQuery(
+                        "SELECT COUNT(u) FROM Party p JOIN p.users u WHERE p.id = :partyId AND u.id = :callerId", Long.class)
+                .setParameter("partyId", party.getId())
+                .setParameter("callerId", callerId)
+                .getSingleResult() > 0;
+    }
+
+    /** The media item, if it exists and the caller (null = anonymous) may see its party's gallery. */
     public Optional<Media> findVisibleMedia(long mediaId, Long callerId) {
         return entityManager.createQuery(
-                        "SELECT m FROM Media m JOIN m.party p WHERE m.id = :mediaId AND " + VISIBLE_PARTY_PREDICATE,
+                        "SELECT m FROM Media m JOIN m.party p WHERE m.id = :mediaId AND " + GALLERY_ACCESS_PREDICATE,
                         Media.class)
                 .setParameter("mediaId", mediaId)
                 .setParameter("callerId", callerId == null ? -1L : callerId)
@@ -111,12 +131,15 @@ public class MediaRepository {
      * without its image. Must run inside a transaction.
      */
     public Response delete(long mediaId, long callerId) {
-        Optional<Media> found = findVisibleMedia(mediaId, callerId);
-        if (found.isEmpty()) {
+        Media media = entityManager.find(Media.class, mediaId);
+        if (media == null) {
             return error(Response.Status.NOT_FOUND, "Media not found");
         }
-        Media media = found.get();
+        // The uploader keeps the right to delete their photo even after leaving a private party.
         if (!canDelete(media, callerId)) {
+            if (findVisibleMedia(mediaId, callerId).isEmpty()) {
+                return error(Response.Status.NOT_FOUND, "Media not found");
+            }
             return error(Response.Status.FORBIDDEN, "Only the uploader or the party host can delete this photo");
         }
 
@@ -166,6 +189,9 @@ public class MediaRepository {
         Party party = partyRepository.getPartyByIdIfVisible(partyId, userId);
         if (party == null) {
             return error(Response.Status.NOT_FOUND, "Party not found");
+        }
+        if (!hasGalleryAccess(party, userId)) {
+            return error(Response.Status.FORBIDDEN, JOIN_TO_SEE_GALLERY);
         }
         User user = userRepository.getUser(userId);
 

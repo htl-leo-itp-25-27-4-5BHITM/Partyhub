@@ -25,6 +25,29 @@ document.addEventListener("DOMContentLoaded", function () {
 });
 
 let currentPartyId = null;
+let galleryLocked = false;
+
+function showJoinHint(partyId) {
+  galleryLocked = true;
+  document.getElementById('addPhotosBtn')?.setAttribute('hidden', '');
+  document.getElementById('loginToAddBtn')?.setAttribute('hidden', '');
+
+  const photoCountElement = document.getElementById('photo-count');
+  if (photoCountElement) photoCountElement.textContent = '';
+
+  const galleryGrid = document.getElementById('galleryGrid');
+  if (!galleryGrid) return;
+  const hint = document.createElement('div');
+  hint.className = 'gallery-join-hint';
+  const text = document.createElement('p');
+  text.textContent = 'Only the host and guests who joined can see the photos of this private party.';
+  const link = document.createElement('a');
+  link.className = 'btn-primary gallery-action-btn gallery-join-link';
+  link.href = `/advancedPartyInfos/advancedPartyInfos.html?id=${encodeURIComponent(partyId)}`;
+  link.textContent = 'Join the party to see the gallery';
+  hint.append(text, link);
+  galleryGrid.replaceChildren(hint);
+}
 
 async function loadGallery(partyId) {
   try {
@@ -49,6 +72,11 @@ async function loadGallery(partyId) {
     const mediaResponse = await (window.authService?.apiCall || fetch)(`/api/parties/${partyId}/media`, {
       authRequired: false
     });
+    if (mediaResponse.status === 403) {
+      // Private party the user can see but has not joined yet
+      showJoinHint(partyId);
+      return;
+    }
     if (!mediaResponse.ok) {
       throw new Error('Failed to fetch media');
     }
@@ -432,7 +460,9 @@ async function setupUpload(partyId) {
     console.error('Auth init failed:', error);
   }
 
-  if (window.authService.isLoggedIn()) {
+  if (galleryLocked) {
+    // Non-members of a private party may not upload; loadGallery already showed the join hint
+  } else if (window.authService.isLoggedIn()) {
     addBtn.hidden = false;
   } else {
     loginBtn.hidden = false;

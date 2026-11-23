@@ -43,6 +43,38 @@ X-User-Id: 1
 
 
 ###########################################
+### Pending invitee (user 2) sees private party 4 but not its gallery until joining
+###########################################
+GET {{host}}/api/parties/4
+X-User-Id: 2
+
+?? status == 200
+
+GET {{host}}/api/parties/4/media
+X-User-Id: 2
+
+?? status == 403
+?? body error == Join the party to see the gallery
+
+
+###########################################
+### Pending invitee (user 2) cannot upload to private party 4
+###########################################
+POST {{host}}/api/parties/4/media/upload
+X-User-Id: 2
+Content-Type: multipart/form-data; boundary=PartyHubBoundary
+
+--PartyHubBoundary
+Content-Disposition: form-data; name="file"; filename="testing.jpg"
+Content-Type: image/jpeg
+
+< ./testing.jpg
+--PartyHubBoundary--
+
+?? status == 403
+
+
+###########################################
 ### Unknown media item
 ###########################################
 GET {{host}}/api/media/999999

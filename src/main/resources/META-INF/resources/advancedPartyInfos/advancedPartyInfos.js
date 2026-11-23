@@ -302,6 +302,7 @@ async function handleJoinParty(partyId) {
       await checkAttendanceStatus(partyId, currentParty);
       await loadPartyMembers(partyId, currentParty);
       window.bringAlong?.reload();
+      await updateMediaCount(currentParty);
     } else {
       const errorText = await response.text().catch(() => "");
       console.error("Failed to update party attendance:", response.status, errorText);
@@ -636,6 +637,17 @@ function updateVisibilityDisplay(party) {
     : '<svg viewBox="0 0 24 24" aria-hidden="true" fill="none"><rect x="5" y="10" width="14" height="10" rx="2" stroke-width="2"/><path d="M8 10V7a4 4 0 0 1 7.25-2.34" stroke-width="2" stroke-linecap="round"/></svg><span>Public</span>';
 }
 
+// Non-members of a private party see a disabled gallery button with a join hint instead of the gallery.
+function setGalleryLocked(locked) {
+  const photosBtn = document.querySelector(".photos-btn");
+  if (!photosBtn) return;
+  const label = photosBtn.querySelector("span");
+  photosBtn.disabled = locked;
+  photosBtn.classList.toggle("is-locked", locked);
+  if (label) label.textContent = locked ? "Join the party to see the gallery" : "View Gallery";
+  photosBtn.title = locked ? "Only the host and guests who joined can see the gallery" : "";
+}
+
 async function updateMediaCount(party) {
   const mediaCountElement = document.getElementById("media-count");
 
@@ -654,7 +666,11 @@ async function updateMediaCount(party) {
       authRequired: false
     });
 
-    if (mediaResponse.ok) {
+    // 403: private party the user can see but has not joined yet (like the bring-along list)
+    setGalleryLocked(mediaResponse.status === 403);
+    if (mediaResponse.status === 403) {
+      mediaCountElement.textContent = "Photos after joining";
+    } else if (mediaResponse.ok) {
       const media = await mediaResponse.json();
       const count = Array.isArray(media) ? media.length : 0;
       mediaCountElement.textContent = `${count} ${count === 1 ? "photo" : "photos"}`;

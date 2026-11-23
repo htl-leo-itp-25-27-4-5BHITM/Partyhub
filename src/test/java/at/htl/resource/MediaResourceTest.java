@@ -219,6 +219,30 @@ public class MediaResourceTest extends TestBase {
     }
 
     @Test
+    @TestSecurity(user = "invitee-sub")
+    void upload_pendingInviteeOfPrivateParty_isForbiddenWithoutSideEffects() throws IOException {
+        given()
+            .multiPart("file", "photo.png", PNG, "image/png")
+            .when().post("/api/parties/{id}/media/upload", privatePartyId)
+            .then()
+            .statusCode(403)
+            .body("error", is("Join the party to see the gallery"));
+        assertEquals(0, mediaCount(privatePartyId));
+        assertTrue(storedFiles(privatePartyId).isEmpty());
+    }
+
+    @Test
+    @TestSecurity(user = "invitee-sub")
+    void upload_pendingInviteeOfPublicParty_isAccepted() throws IOException {
+        given()
+            .multiPart("file", "photo.png", PNG, "image/png")
+            .when().post("/api/parties/{id}/media/upload", publicPartyId)
+            .then()
+            .statusCode(200);
+        assertEquals(1, mediaCount(publicPartyId));
+    }
+
+    @Test
     @TestSecurity(user = "attendee-sub")
     void upload_joinedAttendeeOfPrivateParty_isAccepted() throws IOException {
         given()
@@ -233,7 +257,7 @@ public class MediaResourceTest extends TestBase {
     }
 
     @Test
-    @TestSecurity(user = "invitee-sub")
+    @TestSecurity(user = "attendee-sub")
     void upload_typeComesFromContentNotFromClient() throws IOException {
         given()
             .multiPart("file", "holiday.jpg", PNG, "text/plain")
@@ -358,9 +382,9 @@ public class MediaResourceTest extends TestBase {
 
     @Test
     @TestSecurity(user = "invitee-sub")
-    void serve_privatePartyItem_pendingInvitee() throws IOException {
+    void serve_privatePartyItem_pendingInvitee_isNotFound() throws IOException {
         Long mediaId = storedMedia(privatePartyId, PNG);
-        given().when().get("/api/media/{id}", mediaId).then().statusCode(200);
+        given().when().get("/api/media/{id}", mediaId).then().statusCode(404);
     }
 
     @Test
@@ -410,6 +434,36 @@ public class MediaResourceTest extends TestBase {
             .body("size()", is(1))
             .body("[0].id", is(mediaId.intValue()))
             .body("[0]", not(hasKey("url")));
+    }
+
+    @Test
+    @TestSecurity(user = "invitee-sub")
+    void partyList_privateParty_pendingInvitee_isForbidden() throws IOException {
+        storedMedia(privatePartyId, PNG);
+        given()
+            .when().get("/api/parties/{id}/media", privatePartyId)
+            .then()
+            .statusCode(403)
+            .body("error", is("Join the party to see the gallery"))
+            .body("$", not(hasKey("id")));
+    }
+
+    @Test
+    @TestSecurity(user = "invitee-sub")
+    void partyDetails_privateParty_pendingInvitee_staysVisible() {
+        given().when().get("/api/parties/{id}", privatePartyId).then().statusCode(200);
+    }
+
+    @Test
+    @TestSecurity(user = "invitee-sub")
+    void userList_omitsPrivatePartyItemsForPendingInvitee() throws IOException {
+        Long publicItem = storedMedia(publicPartyId, PNG);
+        storedMedia(privatePartyId, PNG);
+        given()
+            .when().get("/api/users/{id}/media", attendeeId)
+            .then()
+            .statusCode(200)
+            .body("id", contains(publicItem.intValue()));
     }
 
     @Test
@@ -523,12 +577,34 @@ public class MediaResourceTest extends TestBase {
     }
 
     @Test
-    @TestSecurity(user = "invitee-sub")
+    @TestSecurity(user = "stranger-sub")
     void delete_otherViewer_isForbiddenAndKeepsItem() throws IOException {
-        Long mediaId = storedMedia(privatePartyId, PNG, attendeeId);
+        Long mediaId = storedMedia(publicPartyId, PNG, attendeeId);
         given().when().delete("/api/media/{id}", mediaId).then().statusCode(403);
         assertTrue(mediaExists(mediaId));
+        assertEquals(1, storedFiles(publicPartyId).size());
+    }
+
+    @Test
+    @TestSecurity(user = "invitee-sub")
+    void delete_pendingInviteeOfPrivateParty_isNotFound() throws IOException {
+        Long mediaId = storedMedia(privatePartyId, PNG, attendeeId);
+        given().when().delete("/api/media/{id}", mediaId).then().statusCode(404);
+        assertTrue(mediaExists(mediaId));
         assertEquals(1, storedFiles(privatePartyId).size());
+    }
+
+    @Test
+    @TestSecurity(user = "attendee-sub")
+    void delete_formerAttendeeRemovesOwnPhotoOfPrivateParty() throws IOException {
+        Long mediaId = storedMedia(privatePartyId, PNG, attendeeId);
+        QuarkusTransaction.requiringNew().run(() ->
+                em.find(Party.class, privatePartyId).getUsers().removeIf(u -> u.getId().equals(attendeeId)));
+        given().when().get("/api/parties/{id}/media", privatePartyId).then().statusCode(404);
+
+        given().when().delete("/api/media/{id}", mediaId).then().statusCode(204);
+        assertFalse(mediaExists(mediaId));
+        assertTrue(storedFiles(privatePartyId).isEmpty());
     }
 
     @Test
