@@ -1426,12 +1426,30 @@ body.bg-light.profile-page .app-shell > .container {
   transform: rotate(45deg);
 }
 
-/* Dashboard link on the own profile, styled like the other profile buttons */
-.dashboard-btn {
-  margin-top: 10px;
-  background: linear-gradient(135deg, #7a5cff 0%, #4f3b9a 55%, #3b2c7a 100%);
-  box-shadow:
-    0 10px 24px rgba(79, 59, 154, 0.35),
-    inset 0 1px 0 rgba(255, 255, 255, 0.18),
-    inset 0 -1px 0 rgba(0, 0, 0, 0.18);
+/* Dashboard link on the own profile: same compact secondary style as the logout button */
+#actionButton > .dashboard-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  flex: 0 1 auto;
+  min-height: 44px;
+  padding: 10px 14px;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  color: var(--text-primary, #fff);
+  font-size: 0.9rem;
+  font-weight: 600;
+  text-decoration: none;
+  transition: background 0.15s ease;
+}
+
+#actionButton > .dashboard-btn:hover {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+#actionButton > .dashboard-btn svg {
+  flex-shrink: 0;
+  color: #c9bdff;
 }
