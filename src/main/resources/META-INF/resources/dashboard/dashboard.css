@@ -8,9 +8,18 @@
   --series-1: #3987e5; /* blue */
   --series-2: #d95926; /* orange */
   --series-3: #199e70; /* aqua */
-  padding-bottom: calc(var(--nav-height, 72px) + 32px);
   max-width: 760px;
   margin: 0 auto;
+  /* body and .container clip overflow app-wide, so the dashboard itself scrolls; the bottom
+     padding keeps the last card clear of the floating bottom nav. */
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  padding-bottom: calc(var(--nav-height, 72px) + 40px + env(safe-area-inset-bottom, 0px));
+}
+
+/* Children of the flex column must keep their height instead of shrinking into the viewport. */
+.dash > * {
+  flex-shrink: 0;
 }
 
 .dash-back {

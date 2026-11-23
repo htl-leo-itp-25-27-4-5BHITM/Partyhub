@@ -1144,12 +1144,17 @@ document.addEventListener("DOMContentLoaded", async function () {
       btn.appendChild(link);
       container.appendChild(btn);
 
-      // Dashboard button (own statistics as host)
+      // Dashboard link (own statistics as host), compact like the logout button
       const dashboardLink = document.createElement("a");
-      dashboardLink.className = "edit-account-btn dashboard-btn";
+      dashboardLink.className = "dashboard-btn";
       dashboardLink.href = "../dashboard/dashboard.html";
-      dashboardLink.textContent = "Dashboard";
-      dashboardLink.style.textDecoration = "none";
+      dashboardLink.setAttribute("aria-label", "Dashboard");
+      dashboardLink.innerHTML =
+        '<svg viewBox="0 0 24 24" width="18" height="18" fill="none" aria-hidden="true">' +
+        '<path d="M4 20V10M10 20V4M16 20v-7M22 20H2" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>';
+      const dashboardLabel = document.createElement("span");
+      dashboardLabel.textContent = "Dashboard";
+      dashboardLink.appendChild(dashboardLabel);
       container.appendChild(dashboardLink);
 
       // Logout button
