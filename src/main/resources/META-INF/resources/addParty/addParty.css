@@ -445,12 +445,48 @@ body {
   display: none;
 }
 
-.draft-controls {
-  margin-block: 16px;
-  line-height: 1.5;
+/* Keep the optional draft action in the wizard's primary action row. */
+.form-actions {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-top: 24px;
 }
-.draft-controls[hidden] { display: none; }
-.draft-controls p { margin: 8px 0; }
-.draft-controls button { margin: 4px 12px 4px 0; }
-.draft-controls button:focus-visible { outline: 2px solid var(--ph-accent-green, #56f27c); outline-offset: 4px; }
-.draft-controls button:disabled { opacity: 0.65; cursor: not-allowed; }
+.form-actions .submit-btn {
+  flex: 1;
+  width: auto;
+  margin-top: 0;
+}
+#draftActions { flex: none; }
+#draftActions[hidden], .saved-draft[hidden] { display: none; }
+.draft-button {
+  min-height: 44px;
+  padding: 10px 8px;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  color: rgba(255, 255, 255, 0.82);
+  font: inherit;
+  font-size: 14px;
+  cursor: pointer;
+}
+.draft-button:hover { color: white; background: rgba(255, 255, 255, 0.08); }
+.draft-button:focus-visible { outline: 2px solid var(--ph-accent-green, #56f27c); outline-offset: 2px; }
+.draft-button:disabled { opacity: 0.65; cursor: not-allowed; }
+.saved-draft {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 24px;
+  padding-block: 8px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.18);
+}
+.saved-draft-title {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 14px;
+}
+.saved-draft-actions { display: flex; flex: none; gap: 4px; }

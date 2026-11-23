@@ -118,6 +118,8 @@ document.addEventListener("DOMContentLoaded", async () => {
         if (saved.version !== 1 || !saved.fields || !Array.isArray(saved.selectedUsers)) {
           throw new Error("Unsupported draft");
         }
+        document.getElementById("savedDraftTitle").textContent = saved.fields.title?.trim()
+          ? `${saved.fields.title.trim()} · Draft` : "Untitled draft";
         banner.hidden = false;
         save.disabled = true;
       }
@@ -160,7 +162,7 @@ document.addEventListener("DOMContentLoaded", async () => {
       banner.hidden = true;
       save.disabled = false;
       await loadUsers();
-      showFeedback("Draft resumed. Review the details before creating your party.");
+      showFeedback("Draft resumed.");
     });
     save.addEventListener("click", () => {
       readFormIntoState();
@@ -176,7 +178,7 @@ document.addEventListener("DOMContentLoaded", async () => {
       try {
         localStorage.setItem(draftKey, JSON.stringify(draft));
         draftBelongsToForm = true;
-        showFeedback("Draft saved in this browser. Return to Add Party to continue later.");
+        showFeedback("Draft saved in this browser only.");
       } catch {
         showFeedback("Draft could not be saved. Browser storage may be full or unavailable. Keep this page open and try again.", "error");
       }
