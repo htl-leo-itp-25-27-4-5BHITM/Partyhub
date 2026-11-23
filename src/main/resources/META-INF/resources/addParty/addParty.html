@@ -12,7 +12,7 @@
     <meta name="apple-mobile-web-app-title" content="PartyHub" />
     <link rel="apple-touch-icon" sizes="180x180" href="/icons/apple-touch-icon.png" />
     <link rel="icon" href="/icons/icon-192.png" sizes="192x192" type="image/png" />
-    <link rel="stylesheet" href="./addParty.css?v=20261021-bring-along-step" />
+    <link rel="stylesheet" href="./addParty.css?v=20261123-drafts" />
     <link rel="stylesheet" href="../global.css" />
     <link rel="stylesheet" href="../index.css" />
     <link
@@ -38,8 +38,8 @@
       crossorigin=""
       defer
     ></script>
-    <script src="./addParty.js?v=20261118-edit-invites" defer></script>
-    <script src="./bringAlongStep.js?v=20261021-bring-along-step" defer></script>
+    <script src="./addParty.js?v=20261123-drafts" defer></script>
+    <script src="./bringAlongStep.js?v=20261123-drafts" defer></script>
     <script>
       document.addEventListener("DOMContentLoaded", () => {
         window.requireAuth?.();
@@ -54,6 +54,12 @@
           <span class="back-arrow">‹</span>
           <span class="step-title" id="stepTitle">Add new Party</span>
         </div>
+
+        <section id="savedDraft" class="draft-controls" aria-label="Saved party draft" hidden>
+          <p>You have an unfinished party saved in this browser.</p>
+          <button type="button" id="resumeDraft" class="ba-step-link">Resume draft</button>
+          <button type="button" id="discardDraft" class="ba-step-link is-danger">Discard draft</button>
+        </section>
 
         <ol class="wizard-progress" aria-label="Party creation progress">
           <li class="wizard-step active" data-step-indicator="1" aria-current="step">
@@ -183,6 +189,10 @@
             </div>
           </div>
 
+          <div id="draftActions" class="draft-controls">
+            <button type="button" id="saveDraft" class="ba-step-link">Save draft</button>
+            <p>Drafts stay in this browser for your account. They are not published or sent to guests.</p>
+          </div>
           <button type="button" class="submit-btn" id="continueBtn">
             Continue
           </button>

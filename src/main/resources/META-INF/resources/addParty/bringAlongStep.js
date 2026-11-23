@@ -268,5 +268,27 @@
   }
 
   document.addEventListener("DOMContentLoaded", init);
-  window.BringAlongStep = { load, validate, apply, hasChanges };
+  function snapshot() {
+    return {
+      items: items.map((item) => ({ ...item })),
+      editingIndex,
+      pending: els ? { name: els.name.value, quantity: els.quantity.value, unit: els.unit.value } : null,
+    };
+  }
+
+  function restore(draft) {
+    items.splice(0, items.length, ...(draft?.items || []));
+    resetForm();
+    if (draft?.editingIndex != null && items[draft.editingIndex]) {
+      startEdit(draft.editingIndex);
+    }
+    if (draft?.pending && els) {
+      els.name.value = draft.pending.name;
+      els.quantity.value = draft.pending.quantity;
+      els.unit.value = draft.pending.unit;
+    }
+    render();
+  }
+
+  window.BringAlongStep = { load, validate, apply, hasChanges, snapshot, restore };
 })();

@@ -444,3 +444,13 @@ body {
 .ba-step-error:empty {
   display: none;
 }
+
+.draft-controls {
+  margin-block: 16px;
+  line-height: 1.5;
+}
+.draft-controls[hidden] { display: none; }
+.draft-controls p { margin: 8px 0; }
+.draft-controls button { margin: 4px 12px 4px 0; }
+.draft-controls button:focus-visible { outline: 2px solid var(--ph-accent-green, #56f27c); outline-offset: 4px; }
+.draft-controls button:disabled { opacity: 0.65; cursor: not-allowed; }
