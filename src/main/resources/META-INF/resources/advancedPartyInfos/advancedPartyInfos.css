@@ -513,3 +513,15 @@ body {
 @media (prefers-reduced-motion: reduce) {
   .ba-item.shake { animation: none; }
 }
+
+/* Gallery of a private party before joining: button stays visible but explains why it is closed */
+.photos-btn.is-locked,
+.photos-btn.is-locked:hover {
+  cursor: not-allowed;
+  opacity: 0.6;
+  transform: none;
+}
+
+.photos-btn.is-locked .arrow {
+  display: none;
+}

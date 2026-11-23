@@ -185,7 +185,8 @@ public class MediaRepositoryTest {
         Media media = media(party("PRIVATE"), host, "x.jpg");
 
         assertTrue(mediaRepository.findVisibleMedia(media.getId(), host.getId()).isPresent(), "host");
-        assertTrue(mediaRepository.findVisibleMedia(media.getId(), invitee.getId()).isPresent(), "pending invitee");
+        assertTrue(mediaRepository.findVisibleMedia(media.getId(), invitee.getId()).isEmpty(),
+                "pending invitee sees the gallery only after joining");
         assertTrue(mediaRepository.findVisibleMedia(media.getId(), attendee.getId()).isPresent(), "joined attendee");
         assertTrue(mediaRepository.findVisibleMedia(media.getId(), stranger.getId()).isEmpty(), "unrelated user");
         assertTrue(mediaRepository.findVisibleMedia(media.getId(), null).isEmpty(), "anonymous");

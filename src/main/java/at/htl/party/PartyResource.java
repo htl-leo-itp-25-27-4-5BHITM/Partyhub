@@ -275,8 +275,14 @@ public class PartyResource {
     @Transactional
     public Response getPartyMedia(@PathParam("id") Long partyId) {
         Long callerId = currentUserResolver.currentUserIdIfAuthenticated().orElse(null);
-        if (partyRepository.getPartyByIdIfVisible(partyId, callerId) == null) {
+        Party party = partyRepository.getPartyByIdIfVisible(partyId, callerId);
+        if (party == null) {
             return Response.status(Response.Status.NOT_FOUND).build();
+        }
+        if (!mediaRepository.hasGalleryAccess(party, callerId)) {
+            return Response.status(Response.Status.FORBIDDEN)
+                    .entity(Map.of("error", "Join the party to see the gallery"))
+                    .build();
         }
         return Response.ok().entity(mediaRepository.getMediaByParty(partyId, callerId)).build();
     }
