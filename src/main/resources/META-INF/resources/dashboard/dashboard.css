@@ -10,11 +10,21 @@
   --series-3: #199e70; /* aqua */
   max-width: 760px;
   margin: 0 auto;
-  /* body and .container clip overflow app-wide, so the dashboard itself scrolls; the bottom
-     padding keeps the last card clear of the floating bottom nav. */
-  overflow-y: auto;
-  -webkit-overflow-scrolling: touch;
+  /* The bottom padding keeps the last card clear of the fixed bottom nav. */
+  overflow: visible;
+  flex: none;
   padding-bottom: calc(var(--nav-height, 72px) + 40px + env(safe-area-inset-bottom, 0px));
+}
+
+/* body and .app-shell clip overflow app-wide; on the dashboard the whole page scrolls instead,
+   so the scrollbar sits at the window edge. The bottom nav is position: fixed and stays put. */
+body.dashboard-page {
+  overflow-y: auto;
+}
+
+body.dashboard-page .app-shell {
+  height: auto;
+  min-height: 100dvh;
 }
 
 /* Children of the flex column must keep their height instead of shrinking into the viewport. */
