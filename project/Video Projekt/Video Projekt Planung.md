@@ -6,7 +6,7 @@
 | **Klasse** | 5BHITM |
 | **Teammitglieder** | Martin Briefeneder, Carla Dimmler, Anna Reder, Viktoria Vejmelek |
 | **Arbeitstitel** | Projektvideo PartyHub |
-| **Länge** | ca. 60 min |
+| **Länge** | ca. 60 s |
 | **Zielgruppe** | Jugendliche und junge Erwachsene (16–25)|
 
 ## Logline
