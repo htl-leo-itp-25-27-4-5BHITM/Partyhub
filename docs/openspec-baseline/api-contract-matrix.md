@@ -67,7 +67,7 @@ Legend: **B** browser (`src/main/resources/META-INF/resources/`), **I** iOS (`Pa
 | 41 | GET `/api/users/me` | bearer | 200 | `User` entity | B `auth-service.js:399`, `notifications.js:37`; I `KeycloakAuthService.swift:233` | Match (AUTH). |
 | 42 | GET `/api/users/{id}/followers/count` | path id | 200, 404 | JSON string `{"count": n}` | I `ProfileView.swift:258`; H | Match. |
 | 43 | GET `/api/users/{id}/following/count` | path id | 200, 404 | JSON string `{"count": n}` | I `ProfileView.swift:263`; H | Match. |
-| 44 | PUT `/api/users/{id}` | JSON `UserCreateDto`, no constraints; all five fields overwritten | 200, 403, 404 | `User` entity | B `editProfile.js:246` | Match on route. Missing validation G064; field exposure G026. |
+| 44 | PUT `/api/users/{id}` | JSON `UserCreateDto`; all fields overwritten, including optional `gender` (`MALE`, `FEMALE`, `DIVERSE`, `NOT_SPECIFIED`) and `birthDate` (`@Past`) | 200, 400, 403, 404 | `ProfileDto` (self: with `gender`, `birthDate`) | B `editProfile.js` | Match on route. Gender/birth date added by `host-dashboard`; other fields still unvalidated (G064). |
 | 45 | GET `/api/users/{id}/profile-picture` | path id; iOS adds `?v=` cache key | 200 image or default SVG, 404 | image | B `backend-functions.js:195`, `editProfile.js:49,318`, `profile.js:380,1034,1250`, `notifications.js:790+`, `advancedPartyInfos.js:468`; I `ApiService.swift:62`; H | Match. Anonymous read G039. |
 | 46 | GET `/api/users/{id}/profile-picture-filename` | path id | 200, 404 | filename | B `editProfile.js:314`; I `ApiService.swift:110`; H | Match. |
 | 47 | POST `/api/users/{id}/upload-profile-picture` | multipart | 200 `{"filename"}`, 403, 404, 500 | JSON string | B `editProfile.js:289`; I `ProfileView.swift:322` | Match. Validation G039. |
@@ -89,6 +89,7 @@ Legend: **B** browser (`src/main/resources/META-INF/resources/`), **I** iOS (`Pa
 | 63 | DELETE `/api/parties/{id}/bring-along/items/{itemId}` | host only; removes the item's pledges | 204, 401, 403, 404 | empty | B; H | Added by `add-party-bring-along-list`. |
 | 64 | PUT `/api/parties/{id}/bring-along/items/{itemId}/pledge` | `@Valid BringAlongPledgeRequest` (quantity whole 1–10000); upserts the caller's pledge | 200, 400, 401, 403, 404, 409 | `BringAlongItemDto`; 409 `{error, remaining, item}` when the pledge would exceed the required quantity | B; H | Added by `add-party-bring-along-list`. |
 | 65 | DELETE `/api/parties/{id}/bring-along/items/{itemId}/pledge` | caller's own pledge; idempotent | 204, 401, 403, 404 | empty | B; H | Added by `add-party-bring-along-list`. |
+| 66 | GET `/api/dashboard?range=` | bearer; `range` one of `7d`, `30d` (default), `3m`, `6m`; statistics only about the caller | 200 (`Cache-Control: private, no-store`), 400 `{error}`, 401 | `DashboardDto` (counts, visibility split, invitations, capacity, top party, gender/age distribution with `withheld` below 5 guests, timeline) | B `dashboard.js`; H `dashboard.http` | Added by `host-dashboard`. |
 
 ## Client calls without a matching endpoint
 
