@@ -11,7 +11,7 @@
 
 ## Logline
 
-Ein gelangweilter Samstagabend allein im Schlafzimmer – bis PartyHub in wenigen Klicks die passende Party in der Nähe findet und aus dem Abend auf der Couch eine Nacht mit Freunden wird.
+Ein langweiliger Samstagabend allein zu Hause – doch dank PartyHub wird aus einem Abend auf der Couch mit nur wenigen Klicks eine unvergessliche Partynacht mit Freunden.
 
 ## Kernaussage
 
