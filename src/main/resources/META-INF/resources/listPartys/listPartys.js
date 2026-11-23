@@ -63,6 +63,7 @@ async function loadAllParties() {
     try {
         await window.authService?.init?.({ requireLogin: false });
         partyListState.currentUserId = await resolveCurrentUserId();
+        refreshDraftCount();
 
         const [parties, invitations] = await Promise.all([
             fetchParties(),
@@ -448,3 +449,14 @@ function escapeHtml(value) {
         .replace(/"/g, '&quot;')
         .replace(/'/g, '&#039;');
 }
+
+function refreshDraftCount() {
+    const link = document.querySelector('.party-drafts-link');
+    if (!link || !partyListState.currentUserId || !window.PartyDrafts) return;
+    try {
+        const count = window.PartyDrafts.forUser(partyListState.currentUserId).list().length;
+        link.textContent = count ? `Drafts (${count})` : 'Drafts';
+    } catch { link.textContent = 'Drafts'; }
+}
+window.addEventListener('storage', refreshDraftCount);
+window.addEventListener('pageshow', refreshDraftCount);

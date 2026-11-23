@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#1a1040" />
+    <title>Drafts · PartyHub</title>
+    <link rel="icon" href="/icons/icon-192.png" type="image/png" />
+    <link rel="stylesheet" href="../global.css" />
+    <link rel="stylesheet" href="/design-system.css?v=20261016-1" />
+    <link rel="stylesheet" href="./partyDrafts.css" />
+    <script src="../user-utils.js" defer></script>
+    <script src="../auth-service.js" defer></script>
+    <script src="../route-guard.js" defer></script>
+    <script src="../nav.js?v=20261118-badge-fast" defer></script>
+    <script src="../party-drafts.js?v=20261123-multiple" defer></script>
+    <script src="./partyDrafts.js?v=20261123-multiple" defer></script>
+  </head>
+  <body data-auth-required>
+    <main class="drafts-page">
+      <a class="drafts-back" href="/listPartys/listPartys.html">Back to parties</a>
+      <header class="drafts-header">
+        <h1>Drafts</h1>
+        <a class="drafts-new" href="/addParty/addParty.html">New party</a>
+      </header>
+      <div id="draftsError" class="drafts-error" role="alert" hidden>
+        <p id="draftsErrorMessage"></p>
+        <button type="button" id="retryDrafts" class="drafts-action">Try again</button>
+      </div>
+      <p id="draftsEmpty" class="drafts-empty" hidden>No drafts yet.</p>
+      <ul id="draftsList" class="drafts-list" aria-label="Party drafts"></ul>
+      <p id="draftsStatus" class="drafts-status" role="status" aria-live="polite"></p>
+    </main>
+      <nav class="bottom-nav" role="navigation" aria-label="Bottom navigation">
+        <a class="nav-btn" href="/index.html" aria-label="Home">
+          <svg class="nav-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path
+              d="M3 6.5L8 4l7 2.5 6-2.5v11l-6 2.5L10 15 3 17.5v-11z"
+              stroke="currentColor"
+              stroke-width="1.6"
+              stroke-linejoin="round"
+              stroke-linecap="round"
+            />
+          </svg>
+          <span class="nav-label">Home</span>
+        </a>
+
+        <a class="nav-btn active" href="/listPartys/listPartys.html" aria-label="Parties" aria-current="page">
+          <svg class="nav-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <rect
+              x="3"
+              y="3"
+              width="18"
+              height="18"
+              rx="3"
+              stroke="currentColor"
+              stroke-width="1.6"
+            />
+            <circle cx="8.5" cy="8.5" r="1.8" fill="currentColor" />
+            <path
+              d="M21 21l-6-6-5 5"
+              stroke="currentColor"
+              stroke-width="1.6"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            />
+          </svg>
+          <span class="nav-label">Parties</span>
+        </a>
+
+        <a class="nav-btn" href="/notifications/notifications.html" aria-label="Inbox">
+          <svg class="nav-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path
+              d="M12 22a2.5 2.5 0 0 0 2.45-2H9.55A2.5 2.5 0 0 0 12 22z"
+              fill="currentColor"
+            />
+            <path
+              d="M18 8a6 6 0 10-12 0v5l-2 2v1h16v-1l-2-2V8z"
+              stroke="currentColor"
+              stroke-width="1.6"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            />
+          </svg>
+          <span class="nav-label">Inbox</span>
+        </a>
+
+        <a class="nav-btn" href="/profile/profile.html" aria-label="Profile">
+          <svg class="nav-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <circle
+              cx="12"
+              cy="8.5"
+              r="3"
+              stroke="currentColor"
+              stroke-width="1.6"
+            />
+            <path
+              d="M4 20a8 8 0 0 1 16 0"
+              stroke="currentColor"
+              stroke-width="1.6"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            />
+          </svg>
+          <span class="nav-label">Profile</span>
+        </a>
+      </nav>
+  </body>
+</html>

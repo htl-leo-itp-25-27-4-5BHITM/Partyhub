@@ -6,6 +6,7 @@
   const items = []; // { id?, name, quantity, unit, pledged, status: existing|new|changed|removed }
   let editingIndex = null;
   let els = null;
+  let pendingDraft = null;
 
   function init() {
     els = {
@@ -36,6 +37,11 @@
       });
     });
     render();
+    if (pendingDraft) {
+      const draft = pendingDraft;
+      pendingDraft = null;
+      restore(draft);
+    }
   }
 
   async function load(partyId) {
@@ -277,6 +283,7 @@
   }
 
   function restore(draft) {
+    if (!els) { pendingDraft = draft; return; }
     items.splice(0, items.length, ...(draft?.items || []));
     resetForm();
     if (draft?.editingIndex != null && items[draft.editingIndex]) {
