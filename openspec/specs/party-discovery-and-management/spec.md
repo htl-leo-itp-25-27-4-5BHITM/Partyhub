@@ -2,7 +2,9 @@
 
 ## Purpose
 Defines PartyHub's core party discovery and host-management behavior, including visible-party map discovery, party details, private-party visibility, party creation and updates, mutual-contact invitation enforcement, and invitation attendance semantics.
+
 ## Requirements
+
 ### Requirement: Home map shows visible parties as the primary discovery experience
 The system SHALL present visible parties on the home map as the primary party discovery experience.
 
@@ -527,3 +529,18 @@ If the iOS client offers calendar export, it SHALL let a viewer export a visible
 - **WHEN** the PartyHub party is updated or cancelled after a calendar event was exported
 - **THEN** the device event SHALL remain a snapshot unless the user performs a supported remove-and-export action
 - **AND** the client SHALL NOT present the snapshot as automatically synchronized with PartyHub
+
+### Requirement: Attendance changes are recorded as history
+When a user's attendance at a party is committed (join or accepted invitation) or removed (leave), PartyHub SHALL record a timestamped attendance-history entry identifying the party, the user, whether the user joined or left, and the time. Failed, denied or no-op attendance actions SHALL NOT create entries. Attendance that existed before history was recorded SHALL remain valid without an entry. Attendance history SHALL only be exposed as aggregated statistics to the party's host.
+
+#### Scenario: User joins a party
+- **WHEN** an authenticated user successfully joins a party or accepts an invitation by joining
+- **THEN** the system SHALL record one entry that the user joined that party at that time
+
+#### Scenario: User leaves a party
+- **WHEN** an attending user leaves a party
+- **THEN** the system SHALL record one entry that the user left that party at that time
+
+#### Scenario: Join is denied
+- **WHEN** a join is rejected because of capacity, age or missing invitation
+- **THEN** the system SHALL NOT record an attendance-history entry
