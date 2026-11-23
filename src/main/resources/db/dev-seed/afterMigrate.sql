@@ -287,6 +287,36 @@ FROM (VALUES
 ) AS v(id, age)
 WHERE party.id = v.id;
 
+-- Victoria's private party: almost full, with accepted, declined and pending invitations.
+INSERT INTO party (id, host_user_id, location_id, title, theme, time_start, time_end, max_people, min_age, max_age,
+                   website, description, fee, created_at, visibility) VALUES
+    (22, 1, 2, 'Rooftop Birthday Dinner', 'Birthday', LOCALTIMESTAMP + INTERVAL '10 days',
+     LOCALTIMESTAMP + INTERVAL '10 days 5 hours', 8, 18, NULL, NULL,
+     'Small birthday dinner on the rooftop, invitation only.', 0.00, LOCALTIMESTAMP - INTERVAL '12 days', 'PRIVATE');
+
+INSERT INTO party_user (party_id, user_id) VALUES
+    (22, 2), (22, 3), (22, 5), (22, 6), (22, 9), (22, 10);
+
+INSERT INTO invitation (id, sender_id, recipient_id, party_id, status) VALUES
+    (10, 1, 2, 22, 'ACCEPTED'),
+    (11, 1, 3, 22, 'ACCEPTED'),
+    (12, 1, 5, 22, 'ACCEPTED'),
+    (13, 1, 6, 22, 'ACCEPTED'),
+    (14, 1, 9, 22, 'ACCEPTED'),
+    (15, 1, 10, 22, 'ACCEPTED'),
+    (16, 1, 4, 22, 'DECLINED'),
+    (17, 1, 8, 22, 'DECLINED'),
+    (18, 1, 7, 22, 'PENDING');
+
+-- Favorites decide the top party when two parties have the same number of guests.
+INSERT INTO favorite (user_id, party_id) VALUES
+    (2, 11), (3, 11), (7, 11),
+    (2, 22), (5, 22), (9, 22), (10, 22),
+    (4, 1);
+
+SELECT setval('party_id_seq', COALESCE((SELECT MAX(id) FROM party), 1), true);
+SELECT setval('invitation_id_seq', COALESCE((SELECT MAX(id) FROM invitation), 1), true);
+
 -- Followers of Victoria (user 1): 2, 3 and 7 are current; 9 and 10 followed and left again.
 INSERT INTO follow_event (follower_id, followed_id, type, occurred_at) VALUES
     (2, 1, 'FOLLOWED', LOCALTIMESTAMP - INTERVAL '150 days'),
@@ -297,7 +327,16 @@ INSERT INTO follow_event (follower_id, followed_id, type, occurred_at) VALUES
     (10, 1, 'FOLLOWED', LOCALTIMESTAMP - INTERVAL '4 days'),
     (10, 1, 'UNFOLLOWED', LOCALTIMESTAMP - INTERVAL '1 day'),
     (1, 2, 'FOLLOWED', LOCALTIMESTAMP - INTERVAL '149 days'),
-    (1, 3, 'FOLLOWED', LOCALTIMESTAMP - INTERVAL '60 days');
+    (1, 3, 'FOLLOWED', LOCALTIMESTAMP - INTERVAL '60 days'),
+    -- More short-lived followers, so gains and losses show up in every range
+    (4, 1, 'FOLLOWED', LOCALTIMESTAMP - INTERVAL '100 days'),
+    (4, 1, 'UNFOLLOWED', LOCALTIMESTAMP - INTERVAL '70 days'),
+    (6, 1, 'FOLLOWED', LOCALTIMESTAMP - INTERVAL '45 days'),
+    (6, 1, 'UNFOLLOWED', LOCALTIMESTAMP - INTERVAL '8 days'),
+    (8, 1, 'FOLLOWED', LOCALTIMESTAMP - INTERVAL '27 days'),
+    (8, 1, 'UNFOLLOWED', LOCALTIMESTAMP - INTERVAL '14 days'),
+    (5, 1, 'FOLLOWED', LOCALTIMESTAMP - INTERVAL '3 days'),
+    (5, 1, 'UNFOLLOWED', LOCALTIMESTAMP - INTERVAL '2 days');
 
 -- Joins to Victoria's parties 1, 11 and 13; user 8 joined party 1 and left again.
 INSERT INTO attendance_event (party_id, user_id, type, occurred_at) VALUES
@@ -311,4 +350,13 @@ INSERT INTO attendance_event (party_id, user_id, type, occurred_at) VALUES
     (1, 8, 'JOINED', LOCALTIMESTAMP - INTERVAL '9 days'),
     (1, 8, 'LEFT', LOCALTIMESTAMP - INTERVAL '6 days'),
     (1, 7, 'JOINED', LOCALTIMESTAMP - INTERVAL '5 days'),
-    (13, 4, 'JOINED', LOCALTIMESTAMP - INTERVAL '2 days');
+    (13, 4, 'JOINED', LOCALTIMESTAMP - INTERVAL '2 days'),
+    -- Private Rooftop Birthday Dinner (party 22); user 4 joined first and then declined
+    (22, 2, 'JOINED', LOCALTIMESTAMP - INTERVAL '11 days'),
+    (22, 3, 'JOINED', LOCALTIMESTAMP - INTERVAL '11 days'),
+    (22, 4, 'JOINED', LOCALTIMESTAMP - INTERVAL '10 days'),
+    (22, 4, 'LEFT', LOCALTIMESTAMP - INTERVAL '7 days'),
+    (22, 5, 'JOINED', LOCALTIMESTAMP - INTERVAL '9 days'),
+    (22, 6, 'JOINED', LOCALTIMESTAMP - INTERVAL '6 days'),
+    (22, 9, 'JOINED', LOCALTIMESTAMP - INTERVAL '4 days'),
+    (22, 10, 'JOINED', LOCALTIMESTAMP - INTERVAL '1 day');
