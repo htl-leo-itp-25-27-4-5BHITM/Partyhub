@@ -3,6 +3,8 @@ package at.htl.invitation;
 import java.util.List;
 import java.util.Optional;
 
+import at.htl.history.AttendanceEventType;
+import at.htl.history.HistoryRecorder;
 import at.htl.notification.Notification;
 import at.htl.notification.NotificationRepository;
 import at.htl.party.Party;
@@ -23,6 +25,8 @@ public class InvitationRepository {
     PartyRepository partyRepository;
     @Inject
     NotificationRepository notificationRepository;
+    @Inject
+    HistoryRecorder historyRecorder;
 
     private static final String INVITATION_ACCEPTED = "ACCEPTED";
     private static final String INVITATION_DECLINED = "DECLINED";
@@ -225,8 +229,8 @@ public class InvitationRepository {
         invitation.setStatus(INVITATION_ACCEPTED);
         entityManager.merge(invitation);
 
-        if (party.getUsers() != null) {
-            party.getUsers().add(user);
+        if (party.getUsers() != null && party.getUsers().add(user)) {
+            historyRecorder.recordAttendance(party, user, AttendanceEventType.JOINED);
         }
 
         Long senderId = invitation.getSender() != null ? invitation.getSender().getId() : null;
@@ -299,6 +303,7 @@ public class InvitationRepository {
                 user != null && user.getId() != null && user.getId().equals(userId));
 
         if (removed) {
+            historyRecorder.recordAttendance(party, entityManager.getReference(User.class, userId), AttendanceEventType.LEFT);
             entityManager.merge(party);
         }
     }

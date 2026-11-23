@@ -1,4 +1,6 @@
 TRUNCATE TABLE
+    follow_event,
+    attendance_event,
     bring_along_pledge,
     bring_along_item,
     notification,
@@ -257,3 +259,56 @@ SELECT setval('media_id_seq', COALESCE((SELECT MAX(id) FROM media), 1), true);
 SELECT setval('invitation_id_seq', COALESCE((SELECT MAX(id) FROM invitation), 1), true);
 SELECT setval('notification_id_seq', COALESCE((SELECT MAX(id) FROM notification), 1), true);
 SELECT setval('qr_login_id_seq', COALESCE((SELECT MAX(id) FROM qr_login), 1), true);
+
+-- =========================
+-- HOST DASHBOARD (relative to now, so the time ranges always have data)
+-- =========================
+UPDATE users SET gender = v.gender, birth_date = v.birth_date::date
+FROM (VALUES
+    (1, 'FEMALE', '2007-03-14'),
+    (2, 'FEMALE', '2008-01-22'),
+    (3, 'FEMALE', '2001-06-05'),
+    (4, 'MALE', '1996-09-30'),
+    (5, 'FEMALE', '1990-12-01'),
+    (6, 'MALE', '2004-04-18'),
+    (7, 'DIVERSE', '1999-07-27'),
+    (8, 'MALE', NULL),
+    (9, 'NOT_SPECIFIED', '2003-02-11'),
+    (10, NULL, NULL)
+) AS v(id, gender, birth_date)
+WHERE users.id = v.id;
+
+-- Victoria's parties were created within the last months, so every dashboard range has parties.
+UPDATE party SET created_at = LOCALTIMESTAMP - v.age
+FROM (VALUES
+    (11, INTERVAL '130 days'),
+    (1, INTERVAL '95 days'),
+    (13, INTERVAL '20 days')
+) AS v(id, age)
+WHERE party.id = v.id;
+
+-- Followers of Victoria (user 1): 2, 3 and 7 are current; 9 and 10 followed and left again.
+INSERT INTO follow_event (follower_id, followed_id, type, occurred_at) VALUES
+    (2, 1, 'FOLLOWED', LOCALTIMESTAMP - INTERVAL '150 days'),
+    (3, 1, 'FOLLOWED', LOCALTIMESTAMP - INTERVAL '62 days'),
+    (9, 1, 'FOLLOWED', LOCALTIMESTAMP - INTERVAL '40 days'),
+    (9, 1, 'UNFOLLOWED', LOCALTIMESTAMP - INTERVAL '21 days'),
+    (7, 1, 'FOLLOWED', LOCALTIMESTAMP - INTERVAL '10 days'),
+    (10, 1, 'FOLLOWED', LOCALTIMESTAMP - INTERVAL '4 days'),
+    (10, 1, 'UNFOLLOWED', LOCALTIMESTAMP - INTERVAL '1 day'),
+    (1, 2, 'FOLLOWED', LOCALTIMESTAMP - INTERVAL '149 days'),
+    (1, 3, 'FOLLOWED', LOCALTIMESTAMP - INTERVAL '60 days');
+
+-- Joins to Victoria's parties 1, 11 and 13; user 8 joined party 1 and left again.
+INSERT INTO attendance_event (party_id, user_id, type, occurred_at) VALUES
+    (11, 2, 'JOINED', LOCALTIMESTAMP - INTERVAL '120 days'),
+    (11, 3, 'JOINED', LOCALTIMESTAMP - INTERVAL '75 days'),
+    (11, 4, 'JOINED', LOCALTIMESTAMP - INTERVAL '33 days'),
+    (11, 5, 'JOINED', LOCALTIMESTAMP - INTERVAL '25 days'),
+    (11, 6, 'JOINED', LOCALTIMESTAMP - INTERVAL '12 days'),
+    (1, 2, 'JOINED', LOCALTIMESTAMP - INTERVAL '90 days'),
+    (1, 3, 'JOINED', LOCALTIMESTAMP - INTERVAL '18 days'),
+    (1, 8, 'JOINED', LOCALTIMESTAMP - INTERVAL '9 days'),
+    (1, 8, 'LEFT', LOCALTIMESTAMP - INTERVAL '6 days'),
+    (1, 7, 'JOINED', LOCALTIMESTAMP - INTERVAL '5 days'),
+    (13, 4, 'JOINED', LOCALTIMESTAMP - INTERVAL '2 days');

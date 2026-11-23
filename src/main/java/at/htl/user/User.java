@@ -5,6 +5,7 @@ import at.htl.profile_picture.ProfilePicture;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 
+import java.time.LocalDate;
 import java.util.Set;
 
 @Entity
@@ -44,6 +45,13 @@ public void setDeviceToken(String deviceToken) { this.deviceToken = deviceToken;
 
     @Column(nullable = true)
     private String biography;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "gender", length = 32)
+    private Gender gender;
+
+    @Column(name = "birth_date")
+    private LocalDate birthDate;
 
     @OneToOne(cascade = CascadeType.ALL, mappedBy = "user")
     @JsonIgnore
@@ -119,6 +127,24 @@ public void setDeviceToken(String deviceToken) { this.deviceToken = deviceToken;
 
     public void setBiography(String biography) {
         this.biography = biography;
+    }
+
+    @JsonIgnore
+    public Gender getGender() {
+        return gender;
+    }
+
+    public void setGender(Gender gender) {
+        this.gender = gender;
+    }
+
+    @JsonIgnore
+    public LocalDate getBirthDate() {
+        return birthDate;
+    }
+
+    public void setBirthDate(LocalDate birthDate) {
+        this.birthDate = birthDate;
     }
 
     public ProfilePicture getProfilePicture() {

@@ -1144,6 +1144,14 @@ document.addEventListener("DOMContentLoaded", async function () {
       btn.appendChild(link);
       container.appendChild(btn);
 
+      // Dashboard button (own statistics as host)
+      const dashboardLink = document.createElement("a");
+      dashboardLink.className = "edit-account-btn dashboard-btn";
+      dashboardLink.href = "../dashboard/dashboard.html";
+      dashboardLink.textContent = "Dashboard";
+      dashboardLink.style.textDecoration = "none";
+      container.appendChild(dashboardLink);
+
       // Logout button
       try {
         const logoutBtn = document.createElement("button");

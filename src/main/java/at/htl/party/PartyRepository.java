@@ -11,6 +11,8 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 
+import at.htl.history.AttendanceEventType;
+import at.htl.history.HistoryRecorder;
 import at.htl.location.Location;
 import at.htl.location.LocationRepository;
 import at.htl.bringalong.BringAlongChanged;
@@ -55,6 +57,9 @@ public class PartyRepository {
 
     @Inject
     FollowRepository followRepository;
+
+    @Inject
+    HistoryRecorder historyRecorder;
 
     private static final DateTimeFormatter PARTY_DTF = DateTimeFormatter.ofPattern("dd.MM.yyyy HH:mm");
     private static final String INVITATION_PENDING = "PENDING";
@@ -605,6 +610,7 @@ public class PartyRepository {
         if (!attendees.contains(user)) {
             Optional<Invitation> invitation = findInvitationForRecipient(party, user);
             attendees.add(user);
+            historyRecorder.recordAttendance(party, user, AttendanceEventType.JOINED);
             if (invitation.isPresent()) {
                 invitation.get().setStatus(INVITATION_ACCEPTED);
                 entityManager.merge(invitation.get());
@@ -646,6 +652,7 @@ public class PartyRepository {
             // A leaving guest no longer brings anything; free their pledges for others.
             bringAlongService.removePledgesOf(party.getId(), user.getId());
             attendees.remove(user);
+            historyRecorder.recordAttendance(party, user, AttendanceEventType.LEFT);
             Optional<Invitation> invitation = findInvitationForRecipient(party, user);
             if (invitation.isPresent()) {
                 invitation.get().setStatus(INVITATION_DECLINED);
