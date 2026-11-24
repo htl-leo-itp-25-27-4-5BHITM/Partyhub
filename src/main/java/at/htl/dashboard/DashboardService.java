@@ -13,6 +13,7 @@ import org.owasp.encoder.Encode;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.DayOfWeek;
+import java.time.Duration;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.Period;
@@ -26,6 +27,12 @@ public class DashboardService {
 
     /** Gender and age distributions are only shown when at least this many guests provided the value. */
     public static final int MIN_SAMPLE = 5;
+
+    /**
+     * A follow that is undone within this time counts neither as a gained nor as a lost follower,
+     * so following and unfollowing right away cannot inflate the dashboard.
+     */
+    static final Duration QUICK_UNFOLLOW_WINDOW = Duration.ofHours(24);
 
     static final List<String> AGE_GROUPS = List.of("<18", "18-20", "21-24", "25-29", "30+");
 
@@ -60,7 +67,7 @@ public class DashboardService {
 
     record PartyRow(long id, String title, String visibility, Integer maxPeople, long guests, LocalDateTime createdAt) {}
 
-    record FollowRow(FollowEventType type, LocalDateTime occurredAt) {}
+    record FollowRow(long followerId, FollowEventType type, LocalDateTime occurredAt) {}
 
     record JoinRow(String visibility, LocalDateTime occurredAt) {}
 
@@ -79,16 +86,41 @@ public class DashboardService {
     }
 
     private List<FollowRow> followEvents(long hostId, LocalDateTime from, LocalDateTime to) {
-        return em.createQuery(
-                        "SELECT e.type, e.occurredAt FROM FollowEvent e "
+        // Load a little before the range so a follow just before it, undone inside it, is recognised.
+        List<FollowRow> rows = em.createQuery(
+                        "SELECT e.follower.id, e.type, e.occurredAt FROM FollowEvent e "
                                 + "WHERE e.followed.id = :hostId AND e.occurredAt >= :from AND e.occurredAt <= :to",
                         Object[].class)
                 .setParameter("hostId", hostId)
-                .setParameter("from", from)
+                .setParameter("from", from.minus(QUICK_UNFOLLOW_WINDOW))
                 .setParameter("to", to)
                 .getResultList().stream()
-                .map(r -> new FollowRow((FollowEventType) r[0], (LocalDateTime) r[1]))
+                .map(r -> new FollowRow((Long) r[0], (FollowEventType) r[1], (LocalDateTime) r[2]))
                 .toList();
+        return withoutQuickUnfollows(rows).stream()
+                .filter(row -> !row.occurredAt().isBefore(from))
+                .toList();
+    }
+
+    /** Drops each follow that the same follower undid within {@link #QUICK_UNFOLLOW_WINDOW}, together with its unfollow. */
+    static List<FollowRow> withoutQuickUnfollows(List<FollowRow> rows) {
+        List<FollowRow> sorted = rows.stream()
+                .sorted(Comparator.comparing(FollowRow::occurredAt))
+                .toList();
+        Set<FollowRow> dropped = Collections.newSetFromMap(new IdentityHashMap<>());
+        Map<Long, FollowRow> openFollow = new HashMap<>();
+        for (FollowRow row : sorted) {
+            if (row.type() == FollowEventType.FOLLOWED) {
+                openFollow.put(row.followerId(), row);
+                continue;
+            }
+            FollowRow follow = openFollow.remove(row.followerId());
+            if (follow != null && !row.occurredAt().isAfter(follow.occurredAt().plus(QUICK_UNFOLLOW_WINDOW))) {
+                dropped.add(follow);
+                dropped.add(row);
+            }
+        }
+        return sorted.stream().filter(row -> !dropped.contains(row)).toList();
     }
 
     private List<JoinRow> joins(long hostId, LocalDateTime from, LocalDateTime to) {

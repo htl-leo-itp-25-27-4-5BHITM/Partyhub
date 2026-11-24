@@ -458,3 +458,84 @@ input::placeholder {
 input {
   color: #fff; /* actual text */
 }
+
+/* ---------- Whole page scrolls (scrollbar at the window edge, like the dashboard) ---------- */
+body.notifications-page {
+  overflow-y: auto;
+}
+
+body.notifications-page .app-shell {
+  height: auto;
+  min-height: 100dvh;
+}
+
+body.notifications-page .app-shell > .container {
+  overflow: visible;
+  flex: none;
+  padding-bottom: calc(var(--nav-height, 72px) + 40px + env(safe-area-inset-bottom, 0px));
+}
+
+body.notifications-page .notif-panel {
+  overflow: visible;
+  flex: none;
+}
+
+/* ---------- One section per day ---------- */
+.notif-day-group {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.notif-day-group + .notif-day-group {
+  margin-top: 14px;
+}
+
+.notif-day-heading {
+  margin: 0;
+  padding: 0 4px;
+  font-size: 0.8rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--text-muted, rgba(255, 255, 255, 0.58));
+}
+
+/* ---------- Action running: buttons disabled, clicked one shows a spinner ---------- */
+.notif-card.is-busy .notif-actions button {
+  cursor: progress;
+  opacity: 0.55;
+  transform: none;
+}
+
+.notif-actions button.is-loading {
+  position: relative;
+  opacity: 1;
+}
+
+.notif-actions button.is-loading svg {
+  visibility: hidden;
+}
+
+.notif-actions button.is-loading::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  margin: auto;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  border: 2px solid currentColor;
+  border-right-color: transparent;
+  animation: notif-spin 0.7s linear infinite;
+}
+
+@keyframes notif-spin {
+  to { transform: rotate(360deg); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .notif-actions button.is-loading::after {
+    animation-duration: 1.6s;
+  }
+}

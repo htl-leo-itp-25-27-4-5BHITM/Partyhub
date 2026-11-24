@@ -374,8 +374,9 @@ public class UserResource {
     @Produces(MediaType.APPLICATION_JSON)
     @Authenticated
     public Response getFollowRequests(@PathParam("id") long id) {
-        List<User> pending = followRepository.getPendingFollowerRequests(id);
-        return Response.ok(pending.stream().map(u -> ProfileDto.from(u, false)).toList()).build();
+        return Response.ok(followRepository.getPendingFollowerRequestsWithTime(id).stream()
+                .map(request -> FollowRequestDto.from(request.requester(), request.requestedAt()))
+                .toList()).build();
     }
 
     @GET

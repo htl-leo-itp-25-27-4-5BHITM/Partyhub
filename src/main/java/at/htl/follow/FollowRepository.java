@@ -1,5 +1,6 @@
 package at.htl.follow;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 import at.htl.history.FollowEventType;
@@ -59,6 +60,21 @@ public class FollowRepository {
                 .getResultList();
     }
 
+    /** A pending incoming follow request with the time it was sent (null for old requests). */
+    public record PendingRequest(User requester, LocalDateTime requestedAt) {
+    }
+
+    public List<PendingRequest> getPendingFollowerRequestsWithTime(long userId) {
+        return entityManager.createQuery(
+                        "SELECT u, f.requestedAt FROM User u JOIN Follow f ON u.id = f.user1_id " +
+                                "WHERE f.user2_id = :userId AND f.status.status_id = 1",
+                        Object[].class)
+                .setParameter("userId", userId)
+                .getResultList().stream()
+                .map(row -> new PendingRequest((User) row[0], (LocalDateTime) row[1]))
+                .toList();
+    }
+
     public List<User> getPendingFollowerRequests(long userId) {
         return entityManager.createQuery(
                 "SELECT u FROM User u JOIN Follow f ON u.id = f.user1_id " +
@@ -100,6 +116,7 @@ public class FollowRepository {
         Follow follow = new Follow();
         follow.setUser1_id(user1Id);
         follow.setUser2_id(user2Id);
+        follow.setRequestedAt(LocalDateTime.now());
 
         FollowStatus pendingStatus = entityManager.find(FollowStatus.class, 1L);
         follow.setStatus(pendingStatus);

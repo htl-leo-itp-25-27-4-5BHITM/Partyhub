@@ -73,7 +73,7 @@ Legend: **B** browser (`src/main/resources/META-INF/resources/`), **I** iOS (`Pa
 | 47 | POST `/api/users/{id}/upload-profile-picture` | multipart | 200 `{"filename"}`, 403, 404, 500 | JSON string | B `editProfile.js:289`; I `ProfileView.swift:322` | Match. Validation G039. |
 | 48 | GET `/api/users/{id}/followers` | path id | 200 | `User` list | B `backend-functions.js:329`, `profile.js:170`, `addParty.js:326`; H | Match. |
 | 49 | GET `/api/users/{id}/following` | path id | 200 | `User` list | B `backend-functions.js:341`, `profile.js:184`, `addParty.js:327`; I `MapView.swift:690`, `InviteUsersView.swift:17`, `PartyAttendeeMapView.swift:201`, `UserLocationListView.swift:108`; H | Match. |
-| 50 | GET `/api/users/{id}/follow-requests` | path id | 200 | `User` list | B `backend-functions.js:441`, `profile.js:217`, `notifications.js:294`; H | Match on route; recipient privacy G027. |
+| 50 | GET `/api/users/{id}/follow-requests` | path id | 200 | `FollowRequestDto` list (`id`, `displayName`, `distinctName`, `biography`, `requestedAt` – null for requests before V11) | B `backend-functions.js:441`, `profile.js:217`, `notifications.js:294`; H | Match on route; recipient privacy G027. |
 | 51 | GET `/api/users/{userId1}/followers/{userId2}/status` | two ids | 200 | boolean | B `backend-functions.js:353`, `profile.js:202`; H | Match; G027. |
 | 52 | POST `/api/users/{id}/follow?targetUserId=` | query target; path `id` ignored | 201, 400, 409 | follow / empty | B `backend-functions.js:380`, `profile.js:243`; H | Match on route; path meaning G024. |
 | 53 | PUT `/api/users/{id}/followers/{followerId}` | path ids; `id` ignored | 200, 404 | follow | B `notifications.js:338` | Match; G024. |

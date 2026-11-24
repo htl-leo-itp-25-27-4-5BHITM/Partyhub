@@ -1,6 +1,7 @@
 package at.htl.follow;
 
 import jakarta.persistence.*;
+import java.time.LocalDateTime;
 import java.util.Objects;
 
 @Entity
@@ -18,6 +19,17 @@ public class Follow {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "status_id", nullable = false)
     FollowStatus status;
+    /** When the follow request was sent; null for requests from before this was recorded. */
+    @Column(name = "requested_at")
+    LocalDateTime requestedAt;
+
+    public LocalDateTime getRequestedAt() {
+        return requestedAt;
+    }
+
+    public void setRequestedAt(LocalDateTime requestedAt) {
+        this.requestedAt = requestedAt;
+    }
 
     public Long getUser1_id() {
         return user1_id;
