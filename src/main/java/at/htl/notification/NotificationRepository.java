@@ -4,7 +4,9 @@ import java.util.List;
 
 import at.htl.notificationsettings.UserNotificationSettings;
 import at.htl.notificationsettings.UserNotificationSettingsRepository;
+import at.htl.live.UserChanged;
 import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.enterprise.event.Event;
 import jakarta.inject.Inject;
 import jakarta.persistence.EntityManager;
 import jakarta.transaction.Transactional;
@@ -22,6 +24,16 @@ public class NotificationRepository {
 
     @Inject
     UserNotificationSettingsRepository userNotificationSettingsRepository;
+
+    /** Tells the recipient's open pages (after commit) that their notifications changed. */
+    @Inject
+    Event<UserChanged> userChanged;
+
+    private void notificationsChanged(Long userId) {
+        if (userId != null) {
+            userChanged.fire(new UserChanged(userId, UserChanged.NOTIFICATIONS));
+        }
+    }
 
     public List<Notification> getNotificationsByUser(Long userId) {
         return getNotificationsByUser(userId, null, null, null);
@@ -104,11 +116,15 @@ public class NotificationRepository {
         if (userId == null) {
             return 0;
         }
-        return entityManager.createQuery(
+        int updated = entityManager.createQuery(
                 "UPDATE Notification n SET n.status = 'READ' " +
                         "WHERE n.recipient.id = :userId AND n.status = 'UNREAD'")
                 .setParameter("userId", userId)
                 .executeUpdate();
+        if (updated > 0) {
+            notificationsChanged(userId);
+        }
+        return updated;
     }
 
     public Response markAsRead(Long notificationId, Long userId) {
@@ -127,6 +143,7 @@ public class NotificationRepository {
 
         notification.setStatus("READ");
         entityManager.merge(notification);
+        notificationsChanged(userId);
         return Response.ok().build();
     }
 
@@ -145,6 +162,7 @@ public class NotificationRepository {
         }
 
         entityManager.remove(notification);
+        notificationsChanged(userId);
         return Response.noContent().build();
     }
 
@@ -159,6 +177,9 @@ public class NotificationRepository {
         }
         entityManager.persist(notification);
         outOfAppNotificationService.sendNotification(notification);
+        if (notification != null && notification.getRecipient() != null) {
+            notificationsChanged(notification.getRecipient().getId());
+        }
     }
 
     public int deleteByPartyId(Long partyId) {
@@ -177,7 +198,7 @@ public class NotificationRepository {
             return 0;
         }
 
-        return entityManager.createQuery(
+        int deleted = entityManager.createQuery(
                         "DELETE FROM Notification n " +
                                 "WHERE n.party.id = :partyId " +
                                 "AND n.sender.id = :senderId " +
@@ -190,6 +211,10 @@ public class NotificationRepository {
                 .setParameter("englishInvite", "%invited you to the party%")
                 .setParameter("legacyInvite", "%eingeladen%")
                 .executeUpdate();
+        if (deleted > 0) {
+            notificationsChanged(recipientId);
+        }
+        return deleted;
     }
 
 }

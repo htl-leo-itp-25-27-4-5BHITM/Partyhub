@@ -4,6 +4,8 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 import at.htl.history.FollowEventType;
+import at.htl.live.UserChanged;
+import jakarta.enterprise.event.Event;
 import at.htl.history.HistoryRecorder;
 import at.htl.notification.Notification;
 import at.htl.notification.NotificationRepository;
@@ -25,6 +27,15 @@ public class FollowRepository {
 
     @Inject
     HistoryRecorder historyRecorder;
+
+    /** Tells both users' open pages (after commit) that a follow changed. */
+    @Inject
+    Event<UserChanged> userChanged;
+
+    private void followsChanged(long followerId, long followedId) {
+        userChanged.fire(new UserChanged(followerId, UserChanged.FOLLOWS));
+        userChanged.fire(new UserChanged(followedId, UserChanged.FOLLOWS));
+    }
 
     public long getFollowerCount(long userId) {
         return entityManager.createQuery(
@@ -130,6 +141,8 @@ public class FollowRepository {
         follow.setUser1_id(user1Id);
         follow.setUser2_id(user2Id);
         follow.setRequestedAt(LocalDateTime.now());
+        // The new request shows up in the target's notifications.
+        userChanged.fire(new UserChanged(user2Id, UserChanged.NOTIFICATIONS));
 
         FollowStatus pendingStatus = entityManager.find(FollowStatus.class, 1L);
         follow.setStatus(pendingStatus);
@@ -158,6 +171,7 @@ public class FollowRepository {
         follow.setStatus(acceptedStatus);
         entityManager.merge(follow);
         historyRecorder.recordFollow(user1Id, user2Id, FollowEventType.FOLLOWED);
+        followsChanged(user1Id, user2Id);
         notifyFollowAccepted(user1Id, user2Id);
 
         return Response.ok().entity("{\"message\": \"Follow request accepted\"}").build();
@@ -216,6 +230,9 @@ public Response removeFollow(long user1Id, long user2Id) {
     if (wasAccepted) {
         historyRecorder.recordFollow(user1Id, user2Id, FollowEventType.UNFOLLOWED);
     }
+    followsChanged(user1Id, user2Id);
+    // A withdrawn or declined request disappears from the target's notifications.
+    userChanged.fire(new UserChanged(user2Id, UserChanged.NOTIFICATIONS));
     return Response.noContent().build();
 }
 }

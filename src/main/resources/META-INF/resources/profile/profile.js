@@ -1866,4 +1866,18 @@ document.addEventListener("DOMContentLoaded", async function () {
 
   initTabs();
   initProfileLoad();
+
+  // Live updates: follower counts and the follow button change without reloading the page.
+  // Events only cover the logged-in user, so other profiles are also re-checked every 30 s.
+  let liveFollowTimer = null;
+  window.addEventListener("partyhub:live", (event) => {
+    if (event.detail?.kind && event.detail.kind !== "follows") return;
+    clearTimeout(liveFollowTimer);
+    liveFollowTimer = setTimeout(() => {
+      if (!activeFollowMenu) refreshProfileFollowState();
+    }, 500);
+  });
+  setInterval(() => {
+    if (!document.hidden && !activeFollowMenu) refreshProfileFollowState();
+  }, 30000);
 });
