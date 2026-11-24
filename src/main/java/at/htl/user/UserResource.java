@@ -374,6 +374,10 @@ public class UserResource {
     @Produces(MediaType.APPLICATION_JSON)
     @Authenticated
     public Response getFollowRequests(@PathParam("id") long id) {
+        // Pending incoming requests are private to their recipient.
+        if (currentUserResolver.requireCurrentUserId() != id) {
+            return Response.status(Response.Status.FORBIDDEN).build();
+        }
         return Response.ok(followRepository.getPendingFollowerRequestsWithTime(id).stream()
                 .map(request -> FollowRequestDto.from(request.requester(), request.requestedAt()))
                 .toList()).build();
@@ -416,7 +420,26 @@ public class UserResource {
     @Authenticated
     public Response unfollowUser(@PathParam("id") long id,
                                 @PathParam("followerId") long followerId) {
-        return followRepository.removeFollow(currentUserResolver.requireCurrentUserId(), id);
+        long callerId = currentUserResolver.requireCurrentUserId();
+        // The follower unfollows or withdraws their own request ...
+        if (callerId == followerId) {
+            return followRepository.removeFollow(followerId, id);
+        }
+        // ... or the followed user declines a request or removes a follower.
+        if (callerId == id) {
+            return followRepository.removeFollow(followerId, id);
+        }
+        return Response.status(Response.Status.FORBIDDEN).build();
+    }
+
+    /** The caller's own relationship to {id}: "following", "pending" or "none". */
+    @GET
+    @jakarta.ws.rs.Path("/{id}/follow-status")
+    @Produces(MediaType.APPLICATION_JSON)
+    @Authenticated
+    public Response getMyFollowStatus(@PathParam("id") long id) {
+        long callerId = currentUserResolver.requireCurrentUserId();
+        return Response.ok(Map.of("status", followRepository.followStatus(callerId, id))).build();
     }
 
     @GET

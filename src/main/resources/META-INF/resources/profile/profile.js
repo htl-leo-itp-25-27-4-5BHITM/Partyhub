@@ -198,8 +198,9 @@ document.addEventListener("DOMContentLoaded", async function () {
           return { status: "not_following" };
         }
 
+        // The server reports only the logged-in user's own relationship to the target.
         const response = await window.authService.apiCall(
-          `/api/users/${encodeURIComponent(currentUserId)}/followers/${encodeURIComponent(targetUserId)}/status`
+          `/api/users/${encodeURIComponent(targetUserId)}/follow-status`
         );
 
         if (!response.ok) {
@@ -207,27 +208,9 @@ document.addEventListener("DOMContentLoaded", async function () {
           return { status: "not_following" };
         }
 
-        const isFollowing = await response.json().catch(() => false);
-
-        if (isFollowing) {
-          return { status: "following" };
-        }
-
-        const pendingResponse = await window.authService.apiCall(
-          `/api/users/${encodeURIComponent(targetUserId)}/follow-requests`
-        );
-
-        if (pendingResponse.ok) {
-          const pendingUsers = await pendingResponse.json().catch(() => []);
-
-          if (
-            Array.isArray(pendingUsers) &&
-            pendingUsers.some((user) => String(user?.id) === String(currentUserId))
-          ) {
-            return { status: "pending" };
-          }
-        }
-
+        const data = await response.json().catch(() => null);
+        if (data?.status === "following") return { status: "following" };
+        if (data?.status === "pending") return { status: "pending" };
         return { status: "not_following" };
       },
 
@@ -417,7 +400,52 @@ document.addEventListener("DOMContentLoaded", async function () {
     return item;
   }
 
-  function showFollowMenu(anchor, users, title) {
+  // On the own followers list each entry gets a "Remove" button (removes that follower).
+  function createRemovableFollowerRow(user) {
+    const row = document.createElement("div");
+    row.className = "follow-menu-row";
+    row.appendChild(createFollowMenuItem(user));
+
+    const remove = document.createElement("button");
+    remove.type = "button";
+    remove.className = "follow-menu-remove";
+    remove.textContent = "Remove";
+    const name = user.displayName || user.distinctName || "this user";
+    remove.setAttribute("aria-label", `Remove ${name} as a follower`);
+
+    remove.addEventListener("click", async (event) => {
+      event.stopPropagation();
+      if (remove.disabled) return;
+      if (!window.confirm(`Remove ${name} as a follower?`)) return;
+
+      remove.disabled = true;
+      remove.classList.add("is-loading");
+      remove.textContent = "Removing…";
+      try {
+        const me = getStoredUserId();
+        const response = await window.authService.apiCall(
+          `/api/users/${encodeURIComponent(me)}/followers/${encodeURIComponent(user.id)}`,
+          { method: "DELETE" }
+        );
+        if (!response.ok && response.status !== 404) {
+          throw new Error(`Remove follower failed: ${response.status}`);
+        }
+        row.remove();
+        await refreshProfileFollowState();
+      } catch (error) {
+        console.error(error);
+        remove.disabled = false;
+        remove.classList.remove("is-loading");
+        remove.textContent = "Remove";
+        alert("The follower could not be removed. Please try again.");
+      }
+    });
+
+    row.appendChild(remove);
+    return row;
+  }
+
+  function showFollowMenu(anchor, users, title, { removable = false } = {}) {
     closeFollowMenu();
 
     const menu = document.createElement("div");
@@ -439,7 +467,7 @@ document.addEventListener("DOMContentLoaded", async function () {
       content.appendChild(empty);
     } else {
       users.forEach((user) => {
-        content.appendChild(createFollowMenuItem(user));
+        content.appendChild(removable ? createRemovableFollowerRow(user) : createFollowMenuItem(user));
       });
     }
 
@@ -589,7 +617,8 @@ document.addEventListener("DOMContentLoaded", async function () {
 
       followersCountEl.onclick = (event) => {
         event.stopPropagation();
-        showFollowMenu(followersCountEl, followers, "Followers");
+        const ownProfile = String(viewedUserId) === String(getStoredUserId());
+        showFollowMenu(followersCountEl, followers, "Followers", { removable: ownProfile });
 
         if (activeFollowMenu) {
           activeFollowMenu._anchorEl = followersCountEl;

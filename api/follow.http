@@ -38,12 +38,43 @@ X-User-Id: 1
 
 
 ###
-### Seed: Michael wants to follow Thomas
+### Seed: Michael sees his own pending follow request from Carla
+###
+GET {{baseUrl}}/4/follow-requests
+X-User-Id: 4
+
+?? status == 200
+?? js response.parsedBody.some(u => u.distinctName === 'carla_dimmler') == true
+?? js response.parsedBody[0].requestedAt != null
+
+
+###
+### Other users cannot read Michael's pending follow requests
 ###
 GET {{baseUrl}}/4/follow-requests
 X-User-Id: 1
 
+?? status == 403
+
+
+###
+### Carla sees her own request to Michael as pending
+###
+GET {{baseUrl}}/4/follow-status
+X-User-Id: 2
+
 ?? status == 200
+?? body status == pending
+
+
+###
+### Anna (1) follows Michael? no relationship
+###
+GET {{baseUrl}}/4/follow-status
+X-User-Id: 1
+
+?? status == 200
+?? body status == none
 
 
 ###

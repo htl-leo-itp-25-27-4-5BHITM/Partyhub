@@ -89,7 +89,7 @@ X-User-Id: 1
 ### Pending follow requests for Thomas
 ###########################################
 GET {{baseUrl}}/4/follow-requests
-X-User-Id: 1
+X-User-Id: 4
 
 ?? status == 200
 

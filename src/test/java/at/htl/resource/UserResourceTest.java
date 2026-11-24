@@ -105,11 +105,11 @@ public class UserResourceTest extends TestBase {
 
     @Test
     @TestSecurity(user = "test-user", roles = "user")
-    void testGetFollowRequests_notFound() {
+    void testGetFollowRequests_otherUser_isForbidden() {
         given()
             .when().get("/api/users/999/follow-requests")
             .then()
-            .statusCode(200);
+            .statusCode(403);
     }
 
     @Test

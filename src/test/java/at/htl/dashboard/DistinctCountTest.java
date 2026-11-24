@@ -23,22 +23,49 @@ class DistinctCountTest {
             rows.add(new FollowRow(9, FOLLOWED, T.plusDays(i)));
         }
 
-        List<FollowRow> counted = DashboardService.oncePerFollower(rows);
+        List<FollowRow> counted = DashboardService.netChangePerFollower(rows);
 
-        assertEquals(List.of(new FollowRow(9, FOLLOWED, T)), counted, "only the first follow counts");
+        assertEquals(List.of(new FollowRow(9, FOLLOWED, T.plusDays(21))), counted, "counted once, at the last entry");
     }
 
     @Test
-    void followerCountsOnceAsGainedAndOnceAsLost() {
+    void cameAndWentCountsNothing() {
         List<FollowRow> rows = List.of(
                 new FollowRow(9, FOLLOWED, T),
                 new FollowRow(9, UNFOLLOWED, T.plusDays(2)),
                 new FollowRow(9, FOLLOWED, T.plusDays(4)),
                 new FollowRow(9, UNFOLLOWED, T.plusDays(6)));
 
-        List<FollowRow> counted = DashboardService.oncePerFollower(rows);
+        assertEquals(List.of(), DashboardService.netChangePerFollower(rows));
+    }
 
-        assertEquals(List.of(new FollowRow(9, FOLLOWED, T), new FollowRow(9, UNFOLLOWED, T.plusDays(6))), counted);
+    @Test
+    void leftAndCameBackCountsNothing() {
+        List<FollowRow> rows = List.of(
+                new FollowRow(9, UNFOLLOWED, T),
+                new FollowRow(9, FOLLOWED, T.plusDays(3)));
+
+        assertEquals(List.of(), DashboardService.netChangePerFollower(rows));
+    }
+
+    @Test
+    void followingAtTheEndCountsOnceAsGained() {
+        List<FollowRow> rows = List.of(
+                new FollowRow(9, FOLLOWED, T),
+                new FollowRow(9, UNFOLLOWED, T.plusDays(2)),
+                new FollowRow(9, FOLLOWED, T.plusDays(4)));
+
+        assertEquals(List.of(new FollowRow(9, FOLLOWED, T.plusDays(4))), DashboardService.netChangePerFollower(rows));
+    }
+
+    @Test
+    void goneAtTheEndCountsOnceAsLost() {
+        List<FollowRow> rows = List.of(
+                new FollowRow(9, UNFOLLOWED, T),
+                new FollowRow(9, FOLLOWED, T.plusDays(2)),
+                new FollowRow(9, UNFOLLOWED, T.plusDays(4)));
+
+        assertEquals(List.of(new FollowRow(9, UNFOLLOWED, T.plusDays(4))), DashboardService.netChangePerFollower(rows));
     }
 
     @Test
@@ -48,7 +75,7 @@ class DistinctCountTest {
                 new FollowRow(2, FOLLOWED, T.plusHours(1)),
                 new FollowRow(1, FOLLOWED, T.plusHours(2)));
 
-        assertEquals(2, DashboardService.oncePerFollower(rows).size());
+        assertEquals(2, DashboardService.netChangePerFollower(rows).size());
     }
 
     @Test

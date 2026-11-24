@@ -86,7 +86,8 @@ class DashboardServiceTest extends TestBase {
             joined(c, g1, 1);
 
             follow(g1, host, FollowEventType.FOLLOWED, 1);
-            follow(g2, host, FollowEventType.FOLLOWED, 5);
+            // g2 followed long before the 30-day range and left inside it: a lost follower
+            follow(g2, host, FollowEventType.FOLLOWED, 40);
             follow(g2, host, FollowEventType.UNFOLLOWED, 2);
             follow(g3, host, FollowEventType.FOLLOWED, 50);
             follow(g1, otherHost, FollowEventType.FOLLOWED, 1);
@@ -180,8 +181,8 @@ class DashboardServiceTest extends TestBase {
 
         assertEquals("30d", dto.range());
         assertEquals(2, dto.partiesCreated());
-        assertEquals(2, dto.followersGained());
-        assertEquals(1, dto.followersLost());
+        assertEquals(1, dto.followersGained(), "g1");
+        assertEquals(1, dto.followersLost(), "g2, who followed before the range");
         assertEquals(5, dto.joins(), "joins of other hosts and joins older than 30 days are not counted");
 
         assertEquals(1, dto.visibility().privateParties().parties());
@@ -293,7 +294,7 @@ class DashboardServiceTest extends TestBase {
 
         DashboardDto dto = build(hostId, DashboardRange.DAYS_30, LocalDateTime.now());
 
-        assertEquals(3, dto.followersGained(), "g1, g2 and g4 once each");
+        assertEquals(2, dto.followersGained(), "g1 and g4 once each");
         long timelineGained = dto.timeline().points().stream().mapToLong(DashboardDto.TimelinePoint::followersGained).sum();
         assertEquals(dto.followersGained(), timelineGained, "timeline and tiles must agree");
     }
@@ -322,7 +323,7 @@ class DashboardServiceTest extends TestBase {
 
         DashboardDto dto = build(hostId, DashboardRange.DAYS_30, LocalDateTime.now());
 
-        assertEquals(2, dto.followersGained(), "the quick follow of g4 must not count");
+        assertEquals(1, dto.followersGained(), "the quick follow of g4 must not count");
         assertEquals(1, dto.followersLost(), "the quick unfollow of g4 must not count");
     }
 
@@ -367,7 +368,8 @@ class DashboardServiceTest extends TestBase {
         assertTrue(dto.timeline().points().size() >= 26);
         dto.timeline().points().forEach(p -> assertEquals(DayOfWeek.MONDAY, p.start().getDayOfWeek()));
         assertEquals(6, dto.joins());
-        assertEquals(3, dto.followersGained());
+        assertEquals(2, dto.followersGained(), "g1 and g3; g2 came and went within six months");
+        assertEquals(0, dto.followersLost());
     }
 
     @Test
@@ -414,7 +416,7 @@ class DashboardServiceTest extends TestBase {
                 .header("Cache-Control", containsString("no-store"))
                 .body("range", is("7d"))
                 .body("partiesCreated", is(2))
-                .body("followersGained", is(2))
+                .body("followersGained", is(1))
                 .body("followersLost", is(1))
                 .body("timeline.points", hasSize(7));
 
