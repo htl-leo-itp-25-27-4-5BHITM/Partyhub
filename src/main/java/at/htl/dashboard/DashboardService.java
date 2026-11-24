@@ -97,29 +97,32 @@ public class DashboardService {
                 .getResultList().stream()
                 .map(r -> new FollowRow((Long) r[0], (FollowEventType) r[1], (LocalDateTime) r[2]))
                 .toList();
-        return oncePerFollower(withoutQuickUnfollows(rows).stream()
+        return netChangePerFollower(withoutQuickUnfollows(rows).stream()
                 .filter(row -> !row.occurredAt().isBefore(from))
                 .toList());
     }
 
     /**
-     * Each follower counts at most once as gained (first follow) and once as lost (last unfollow),
-     * so repeated or duplicate history entries of the same person are not counted several times.
+     * Counts only each follower's net change in the range: someone who was not following at the start
+     * and follows at the end is one gained follower, someone who followed at the start and no longer
+     * follows at the end is one lost follower; everyone else (came and went, left and came back) counts
+     * nothing. Repeated or duplicate entries of the same person therefore never count more than once.
+     * The returned row is the follower's last event, which is where the timeline places them.
      */
-    static List<FollowRow> oncePerFollower(List<FollowRow> rows) {
-        Map<Long, FollowRow> firstFollow = new HashMap<>();
-        Map<Long, FollowRow> lastUnfollow = new HashMap<>();
-        for (FollowRow row : rows) {
-            if (row.type() == FollowEventType.FOLLOWED) {
-                firstFollow.merge(row.followerId(), row,
-                        (a, b) -> a.occurredAt().isAfter(b.occurredAt()) ? b : a);
-            } else {
-                lastUnfollow.merge(row.followerId(), row,
-                        (a, b) -> a.occurredAt().isBefore(b.occurredAt()) ? b : a);
+    static List<FollowRow> netChangePerFollower(List<FollowRow> rows) {
+        Map<Long, List<FollowRow>> byFollower = new LinkedHashMap<>();
+        rows.stream()
+                .sorted(Comparator.comparing(FollowRow::occurredAt))
+                .forEach(row -> byFollower.computeIfAbsent(row.followerId(), id -> new ArrayList<>()).add(row));
+        List<FollowRow> result = new ArrayList<>();
+        for (List<FollowRow> events : byFollower.values()) {
+            FollowRow first = events.get(0);
+            FollowRow last = events.get(events.size() - 1);
+            // The first event tells the state before the range, the last one the state at its end.
+            if (first.type() == last.type()) {
+                result.add(last);
             }
         }
-        List<FollowRow> result = new ArrayList<>(firstFollow.values());
-        result.addAll(lastUnfollow.values());
         result.sort(Comparator.comparing(FollowRow::occurredAt));
         return result;
     }

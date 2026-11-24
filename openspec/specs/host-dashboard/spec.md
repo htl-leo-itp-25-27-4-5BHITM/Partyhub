@@ -28,11 +28,19 @@ The dashboard SHALL support exactly the time ranges 7 days, 30 days, 3 months an
 - **THEN** the system SHALL reject the request with a validation error and no statistics
 
 ### Requirement: Dashboard reports host activity metrics
-For the selected range the dashboard SHALL report: the number of parties the caller created; the number of followers gained and lost; the number of joins to parties the caller hosts; parties and joins split by private and public visibility; invitation outcomes (accepted, declined, pending) for the caller's parties; capacity utilisation per hosted party with a capacity limit and on average; and the top party. A party belongs to the range when it was created in the range; invitation outcomes, capacity utilisation and the top party refer to the caller's parties that belong to the range. A join belongs to the range when a recorded join to one of the caller's parties happened in the range, even if the guest later left. Followers gained and lost SHALL be counted from recorded follow history in the range. A follow that the same follower undoes (by unfollowing or being removed) within 24 hours SHALL count neither as gained nor as lost, also when the follow happened shortly before the range. The top party SHALL be the party in the range with the most joined guests, with ties broken by the higher number of favorites and then by the more recent creation time.
+For the selected range the dashboard SHALL report: the number of parties the caller created; the number of followers gained and lost; the number of joins to parties the caller hosts; parties and joins split by private and public visibility; invitation outcomes (accepted, declined, pending) for the caller's parties; capacity utilisation per hosted party with a capacity limit and on average; and the top party. A party belongs to the range when it was created in the range; invitation outcomes, capacity utilisation and the top party refer to the caller's parties that belong to the range. A join belongs to the range when a recorded join to one of the caller's parties happened in the range, even if the guest later left; each guest SHALL count at most once per party and range, at their first join in the range. Followers gained and lost SHALL be counted from recorded follow history in the range. A follow that the same follower undoes (by unfollowing or being removed) within 24 hours SHALL count neither as gained nor as lost, also when the follow happened shortly before the range. Each follower SHALL count at most once as gained (at their first remaining follow in the range) and at most once as lost (at their last remaining unfollow in the range), so repeated or duplicate history entries of the same person are not counted several times. The top party SHALL be the party in the range with the most joined guests, with ties broken by the higher number of favorites and then by the more recent creation time.
 
 #### Scenario: Follower gained and lost in the same range
 - **WHEN** user A started following the caller and stopped following more than 24 hours later, both within the selected range
 - **THEN** the dashboard SHALL count one gained and one lost follower
+
+#### Scenario: Same follower recorded many times
+- **WHEN** the history contains 22 follows of user A to the caller in the selected range, without unfollows in between
+- **THEN** the dashboard SHALL count A as one gained follower
+
+#### Scenario: Guest joins the same party repeatedly
+- **WHEN** guest G joined, left and joined the caller's party P again within the selected range
+- **THEN** the dashboard SHALL count one join of G to P
 
 #### Scenario: Follow undone right away
 - **WHEN** user A follows the caller and unfollows again within 24 hours

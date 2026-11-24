@@ -83,6 +83,19 @@ public class FollowRepository {
                 .getResultList();
     }
 
+    /** "following" (accepted), "pending" (request sent) or "none" for the follow from user1 to user2. */
+    public String followStatus(long user1Id, long user2Id) {
+        return entityManager.createQuery(
+                        "SELECT f.status.status_id FROM Follow f WHERE f.user1_id = :user1Id AND f.user2_id = :user2Id",
+                        Long.class)
+                .setParameter("user1Id", user1Id)
+                .setParameter("user2Id", user2Id)
+                .getResultStream()
+                .findFirst()
+                .map(status -> status == 2L ? "following" : status == 1L ? "pending" : "none")
+                .orElse("none");
+    }
+
     public boolean isFollowing(long user1Id, long user2Id) {
         List<Follow> follows = entityManager.createQuery(
                 "SELECT f FROM Follow f WHERE f.user1_id = :user1Id AND f.user2_id = :user2Id AND f.status.status_id = 2",

@@ -432,23 +432,12 @@ async function getFollowStatus(userA, userB) {
   if (String(userA) === String(userB)) return { status: "self" };
 
   try {
-    // first check direct follow relationship
-    const following = await isFollowing(userA, userB);
-    if (following) return { status: "following" };
-
-    // fallback: check pending lists for userB (users who requested to follow userB)
-    try {
-      const res = await apiRequest(`/api/users/${encodeURIComponent(userB)}/follow-requests`);
-      if (res.ok) {
-        const data = await res.json().catch(() => null);
-        if (Array.isArray(data) && data.some((u) => String(u?.id) === String(userA))) {
-          return { status: "pending" };
-        }
-      }
-    } catch (err) {
-      // ignore, return not_following below
-    }
-
+    // The server reports only the logged-in user's own relationship to userB.
+    const res = await apiRequest(`/api/users/${encodeURIComponent(userB)}/follow-status`);
+    if (!res.ok) return { status: "not_following" };
+    const data = await res.json().catch(() => null);
+    if (data?.status === "following") return { status: "following" };
+    if (data?.status === "pending") return { status: "pending" };
     return { status: "not_following" };
   } catch (err) {
     console.error("getFollowStatus failed", err);
