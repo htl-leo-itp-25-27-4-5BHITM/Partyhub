@@ -282,6 +282,36 @@ class DashboardServiceTest extends TestBase {
     }
 
     @Test
+    void sameFollowerRecordedManyTimesCountsAsOneNewFollower() {
+        QuarkusTransaction.requiringNew().run(() -> {
+            User g4 = em.createQuery("SELECT u FROM User u WHERE u.keycloakId = 'dash-g4'", User.class).getSingleResult();
+            User host = em.find(User.class, hostId);
+            for (int i = 0; i < 22; i++) {
+                em.persist(new FollowEvent(g4, host, FollowEventType.FOLLOWED, now.minusDays(20).plusHours(i)));
+            }
+        });
+
+        DashboardDto dto = build(hostId, DashboardRange.DAYS_30, LocalDateTime.now());
+
+        assertEquals(3, dto.followersGained(), "g1, g2 and g4 once each");
+        long timelineGained = dto.timeline().points().stream().mapToLong(DashboardDto.TimelinePoint::followersGained).sum();
+        assertEquals(dto.followersGained(), timelineGained, "timeline and tiles must agree");
+    }
+
+    @Test
+    void guestJoiningTheSamePartyAgainCountsOnce() {
+        QuarkusTransaction.requiringNew().run(() -> {
+            User g5 = em.createQuery("SELECT u FROM User u WHERE u.keycloakId = 'dash-g5'", User.class).getSingleResult();
+            em.persist(new AttendanceEvent(em.find(Party.class, partyAId), g5, AttendanceEventType.JOINED, now.minusHours(5)));
+        });
+
+        DashboardDto dto = build(hostId, DashboardRange.DAYS_30, LocalDateTime.now());
+
+        assertEquals(5, dto.joins(), "g5 rejoined party A but still counts once");
+        assertEquals(4, dto.visibility().publicParties().joins());
+    }
+
+    @Test
     void quickFollowAndUnfollowIsNotCounted() {
         QuarkusTransaction.requiringNew().run(() -> {
             User g4 = em.createQuery("SELECT u FROM User u WHERE u.keycloakId = 'dash-g4'", User.class).getSingleResult();

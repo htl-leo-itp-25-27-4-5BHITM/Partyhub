@@ -69,7 +69,7 @@ public class DashboardService {
 
     record FollowRow(long followerId, FollowEventType type, LocalDateTime occurredAt) {}
 
-    record JoinRow(String visibility, LocalDateTime occurredAt) {}
+    record JoinRow(long partyId, long userId, String visibility, LocalDateTime occurredAt) {}
 
     private List<PartyRow> partiesCreated(long hostId, LocalDateTime from, LocalDateTime to) {
         return em.createQuery(
@@ -97,9 +97,31 @@ public class DashboardService {
                 .getResultList().stream()
                 .map(r -> new FollowRow((Long) r[0], (FollowEventType) r[1], (LocalDateTime) r[2]))
                 .toList();
-        return withoutQuickUnfollows(rows).stream()
+        return oncePerFollower(withoutQuickUnfollows(rows).stream()
                 .filter(row -> !row.occurredAt().isBefore(from))
-                .toList();
+                .toList());
+    }
+
+    /**
+     * Each follower counts at most once as gained (first follow) and once as lost (last unfollow),
+     * so repeated or duplicate history entries of the same person are not counted several times.
+     */
+    static List<FollowRow> oncePerFollower(List<FollowRow> rows) {
+        Map<Long, FollowRow> firstFollow = new HashMap<>();
+        Map<Long, FollowRow> lastUnfollow = new HashMap<>();
+        for (FollowRow row : rows) {
+            if (row.type() == FollowEventType.FOLLOWED) {
+                firstFollow.merge(row.followerId(), row,
+                        (a, b) -> a.occurredAt().isAfter(b.occurredAt()) ? b : a);
+            } else {
+                lastUnfollow.merge(row.followerId(), row,
+                        (a, b) -> a.occurredAt().isBefore(b.occurredAt()) ? b : a);
+            }
+        }
+        List<FollowRow> result = new ArrayList<>(firstFollow.values());
+        result.addAll(lastUnfollow.values());
+        result.sort(Comparator.comparing(FollowRow::occurredAt));
+        return result;
     }
 
     /** Drops each follow that the same follower undid within {@link #QUICK_UNFOLLOW_WINDOW}, together with its unfollow. */
@@ -124,8 +146,8 @@ public class DashboardService {
     }
 
     private List<JoinRow> joins(long hostId, LocalDateTime from, LocalDateTime to) {
-        return em.createQuery(
-                        "SELECT e.party.visibility, e.occurredAt FROM AttendanceEvent e "
+        List<JoinRow> rows = em.createQuery(
+                        "SELECT e.party.id, e.user.id, e.party.visibility, e.occurredAt FROM AttendanceEvent e "
                                 + "WHERE e.party.host_user.id = :hostId AND e.type = :type "
                                 + "AND e.occurredAt >= :from AND e.occurredAt <= :to",
                         Object[].class)
@@ -134,8 +156,18 @@ public class DashboardService {
                 .setParameter("from", from)
                 .setParameter("to", to)
                 .getResultList().stream()
-                .map(r -> new JoinRow((String) r[0], (LocalDateTime) r[1]))
+                .map(r -> new JoinRow((Long) r[0], (Long) r[1], (String) r[2], (LocalDateTime) r[3]))
                 .toList();
+        return firstJoinPerGuestAndParty(rows);
+    }
+
+    /** Each guest counts at most once per party: their first join in the range. */
+    static List<JoinRow> firstJoinPerGuestAndParty(List<JoinRow> rows) {
+        Map<String, JoinRow> first = new LinkedHashMap<>();
+        rows.stream()
+                .sorted(Comparator.comparing(JoinRow::occurredAt))
+                .forEach(row -> first.putIfAbsent(row.partyId() + ":" + row.userId(), row));
+        return List.copyOf(first.values());
     }
 
     private List<User> distinctGuests(long hostId, LocalDateTime from, LocalDateTime to) {
