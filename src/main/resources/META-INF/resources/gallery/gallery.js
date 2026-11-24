@@ -8,6 +8,7 @@ document.addEventListener("DOMContentLoaded", function () {
     currentPartyId = partyId;
     loadGallery(partyId);
     setupUpload(partyId);
+    startGalleryAutoRefresh();
   } else {
     showError('No party ID provided');
   }
@@ -62,10 +63,12 @@ async function refreshGalleryQuietly() {
   }
 }
 
-setInterval(refreshGalleryQuietly, 10000);
-document.addEventListener('visibilitychange', () => {
-  if (!document.hidden) refreshGalleryQuietly();
-});
+function startGalleryAutoRefresh() {
+  setInterval(refreshGalleryQuietly, 10000);
+  document.addEventListener('visibilitychange', () => {
+    if (!document.hidden) refreshGalleryQuietly();
+  });
+}
 
 function showJoinHint(partyId) {
   galleryLocked = true;
