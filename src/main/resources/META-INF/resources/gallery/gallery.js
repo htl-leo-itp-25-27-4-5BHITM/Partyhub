@@ -26,6 +26,46 @@ document.addEventListener("DOMContentLoaded", function () {
 
 let currentPartyId = null;
 let galleryLocked = false;
+let uploadInProgress = false;
+let lastMediaSignature = null;
+
+// ---------- Live refresh ----------
+// New photos come from other guests, so there is no per-user live event: the open gallery
+// re-checks every 10 s while visible and only redraws when the set of photos changed. It never
+// redraws while a photo is open in the viewer or an upload is running.
+function mediaSignature(list) {
+  return list.map(media => media.id).join(',');
+}
+
+async function refreshGalleryQuietly() {
+  if (!currentPartyId || galleryLocked || uploadInProgress || document.hidden) return;
+  if (document.querySelector('.image-modal.active')) return;
+  try {
+    const response = await (window.authService?.apiCall || fetch)(
+      `/api/parties/${encodeURIComponent(currentPartyId)}/media`, { authRequired: false });
+    if (response.status === 403) {
+      showJoinHint(currentPartyId);
+      return;
+    }
+    if (!response.ok) return;
+    const mediaList = await response.json();
+    const signature = mediaSignature(mediaList);
+    if (signature === lastMediaSignature || document.querySelector('.image-modal.active')) return;
+    lastMediaSignature = signature;
+    const photoCountElement = document.getElementById('photo-count');
+    if (photoCountElement) {
+      photoCountElement.textContent = `${mediaList.length} photo${mediaList.length !== 1 ? 's' : ''}`;
+    }
+    displayGallery(mediaList);
+  } catch (error) {
+    console.warn('Background refresh of the gallery failed', error);
+  }
+}
+
+setInterval(refreshGalleryQuietly, 10000);
+document.addEventListener('visibilitychange', () => {
+  if (!document.hidden) refreshGalleryQuietly();
+});
 
 function showJoinHint(partyId) {
   galleryLocked = true;
@@ -91,6 +131,7 @@ async function loadGallery(partyId) {
 
     // Display the gallery
     displayGallery(mediaList);
+    lastMediaSignature = mediaSignature(mediaList);
 
   } catch (error) {
     console.error('Error loading gallery:', error);
@@ -476,7 +517,14 @@ async function setupUpload(partyId) {
     const files = Array.from(input.files || []);
     // Reset so selecting the same file again still fires 'change'
     input.value = '';
-    if (files.length > 0) await uploadPhotos(partyId, files);
+    if (files.length > 0) {
+      uploadInProgress = true;
+      try {
+        await uploadPhotos(partyId, files);
+      } finally {
+        uploadInProgress = false;
+      }
+    }
   });
 }
 

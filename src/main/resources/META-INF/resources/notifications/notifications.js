@@ -895,6 +895,8 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   let refreshInFlight = null;
 
+  let lastRefreshAt = 0;
+
   async function refreshNotifications({ quiet = false, force = false } = {}) {
     if (refreshInFlight) {
       if (!force) return refreshInFlight;
@@ -903,6 +905,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     refreshInFlight = (async () => {
       data = await loadNotificationData({ quiet });
+      lastRefreshAt = Date.now();
       render();
     })().finally(() => {
       refreshInFlight = null;
@@ -1196,9 +1199,19 @@ document.addEventListener("DOMContentLoaded", async () => {
     }
   });
 
+  // Live updates: new notifications, invitations and follow requests appear right away.
+  let liveRefreshTimer = null;
+  window.addEventListener("partyhub:live", (event) => {
+    const kind = event.detail?.kind;
+    if (kind && kind !== "notifications" && kind !== "follows") return;
+    clearTimeout(liveRefreshTimer);
+    liveRefreshTimer = setTimeout(() => refreshNotifications({ quiet: true, force: true }), 250);
+  });
+
+  // Fallback polling: every 5 s without a live stream, every 30 s while it is connected.
   window.setInterval(() => {
-    if (!document.hidden) {
-      refreshNotifications({ quiet: true });
-    }
+    if (document.hidden) return;
+    if (window.partyhubLive?.connected && Date.now() - lastRefreshAt < 30000) return;
+    refreshNotifications({ quiet: true });
   }, 5000);
 });

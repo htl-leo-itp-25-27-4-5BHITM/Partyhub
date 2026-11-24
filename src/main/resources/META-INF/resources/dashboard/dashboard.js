@@ -39,7 +39,38 @@
     });
 
     selectRange(currentRange);
+
+    // Live updates: new or lost followers and joins update the numbers without reloading the page.
+    let liveTimer = null;
+    window.addEventListener("partyhub:live", (event) => {
+      const kind = event.detail?.kind;
+      if (kind && kind !== "follows" && kind !== "attendance") return;
+      clearTimeout(liveTimer);
+      liveTimer = setTimeout(refreshQuietly, 800);
+    });
+    // Fallback while no live stream is open, and when the tab becomes visible again.
+    setInterval(() => {
+      if (!document.hidden && !window.partyhubLive?.connected) refreshQuietly();
+    }, 60000);
+    document.addEventListener("visibilitychange", () => {
+      if (!document.hidden) refreshQuietly();
+    });
   });
+
+  /** Reloads the shown range in the background; other ranges are reloaded when selected. */
+  async function refreshQuietly() {
+    const range = currentRange;
+    try {
+      const response = await window.authService.apiCall(`/api/dashboard?range=${encodeURIComponent(range)}`);
+      if (!response.ok) return;
+      const data = await response.json();
+      cache.clear();
+      cache.set(range, data);
+      if (range === currentRange) render();
+    } catch (error) {
+      console.warn("Background refresh of the dashboard failed", error);
+    }
+  }
 
   function onRangeKey(event) {
     if (event.key !== "ArrowRight" && event.key !== "ArrowLeft") return;

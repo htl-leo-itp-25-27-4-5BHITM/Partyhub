@@ -91,6 +91,7 @@ Legend: **B** browser (`src/main/resources/META-INF/resources/`), **I** iOS (`Pa
 | 65 | DELETE `/api/parties/{id}/bring-along/items/{itemId}/pledge` | caller's own pledge; idempotent | 204, 401, 403, 404 | empty | B; H | Added by `add-party-bring-along-list`. |
 | 66 | GET `/api/dashboard?range=` | bearer; `range` one of `7d`, `30d` (default), `3m`, `6m`; statistics only about the caller | 200 (`Cache-Control: private, no-store`), 400 `{error}`, 401 | `DashboardDto` (counts, visibility split, invitations, capacity, top party, gender/age distribution with `withheld` below 5 guests, timeline) | B `dashboard.js`; H `dashboard.http` | Added by `host-dashboard`. |
 | 67 | GET `/api/users/{id}/follow-status` | bearer; reports only the caller's own relationship to `{id}` | 200, 401 | `{"status": "following" \| "pending" \| "none"}` | B `profile.js`, `backend-functions.js`; H `follow.http` | Added by `net-followers-and-follower-removal`; replaces reading other users' follow requests. |
+| 68 | GET `/api/live/events` | bearer; `Accept: text/event-stream`; one stream per tab | 200 stream, 401 | SSE: `ready` once, then `changed` with `{"kind": "notifications" \| "follows" \| "attendance", "at"}` after committed changes for the caller; `: ping` every 25 s | B `nav.js` | Added by `live-updates`; clients refetch through the regular endpoints. |
 
 ## Client calls without a matching endpoint
 

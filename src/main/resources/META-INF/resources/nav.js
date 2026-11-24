@@ -195,3 +195,96 @@ if (document.readyState === 'loading') {
 } else {
     initUnreadBadge();
 }
+
+// ---------- Live updates ----------
+// One server-sent-events stream per tab (/api/live/events). The server only says *what* changed
+// for the logged-in user ("notifications", "follows", "attendance"); pages listen for the
+// "partyhub:live" window event and reload that part themselves. Polling stays as a fallback.
+const LIVE_MAX_BACKOFF_MS = 30000;
+window.partyhubLive = { connected: false };
+let liveController = null;
+let liveBackoffMs = 2000;
+let liveReconnectTimer = null;
+
+function setLiveConnected(connected) {
+    if (window.partyhubLive.connected === connected) return;
+    window.partyhubLive.connected = connected;
+    window.dispatchEvent(new CustomEvent('partyhub:live-status', { detail: { connected } }));
+}
+
+function handleLiveBlock(block) {
+    const eventName = /^event:\s*(.+)$/m.exec(block)?.[1]?.trim();
+    if (eventName === 'ready') {
+        setLiveConnected(true);
+        return;
+    }
+    if (eventName !== 'changed') return;
+    let kind = null;
+    try {
+        kind = JSON.parse(/^data:\s*(.+)$/m.exec(block)?.[1] ?? '{}').kind ?? null;
+    } catch (error) {
+        // Unknown payload: still tell pages that something changed.
+    }
+    if (kind === 'notifications' || kind === 'follows') refreshUnreadBadge();
+    window.dispatchEvent(new CustomEvent('partyhub:live', { detail: { kind } }));
+}
+
+async function connectLiveStream() {
+    clearTimeout(liveReconnectTimer);
+    if (liveController || !(await ensureLoggedIn())) return;
+
+    const controller = new AbortController();
+    liveController = controller;
+    try {
+        const response = await window.authService.apiCall('/api/live/events', {
+            headers: { Accept: 'text/event-stream' },
+            signal: controller.signal,
+            authRequired: false,
+        });
+        if (response.status === 401 || response.status === 403) {
+            liveController = null;
+            return; // not logged in (anymore); nothing to stream
+        }
+        if (!response.ok || !response.body) throw new Error(`Live stream status ${response.status}`);
+
+        liveBackoffMs = 2000;
+        const reader = response.body.pipeThrough(new TextDecoderStream()).getReader();
+        let buffer = '';
+        for (;;) {
+            const { value, done } = await reader.read();
+            if (done) break;
+            buffer += value;
+            const blocks = buffer.split(/\r?\n\r?\n/);
+            buffer = blocks.pop();
+            blocks.forEach(handleLiveBlock);
+        }
+        throw new Error('Live stream closed');
+    } catch (error) {
+        if (liveController !== controller) return;
+        liveController = null;
+        setLiveConnected(false);
+        if (controller.signal.aborted) return; // stopped on purpose
+        console.warn('Live updates interrupted, reconnecting:', error.message);
+        liveReconnectTimer = setTimeout(connectLiveStream, liveBackoffMs);
+        liveBackoffMs = Math.min(liveBackoffMs * 2, LIVE_MAX_BACKOFF_MS);
+    }
+}
+
+function stopLiveStream() {
+    clearTimeout(liveReconnectTimer);
+    const controller = liveController;
+    liveController = null;
+    controller?.abort();
+    setLiveConnected(false);
+}
+
+window.addEventListener('pagehide', stopLiveStream);
+window.addEventListener('pageshow', (event) => {
+    if (event.persisted) connectLiveStream();
+});
+
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', connectLiveStream);
+} else {
+    connectLiveStream();
+}
