@@ -249,7 +249,7 @@ public class NotificationRepositoryTest {
     }
 
     @Test
-    void testDeleteNotification_protectedFollowAcceptedNotification() {
+    void testDeleteNotification_followAcceptedNotificationCanBeDismissed() {
         User sender = createUser("sender-follow-accepted");
         User recipient = createUser("recipient-follow-accepted");
 
@@ -263,10 +263,9 @@ public class NotificationRepositoryTest {
         entityManager.flush();
 
         Response response = notificationRepository.deleteNotification(notification.getId(), recipient.getId());
-        assertEquals(403, response.getStatus());
+        assertEquals(204, response.getStatus());
 
-        Notification stillThere = entityManager.find(Notification.class, notification.getId());
-        assertNotNull(stillThere);
+        assertNull(entityManager.find(Notification.class, notification.getId()));
     }
 
     @Test

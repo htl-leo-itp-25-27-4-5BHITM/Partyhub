@@ -115,7 +115,8 @@ document.addEventListener("DOMContentLoaded", async () => {
     );
   }
 
-  function isProtectedNotificationMessage(message) {
+  // Follow notifications are informational only; they get a small "x" that removes them with one click.
+  function isQuickDismissMessage(message) {
     const normalized = normalizeLegacyNotificationMessage(String(message ?? "")).toLowerCase();
 
     return (
@@ -846,7 +847,7 @@ document.addEventListener("DOMContentLoaded", async () => {
           partyId: partyId != null ? Number(partyId) : null,
           text: message,
           createdAt: readCreatedAt(notification),
-          locked: isProtectedNotificationMessage(message),
+          quickDismiss: isQuickDismissMessage(message),
           actorAvatar: sender?.id
             ? `/api/users/${sender.id}/profile-picture`
             : "/images/default_profile-picture.svg",
@@ -1016,10 +1017,26 @@ document.addEventListener("DOMContentLoaded", async () => {
       }
 
       if (dismissBtn) {
-        if (item.locked) {
-          dismissBtn.style.display = "none";
-          dismissBtn.disabled = true;
-          dismissBtn.setAttribute("aria-hidden", "true");
+        if (item.quickDismiss) {
+          dismissBtn.classList.add("btn-quick-dismiss");
+          dismissBtn.setAttribute("aria-label", "Dismiss notification");
+          dismissBtn.setAttribute("title", "Dismiss");
+          dismissBtn.innerHTML = `
+            <svg viewBox="0 0 24 24" width="14" height="14" fill="none" aria-hidden="true">
+              <path d="M6 6l12 12M18 6L6 18" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/>
+            </svg>
+          `;
+          dismissBtn.addEventListener("click", () => runItemAction(item, card, dismissBtn, async () => {
+            try {
+              if (item.notificationId != null) {
+                await deleteBackendNotification(item.notificationId);
+              }
+              await refreshNotifications({ quiet: true, force: true });
+            } catch (err) {
+              console.error("Dismiss failed", err);
+              showToast("Could not remove the notification", "error");
+            }
+          }));
         } else {
           setDismissButtonMode(dismissBtn, item);
           dismissBtn.addEventListener("click", async () => {
