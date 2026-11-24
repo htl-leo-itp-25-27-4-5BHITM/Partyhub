@@ -237,6 +237,24 @@ public class FollowRepositoryTest {
     }
 
     @Test
+    void testCreateFollowRequestRecordsRequestTime() {
+        User user1 = createTestUser("Requester");
+        User user2 = createTestUser("Target");
+        entityManager.flush();
+        java.time.LocalDateTime before = java.time.LocalDateTime.now().minusSeconds(1);
+
+        followRepository.createFollowRequest(user1.getId(), user2.getId());
+        entityManager.flush();
+
+        List<FollowRepository.PendingRequest> pending =
+                followRepository.getPendingFollowerRequestsWithTime(user2.getId());
+        assertEquals(1, pending.size());
+        assertEquals(user1.getId(), pending.get(0).requester().getId());
+        assertNotNull(pending.get(0).requestedAt());
+        assertTrue(pending.get(0).requestedAt().isAfter(before));
+    }
+
+    @Test
     void testAcceptFollowRequest() {
         User user1 = createTestUser("User One");
         User user2 = createTestUser("User Two");

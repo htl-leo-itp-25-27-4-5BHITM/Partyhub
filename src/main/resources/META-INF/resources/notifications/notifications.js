@@ -68,8 +68,22 @@ document.addEventListener("DOMContentLoaded", async () => {
   }
 
   function readCreatedAt(item) {
-    return item?.createdAt ?? item?.created_at ?? item?.sentAt ?? item?.sent_at ?? item?.timestamp ?? null;
+    return item?.createdAt ?? item?.created_at ?? item?.requestedAt ?? item?.sentAt ?? item?.sent_at ?? item?.timestamp ?? null;
   }
+
+  // Open requests without a known time (sent before request times were stored) need an action,
+  // so they go to the top; other items without a time go to the bottom.
+  function sortTimestamp(item) {
+    const time = notificationTimestamp(item);
+    if (time) return time;
+    const actionable = item.type === "follow" || (item.type === "invite" && item.status === "PENDING");
+    return actionable ? Number.MAX_SAFE_INTEGER : 0;
+  }
+
+  // Items whose accept/decline/delete request is running; kept across the 5-second refresh so
+  // their buttons stay disabled until the server answered and the list was reloaded.
+  const busyItems = new Map(); // item id -> "accept" | "dismiss"
+
 
   function notificationTimestamp(item) {
     const value = readCreatedAt(item);
@@ -112,10 +126,10 @@ document.addEventListener("DOMContentLoaded", async () => {
   }
 
   function formatNotificationTime(value) {
-    if (!value) return "just now";
+    if (!value) return "";
 
     const date = new Date(value);
-    if (Number.isNaN(date.getTime())) return "just now";
+    if (Number.isNaN(date.getTime())) return "";
 
     const diffMs = Date.now() - date.getTime();
 
@@ -865,7 +879,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         });
       });
 
-      nextData.sort((a, b) => notificationTimestamp(b) - notificationTimestamp(a));
+      nextData.sort((a, b) => sortTimestamp(b) - sortTimestamp(a));
 
       return nextData;
     } catch (e) {
@@ -906,7 +920,22 @@ document.addEventListener("DOMContentLoaded", async () => {
       return;
     }
 
+    let currentGroup = null;
+    let currentGroupKey = null;
+
     data.forEach(item => {
+      const groupKey = dayGroupKey(item);
+      if (groupKey !== currentGroupKey) {
+        currentGroupKey = groupKey;
+        currentGroup = document.createElement("section");
+        currentGroup.className = "notif-day-group";
+        const heading = document.createElement("h2");
+        heading.className = "notif-day-heading";
+        heading.textContent = dayGroupLabel(groupKey);
+        currentGroup.appendChild(heading);
+        list.appendChild(currentGroup);
+      }
+
       const clone = tpl.content.cloneNode(true);
 
       const img = clone.querySelector(".notif-avatar img");
@@ -961,7 +990,7 @@ document.addEventListener("DOMContentLoaded", async () => {
           acceptBtn.setAttribute("aria-pressed", String(isAccepted));
           acceptBtn.title = item.type === "invite" ? "Annehmen" : "Follow-Anfrage annehmen";
 
-          acceptBtn.addEventListener("click", async () => {
+          acceptBtn.addEventListener("click", () => runItemAction(item, card, acceptBtn, async () => {
             try {
               if (item.type === "invite") {
                 await acceptInvite(item);
@@ -982,7 +1011,7 @@ document.addEventListener("DOMContentLoaded", async () => {
               console.error("Accept failed", err);
               showToast("Error while accepting", "error");
             }
-          });
+          }));
         }
       }
 
@@ -994,6 +1023,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         } else {
           setDismissButtonMode(dismissBtn, item);
           dismissBtn.addEventListener("click", async () => {
+            if (busyItems.has(item.id)) return;
             try {
               if (item.type === "invite") {
                 const confirmed = await confirmTwice(
@@ -1033,6 +1063,7 @@ document.addEventListener("DOMContentLoaded", async () => {
                 if (!confirmed) return;
               }
 
+              await runItemAction(item, card, dismissBtn, async () => {
               let deleted = false;
               if (item.type === "invite") {
                 deleted = await declineInvite(item);
@@ -1059,6 +1090,7 @@ document.addEventListener("DOMContentLoaded", async () => {
                   "success"
                 );
               }
+              });
             } catch (err) {
               console.error("Reject failed", err);
               showToast("Error while declining: " + err.message, "error");
@@ -1067,8 +1099,72 @@ document.addEventListener("DOMContentLoaded", async () => {
         }
       }
 
-      list.appendChild(clone);
+      if (busyItems.has(item.id)) {
+        setCardBusy(card, true);
+        const loadingButton = busyItems.get(item.id) === "accept" ? acceptBtn : dismissBtn;
+        loadingButton?.classList.add("is-loading");
+      }
+
+      currentGroup.appendChild(clone);
     });
+  }
+
+  // ---------- day sections ----------
+
+  function localDayKey(date) {
+    return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`;
+  }
+
+  function dayGroupKey(item) {
+    const time = notificationTimestamp(item);
+    if (!time) return sortTimestamp(item) === Number.MAX_SAFE_INTEGER ? "open" : "unknown";
+    return localDayKey(new Date(time));
+  }
+
+  function dayGroupLabel(key) {
+    if (key === "open") return "Open requests";
+    if (key === "unknown") return "Earlier";
+    const today = new Date();
+    const yesterday = new Date(today.getFullYear(), today.getMonth(), today.getDate() - 1);
+    if (key === localDayKey(today)) return "Today";
+    if (key === localDayKey(yesterday)) return "Yesterday";
+    const [year, month, day] = key.split("-").map(Number);
+    const date = new Date(year, month - 1, day);
+    return date.toLocaleDateString("en-GB", {
+      weekday: "long",
+      day: "numeric",
+      month: "long",
+      ...(year !== today.getFullYear() ? { year: "numeric" } : {})
+    });
+  }
+
+  // ---------- busy state for accept / decline / delete ----------
+
+  function setCardBusy(card, busy) {
+    if (!card) return;
+    card.classList.toggle("is-busy", busy);
+    card.setAttribute("aria-busy", String(busy));
+    card.querySelectorAll(".notif-actions button").forEach(button => {
+      button.disabled = busy;
+    });
+  }
+
+  /**
+   * Runs one action per item at a time: the card's buttons are disabled and show a spinner until
+   * the request finished and the list was reloaded, so double clicks cannot send it twice.
+   */
+  async function runItemAction(item, card, clickedButton, action) {
+    if (busyItems.has(item.id)) return;
+    busyItems.set(item.id, clickedButton?.classList.contains("btn-accept") ? "accept" : "dismiss");
+    setCardBusy(card, true);
+    clickedButton?.classList.add("is-loading");
+    try {
+      await action();
+    } finally {
+      busyItems.delete(item.id);
+      // The list may have been redrawn meanwhile; draw it again so no card stays disabled.
+      render();
+    }
   }
 
   await refreshNotifications();

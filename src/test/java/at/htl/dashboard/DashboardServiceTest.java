@@ -282,6 +282,37 @@ class DashboardServiceTest extends TestBase {
     }
 
     @Test
+    void quickFollowAndUnfollowIsNotCounted() {
+        QuarkusTransaction.requiringNew().run(() -> {
+            User g4 = em.createQuery("SELECT u FROM User u WHERE u.keycloakId = 'dash-g4'", User.class).getSingleResult();
+            User host = em.find(User.class, hostId);
+            em.persist(new FollowEvent(g4, host, FollowEventType.FOLLOWED, now.minusHours(30)));
+            em.persist(new FollowEvent(g4, host, FollowEventType.UNFOLLOWED, now.minusHours(29)));
+        });
+
+        DashboardDto dto = build(hostId, DashboardRange.DAYS_30, LocalDateTime.now());
+
+        assertEquals(2, dto.followersGained(), "the quick follow of g4 must not count");
+        assertEquals(1, dto.followersLost(), "the quick unfollow of g4 must not count");
+    }
+
+    @Test
+    void quickUnfollowRightAfterARangeStartsIsNotCountedAsLoss() {
+        LocalDateTime at = LocalDateTime.now();
+        LocalDateTime rangeStart = DashboardRange.DAYS_7.start(at);
+        QuarkusTransaction.requiringNew().run(() -> {
+            User g4 = em.createQuery("SELECT u FROM User u WHERE u.keycloakId = 'dash-g4'", User.class).getSingleResult();
+            User host = em.find(User.class, hostId);
+            em.persist(new FollowEvent(g4, host, FollowEventType.FOLLOWED, rangeStart.minusHours(2)));
+            em.persist(new FollowEvent(g4, host, FollowEventType.UNFOLLOWED, rangeStart.plusHours(2)));
+        });
+
+        DashboardDto dto = build(hostId, DashboardRange.DAYS_7, at);
+
+        assertEquals(1, dto.followersLost(), "only g2's unfollow counts, not g4's quick one");
+    }
+
+    @Test
     void sevenDayTimelineHasOnePointPerDayIncludingQuietDays() {
         DashboardDto dto = build(hostId, DashboardRange.DAYS_7, LocalDateTime.now());
         List<DashboardDto.TimelinePoint> points = dto.timeline().points();

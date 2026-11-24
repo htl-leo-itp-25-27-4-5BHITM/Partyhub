@@ -317,6 +317,10 @@ INSERT INTO favorite (user_id, party_id) VALUES
 SELECT setval('party_id_seq', COALESCE((SELECT MAX(id) FROM party), 1), true);
 SELECT setval('invitation_id_seq', COALESCE((SELECT MAX(id) FROM invitation), 1), true);
 
+-- Pending follow requests (Carla -> Michael, Lukas -> Elias) with the time they were sent.
+UPDATE follow SET requested_at = LOCALTIMESTAMP - INTERVAL '3 hours' WHERE user1_id = 2 AND user2_id = 4;
+UPDATE follow SET requested_at = LOCALTIMESTAMP - INTERVAL '2 days' WHERE user1_id = 6 AND user2_id = 10;
+
 -- Followers of Victoria (user 1): 2, 3 and 7 are current; 9 and 10 followed and left again.
 INSERT INTO follow_event (follower_id, followed_id, type, occurred_at) VALUES
     (2, 1, 'FOLLOWED', LOCALTIMESTAMP - INTERVAL '150 days'),
