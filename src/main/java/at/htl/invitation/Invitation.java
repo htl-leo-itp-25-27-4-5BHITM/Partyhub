@@ -7,6 +7,7 @@ import jakarta.persistence.*;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 @Entity
+@EntityListeners(InvitationChangeListener.class)
 @Table(name = "invitation")
 @TableGenerator(name = "invitation")
 public class Invitation {

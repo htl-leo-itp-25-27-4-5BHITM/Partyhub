@@ -1,5 +1,6 @@
 package at.htl.history;
 
+import at.htl.live.PartyChanged;
 import at.htl.live.UserChanged;
 import at.htl.party.Party;
 import at.htl.user.User;
@@ -23,6 +24,9 @@ public class HistoryRecorder {
     @Inject
     Event<UserChanged> userChanged;
 
+    @Inject
+    Event<PartyChanged> partyChanged;
+
     @Transactional(Transactional.TxType.MANDATORY)
     public void recordFollow(long followerId, long followedId, FollowEventType type) {
         User follower = entityManager.getReference(User.class, followerId);
@@ -37,5 +41,7 @@ public class HistoryRecorder {
         if (party.getHost_user() != null) {
             userChanged.fire(new UserChanged(party.getHost_user().getId(), UserChanged.ATTENDANCE));
         }
+        // Open detail pages of this party update their guest list.
+        partyChanged.fire(new PartyChanged(party.getId()));
     }
 }
