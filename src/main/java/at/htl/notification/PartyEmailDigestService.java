@@ -20,6 +20,9 @@ import java.util.List;
 public class PartyEmailDigestService {
 
     @Inject
+    at.htl.validation.MailInput mailInput;
+
+    @Inject
     Logger logger;
 
     @Inject
@@ -88,6 +91,7 @@ public class PartyEmailDigestService {
     }
 
     private boolean sendDigest(User user, List<Party> parties) {
+        if (!mailInput.accepts(user.getEmail(), "PartyHub Weekly Digest")) return false;
         StringBuilder text = new StringBuilder();
         text.append("Hi ").append(user.getDisplayName() != null ? user.getDisplayName() : user.getUsername()).append(",\n\n");
         text.append("Here are the upcoming parties you might be interested in:\n\n");

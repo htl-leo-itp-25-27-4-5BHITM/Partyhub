@@ -15,6 +15,9 @@ import org.jboss.logging.Logger;
 public class OutOfAppNotificationService {
 
     @Inject
+    at.htl.validation.MailInput mailInput;
+
+    @Inject
     Logger logger;
 
     @Inject
@@ -62,13 +65,13 @@ public class OutOfAppNotificationService {
 
     private void sendEmail(User recipient, String subject, String message) {
         String to = recipient.getEmail();
-        if (isBlank(to)) {
+        if (!mailInput.accepts(to, subject)) {
             logger.debugf("Skipping email notification for user %s: no email address", recipient.getId());
             return;
         }
 
         try {
-            logger.infof("Sending email to user %s at %s: %s", recipient.getId(), to, subject);
+            logger.debugf("Sending notification email to user %s", recipient.getId());
             mailer.send(Mail.withText(to, subject, message).setFrom(emailFrom));
         } catch (RuntimeException e) {
             logger.warnf(

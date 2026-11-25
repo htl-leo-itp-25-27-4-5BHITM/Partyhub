@@ -51,7 +51,7 @@ public class LiveResource {
     @Path("/parties/{partyId}/events")
     @Produces(MediaType.SERVER_SENT_EVENTS)
     @Transactional
-    public void partyEvents(@PathParam("partyId") Long partyId, @Context SseEventSink sink, @Context Sse sse,
+    public void partyEvents(@PathParam("partyId") @jakarta.validation.constraints.Positive Long partyId, @Context SseEventSink sink, @Context Sse sse,
                             @Context HttpServerResponse response) {
         Long userId = currentUserResolver.requireCurrentUserId();
         if (partyRepository.getPartyByIdIfVisible(partyId, userId) == null) {

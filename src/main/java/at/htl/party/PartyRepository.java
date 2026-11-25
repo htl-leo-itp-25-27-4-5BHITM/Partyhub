@@ -103,17 +103,18 @@ public class PartyRepository {
     public Response addParty(PartyCreateDto partyCreateDto, Long userId) {
         if (userId == null) {
             return Response.status(Response.Status.BAD_REQUEST)
-                    .entity("{\"error\": \"User ID required\"}")
+                    .entity(java.util.Map.of("error", "User ID required"))
                     .build();
         }
 
         User host = entityManager.find(User.class, userId);
         if (host == null) {
             return Response.status(Response.Status.NOT_FOUND)
-                    .entity("{\"error\": \"User not found\"}")
+                    .entity(java.util.Map.of("error", "User not found"))
                     .build();
         }
 
+        validatePrivateInvitees(partyCreateDto, userId);
         Party party = partyCreateDtoToParty(partyCreateDto);
         party.setHost_user(host);
 
@@ -134,7 +135,7 @@ public class PartyRepository {
     public Response removeParty(Long id, Long userId) {
         if (userId == null) {
             return Response.status(Response.Status.BAD_REQUEST)
-                    .entity("{\"error\": \"User ID required\"}")
+                    .entity(java.util.Map.of("error", "User ID required"))
                     .build();
         }
 
@@ -144,7 +145,7 @@ public class PartyRepository {
         }
         if (party.getHost_user() == null || !Objects.equals(party.getHost_user().getId(), userId)) {
             return Response.status(Response.Status.FORBIDDEN)
-                    .entity("{\"error\": \"Only the party host can delete this party\"}")
+                    .entity(java.util.Map.of("error", "Only the party host can delete this party"))
                     .build();
         }
         notifyCancellationRecipients(party);
@@ -162,7 +163,7 @@ public class PartyRepository {
     public Response updateParty(Long id, PartyCreateDto partyCreateDto, Long userId) {
         if (userId == null) {
             return Response.status(Response.Status.BAD_REQUEST)
-                    .entity("{\"error\": \"User ID required\"}")
+                    .entity(java.util.Map.of("error", "User ID required"))
                     .build();
         }
 
@@ -171,13 +172,18 @@ public class PartyRepository {
             return Response.status(Response.Status.NOT_FOUND).build();
         }
 
+        if (party.getHost_user() == null || !party.getHost_user().getId().equals(userId)) {
+            return Response.status(Response.Status.FORBIDDEN).build();
+        }
+
         User host = entityManager.find(User.class, userId);
         if (host == null) {
             return Response.status(Response.Status.NOT_FOUND)
-                    .entity("{\"error\": \"User not found\"}")
+                    .entity(java.util.Map.of("error", "User not found"))
                     .build();
         }
 
+        validatePrivateInvitees(partyCreateDto, userId);
         String oldSignature = partyUpdateSignature(party);
 
         party.setTitle(partyCreateDto.title());
@@ -214,6 +220,18 @@ public class PartyRepository {
         }
 
         return Response.ok(party).build();
+    }
+
+    private void validatePrivateInvitees(PartyCreateDto input, Long hostId) {
+        if (!"PRIVATE".equalsIgnoreCase(input.visibility()) || input.selectedUsers() == null) return;
+        for (String selected : input.selectedUsers()) {
+            User recipient = findSelectedUser(selected);
+            if (recipient == null || recipient.getId().equals(hostId)
+                    || !followRepository.isFollowing(hostId, recipient.getId())
+                    || !followRepository.isFollowing(recipient.getId(), hostId)) {
+                throw new jakarta.ws.rs.BadRequestException("Invalid private invitee");
+            }
+        }
     }
 
     private Set<Long> inviteSelectedUsersForPrivateParty(
@@ -581,14 +599,14 @@ public class PartyRepository {
     public Response attendParty(Long partyId, Long userId) {
         if (userId == null) {
             return Response.status(Response.Status.BAD_REQUEST)
-                    .entity("{\"error\": \"User ID required\"}")
+                    .entity(java.util.Map.of("error", "User ID required"))
                     .build();
         }
 
         Party party = getPartyByIdIfVisible(partyId, userId);
         if (party == null) {
             return Response.status(Response.Status.NOT_FOUND)
-                    .entity("{\"error\": \"Party not found\"}")
+                    .entity(java.util.Map.of("error", "Party not found"))
                     .build();
         }
 
@@ -601,7 +619,7 @@ public class PartyRepository {
         User user = entityManager.find(User.class, userId);
         if (user == null) {
             return Response.status(Response.Status.NOT_FOUND)
-                    .entity("{\"error\": \"User not found\"}")
+                    .entity(java.util.Map.of("error", "User not found"))
                     .build();
         }
 
@@ -628,21 +646,21 @@ public class PartyRepository {
     public Response leaveParty(Long partyId, Long userId) {
         if (userId == null) {
             return Response.status(Response.Status.BAD_REQUEST)
-                    .entity("{\"error\": \"User ID required\"}")
+                    .entity(java.util.Map.of("error", "User ID required"))
                     .build();
         }
 
         Party party = getPartyByIdIfVisible(partyId, userId);
         if (party == null) {
             return Response.status(Response.Status.NOT_FOUND)
-                    .entity("{\"error\": \"Party not found\"}")
+                    .entity(java.util.Map.of("error", "Party not found"))
                     .build();
         }
 
         User user = entityManager.find(User.class, userId);
         if (user == null) {
             return Response.status(Response.Status.NOT_FOUND)
-                    .entity("{\"error\": \"User not found\"}")
+                    .entity(java.util.Map.of("error", "User not found"))
                     .build();
         }
 
@@ -668,21 +686,21 @@ public class PartyRepository {
     public Response attendStatus(Long partyId, Long userId) {
         if (userId == null) {
             return Response.status(Response.Status.BAD_REQUEST)
-                    .entity("{\"error\": \"User ID required\"}")
+                    .entity(java.util.Map.of("error", "User ID required"))
                     .build();
         }
 
         Party party = getPartyByIdIfVisible(partyId, userId);
         if (party == null) {
             return Response.status(Response.Status.NOT_FOUND)
-                    .entity("{\"error\": \"Party not found\"}")
+                    .entity(java.util.Map.of("error", "Party not found"))
                     .build();
         }
 
         User user = entityManager.find(User.class, userId);
         if (user == null) {
             return Response.status(Response.Status.NOT_FOUND)
-                    .entity("{\"error\": \"User not found\"}")
+                    .entity(java.util.Map.of("error", "User not found"))
                     .build();
         }
 
@@ -858,6 +876,11 @@ public class PartyRepository {
     public List<Party> findVisibleParties(FilterParams filters, Long userId, String dateFrom, String dateTo,
                                           String sort, boolean includePast) {
         LocalDateTime now = LocalDateTime.now();
+        LocalDateTime from = dateFrom == null || dateFrom.isBlank() ? null
+                : dateFrom.trim().length() == 10 ? java.time.LocalDate.parse(dateFrom.trim()).atStartOfDay() : parseDateTime(dateFrom);
+        LocalDateTime to = dateTo == null || dateTo.isBlank() ? null
+                : dateTo.trim().length() == 10 ? java.time.LocalDate.parse(dateTo.trim()).atTime(java.time.LocalTime.MAX) : parseDateTime(dateTo);
+        if (from != null && to != null && from.isAfter(to)) throw new IllegalArgumentException("Invalid date range");
 
         StringBuilder jpql = new StringBuilder(
             "SELECT DISTINCT p FROM Party p " +
@@ -900,13 +923,20 @@ public class PartyRepository {
             }
         }
 
+        if (filters.hasLocationFilter()) {
+            jpql.append(" AND 6371 * acos(least(1.0, greatest(-1.0, "
+                    + "sin(radians(:latitude)) * sin(radians(p.location.latitude)) "
+                    + "+ cos(radians(:latitude)) * cos(radians(p.location.latitude)) "
+                    + "* cos(radians(p.location.longitude - :longitude))))) <= :distance");
+        }
+
         jpql.append(" ORDER BY p.time_start " + ("asc".equalsIgnoreCase(sort) ? "ASC" : "DESC") + ", p.id ASC");
 
         var query = entityManager.createQuery(jpql.toString(), Party.class);
         query.setParameter("userId", userId != null ? userId : -1L);
         if (!includePast) query.setParameter("now", now);
-        if (dateFrom != null && !dateFrom.isBlank()) query.setParameter("dateFrom", (dateFrom.trim().length() == 10 ? java.time.LocalDate.parse(dateFrom.trim()).atStartOfDay() : parseDateTime(dateFrom)));
-        if (dateTo != null && !dateTo.isBlank()) query.setParameter("dateTo", (dateTo.trim().length() == 10 ? java.time.LocalDate.parse(dateTo.trim()).atTime(java.time.LocalTime.MAX) : parseDateTime(dateTo)));
+        if (from != null) query.setParameter("dateFrom", from);
+        if (to != null) query.setParameter("dateTo", to);
 
         if (filters.hasTextSearch()) {
             query.setParameter("query", "%" + filters.query().trim().toLowerCase() + "%");
@@ -920,19 +950,14 @@ public class PartyRepository {
             query.setParameter("userAge", filters.userAge());
         }
 
-        List<Party> results = query.getResultList();
-
         if (filters.hasLocationFilter()) {
-            results = filterByDistance(results, filters.userLatitude(), filters.userLongitude(), filters.distanceKm());
+            query.setParameter("latitude", filters.userLatitude());
+            query.setParameter("longitude", filters.userLongitude());
+            query.setParameter("distance", filters.distanceKm());
         }
-
         int limit = filters.limit() != null ? filters.limit() : 50;
         int offset = filters.offset() != null ? filters.offset() : 0;
-
-        int start = Math.min(offset, results.size());
-        int end = Math.min(start + limit, results.size());
-
-        return results.subList(start, end);
+        return query.setMaxResults(limit).setFirstResult(offset).getResultList();
     }
 
     private List<Party> filterByDistance(List<Party> parties, double userLat, double userLon, int radiusKm) {

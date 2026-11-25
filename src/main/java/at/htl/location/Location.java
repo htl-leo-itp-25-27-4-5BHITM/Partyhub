@@ -13,6 +13,7 @@ public class Location {
 
     private double longitude;
     private double latitude;
+    @Column(length = 500)
     private String address;
 
     public Location() {

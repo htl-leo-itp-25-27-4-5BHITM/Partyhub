@@ -53,57 +53,27 @@ To modify the theme:
 - JWT authentication via SmallRye JWT
 - Theme applied via realm settings in Admin Console
 
-## Server-Side Validation
+## Input and Access Security
 
-All REST endpoints use Hibernate Validator with `@Valid` annotation for automatic request validation.
+- Protect writes with authentication and validate required bodies with `@NotNull @Valid`.
+- Derive the acting user from `CurrentUserResolver`; never authorize from a user ID supplied in a URL/body/header. Check ownership, membership or recipient authority before changes and notifications.
+- Party edits and invitations require the stored host. Private invitations also require mutual accepted follows. Profile and notification-setting edits require the profile owner.
+- Keycloak owns identity provisioning through `/api/users/me`. `POST /api/users` cannot create arbitrary accounts; use authenticated `PUT /api/users/{ownId}` for profile changes.
+- `X-User-Id` is strictly for explicitly enabled dev/test environments; NORMAL launch mode never accepts it. Numeric bearer subjects are not local database IDs. Unsupported custom QR login is disabled by default.
 
-### Usage
+### Validation and output
 
-```java
-@POST
-@Consumes(MediaType.APPLICATION_JSON)
-@Produces(MediaType.APPLICATION_JSON)
-public Response createParty(@Valid PartyCreateDto dto) {
-    // If validation fails, returns HTTP 400 automatically
-}
-```
+`@TextInput` rejects control characters (`multiline=true` permits normal line breaks/tabs). `@Website` permits absolute HTTP(S) URLs without credentials. `@NoHtml` is a product rule, not a security boundary. Do not use the legacy `@SafeText` SQL-keyword blacklist for human text: apostrophes and SQL words can be legitimate data.
 
-### Custom Constraints
+Party creation selects `OnCreate`, which extends the default validation group, so ordinary field constraints still execute. Constraints only run when the endpoint selects their group; `@Valid` alone does not activate arbitrary create/update groups.
 
-Custom constraints are in `src/main/java/at/htl/validation/`:
+Store ordinary text and serialize ordinary JSON through Jackson. Render browser text with `textContent`/`.value`, validate URL schemes, and keep template autoescaping enabled. Use context-specific HTML encoding only at HTML sinks. Bring-along JSON retains its existing encoded-text contract; decode it only for safe text rendering.
 
-| Constraint | Description |
-|------------|-------------|
-| `@SafeText` | Rejects SQL injection patterns in string inputs |
-| `@ValidPartyName` | Validates party names (2-100 chars, valid characters) |
-| `@NoHtml` | Rejects HTML tags in inputs |
+### Queries and files
 
-### Validation Groups
+- Bind all SQL/JPQL values as parameters; only server-owned fragments may choose identifiers/order clauses. No raw SQL without security review in the pull request.
+- The CI regression tests cover SQL-looking input and cross-user access. There is no separate `java-sql-inspector` step.
+- Validate actual raster contents and dimensions, not client filenames/MIME types. Use generated paths and storage containment. Each upload is limited to 5 MiB; aggregate multipart is 8 MiB. JSON input is limited to 256 KiB with nesting depth 32.
+- Invalid requests must not produce partial state or notifications. Return safe JSON errors without rejected values or internal exception details.
 
-Use groups for create vs update:
-
-```java
-public record PartyCreateDto(
-    @NotBlank(groups = {OnCreate.class, OnUpdate.class})
-    String title
-) {}
-```
-
-- `OnCreate.class` - Required on creation
-- `OnUpdate.class` - Required on update
-
-### Output Encoding
-
-When echoing user input in responses, use OWASP Java Encoder:
-
-```java
-import org.owasp.encoder.Encode;
-
-String safeOutput = Encode.forHtml(userInput);
-```
-
-### SQL Security
-
-- All queries use parameterized statements via Hibernate ORM
-- No raw SQL without security review in pull request
-- CI runs java-sql-inspector to detect hardcoded SQL literals
+Run `mvn clean test`, the Node tests, and the local Playwright security checks described in `docs/security-hardening.md` before merging security changes.

@@ -351,7 +351,7 @@ function getHostId(party) {
 }
 
 function getVisibility(party) {
-    return String(party?.visibility || 'PUBLIC').toUpperCase();
+    return String(party?.visibility || 'PUBLIC').toUpperCase() === 'PRIVATE' ? 'PRIVATE' : 'PUBLIC';
 }
 
 function getPartyDate(party) {

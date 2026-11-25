@@ -15,6 +15,9 @@ public class PushNotificationService {
     @Inject
     EntityManager em;
 
+    @Inject
+    com.fasterxml.jackson.databind.ObjectMapper objectMapper;
+
     private final HttpClient httpClient = HttpClient.newBuilder()
             .version(HttpClient.Version.HTTP_2)
             .build();
@@ -37,19 +40,17 @@ public class PushNotificationService {
         }
     }
 
+    String payload(String message) throws com.fasterxml.jackson.core.JsonProcessingException {
+        return objectMapper.writeValueAsString(java.util.Map.of("aps", java.util.Map.of(
+                "alert", java.util.Map.of("title", "PartyHub Update", "body", message),
+                "badge", 1, "sound", "default")));
+    }
+
     private void sendToApple(String token, String message) {
-        String payload = """
-            {
-                "aps": {
-                    "alert": {
-                        "title": "PartyHub Update",
-                        "body": "%s"
-                    },
-                    "badge": 1,
-                    "sound": "default"
-                }
-            }
-            """.formatted(message);
+        if (!at.htl.validation.InputPolicy.deviceToken(token) || message == null) return;
+        String payload;
+        try { payload = payload(message); }
+        catch (com.fasterxml.jackson.core.JsonProcessingException e) { return; }
 
         HttpRequest request = HttpRequest.newBuilder()
                 .uri(URI.create(APNS_SERVER + "/3/device/" + token))
@@ -59,6 +60,6 @@ public class PushNotificationService {
 
         // Sends asynchronously so the backend is not blocked
         httpClient.sendAsync(request, HttpResponse.BodyHandlers.ofString())
-                .thenAccept(res -> System.out.println("Push an " + token + " Status: " + res.statusCode()));
+                .thenAccept(res -> org.jboss.logging.Logger.getLogger(PushNotificationService.class).debugf("Push response status: %d", res.statusCode()));
     }
 }

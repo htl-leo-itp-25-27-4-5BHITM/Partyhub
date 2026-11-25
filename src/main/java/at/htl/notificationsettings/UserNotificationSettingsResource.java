@@ -22,7 +22,7 @@ public class UserNotificationSettingsResource {
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     @Authenticated
-    public Response getSettings(@PathParam("id") Long userId) {
+    public Response getSettings(@PathParam("id") @jakarta.validation.constraints.Positive Long userId) {
         Long actualUserId = currentUserResolver.requireCurrentUserId();
         if (!actualUserId.equals(userId)) {
             return Response.status(Response.Status.FORBIDDEN).build();
@@ -38,7 +38,7 @@ public class UserNotificationSettingsResource {
     @Produces(MediaType.APPLICATION_JSON)
     @Transactional
     @Authenticated
-    public Response updateSettings(@PathParam("id") Long userId, NotificationSettingsDto dto) {
+    public Response updateSettings(@PathParam("id") @jakarta.validation.constraints.Positive Long userId, @jakarta.validation.constraints.NotNull @jakarta.validation.Valid NotificationSettingsDto dto) {
         Long actualUserId = currentUserResolver.requireCurrentUserId();
         if (!actualUserId.equals(userId)) {
             return Response.status(Response.Status.FORBIDDEN).build();

@@ -22,7 +22,7 @@ public class UserRepository {
     }
 
     public List<User> getUsers() {
-        return em.createQuery("SELECT u FROM User u", User.class).getResultList();
+        return em.createQuery("SELECT u FROM User u ORDER BY u.id", User.class).setMaxResults(100).getResultList();
     }
 
     public List<User> getUsersByDistinctNameSearch(String search) {
@@ -31,7 +31,7 @@ public class UserRepository {
         """
         SELECT u FROM User u WHERE LOWER(u.distinctName) like :substring
         """;
-        return em.createQuery(jpql, User.class).setParameter("substring", like).getResultList();
+        return em.createQuery(jpql, User.class).setParameter("substring", like).setMaxResults(100).getResultList();
     }
 
     public User getUser(long id) {

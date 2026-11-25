@@ -31,7 +31,9 @@ public class Party {
     private Integer max_people;
     private Integer min_age;
     private Integer max_age;
+    @Column(length = 500)
     private String website;
+    @Column(length = 2000)
     private String description;
     private Double fee;
     @CreationTimestamp

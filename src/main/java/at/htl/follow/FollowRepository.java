@@ -120,7 +120,7 @@ public class FollowRepository {
     public Response createFollowRequest(long user1Id, long user2Id) {
         if (isFollowing(user1Id, user2Id)) {
             return Response.status(Response.Status.CONFLICT)
-                    .entity("{\"message\": \"Already following this user\"}")
+                    .entity(java.util.Map.of("message", "Already following this user"))
                     .build();
         }
 
@@ -133,7 +133,7 @@ public class FollowRepository {
 
         if (!existing.isEmpty()) {
             return Response.status(Response.Status.CONFLICT)
-                    .entity("{\"message\": \"Follow request already exists\"}")
+                    .entity(java.util.Map.of("message", "Follow request already exists"))
                     .build();
         }
 
@@ -148,7 +148,7 @@ public class FollowRepository {
         follow.setStatus(pendingStatus);
 
         entityManager.persist(follow);
-        return Response.status(Response.Status.CREATED).entity("{\"message\": \"Follow request sent\"}").build();    }
+        return Response.status(Response.Status.CREATED).entity(java.util.Map.of("message", "Follow request sent")).build();    }
 
     @Transactional
     public Response acceptFollowRequest(long user1Id, long user2Id) {
@@ -163,7 +163,7 @@ public class FollowRepository {
 
         if (follow == null) {
             return Response.status(Response.Status.NOT_FOUND)
-                    .entity("{\"message\": \"No pending follow request found\"}")
+                    .entity(java.util.Map.of("message", "No pending follow request found"))
                     .build();
         }
 
@@ -174,7 +174,7 @@ public class FollowRepository {
         followsChanged(user1Id, user2Id);
         notifyFollowAccepted(user1Id, user2Id);
 
-        return Response.ok().entity("{\"message\": \"Follow request accepted\"}").build();
+        return Response.ok().entity(java.util.Map.of("message", "Follow request accepted")).build();
     }
 
 private void notifyFollowAccepted(long followerId, long acceptedById) {
@@ -220,7 +220,7 @@ public Response removeFollow(long user1Id, long user2Id) {
 
     if (follow == null) {
         return Response.status(Response.Status.NOT_FOUND)
-                .entity("{\"message\": \"No follow relationship found\"}")
+                .entity(java.util.Map.of("message", "No follow relationship found"))
                 .build();
     }
 

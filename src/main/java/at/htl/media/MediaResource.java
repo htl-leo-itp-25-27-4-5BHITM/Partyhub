@@ -30,7 +30,7 @@ public class MediaResource {
     @GET
     @Path("/{id}")
     @Transactional
-    public Response getMedia(@PathParam("id") long id) {
+    public Response getMedia(@PathParam("id") @jakarta.validation.constraints.Positive long id) {
         Long callerId = currentUserResolver.currentUserIdIfAuthenticated().orElse(null);
         return mediaRepository.findVisibleMedia(id, callerId)
                 .flatMap(mediaRepository::resolveStoredImage)
@@ -50,7 +50,7 @@ public class MediaResource {
     @Produces(MediaType.APPLICATION_JSON)
     @Transactional
     @Authenticated
-    public Response deleteMedia(@PathParam("id") long id) {
+    public Response deleteMedia(@PathParam("id") @jakarta.validation.constraints.Positive long id) {
         Long callerId = currentUserResolver.requireCurrentUserId();
         return mediaRepository.delete(id, callerId);
     }

@@ -72,14 +72,16 @@ public class UserResource {
     @Transactional
     @Consumes(MediaType.APPLICATION_JSON)
     @jakarta.ws.rs.Path("")
-    public Response createUser(@Valid UserCreateDto userCreateDto) {
-        return userRepository.createUser(createUserDtoToUser(userCreateDto));
+    @Authenticated
+    public Response createUser(@jakarta.validation.constraints.NotNull @Valid UserCreateDto userCreateDto) {
+        // Identity provisioning is owned by Keycloak, never by an arbitrary request body.
+        return Response.status(Response.Status.FORBIDDEN).entity(Map.of("error", "identity_managed_by_keycloak")).build();
     }
 
     @GET
     @jakarta.ws.rs.Path("")
     @Authenticated
-    public Response getUsers(@QueryParam("q") String query) {
+    public Response getUsers(@QueryParam("q") @jakarta.validation.constraints.Size(max=200) String query) {
         if (query != null && !query.isBlank()) {
             List<User> users = userRepository.getUsersByDistinctNameSearch(query);
             return Response.ok(users.stream().map(u -> ProfileDto.from(u, false)).toList()).build();
@@ -88,20 +90,10 @@ public class UserResource {
         return Response.ok(users.stream().map(u -> ProfileDto.from(u, false)).toList()).build();
     }
 
-    private User createUserDtoToUser(UserCreateDto userCreateDto) {
-        User user = new User();
-        user.setDisplayName(userCreateDto.displayName());
-        user.setDistinctName(userCreateDto.distinctName());
-        user.setEmail(userCreateDto.email());
-        user.setPhoneNumber(userCreateDto.phoneNumber());
-        user.setBiography(userCreateDto.biography());
-        return user;
-    }
-
     @GET
     @jakarta.ws.rs.Path("/{id}")
     @Authenticated
-    public Response getUser(@PathParam("id") long id) {
+    public Response getUser(@PathParam("id") @jakarta.validation.constraints.Positive long id) {
         User user = userRepository.getUser(id);
         if (user == null) {
             return Response.status(Response.Status.NOT_FOUND).build();
@@ -142,26 +134,26 @@ public class UserResource {
     @jakarta.ws.rs.Path("/{id}/followers/count")
     @Produces(MediaType.APPLICATION_JSON)
     @Authenticated
-    public Response getFollowerCount(@PathParam("id") long id) {
+    public Response getFollowerCount(@PathParam("id") @jakarta.validation.constraints.Positive long id) {
         User user = userRepository.getUser(id);
         if (user == null) {
             return Response.status(Response.Status.NOT_FOUND).build();
         }
         long count = followRepository.getFollowerCount(id);
-        return Response.ok().entity("{\"count\": " + count + "}").build();
+        return Response.ok().entity(java.util.Map.of("count", count)).build();
     }
 
     @GET
     @jakarta.ws.rs.Path("/{id}/following/count")
     @Produces(MediaType.APPLICATION_JSON)
     @Authenticated
-    public Response getFollowingCount(@PathParam("id") long id) {
+    public Response getFollowingCount(@PathParam("id") @jakarta.validation.constraints.Positive long id) {
         User user = userRepository.getUser(id);
         if (user == null) {
             return Response.status(Response.Status.NOT_FOUND).build();
         }
         long count = followRepository.getFollowingCount(id);
-        return Response.ok().entity("{\"count\": " + count + "}").build();
+        return Response.ok().entity(java.util.Map.of("count", count)).build();
     }
 
     @PUT
@@ -170,7 +162,7 @@ public class UserResource {
     @Produces(MediaType.APPLICATION_JSON)
     @Transactional
     @Authenticated
-    public Response updateUser(@PathParam("id") long id, @Valid UserCreateDto userCreateDto) {
+    public Response updateUser(@PathParam("id") @jakarta.validation.constraints.Positive long id, @jakarta.validation.constraints.NotNull @Valid UserCreateDto userCreateDto) {
         logger.info("updateUser called with id: " + id);
         User currentUser = currentUserResolver.requireCurrentUser();
         if (!currentUser.getId().equals(id)) {
@@ -201,7 +193,7 @@ public class UserResource {
     @GET
     @jakarta.ws.rs.Path("/{id}/profile-picture")
     @Produces({"image/jpeg", "image/png", "image/gif", "image/webp", "image/svg+xml"})
-    public Response getProfilePicture(@PathParam("id") long id) {
+    public Response getProfilePicture(@PathParam("id") @jakarta.validation.constraints.Positive long id) {
         User user = em.find(User.class, id);
         if (user == null) {
             logger.log(Logger.Level.WARN, "User not found with id: " + id);
@@ -221,9 +213,10 @@ public class UserResource {
                 return serveDefaultImage();
             }
 
+            ImageType type = ImageType.detect(picturePath).orElse(null);
+            if (type == null) return serveDefaultImage();
             InputStream is = Files.newInputStream(picturePath);
-            String type = getMediaType(filename);
-            return Response.ok(is, type).build();
+            return Response.ok(is, type.mediaType()).header("X-Content-Type-Options", "nosniff").build();
         } catch (IOException e) {
             logger.log(Logger.Level.ERROR, "Failed to read profile picture: " + e.getMessage());
             return serveDefaultImage();
@@ -249,20 +242,10 @@ public class UserResource {
         return Response.status(Response.Status.NOT_FOUND).build();
     }
 
-    private String getMediaType(String filename) {
-        String lower = filename.toLowerCase();
-        if (lower.endsWith(".jpg") || lower.endsWith(".jpeg")) return "image/jpeg";
-        if (lower.endsWith(".png")) return "image/png";
-        if (lower.endsWith(".gif")) return "image/gif";
-        if (lower.endsWith(".webp")) return "image/webp";
-        if (lower.endsWith(".svg")) return "image/svg+xml";
-        return "application/octet-stream";
-    }
-
     @GET
     @jakarta.ws.rs.Path("/{id}/profile-picture-filename")
     @Produces(MediaType.APPLICATION_JSON)
-    public Response getProfilePictureFilename(@PathParam("id") long id) {
+    public Response getProfilePictureFilename(@PathParam("id") @jakarta.validation.constraints.Positive long id) {
         User user = em.find(User.class, id);
         if (user == null) {
             return Response.status(Response.Status.NOT_FOUND).build();
@@ -270,10 +253,10 @@ public class UserResource {
 
         ProfilePicture pic = user.getProfilePicture();
         if (pic == null || pic.getPicture_name() == null) {
-            return Response.ok().entity("{\"filename\": null}").build();
+            return Response.ok().entity(java.util.Collections.singletonMap("filename", null)).build();
         }
 
-        return Response.ok().entity("{\"filename\": \"" + pic.getPicture_name() + "\"}").build();
+        return Response.ok().entity(Map.of("filename", pic.getPicture_name())).build();
     }
 
     @POST
@@ -282,16 +265,16 @@ public class UserResource {
     @Produces(MediaType.APPLICATION_JSON)
     @Transactional
     @Authenticated
-    public Response uploadProfilePicture(@PathParam("id") long id, @FormParam("file") FileUpload fileUpload) {
+    public Response uploadProfilePicture(@PathParam("id") @jakarta.validation.constraints.Positive long id, @FormParam("file") FileUpload fileUpload) {
         logger.info("uploadProfilePicture called for user: " + id);
         User currentUser = currentUserResolver.requireCurrentUser();
         if (!currentUser.getId().equals(id)) {
             return Response.status(Response.Status.FORBIDDEN)
-                    .entity("{\"error\": \"Cannot upload a profile picture for another user\"}")
+                    .entity(java.util.Map.of("error", "Cannot upload a profile picture for another user"))
                     .build();
         }
 
-        if (fileUpload == null || fileUpload.size() == 0) {
+        if (fileUpload == null || fileUpload.size() == 0 || fileUpload.size() > 5 * 1024 * 1024) {
             return Response.status(Response.Status.BAD_REQUEST)
                     .entity(Map.of("error", "An image file is required")).build();
         }
@@ -355,7 +338,7 @@ public class UserResource {
     @jakarta.ws.rs.Path("/{id}/followers")
     @Produces(MediaType.APPLICATION_JSON)
     @Authenticated
-    public Response getFollowers(@PathParam("id") long id) {
+    public Response getFollowers(@PathParam("id") @jakarta.validation.constraints.Positive long id) {
         List<User> followers = followRepository.getFollowers(id);
         return Response.ok(followers.stream().map(u -> ProfileDto.from(u, false)).toList()).build();
     }
@@ -364,7 +347,7 @@ public class UserResource {
     @jakarta.ws.rs.Path("/{id}/following")
     @Produces(MediaType.APPLICATION_JSON)
     @Authenticated
-    public Response getFollowing(@PathParam("id") long id) {
+    public Response getFollowing(@PathParam("id") @jakarta.validation.constraints.Positive long id) {
         List<User> following = followRepository.getFollowing(id);
         return Response.ok(following).build();
     }
@@ -373,7 +356,7 @@ public class UserResource {
     @jakarta.ws.rs.Path("/{id}/follow-requests")
     @Produces(MediaType.APPLICATION_JSON)
     @Authenticated
-    public Response getFollowRequests(@PathParam("id") long id) {
+    public Response getFollowRequests(@PathParam("id") @jakarta.validation.constraints.Positive long id) {
         // Pending incoming requests are private to their recipient.
         if (currentUserResolver.requireCurrentUserId() != id) {
             return Response.status(Response.Status.FORBIDDEN).build();
@@ -387,8 +370,8 @@ public class UserResource {
     @jakarta.ws.rs.Path("/{userId1}/followers/{userId2}/status")
     @Produces(MediaType.APPLICATION_JSON)
     @Authenticated
-    public Response getFollowStatus(@PathParam("userId1") long userId1,
-                                   @PathParam("userId2") long userId2) {
+    public Response getFollowStatus(@PathParam("userId1") @jakarta.validation.constraints.Positive long userId1,
+                                   @PathParam("userId2") @jakarta.validation.constraints.Positive long userId2) {
         boolean following = followRepository.isFollowing(userId1, userId2);
         return Response.ok(following).build();
     }
@@ -397,8 +380,8 @@ public class UserResource {
     @jakarta.ws.rs.Path("/{id}/follow")
     @Produces(MediaType.APPLICATION_JSON)
     @Authenticated
-    public Response followUser(@PathParam("id") long id,
-                               @QueryParam("targetUserId") Long targetUserId) {
+    public Response followUser(@PathParam("id") @jakarta.validation.constraints.Positive long id,
+                               @QueryParam("targetUserId") @jakarta.validation.constraints.Positive Long targetUserId) {
         if (targetUserId == null) {
             return Response.status(Response.Status.BAD_REQUEST).build();
         }
@@ -409,8 +392,8 @@ public class UserResource {
     @jakarta.ws.rs.Path("/{id}/followers/{followerId}")
     @Produces(MediaType.APPLICATION_JSON)
     @Authenticated
-    public Response acceptFollow(@PathParam("id") long id,
-                                @PathParam("followerId") long followerId) {
+    public Response acceptFollow(@PathParam("id") @jakarta.validation.constraints.Positive long id,
+                                @PathParam("followerId") @jakarta.validation.constraints.Positive long followerId) {
         return followRepository.acceptFollowRequest(followerId, currentUserResolver.requireCurrentUserId());
     }
 
@@ -418,8 +401,8 @@ public class UserResource {
     @jakarta.ws.rs.Path("/{id}/followers/{followerId}")
     @Produces(MediaType.APPLICATION_JSON)
     @Authenticated
-    public Response unfollowUser(@PathParam("id") long id,
-                                @PathParam("followerId") long followerId) {
+    public Response unfollowUser(@PathParam("id") @jakarta.validation.constraints.Positive long id,
+                                @PathParam("followerId") @jakarta.validation.constraints.Positive long followerId) {
         long callerId = currentUserResolver.requireCurrentUserId();
         // The follower unfollows or withdraws their own request ...
         if (callerId == followerId) {
@@ -437,7 +420,7 @@ public class UserResource {
     @jakarta.ws.rs.Path("/{id}/follow-status")
     @Produces(MediaType.APPLICATION_JSON)
     @Authenticated
-    public Response getMyFollowStatus(@PathParam("id") long id) {
+    public Response getMyFollowStatus(@PathParam("id") @jakarta.validation.constraints.Positive long id) {
         long callerId = currentUserResolver.requireCurrentUserId();
         return Response.ok(Map.of("status", followRepository.followStatus(callerId, id))).build();
     }
@@ -446,7 +429,7 @@ public class UserResource {
     @jakarta.ws.rs.Path("/{id}/media")
     @Produces(MediaType.APPLICATION_JSON)
     @Transactional
-    public Response getUserMedia(@PathParam("id") long userId) {
+    public Response getUserMedia(@PathParam("id") @jakarta.validation.constraints.Positive long userId) {
         Long callerId = currentUserResolver.currentUserIdIfAuthenticated().orElse(null);
         return Response.ok().entity(mediaRepository.getVisibleMediaByUser(userId, callerId)).build();
     }
@@ -455,7 +438,7 @@ public class UserResource {
 @jakarta.ws.rs.Path("/device-token")
 @Transactional
 @Authenticated
-public Response updateDeviceToken(@QueryParam("token") String token) {
+public Response updateDeviceToken(@QueryParam("token") @jakarta.validation.constraints.NotNull @jakarta.validation.constraints.Pattern(regexp="[a-fA-F0-9]{64}") String token) {
     Long userId = currentUserResolver.requireCurrentUserId();
     if (userId == null || token == null) return Response.status(400).build();
     

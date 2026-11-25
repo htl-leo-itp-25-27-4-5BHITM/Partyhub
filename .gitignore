@@ -58,3 +58,7 @@ xcuserdata/
 /DESIGN.md
 /PRODUCT.md
 /.impeccable/
+
+# Local browser regression dependencies and evidence
+/scripts/browser/node_modules/
+/scripts/browser/test-results/

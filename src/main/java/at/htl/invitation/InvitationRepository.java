@@ -20,6 +20,9 @@ import jakarta.ws.rs.core.Response;
 @Transactional
 public class InvitationRepository {
     @Inject
+    at.htl.follow.FollowRepository followRepository;
+
+    @Inject
     EntityManager entityManager;
     @Inject
     PartyRepository partyRepository;
@@ -44,25 +47,26 @@ public class InvitationRepository {
         User sender = entityManager.find(User.class, senderId);
         if (sender == null) {
             return Response.status(Response.Status.NOT_FOUND)
-                    .entity("{\"error\": \"Sender user not found\"}")
+                    .entity(java.util.Map.of("error", "Sender user not found"))
                     .build();
         }
 
         Party party = partyRepository.getPartyById(invitationDto.partyId());
         User recipient = entityManager.find(User.class, invitationDto.recipient());
-        if (party == null && recipient != null) {
-            Party swappedParty = partyRepository.getPartyById(invitationDto.recipient());
-            User swappedRecipient = entityManager.find(User.class, invitationDto.partyId());
-            if (swappedParty != null && swappedRecipient != null) {
-                party = swappedParty;
-                recipient = swappedRecipient;
-            }
-        }
 
         if (party == null || recipient == null) {
             return Response.status(Response.Status.NOT_FOUND)
-                    .entity("{\"error\": \"Party or recipient user not found\"}")
+                    .entity(java.util.Map.of("error", "Party or recipient user not found"))
                     .build();
+        }
+
+        if (party.getHost_user() == null || !senderId.equals(party.getHost_user().getId())) {
+            return Response.status(Response.Status.FORBIDDEN).build();
+        }
+        if ("PRIVATE".equalsIgnoreCase(party.getVisibility())
+                && (!followRepository.isFollowing(senderId, recipient.getId())
+                || !followRepository.isFollowing(recipient.getId(), senderId))) {
+            return Response.status(Response.Status.FORBIDDEN).build();
         }
 
         Invitation existingInvitation = findInvitation(party.getId(), recipient.getId());
@@ -138,7 +142,7 @@ public class InvitationRepository {
     public Response deleteInvite(Long id, Long userId) {
         if (userId == null) {
             return Response.status(Response.Status.BAD_REQUEST)
-                    .entity("{\"error\": \"User ID required\"}")
+                    .entity(java.util.Map.of("error", "User ID required"))
                     .build();
         }
 
@@ -155,7 +159,7 @@ public class InvitationRepository {
 
         if (!isSender && !isRecipient) {
             return Response.status(Response.Status.FORBIDDEN)
-                    .entity("{\"error\": \"Not authorized to delete this invitation\"}")
+                    .entity(java.util.Map.of("error", "Not authorized to delete this invitation"))
                     .build();
         }
 

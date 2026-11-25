@@ -32,7 +32,44 @@ public enum ImageType {
         return extension;
     }
 
+    public static final long MAX_FILE_SIZE = 5L * 1024 * 1024;
+    public static final long MAX_PIXELS = 16_000_000;
+
+    /** Fully decode only bounded raster content; a magic prefix alone is not an image. */
     public static Optional<ImageType> detect(Path file) throws IOException {
+        if (Files.size(file) == 0 || Files.size(file) > MAX_FILE_SIZE) return Optional.empty();
+        Optional<ImageType> type = signature(file);
+        if (type.isEmpty()) return type;
+        try (var input = javax.imageio.ImageIO.createImageInputStream(file.toFile())) {
+            if (input == null) return Optional.empty();
+            var readers = javax.imageio.ImageIO.getImageReaders(input);
+            if (!readers.hasNext()) return Optional.empty();
+            var reader = readers.next();
+            try {
+                reader.setInput(input, false, true);
+                int frames = reader.getNumImages(true);
+                if (frames < 1 || frames > 100) return Optional.empty();
+                long totalPixels = 0;
+                for (int frame = 0; frame < frames; frame++) {
+                    int width = reader.getWidth(frame), height = reader.getHeight(frame);
+                    long pixels = (long) width * height;
+                    if (width < 1 || height < 1 || pixels > MAX_PIXELS) return Optional.empty();
+                    totalPixels += pixels;
+                    if (totalPixels > 32_000_000) return Optional.empty();
+                    var decoded = reader.read(frame);
+                    if (decoded == null) return Optional.empty();
+                    decoded.flush();
+                }
+                return type;
+            } finally {
+                reader.dispose();
+            }
+        } catch (IOException | RuntimeException e) {
+            return Optional.empty();
+        }
+    }
+
+    private static Optional<ImageType> signature(Path file) throws IOException {
         byte[] head = new byte[12];
         int read;
         try (InputStream in = Files.newInputStream(file)) {

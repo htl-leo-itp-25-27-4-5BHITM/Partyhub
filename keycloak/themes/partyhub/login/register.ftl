@@ -1,3 +1,4 @@
+<#ftl output_format="HTML" auto_esc=true>
 <#import "template.ftl" as layout>
 <#assign hasFieldErrors = messagesPerField.existsError('firstName','lastName','email','username','password','password-confirm')>
 <@layout.registrationLayout displayMessage=!hasFieldErrors; section>
@@ -94,7 +95,7 @@
             <input type="submit" value="${msg("doRegister")}" />
 
             <div id="kc-terms-text">
-                ${msg("registerTerms")?no_esc}
+                ${kcSanitize(msg("registerTerms"))?no_esc}
             </div>
         </form>
 

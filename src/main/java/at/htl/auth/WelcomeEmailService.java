@@ -14,6 +14,9 @@ import org.jboss.logging.Logger;
 public class WelcomeEmailService {
 
     @Inject
+    at.htl.validation.MailInput mailInput;
+
+    @Inject
     Logger logger;
 
     @Inject
@@ -32,7 +35,7 @@ public class WelcomeEmailService {
     String webUrl;
 
     public void sendWelcomeEmail(User user) {
-        if (user == null || user.getEmail() == null || user.getEmail().isBlank()) {
+        if (user == null || user.getEmail() == null || !mailInput.accepts(user.getEmail(), "Welcome to PartyHub!")) {
             logger.debugf("Skipping welcome email for user %s: no email", user != null ? user.getId() : null);
             return;
         }

@@ -26,14 +26,14 @@ public class FavoriteResource {
     @Inject PartyRepository parties;
 
     @GET
-    public Response status(@PathParam("id") Long partyId) {
+    public Response status(@PathParam("id") @jakarta.validation.constraints.Positive Long partyId) {
         Long userId = currentUser.requireCurrentUserId();
         if (parties.getPartyByIdIfVisible(partyId, userId) == null) return Response.status(404).build();
         return Response.ok(Map.of("favorite", isSaved(userId, partyId))).build();
     }
 
     @PUT
-    public Response save(@PathParam("id") Long partyId) {
+    public Response save(@PathParam("id") @jakarta.validation.constraints.Positive Long partyId) {
         Long userId = currentUser.requireCurrentUserId();
         Party party = parties.getPartyByIdIfVisible(partyId, userId);
         if (party == null) return Response.status(404).build();
@@ -49,7 +49,7 @@ public class FavoriteResource {
     }
 
     @DELETE
-    public Response remove(@PathParam("id") Long partyId) {
+    public Response remove(@PathParam("id") @jakarta.validation.constraints.Positive Long partyId) {
         Long userId = currentUser.requireCurrentUserId();
         em.createQuery("delete from Favorite f where f.user.id = :userId and f.party.id = :partyId")
                 .setParameter("userId", userId).setParameter("partyId", partyId).executeUpdate();

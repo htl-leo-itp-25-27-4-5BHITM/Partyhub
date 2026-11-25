@@ -7,8 +7,8 @@ import java.util.regex.Pattern;
 public class ValidPartyNameValidator implements ConstraintValidator<ValidPartyName, String> {
 
     private static final Pattern VALID_NAME = Pattern.compile(
-        "^[\\w\\s\\-ÖÄÜöäüß.,!?()'`~]{2,100}$",
-        Pattern.UNICODE_CASE
+        "^[\\p{L}\\p{M}\\p{N} \\-.,!?()&@:+'`~]{2,100}$",
+        Pattern.UNICODE_CHARACTER_CLASS
     );
 
     @Override

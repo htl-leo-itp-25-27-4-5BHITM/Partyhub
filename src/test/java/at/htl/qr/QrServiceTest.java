@@ -17,6 +17,7 @@ public class QrServiceTest {
         QrLoginRepository mockRepo = mock(QrLoginRepository.class);
         QrService service = new QrService();
         service.qrRepo = mockRepo;
+        service.objectMapper = new com.fasterxml.jackson.databind.ObjectMapper();
 
         QrLogin result = service.generateForUser(1L);
 
@@ -33,6 +34,7 @@ public class QrServiceTest {
         QrLoginRepository mockRepo = mock(QrLoginRepository.class);
         QrService service = new QrService();
         service.qrRepo = mockRepo;
+        service.objectMapper = new com.fasterxml.jackson.databind.ObjectMapper();
 
         doThrow(new RuntimeException("DB error")).when(mockRepo).persist(any());
 
@@ -44,6 +46,7 @@ public class QrServiceTest {
         QrLoginRepository mockRepo = mock(QrLoginRepository.class);
         QrService service = new QrService();
         service.qrRepo = mockRepo;
+        service.objectMapper = new com.fasterxml.jackson.databind.ObjectMapper();
 
         QrLogin qrLogin = new QrLogin();
         qrLogin.setToken("valid-token");
@@ -62,6 +65,7 @@ public class QrServiceTest {
         QrLoginRepository mockRepo = mock(QrLoginRepository.class);
         QrService service = new QrService();
         service.qrRepo = mockRepo;
+        service.objectMapper = new com.fasterxml.jackson.databind.ObjectMapper();
 
         when(mockRepo.findByToken("invalid")).thenReturn(Optional.empty());
 
@@ -74,6 +78,7 @@ public class QrServiceTest {
         QrLoginRepository mockRepo = mock(QrLoginRepository.class);
         QrService service = new QrService();
         service.qrRepo = mockRepo;
+        service.objectMapper = new com.fasterxml.jackson.databind.ObjectMapper();
 
         QrLogin qrLogin = new QrLogin();
         qrLogin.setToken("used-token");
@@ -91,6 +96,7 @@ public class QrServiceTest {
         QrLoginRepository mockRepo = mock(QrLoginRepository.class);
         QrService service = new QrService();
         service.qrRepo = mockRepo;
+        service.objectMapper = new com.fasterxml.jackson.databind.ObjectMapper();
 
         QrLogin qrLogin = new QrLogin();
         qrLogin.setToken("expired-token");
@@ -108,6 +114,7 @@ public class QrServiceTest {
         QrLoginRepository mockRepo = mock(QrLoginRepository.class);
         QrService service = new QrService();
         service.qrRepo = mockRepo;
+        service.objectMapper = new com.fasterxml.jackson.databind.ObjectMapper();
 
         QrLogin qrLogin = new QrLogin();
         qrLogin.setToken("test-token");
@@ -123,6 +130,7 @@ public class QrServiceTest {
         QrLoginRepository mockRepo = mock(QrLoginRepository.class);
         QrService service = new QrService();
         service.qrRepo = mockRepo;
+        service.objectMapper = new com.fasterxml.jackson.databind.ObjectMapper();
 
         QrLogin qrLogin = new QrLogin();
         qrLogin.setUserId(1L);

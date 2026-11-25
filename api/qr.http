@@ -2,12 +2,12 @@
 @baseUrl = {{host}}/api/qr
 
 ###########################################
-### Generate QR payload for Anna
+### Deferred QR prototype is disabled by default
 ###########################################
 GET {{baseUrl}}/generate?userId=1
 X-User-Id: 1
 
-?? status == 200
+?? status == 404
 
 
 ###########################################
@@ -16,7 +16,7 @@ X-User-Id: 1
 GET {{baseUrl}}/generate
 X-User-Id: 1
 
-?? status == 200
+?? status == 404
 
 
 ###########################################
@@ -25,7 +25,7 @@ X-User-Id: 1
 GET {{baseUrl}}/generate?userId=99999
 X-User-Id: 1
 
-?? status == 200
+?? status == 404
 
 
 ###########################################
@@ -41,7 +41,7 @@ GET {{baseUrl}}/status/does-not-exist
 ###########################################
 GET {{baseUrl}}/image/user/1
 
-?? status == 200
+?? status == 404
 
 
 ###########################################
@@ -68,7 +68,7 @@ Content-Type: application/json
 
 {}
 
-?? status == 400
+?? status == 404
 
 
 ###########################################

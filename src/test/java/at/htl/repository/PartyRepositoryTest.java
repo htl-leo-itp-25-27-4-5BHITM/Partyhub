@@ -226,6 +226,19 @@ public class PartyRepositoryTest {
         assertEquals("PUBLIC", publicParties.get(0).getVisibility());
     }
 
+    private void mutualContacts(User a, User b) {
+        var status = entityManager.find(at.htl.follow.FollowStatus.class, 2L);
+        if (status == null) {
+            status = new at.htl.follow.FollowStatus(); status.setStatus_id(2L); status.setName("ACCEPTED");
+            entityManager.persist(status);
+        }
+        for (User[] pair : new User[][]{{a,b},{b,a}}) {
+            var follow = new at.htl.follow.Follow(); follow.setUser1_id(pair[0].getId());
+            follow.setUser2_id(pair[1].getId()); follow.setStatus(status); entityManager.persist(follow);
+        }
+        entityManager.flush();
+    }
+
     @Test
     void testAddPrivatePartyInvitesSelectedUserById() {
         createTestData();
@@ -237,6 +250,7 @@ public class PartyRepositoryTest {
         recipient.setEmail("recipient@example.com");
         entityManager.persist(recipient);
         entityManager.flush();
+        mutualContacts(host, recipient);
 
         Response response = partyRepository.addParty(
                 createPartyDto("private", List.of(String.valueOf(recipient.getId()))),
@@ -261,6 +275,7 @@ public class PartyRepositoryTest {
         recipient.setEmail("update-recipient@example.com");
         entityManager.persist(recipient);
         entityManager.flush();
+        mutualContacts(host, recipient);
 
         Response createResponse = partyRepository.addParty(createPartyDto("public", List.of()), host.getId());
         assertEquals(201, createResponse.getStatus());

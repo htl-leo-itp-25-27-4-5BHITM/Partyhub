@@ -472,7 +472,10 @@ function navigateModal(direction) {
 function showError(message) {
   const galleryGrid = document.getElementById('galleryGrid');
   if (galleryGrid) {
-    galleryGrid.innerHTML = `<div class="no-images">${message}</div>`;
+    const error = document.createElement("div");
+    error.className = "no-images";
+    error.textContent = message;
+    galleryGrid.replaceChildren(error);
   }
 
   const partyNameElement = document.getElementById('party-name');
