@@ -209,7 +209,9 @@ the live OpenAPI document is served at `/q/openapi`.
 - /clear
 - read '/folder' and write me a continuation file for a new cold thread.
 
-
+## Kill Port
+lsof -i :8080     
+kill - 9 [nummer]
 ## Sprint Review Dates
 
 1.  Sprint: 08.10.2025

@@ -1490,11 +1490,81 @@ body.bg-light.profile-page .app-shell > .container {
   opacity: 0.7;
 }
 
-/* Back arrow on someone else's profile (top left of the profile card) */
-.profile-summary {
-  position: relative;
+/* Settings gear on the own profile (top right of the profile card) */
+.profile-summary { position: relative; }
+
+.settings-gear {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  display: inline-grid;
+  place-items: center;
+  width: 42px;
+  height: 42px;
+  border-radius: 12px;
+  color: var(--text-primary);
+  text-decoration: none;
 }
 
+.settings-gear:hover { background: var(--bg-tertiary); }
+.settings-gear:focus-visible { outline: 3px solid var(--accent-color, #ff2e63); outline-offset: 2px; }
+
+/* "…" menu on other profiles */
+.profile-more { position: relative; display: inline-block; margin-left: 8px; }
+
+.profile-more-btn {
+  min-width: 44px;
+  min-height: 40px;
+  border: 1px solid var(--border-soft);
+  border-radius: 12px;
+  background: var(--bg-tertiary);
+  color: var(--text-primary);
+  font-size: 1.25rem;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.profile-more-menu {
+  position: absolute;
+  right: 0;
+  top: calc(100% + 6px);
+  z-index: 20;
+  min-width: 160px;
+  padding: 6px;
+  border: 1px solid var(--border-soft);
+  border-radius: 12px;
+  background: var(--bg-elevated);
+  box-shadow: var(--shadow-soft);
+}
+
+.profile-more-item {
+  width: 100%;
+  padding: 10px 12px;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--text-primary);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.profile-more-item:hover, .profile-more-item:focus-visible { background: var(--bg-tertiary); }
+.profile-more-item.danger { color: var(--accent-color, #ff2e63); }
+
+/* Private profile seen by someone who does not follow it */
+.private-notice {
+  margin: 16px 0;
+  padding: 24px 16px;
+  border: 1px solid var(--border-soft);
+  border-radius: 16px;
+  background: var(--bg-surface);
+  text-align: center;
+}
+
+.private-notice p { margin: 6px 0 0; color: var(--text-secondary); }
+
+/* Back arrow on someone else's profile (top left of the profile card) */
 .profile-back-btn {
   position: absolute;
   top: 10px;
@@ -1527,5 +1597,10 @@ body.bg-light.profile-page .app-shell > .container {
 @media (min-width: 600px) {
   .profile-summary {
     padding-left: 60px;
+  }
+
+  /* Same on the right for the settings gear on the own profile */
+  .profile-summary:has(> .settings-gear) {
+    padding-right: 60px;
   }
 }

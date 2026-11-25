@@ -1,0 +1,779 @@
+/* Light-appearance overrides for colours that the page stylesheets hard-code for the dark theme.
+   Loaded after design-system.css on every page; only active with <html data-theme="light">.
+   Maintained by hand (it was generated once). Rules of thumb:
+   - Cards and panels are white (--bg-surface); areas nested inside a card use --bg-primary
+     (light lavender) instead of a translucent dark tint, which turns grey when stacked.
+   - Text on accent (pink/green) backgrounds stays white.
+   - Neutral buttons use --bg-tertiary with --text-primary.
+   - Only the predefined palette: #1a1040, #4f3b9a, #ff2e63 / #e72561, #56f27c, #3ec1f3, #ffd166.
+     Where a colour is too light for text on a light page, it stays as fill/border and the text is #1a1040. */
+
+/* ---- shared ---- */
+/* Pink buttons: flat #e72561 instead of the light-pink gradient, which is too bright for white text. */
+:root[data-theme="light"] :is(.create-party-btn, .submit-btn, .save-btn, .btn-primary, .btn-login,
+  .follow-action-main, .follow-toggle-btn) {
+  background: var(--accent-color);
+  color: #fff;
+}
+:root[data-theme="light"] .join-party-btn:not(.joined):not(.is-host),
+:root[data-theme="light"] .home-page .party-map-popup a.map-event__link,
+:root[data-theme="light"] .dash-range button[aria-checked="true"] {
+  background: var(--accent-color);
+  color: #fff;
+}
+/* "Requested": a pending follow request is a neutral state, not a call to action */
+:root[data-theme="light"] .follow-action-main[disabled] {
+  background: var(--bg-tertiary);
+  color: var(--text-secondary);
+  box-shadow: none;
+  opacity: 1;
+}
+:root[data-theme="light"] .favorite-toggle[aria-pressed="true"] {
+  color: var(--accent-color);
+  border-color: rgba(231, 37, 97, 0.35);
+  background: rgba(231, 37, 97, 0.08);
+}
+:root[data-theme="light"] :is(.social-caption, .social-more) {
+  color: var(--text-secondary);
+}
+/* design-system.css shows "Create Account" as a neutral button */
+:root[data-theme="light"] #registerBtn {
+  color: var(--text-primary);
+}
+:root[data-theme="light"] :is(.party-select, .form-input, .form-textarea, .field input, .field textarea, .filter-search, .searchBox) {
+  background: var(--bg-surface);
+}
+:root[data-theme="light"] .bottom-nav {
+  background: var(--bg-surface);
+  border: 1px solid var(--border-soft);
+}
+:root[data-theme="light"] .nav-btn {
+  color: var(--text-secondary);
+}
+:root[data-theme="light"] .nav-btn:hover {
+  background: var(--bg-tertiary);
+  color: var(--text-primary);
+}
+:root[data-theme="light"] .card {
+  background: var(--bg-surface);
+}
+:root[data-theme="light"] .bg-light {
+  color: var(--text-primary) !important;
+}
+:root[data-theme="light"] .input_fields {
+  background-color: var(--bg-surface);
+  color: var(--text-primary);
+}
+:root[data-theme="light"] input {
+  color: var(--text-primary);
+}
+:root[data-theme="light"] input::placeholder {
+  color: var(--text-muted);
+}
+
+/* ---- addParty/addParty.css ---- */
+:root[data-theme="light"] .wizard-step {
+  color: var(--text-muted);
+}
+:root[data-theme="light"] .wizard-step::before {
+  background: rgba(26, 16, 64, 0.120);
+}
+:root[data-theme="light"] .wizard-number {
+  border: 2px solid rgba(26, 16, 64, 0.200);
+  background: var(--bg-surface);
+}
+:root[data-theme="light"] .wizard-step.active,
+:root[data-theme="light"] .wizard-step.done {
+  color: var(--text-primary);
+}
+:root[data-theme="light"] .field input {
+  color: var(--text-primary);
+}
+:root[data-theme="light"] .vis-card {
+  color: var(--text-primary);
+}
+:root[data-theme="light"] .everyone-hint {
+  background: var(--bg-tertiary);
+  color: var(--text-primary);
+}
+:root[data-theme="light"] .ba-step-intro {
+  color: var(--text-secondary);
+}
+:root[data-theme="light"] .ba-step-item {
+  background: var(--bg-primary);
+  border: 1px solid var(--border-soft);
+}
+:root[data-theme="light"] .ba-step-amount,
+:root[data-theme="light"] .ba-step-pledged {
+  color: var(--text-secondary);
+}
+:root[data-theme="light"] .ba-step-link {
+  color: var(--text-secondary);
+}
+:root[data-theme="light"] .ba-step-empty {
+  color: var(--text-muted);
+}
+:root[data-theme="light"] .ba-step-form {
+  border-top: 1px solid rgba(26, 16, 64, 0.144);
+}
+:root[data-theme="light"] .ba-step-input {
+  border: 1px solid rgba(26, 16, 64, 0.200);
+  background: var(--bg-surface);
+  color: var(--text-primary);
+}
+:root[data-theme="light"] .ba-step-btn {
+  color: var(--text-primary);
+}
+:root[data-theme="light"] .ba-step-btn-ghost {
+  border-color: rgba(26, 16, 64, 0.200);
+}
+:root[data-theme="light"] .draft-button {
+  color: var(--text-secondary);
+}
+:root[data-theme="light"] .draft-button:hover {
+  color: var(--text-primary);
+  background: var(--bg-tertiary);
+}
+:root[data-theme="light"] #saveDraft {
+  background: var(--bg-surface);
+  color: var(--text-primary);
+}
+:root[data-theme="light"] #saveDraft:disabled {
+  background: var(--bg-surface);
+}
+:root[data-theme="light"] .editor-drafts-link {
+  color: var(--text-primary);
+}
+
+:root[data-theme="light"] .party-feedback.error {
+  background: rgba(255, 46, 99, 0.10);
+  color: #1a1040;
+}
+
+/* ---- advancedPartyInfos/advancedPartyInfos.css ---- */
+/* Bring-along errors and "remove" links: the page's #ff6b6b is 2.5:1 on a light page */
+:root[data-theme="light"] {
+  --danger: #e72561;
+}
+/* Green as text is unreadable on white; the green stays in the chip/badge fill */
+:root[data-theme="light"] .invited-item.accepted .status,
+:root[data-theme="light"] .ba-item.is-fulfilled .ba-availability {
+  color: var(--text-primary);
+}
+:root[data-theme="light"] .back-btn {
+  background: var(--bg-tertiary);
+  color: var(--text-primary);
+}
+:root[data-theme="light"] .meta-chip {
+  background: var(--bg-tertiary);
+  border-color: transparent;
+}
+:root[data-theme="light"] .details-card {
+  background: var(--bg-primary);
+}
+:root[data-theme="light"] .join-party-btn:not(.joined):not(.is-host) {
+  color: #fff;
+}
+:root[data-theme="light"] .join-party-btn.joined {
+  background: var(--bg-tertiary);
+  color: var(--text-primary);
+}
+:root[data-theme="light"] .join-party-btn.is-host {
+  background: var(--bg-primary);
+  color: var(--text-secondary);
+  border: 1px solid var(--border-soft);
+}
+:root[data-theme="light"] .join-party-btn.is-host:hover {
+  background: var(--bg-primary);
+}
+:root[data-theme="light"] .secondary-btn {
+  background: var(--bg-primary);
+  border: 1px solid var(--border-soft);
+  color: var(--text-primary);
+}
+:root[data-theme="light"] .secondary-btn:hover {
+  background: var(--bg-tertiary);
+}
+:root[data-theme="light"] .invited-section {
+  background: var(--bg-primary);
+}
+:root[data-theme="light"] .invited-item {
+  border-bottom: 1px solid rgba(26, 16, 64, 0.072);
+}
+:root[data-theme="light"] .invited-avatar {
+  border: 1px solid rgba(26, 16, 64, 0.200);
+  background: var(--bg-tertiary);
+}
+:root[data-theme="light"] .ba-item {
+  background: var(--bg-primary);
+}
+:root[data-theme="light"] .ba-pledger {
+  background: var(--bg-tertiary);
+}
+:root[data-theme="light"] .ba-input {
+  background: var(--bg-surface);
+}
+
+/* ---- dashboard/dashboard.css ---- */
+:root[data-theme="light"] .dash-range {
+  border: 1px solid var(--border-soft, rgba(26, 16, 64, 0.144));
+}
+:root[data-theme="light"] .dash-tile {
+  border: 1px solid var(--border-soft, rgba(26, 16, 64, 0.144));
+}
+:root[data-theme="light"] .dash-card {
+  border: 1px solid var(--border-soft, rgba(26, 16, 64, 0.144));
+}
+:root[data-theme="light"] .dash-select {
+  border: 1px solid rgba(26, 16, 64, 0.200);
+}
+:root[data-theme="light"] .dash-tooltip {
+  background: var(--bg-surface);
+  border: 1px solid rgba(26, 16, 64, 0.192);
+  box-shadow: var(--shadow-soft);
+}
+
+/* ---- gallery/gallery.css ---- */
+:root[data-theme="light"] .gallery-header {
+  border-bottom: 1px solid rgba(26, 16, 64, 0.120);
+}
+:root[data-theme="light"] .back-btn {
+  color: var(--text-primary);
+}
+:root[data-theme="light"] .gallery-title {
+  color: var(--text-primary);
+}
+:root[data-theme="light"] .gallery-meta {
+  color: var(--text-secondary);
+}
+:root[data-theme="light"] .sep {
+  color: var(--text-muted);
+}
+:root[data-theme="light"] .gallery-image-unavailable {
+  color: var(--text-muted);
+}
+:root[data-theme="light"] .loading {
+  color: var(--text-secondary);
+}
+:root[data-theme="light"] .no-images {
+  color: var(--text-secondary);
+}
+:root[data-theme="light"] .media-delete-btn {
+  background: var(--bg-surface);
+}
+
+/* ---- index.css ---- */
+:root[data-theme="light"] .map-card {
+  background: var(--bg-surface);
+}
+:root[data-theme="light"] .leaflet-container {
+  background: var(--bg-tertiary);
+}
+:root[data-theme="light"] .home-search input {
+  background: var(--bg-surface);
+}
+:root[data-theme="light"] .home-search__field {
+  background: var(--bg-surface);
+}
+:root[data-theme="light"] .home-page .party-map-popup a.leaflet-popup-close-button:hover {
+  color: var(--text-primary);
+  background: rgba(26, 16, 64, 0.077);
+}
+:root[data-theme="light"] .home-page .party-map-popup a.map-event__link {
+  color: var(--text-primary);
+}
+:root[data-theme="light"] .map-toolbar button {
+  color: var(--text-secondary);
+}
+:root[data-theme="light"] .map-dates button[aria-pressed="true"] {
+  background: var(--text-primary);
+  color: #fff;
+}
+:root[data-theme="light"] .map-dates button:hover:not([aria-pressed="true"]),
+:root[data-theme="light"] .map-fit:hover:enabled {
+  background: var(--bg-tertiary);
+  color: var(--text-primary);
+}
+:root[data-theme="light"] .map-toolbar .map-fit {
+  color: var(--text-primary);
+}
+:root[data-theme="light"] :is(.map-status, .map-credit) {
+  color: var(--text-muted);
+}
+:root[data-theme="light"] .home-page .leaflet-bar a,
+:root[data-theme="light"] .map-locate {
+  background: var(--bg-surface);
+  color: var(--text-primary);
+}
+:root[data-theme="light"] .home-page .leaflet-bar a:hover,
+:root[data-theme="light"] .map-locate:hover:enabled {
+  color: var(--text-primary);
+}
+:root[data-theme="light"] .map-locate:disabled,
+:root[data-theme="light"] .home-page .leaflet-bar a.leaflet-disabled {
+  background: var(--bg-surface);
+}
+:root[data-theme="light"] .event-pin.is-selected .event-pin__body {
+  background: var(--bg-surface);
+  color: var(--text-primary);
+}
+:root[data-theme="light"] .map-selection {
+  background: var(--bg-surface);
+  color: var(--text-primary);
+}
+:root[data-theme="light"] .map-selection__close {
+  color: var(--text-primary);
+}
+:root[data-theme="light"] .map-selection__close:hover {
+  background: var(--bg-tertiary);
+}
+:root[data-theme="light"] .map-selection :is(.map-event__description, .map-event__row, .map-event__time) {
+  color: var(--text-secondary);
+}
+:root[data-theme="light"] .map-selection .map-event__row svg {
+  stroke: var(--text-secondary);
+}
+
+:root[data-theme="light"] .map-selection .map-event__price {
+  color: var(--text-primary);
+}
+:root[data-theme="light"] .event-cluster span {
+  background: var(--bg-surface);
+  color: var(--text-primary);
+}
+:root[data-theme="light"] .map-credit:hover {
+  color: var(--text-primary);
+}
+
+/* ---- listPartys/listPartys.css ---- */
+:root[data-theme="light"] .filter-search {
+  background: var(--bg-surface);
+  border: 1px solid var(--border-soft);
+  color: var(--text-secondary);
+}
+:root[data-theme="light"] .filter-search input {
+  color: var(--text-primary);
+}
+:root[data-theme="light"] .filter-search input::placeholder {
+  color: var(--text-muted);
+}
+:root[data-theme="light"] .filter-chip {
+  border: 1px solid var(--border-soft);
+  background: var(--bg-surface);
+  color: var(--text-secondary);
+}
+:root[data-theme="light"] .filter-chip.active {
+  color: var(--text-primary);
+}
+:root[data-theme="light"] .filter-select-control,
+:root[data-theme="light"] .sort-control {
+  color: var(--text-secondary);
+}
+:root[data-theme="light"] .filter-select-control select,
+:root[data-theme="light"] .sort-control select {
+  border: 1px solid var(--border-soft);
+  background: var(--bg-surface);
+  color: var(--text-primary);
+}
+:root[data-theme="light"] .filter-select-control option,
+:root[data-theme="light"] .sort-control option {
+  background: var(--bg-surface);
+  color: var(--text-primary);
+}
+:root[data-theme="light"] .loading {
+  color: var(--text-secondary);
+}
+:root[data-theme="light"] .party-name-list {
+  color: var(--text-primary);
+}
+:root[data-theme="light"] .party-visibility.private {
+  background: rgba(62, 193, 243, 0.18);
+  border-color: rgba(62, 193, 243, 0.7);
+  color: #1a1040;
+}
+:root[data-theme="light"] .party-price {
+  background: var(--bg-tertiary);
+  color: var(--text-primary);
+}
+:root[data-theme="light"] .party-card,
+:root[data-theme="light"] .party-item,
+:root[data-theme="light"] .parties-list > article,
+:root[data-theme="light"] .parties-list > .party-card,
+:root[data-theme="light"] .parties-list > .party-item,
+:root[data-theme="light"] .parties-list > div[data-party-id],
+:root[data-theme="light"] .parties-list > a.party-link {
+  border: 1px solid rgba(26, 16, 64, 0.072);
+}
+:root[data-theme="light"] .party-card:hover,
+:root[data-theme="light"] .party-item:hover,
+:root[data-theme="light"] .parties-list > article:hover,
+:root[data-theme="light"] .parties-list > .party-card:hover,
+:root[data-theme="light"] .parties-list > .party-item:hover,
+:root[data-theme="light"] .parties-list > div[data-party-id]:hover,
+:root[data-theme="light"] .parties-list > a.party-link:hover {
+  border-color: rgba(26, 16, 64, 0.120);
+}
+:root[data-theme="light"] .party-name,
+:root[data-theme="light"] .party-title,
+:root[data-theme="light"] .party-item__title,
+:root[data-theme="light"] .party-card h3,
+:root[data-theme="light"] .party-card h4,
+:root[data-theme="light"] .party-item h3,
+:root[data-theme="light"] .party-item h4 {
+  color: var(--text-primary);
+}
+:root[data-theme="light"] .party-date,
+:root[data-theme="light"] .party-location,
+:root[data-theme="light"] .party-attendees,
+:root[data-theme="light"] .meta-date,
+:root[data-theme="light"] .meta-location,
+:root[data-theme="light"] .meta-attendees,
+:root[data-theme="light"] .party-meta > div {
+  color: var(--text-primary);
+}
+:root[data-theme="light"] .party-location,
+:root[data-theme="light"] .meta-location {
+  color: var(--text-secondary);
+}
+:root[data-theme="light"] .party-attendees,
+:root[data-theme="light"] .meta-attendees {
+  color: var(--text-primary);
+}
+:root[data-theme="light"] .party-divider,
+:root[data-theme="light"] .meta-divider {
+  background: var(--border-soft);
+}
+:root[data-theme="light"] .party-drafts-link {
+  color: var(--text-primary);
+}
+
+/* ---- notifications/notifications.css ---- */
+:root[data-theme="light"] .username-fixed {
+  color: var(--text-primary);
+}
+:root[data-theme="light"] .notif-card {
+  border: 1px solid rgba(26, 16, 64, 0.120);
+}
+:root[data-theme="light"] .avatar-link {
+  border: 1px solid rgba(26, 16, 64, 0.120);
+}
+:root[data-theme="light"] .notif-actions button {
+  background: var(--bg-primary);
+  color: var(--text-primary);
+}
+/* Accept/decline keep the dark theme's green #56f27c and pink #ff2e63: tinted when open,
+   filled when chosen. Green is too light for a white icon, so its icon is #1a1040. */
+:root[data-theme="light"] .notif-actions .btn-accept {
+  background: rgba(86, 242, 124, 0.22);
+  color: #1a1040;
+}
+:root[data-theme="light"] .notif-actions .btn-accept:hover {
+  background: rgba(86, 242, 124, 0.4);
+}
+:root[data-theme="light"] .notif-actions .btn-dismiss {
+  background: rgba(255, 46, 99, 0.12);
+  color: #ff2e63;
+}
+:root[data-theme="light"] .notif-actions .btn-dismiss:hover {
+  background: rgba(255, 46, 99, 0.2);
+}
+:root[data-theme="light"] .notif-actions .btn-accept.is-selected {
+  background: #56f27c;
+  color: #1a1040;
+  box-shadow: 0 0 0 1px rgba(86, 242, 124, 0.5), 0 0 16px rgba(86, 242, 124, 0.24);
+}
+:root[data-theme="light"] .notif-actions .btn-dismiss.is-selected {
+  background: #ff2e63;
+  color: #fff;
+  box-shadow: 0 0 0 1px rgba(255, 46, 99, 0.5), 0 0 16px rgba(255, 46, 99, 0.22);
+}
+:root[data-theme="light"] .accepted-badge {
+  background: rgba(86, 242, 124, 0.3);
+  color: #1a1040;
+}
+:root[data-theme="light"] .rejected-badge {
+  background: rgba(255, 46, 99, 0.12);
+  color: #1a1040;
+}
+:root[data-theme="light"] .notif-actions .btn-dismiss.btn-quick-dismiss {
+  background: transparent;
+  color: var(--text-muted);
+}
+:root[data-theme="light"] .muted {
+  color: var(--text-secondary);
+}
+:root[data-theme="light"] .notif-message {
+  color: var(--text-primary);
+}
+:root[data-theme="light"] .notif-time {
+  color: var(--text-secondary);
+}
+:root[data-theme="light"] .toast {
+  background: var(--text-primary);
+  color: #fff;
+}
+:root[data-theme="light"] .confirm-overlay {
+  background: rgba(26, 16, 64, 0.35);
+}
+:root[data-theme="light"] .confirm-dialog {
+  background: var(--bg-surface);
+  border: 1px solid rgba(26, 16, 64, 0.144);
+  color: var(--text-primary);
+}
+:root[data-theme="light"] .confirm-copy p {
+  color: var(--text-secondary);
+}
+:root[data-theme="light"] .confirm-cancel {
+  background: var(--bg-tertiary);
+  color: var(--text-primary);
+}
+:root[data-theme="light"] .confirm-cancel:hover {
+  background: rgba(26, 16, 64, 0.120);
+}
+:root[data-theme="light"] .notif-actions .btn-dismiss.btn-quick-dismiss:hover {
+  background: var(--bg-tertiary);
+}
+
+/* ---- party-social.css ---- */
+:root[data-theme="light"] .party-social {
+  color: var(--text-primary);
+}
+:root[data-theme="light"] .social-person {
+  color: var(--text-primary) !important;
+}
+:root[data-theme="light"] .social-avatar {
+  background: var(--bg-surface);
+}
+:root[data-theme="light"] .pin-friends {
+  background: var(--bg-surface);
+  color: var(--text-primary);
+}
+:root[data-theme="light"] .event-cluster .cluster-friends {
+  background: var(--bg-surface);
+  color: var(--text-primary);
+}
+:root[data-theme="light"] .map-selection .map-event__time {
+  color: var(--text-primary);
+}
+
+/* ---- partyDrafts/partyDrafts.css ---- */
+:root[data-theme="light"] .drafts-new {
+  color: #1a1040;
+}
+:root[data-theme="light"] .drafts-row {
+  border-bottom: 1px solid rgba(26, 16, 64, 0.200);
+}
+
+/* ---- profile/profile.css ---- */
+:root[data-theme="light"] .profile-back-btn {
+  border: 1px solid var(--border-soft);
+  background: var(--bg-primary);
+}
+:root[data-theme="light"] .profile-back-btn:hover {
+  background: var(--bg-tertiary);
+}
+:root[data-theme="light"] .searchBox .searchIcon svg path {
+  stroke: var(--text-muted);
+}
+:root[data-theme="light"] #mobileNavbar {
+  background: var(--bg-surface);
+}
+:root[data-theme="light"] .navbar-btn {
+  color: var(--text-primary);
+}
+:root[data-theme="light"] .tab-btn .tab-icon svg {
+  stroke: var(--text-primary);
+  fill: var(--text-primary);
+}
+:root[data-theme="light"] #tabParties.tab-btn .tab-icon svg {
+  stroke: var(--text-primary);
+  fill: var(--text-primary);
+}
+:root[data-theme="light"] .edit-account-btn:focus-visible,
+:root[data-theme="light"] .follow-action-main:focus-visible,
+:root[data-theme="light"] .logout-btn:focus-visible {
+  outline: 2px solid rgba(26, 16, 64, 0.200);
+}
+:root[data-theme="light"] .tab-section::-webkit-scrollbar-thumb {
+  background: rgba(26, 16, 64, 0.120);
+}
+:root[data-theme="light"] body {
+  color: var(--text-primary);
+}
+:root[data-theme="light"] #username p {
+  color: var(--text-primary);
+}
+:root[data-theme="light"] .searchBox .separator {
+  background: rgba(26, 16, 64, 0.120);
+}
+:root[data-theme="light"] .searchBox input[type="text"] {
+  color: var(--text-primary);
+}
+:root[data-theme="light"] .searchBox input::placeholder {
+  color: var(--text-muted);
+}
+:root[data-theme="light"] #profileDetails > div {
+  color: var(--text-primary);
+}
+:root[data-theme="light"] #followingCount::after {
+  color: var(--text-primary);
+}
+:root[data-theme="light"] #followersCount::after {
+  color: var(--text-primary);
+}
+:root[data-theme="light"] #postsCount::after {
+  color: var(--text-primary);
+}
+:root[data-theme="light"] .search-dropdown,
+:root[data-theme="light"] #searchDropdown {
+  background: var(--bg-surface);
+  border: 1px solid rgba(26, 16, 64, 0.120);
+}
+:root[data-theme="light"] .search-result-item {
+  border-bottom: 1px solid rgba(26, 16, 64, 0.060);
+}
+:root[data-theme="light"] .search-result-item:hover {
+  background: var(--bg-tertiary);
+}
+:root[data-theme="light"] .search-result-name {
+  color: var(--text-primary);
+}
+:root[data-theme="light"] .search-result-distinct-name {
+  color: var(--text-secondary);
+}
+:root[data-theme="light"] .search-dropdown::-webkit-scrollbar-thumb,
+:root[data-theme="light"] #searchDropdown::-webkit-scrollbar-thumb {
+  background: rgba(26, 16, 64, 0.120);
+}
+:root[data-theme="light"] .search-dropdown::-webkit-scrollbar-thumb:hover,
+:root[data-theme="light"] #searchDropdown::-webkit-scrollbar-thumb:hover {
+  background: rgba(26, 16, 64, 0.120);
+}
+:root[data-theme="light"] .profile-summary {
+  border: 1px solid var(--border-soft);
+  background: var(--bg-surface);
+}
+:root[data-theme="light"] #profilePicture img {
+  border: 3px solid rgba(26, 16, 64, 0.168);
+}
+:root[data-theme="light"] #username .distinct-name {
+  color: var(--text-primary);
+}
+:root[data-theme="light"] #profileDetails > div::after {
+  color: var(--text-secondary);
+}
+:root[data-theme="light"] #actionButton .logout-btn {
+  background: var(--bg-tertiary) !important;
+  border: 1px solid var(--border-soft) !important;
+}
+:root[data-theme="light"] .tab-buttons {
+  border: 1px solid var(--border-soft);
+  background: var(--bg-surface);
+}
+:root[data-theme="light"] .tab-btn.active {
+  background: rgba(255, 46, 99, 0.08);
+}
+:root[data-theme="light"] .tab-btn {
+  color: var(--text-secondary);
+}
+:root[data-theme="light"] .tab-btn.active {
+  color: var(--text-primary);
+}
+:root[data-theme="light"] #profileSubsections h3 {
+  color: var(--text-primary);
+}
+:root[data-theme="light"] .party-card {
+  background: var(--bg-surface);
+}
+:root[data-theme="light"] .party-meta {
+  color: var(--text-secondary);
+}
+:root[data-theme="light"] .party-name {
+  color: var(--text-primary);
+}
+:root[data-theme="light"] .distinct-name {
+  color: var(--text-primary);
+}
+:root[data-theme="light"] .username-item:hover {
+  background: var(--bg-tertiary);
+}
+:root[data-theme="light"] #usernameDropdown {
+  background: var(--bg-surface);
+  border: 1px solid rgba(26, 16, 64, 0.072);
+}
+:root[data-theme="light"] .party-extra {
+  border: 1px solid rgba(26, 16, 64, 0.048);
+}
+:root[data-theme="light"] .party-detail-grid {
+  color: var(--text-primary);
+}
+:root[data-theme="light"] .party-detail-description,
+:root[data-theme="light"] .party-detail-item {
+  background: var(--bg-primary);
+  border: 1px solid var(--border-soft);
+}
+:root[data-theme="light"] .party-detail-description p {
+  color: var(--text-primary);
+}
+:root[data-theme="light"] .party-detail-label {
+  color: var(--text-muted);
+}
+:root[data-theme="light"] .party-detail-value,
+:root[data-theme="light"] .party-detail-link {
+  color: var(--text-primary);
+}
+:root[data-theme="light"] .details-btn:focus {
+  outline: 2px solid rgba(26, 16, 64, 0.096);
+}
+:root[data-theme="light"] .follow-menu-dropdown {
+  background: var(--bg-surface);
+  border: 1px solid var(--border-soft);
+  box-shadow: 0 18px 50px rgba(26, 16, 64, 0.18), 0 6px 18px rgba(26, 16, 64, 0.08);
+}
+:root[data-theme="light"] .follow-menu-item:focus {
+  outline: 2px solid var(--accent-color);
+  background: var(--bg-primary);
+}
+:root[data-theme="light"] .follow-menu-header {
+  color: var(--text-primary);
+  border-bottom: 1px solid rgba(26, 16, 64, 0.036);
+}
+:root[data-theme="light"] .follow-menu-empty {
+  color: var(--text-secondary);
+}
+:root[data-theme="light"] .follow-menu-item:hover {
+  background: var(--bg-tertiary);
+}
+:root[data-theme="light"] .follow-menu-name {
+  color: var(--text-primary);
+}
+:root[data-theme="light"] .follow-menu-distinct {
+  color: var(--text-secondary);
+}
+:root[data-theme="light"] .follow-menu-content::-webkit-scrollbar-thumb {
+  background: rgba(26, 16, 64, 0.088);
+}
+:root[data-theme="light"] :is(.party-actions, .post-actions) .icon-btn:hover {
+  border-color: rgba(26, 16, 64, 0.200);
+}
+:root[data-theme="light"] #actionButton > .dashboard-btn {
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border-soft);
+}
+:root[data-theme="light"] #actionButton > .dashboard-btn:hover {
+  background: rgba(26, 16, 64, 0.110);
+}
+:root[data-theme="light"] .follow-menu-remove {
+  border: 1px solid var(--border-soft);
+  background: var(--bg-primary);
+}
+
+/* ---- settings/settings.css ---- */
+:root[data-theme="light"] .switch .track::after,
+:root[data-theme="light"] .switch input:checked + .track::after {
+  background: #fff;
+  box-shadow: 0 1px 3px rgba(26, 16, 64, 0.30);
+}
+:root[data-theme="light"] .switch input:checked + .track {
+  border-color: transparent;
+}

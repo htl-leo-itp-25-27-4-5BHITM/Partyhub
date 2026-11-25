@@ -1,0 +1,104 @@
+@host = http://localhost:8080
+@meUrl = {{host}}/api/me
+
+# The X-User-Id dev bypass counts as a fresh password confirmation. Links are mailed to Mailpit
+# (http://localhost:8025); see EmailChangeFlowTest for the confirm/not-me paths with tokens.
+
+###
+### E-mail change: nothing pending
+###
+GET {{meUrl}}/email-change
+X-User-Id: 5
+
+?? status == 200
+?? body pending == false
+
+###
+### E-mail change: invalid address
+###
+POST {{meUrl}}/email-change
+X-User-Id: 5
+Content-Type: application/json
+
+{ "newEmail": "not-an-email" }
+
+?? status == 400
+
+###
+### E-mail change: same address
+###
+POST {{meUrl}}/email-change
+X-User-Id: 5
+Content-Type: application/json
+
+{ "newEmail": "SABINE.WEBER@partyhub.at" }
+
+?? status == 400
+?? body code == SAME_EMAIL
+
+###
+### E-mail change: address of another account
+###
+POST {{meUrl}}/email-change
+X-User-Id: 5
+Content-Type: application/json
+
+{ "newEmail": "katrin.bauer@partyhub.at" }
+
+?? status == 409
+?? body code == EMAIL_TAKEN
+
+###
+### E-mail change: request
+###
+POST {{meUrl}}/email-change
+X-User-Id: 5
+Content-Type: application/json
+
+{ "newEmail": "sabine.new@partyhub.at" }
+
+?? status == 201
+?? body pending == true
+
+###
+### E-mail change: pending state
+###
+GET {{meUrl}}/email-change
+X-User-Id: 5
+
+?? status == 200
+?? body newEmail == sabine.new@partyhub.at
+
+###
+### E-mail change: resend
+###
+POST {{meUrl}}/email-change/resend
+X-User-Id: 5
+
+?? status == 200
+
+###
+### E-mail change: cancel
+###
+DELETE {{meUrl}}/email-change
+X-User-Id: 5
+
+?? status == 204
+
+###
+### E-mail change: unknown link
+###
+POST {{host}}/api/email-change/confirm
+Content-Type: application/json
+
+{ "token": "unknown-token" }
+
+?? status == 410
+?? body code == LINK_INVALID
+
+###
+### E-mail change: anonymous caller is rejected
+###
+GET {{meUrl}}/email-change
+
+?? status == 401

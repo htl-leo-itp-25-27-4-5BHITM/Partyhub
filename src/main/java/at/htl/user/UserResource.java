@@ -55,6 +55,12 @@ public class UserResource {
     @Inject
     CurrentUserResolver currentUserResolver;
     @Inject
+    ProfileAccessService profileAccess;
+    @Inject
+    at.htl.block.BlockRepository blockRepository;
+    @Inject
+    at.htl.party.PartyRepository partyRepository;
+    @Inject
     EntityManager em;
     @Inject
     Logger logger;
@@ -80,12 +86,40 @@ public class UserResource {
     @jakarta.ws.rs.Path("")
     @Authenticated
     public Response getUsers(@QueryParam("q") String query) {
-        if (query != null && !query.isBlank()) {
-            List<User> users = userRepository.getUsersByDistinctNameSearch(query);
-            return Response.ok(users.stream().map(u -> ProfileDto.from(u, false)).toList()).build();
+        List<User> users = query != null && !query.isBlank()
+                ? userRepository.getUsersByDistinctNameSearch(query)
+                : userRepository.getUsers();
+        // Users who block the searcher or are blocked by them do not appear.
+        java.util.Set<Long> hidden = blockRepository.blockedEitherWayIds(currentUserResolver.requireCurrentUserId());
+        return Response.ok(users.stream().filter(u -> !hidden.contains(u.getId()))
+                .map(u -> ProfileDto.from(u, false)).toList()).build();
+    }
+
+    /** The profile as the caller may see it, or 404 if it is missing or blocked either way. */
+    private Response profileResponse(User user) {
+        Long callerId = currentUserResolver.requireCurrentUserId();
+        if (user == null || profileAccess.access(callerId, user) == ProfileAccessService.Access.NONE) {
+            return Response.status(Response.Status.NOT_FOUND).build();
         }
-        List<User> users = userRepository.getUsers();
-        return Response.ok(users.stream().map(u -> ProfileDto.from(u, false)).toList()).build();
+        return Response.ok(ProfileDto.from(user, user.getId().equals(callerId))).build();
+    }
+
+    /**
+     * 404 when blocked, 403 when the owner is private and the caller no accepted follower,
+     * null when the caller may see the profile's content.
+     */
+    private Response contentDenied(long ownerId) {
+        User owner = userRepository.getUser(ownerId);
+        if (owner == null) {
+            return null;
+        }
+        Long callerId = currentUserResolver.currentUserIdIfAuthenticated().orElse(null);
+        return switch (profileAccess.access(callerId, owner)) {
+            case NONE -> Response.status(Response.Status.NOT_FOUND).build();
+            case BASIC -> Response.status(Response.Status.FORBIDDEN)
+                    .entity(Map.of("message", "This account is private")).build();
+            case FULL -> null;
+        };
     }
 
     private User createUserDtoToUser(UserCreateDto userCreateDto) {
@@ -102,33 +136,21 @@ public class UserResource {
     @jakarta.ws.rs.Path("/{id}")
     @Authenticated
     public Response getUser(@PathParam("id") long id) {
-        User user = userRepository.getUser(id);
-        if (user == null) {
-            return Response.status(Response.Status.NOT_FOUND).build();
-        }
-        return Response.ok(ProfileDto.from(user, user.getId().equals(currentUserResolver.requireCurrentUserId()))).build();
+        return profileResponse(userRepository.getUser(id));
     }
 
     @GET
     @jakarta.ws.rs.Path("/handle/{distinctName}")
     @Authenticated
     public Response getUserByDistinctName(@PathParam("distinctName") String distinctName) {
-        User user = userRepository.findByDistinctName(distinctName);
-        if (user == null) {
-            return Response.status(Response.Status.NOT_FOUND).build();
-        }
-        return Response.ok(ProfileDto.from(user, user.getId().equals(currentUserResolver.requireCurrentUserId()))).build();
+        return profileResponse(userRepository.findByDistinctName(distinctName));
     }
 
     @GET
     @jakarta.ws.rs.Path("/username/{username}")
     @Authenticated
     public Response getUserByUsername(@PathParam("username") String username) {
-        var user = userRepository.findByUsername(username);
-        if (user.isEmpty()) {
-            return Response.status(Response.Status.NOT_FOUND).build();
-        }
-        return Response.ok(ProfileDto.from(user.get(), user.get().getId().equals(currentUserResolver.requireCurrentUserId()))).build();
+        return profileResponse(userRepository.findByUsername(username).orElse(null));
     }
 
     @GET
@@ -183,9 +205,24 @@ public class UserResource {
             return Response.status(Response.Status.NOT_FOUND).build();
         }
         
+        String handle = userCreateDto.distinctName() == null ? null : userCreateDto.distinctName().trim();
+        boolean handleChanged = handle != null && !handle.equalsIgnoreCase(user.getDistinctName());
+        if (handleChanged) {
+            if (!HANDLE_PATTERN.matcher(handle).matches()) {
+                return fieldError(Response.Status.BAD_REQUEST, "distinctName",
+                        "Username must be 3-30 characters: letters, digits, dots and underscores");
+            }
+            User owner = userRepository.findByDistinctName(handle);
+            if (owner != null && !owner.getId().equals(id)) {
+                return fieldError(Response.Status.CONFLICT, "distinctName", "This username is already taken");
+            }
+        }
+
         user.setDisplayName(userCreateDto.displayName());
-        user.setDistinctName(userCreateDto.distinctName());
-        user.setEmail(userCreateDto.email());
+        if (handle != null && !handle.isBlank()) {
+            user.setDistinctName(handle);
+        }
+        // The e-mail changes only through the confirmed e-mail change flow (/api/me/email-change).
         user.setPhoneNumber(userCreateDto.phoneNumber());
         user.setBiography(userCreateDto.biography());
         user.setGender(userCreateDto.gender());
@@ -197,6 +234,41 @@ public class UserResource {
         return Response.ok(ProfileDto.from(merged, true)).build();
     }
 
+
+    private static final java.util.regex.Pattern HANDLE_PATTERN = java.util.regex.Pattern.compile("[A-Za-z0-9._]{3,30}");
+
+    private static Response fieldError(Response.Status status, String field, String message) {
+        return Response.status(status).entity(Map.of("field", field, "message", message)).build();
+    }
+
+    /** Removes the caller's own custom picture; the profile then shows the placeholder. */
+    @DELETE
+    @jakarta.ws.rs.Path("/{id}/profile-picture")
+    @Transactional
+    @Authenticated
+    public Response removeProfilePicture(@PathParam("id") long id) {
+        User currentUser = currentUserResolver.requireCurrentUser();
+        if (!currentUser.getId().equals(id)) {
+            return Response.status(Response.Status.FORBIDDEN).build();
+        }
+        ProfilePicture picture = currentUser.getProfilePicture();
+        if (picture == null) {
+            return Response.noContent().build();
+        }
+        Path file = picture.getPicture_name() == null ? null : resolveExistingProfilePicturePath(picture.getPicture_name());
+        currentUser.setProfilePicture(null);
+        em.remove(em.contains(picture) ? picture : em.merge(picture));
+        transactions.registerInterposedSynchronization(new Synchronization() {
+            @Override
+            public void beforeCompletion() {}
+
+            @Override
+            public void afterCompletion(int status) {
+                if (status == Status.STATUS_COMMITTED) deleteProfileFile(file);
+            }
+        });
+        return Response.noContent().build();
+    }
 
     @GET
     @jakarta.ws.rs.Path("/{id}/profile-picture")
@@ -356,8 +428,14 @@ public class UserResource {
     @Produces(MediaType.APPLICATION_JSON)
     @Authenticated
     public Response getFollowers(@PathParam("id") long id) {
+        Response denied = contentDenied(id);
+        if (denied != null) {
+            return denied;
+        }
+        java.util.Set<Long> hidden = blockRepository.blockedEitherWayIds(currentUserResolver.requireCurrentUserId());
         List<User> followers = followRepository.getFollowers(id);
-        return Response.ok(followers.stream().map(u -> ProfileDto.from(u, false)).toList()).build();
+        return Response.ok(followers.stream().filter(u -> !hidden.contains(u.getId()))
+                .map(u -> ProfileDto.from(u, false)).toList()).build();
     }
 
     @GET
@@ -365,8 +443,28 @@ public class UserResource {
     @Produces(MediaType.APPLICATION_JSON)
     @Authenticated
     public Response getFollowing(@PathParam("id") long id) {
+        Response denied = contentDenied(id);
+        if (denied != null) {
+            return denied;
+        }
+        java.util.Set<Long> hidden = blockRepository.blockedEitherWayIds(currentUserResolver.requireCurrentUserId());
         List<User> following = followRepository.getFollowing(id);
-        return Response.ok(following).build();
+        return Response.ok(following.stream().filter(u -> !hidden.contains(u.getId()))
+                .map(u -> ProfileDto.from(u, false)).toList()).build();
+    }
+
+    /** Parties hosted by {id} that the caller may see; private accounts show them to followers only. */
+    @GET
+    @jakarta.ws.rs.Path("/{id}/parties")
+    @Produces(MediaType.APPLICATION_JSON)
+    @Authenticated
+    @Transactional
+    public Response getHostedParties(@PathParam("id") long id) {
+        Response denied = contentDenied(id);
+        if (denied != null) {
+            return denied;
+        }
+        return Response.ok(partyRepository.hostedPartiesVisibleTo(id, currentUserResolver.requireCurrentUserId())).build();
     }
 
     @GET
@@ -423,7 +521,7 @@ public class UserResource {
         long callerId = currentUserResolver.requireCurrentUserId();
         // The follower unfollows or withdraws their own request ...
         if (callerId == followerId) {
-            return followRepository.removeFollow(followerId, id);
+            return followRepository.removeFollow(followerId, id, true);
         }
         // ... or the followed user declines a request or removes a follower.
         if (callerId == id) {
@@ -447,6 +545,10 @@ public class UserResource {
     @Produces(MediaType.APPLICATION_JSON)
     @Transactional
     public Response getUserMedia(@PathParam("id") long userId) {
+        Response denied = contentDenied(userId);
+        if (denied != null) {
+            return denied;
+        }
         Long callerId = currentUserResolver.currentUserIdIfAuthenticated().orElse(null);
         return Response.ok().entity(mediaRepository.getVisibleMediaByUser(userId, callerId)).build();
     }

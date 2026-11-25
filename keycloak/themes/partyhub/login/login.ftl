@@ -14,16 +14,21 @@
         <div id="kc-form">
             <div id="kc-form-wrapper">
                 <form id="kc-form-login" action="${url.loginAction}" method="post">
+                    <#-- On re-authentication (e.g. changing the password or e-mail) Keycloak already
+                         knows the user and only asks for the current password. -->
+                    <#if !usernameHidden??>
                     <input type="text" id="username" name="username"
                            value="${(login.username!'')}"
                            placeholder="${msg("usernameOrEmail")}"
                            autofocus autocomplete="username"
                            minlength="1" maxlength="255" required />
+                    </#if>
 
                     <div class="password-wrapper">
                         <input type="password" id="password" name="password"
                                placeholder="${msg("password")}"
                                autocomplete="current-password"
+                               <#if usernameHidden??>autofocus</#if>
                                minlength="1" maxlength="255" required />
                     </div>
 

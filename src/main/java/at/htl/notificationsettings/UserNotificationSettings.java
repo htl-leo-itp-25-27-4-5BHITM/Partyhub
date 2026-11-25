@@ -36,6 +36,19 @@ public class UserNotificationSettings {
     @Column(name = "follow_events", nullable = false)
     private boolean followEvents = true;
 
+    /** Master switch: off delivers nothing informational but keeps the values below. */
+    @Column(name = "all_enabled", nullable = false)
+    private boolean allEnabled = true;
+
+    @Column(name = "invitation_responses", nullable = false)
+    private boolean invitationResponses = true;
+
+    @Column(name = "party_cancellations", nullable = false)
+    private boolean partyCancellations = true;
+
+    @Column(name = "unfollows", nullable = false)
+    private boolean unfollows = true;
+
     public UserNotificationSettings() {
     }
 
@@ -114,5 +127,55 @@ public class UserNotificationSettings {
 
     public void setFollowEvents(boolean followEvents) {
         this.followEvents = followEvents;
+    }
+
+    public boolean isAllEnabled() {
+        return allEnabled;
+    }
+
+    public void setAllEnabled(boolean allEnabled) {
+        this.allEnabled = allEnabled;
+    }
+
+    public boolean isInvitationResponses() {
+        return invitationResponses;
+    }
+
+    public void setInvitationResponses(boolean invitationResponses) {
+        this.invitationResponses = invitationResponses;
+    }
+
+    public boolean isPartyCancellations() {
+        return partyCancellations;
+    }
+
+    public void setPartyCancellations(boolean partyCancellations) {
+        this.partyCancellations = partyCancellations;
+    }
+
+    public boolean isUnfollows() {
+        return unfollows;
+    }
+
+    public void setUnfollows(boolean unfollows) {
+        this.unfollows = unfollows;
+    }
+
+    /** Informational delivery of one category on one channel; a missing settings row means all defaults. */
+    public static boolean allows(UserNotificationSettings settings, NotificationCategory category, boolean emailChannel) {
+        if (settings == null) {
+            return true;
+        }
+        if (!settings.allEnabled || !(emailChannel ? settings.emailEnabled : settings.inAppEnabled)) {
+            return false;
+        }
+        return switch (category) {
+            case PARTY_INVITES -> settings.partyInvites;
+            case INVITATION_RESPONSES -> settings.invitationResponses;
+            case PARTY_UPDATES -> settings.partyUpdates;
+            case PARTY_CANCELLATIONS -> settings.partyCancellations;
+            case FOLLOW_EVENTS -> settings.followEvents;
+            case UNFOLLOWS -> settings.unfollows;
+        };
     }
 }

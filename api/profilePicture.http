@@ -51,3 +51,14 @@ GET {{baseUrl}}/{{mia}}/profile-picture-filename
 GET {{baseUrl}}/99999/profile-picture
 
 ?? status == 404
+
+# Removing the own picture is covered by ProfileEditRulesTest: here it would delete a seed file
+# in dev-uploads/.
+
+###
+### Profile picture: removing someone else's is forbidden
+###
+DELETE {{baseUrl}}/4/profile-picture
+X-User-Id: 3
+
+?? status == 403

@@ -1,0 +1,14 @@
+The e-mail of your account was changed
+
+Hi {displayName},
+
+On {changedAt} the e-mail address of your PartyHub account was changed to {maskedNewEmail}.
+This address no longer receives PartyHub e-mails.
+
+If you did not do this, someone else may have access to your account.
+Reset your password: {resetUrl}
+and contact us at {supportEmail} so we can restore your account.
+
+---
+This is a security message about your PartyHub account. It is sent even if you turned notifications off.
+PartyHub never asks for your password by e-mail.
