@@ -1,5 +1,7 @@
 package at.htl.invitation;
 
+import at.htl.notificationsettings.NotificationCategory;
+
 import java.util.List;
 import java.util.Optional;
 
@@ -244,7 +246,7 @@ public class InvitationRepository {
             String displayName = user.getDisplayName() != null ? user.getDisplayName() : user.getUsername();
             String message = displayName + " accepted your invitation to the party \"" + party.getTitle() + "\"";
             notificationRepository.createNotification(
-                new Notification(invitation.getSender(), user, party, message));
+                new Notification(invitation.getSender(), user, party, message), NotificationCategory.INVITATION_RESPONSES);
         }
 
         return Response.ok().build();
@@ -281,7 +283,7 @@ public class InvitationRepository {
             String displayName = user != null && user.getDisplayName() != null ? user.getDisplayName() : String.valueOf(userId);
             String message = displayName + " declined your invitation to the party \"" + party.getTitle() + "\"";
             notificationRepository.createNotification(
-                new Notification(invitation.getSender(), user, party, message));
+                new Notification(invitation.getSender(), user, party, message), NotificationCategory.INVITATION_RESPONSES);
         }
 
         return Response.ok().build();
@@ -331,6 +333,7 @@ public class InvitationRepository {
         );
         String hostName = sender.getDisplayName() != null ? sender.getDisplayName() : sender.getUsername();
         String message = hostName + " invited you to the party \"" + party.getTitle() + "\"";
-        notificationRepository.createNotification(new Notification(recipient, sender, party, message));
+        notificationRepository.createNotification(new Notification(recipient, sender, party, message),
+                NotificationCategory.PARTY_INVITES);
     }
 }

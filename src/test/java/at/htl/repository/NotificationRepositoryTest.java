@@ -330,7 +330,7 @@ public class NotificationRepositoryTest {
         User recipient = createUser("recipient7");
 
         Notification notification = new Notification(recipient, sender, null, "Create test");
-        notificationRepository.createNotification(notification);
+        notificationRepository.createNotification(notification, at.htl.notificationsettings.NotificationCategory.FOLLOW_EVENTS);
         entityManager.flush();
 
         assertNotNull(notification.getId());

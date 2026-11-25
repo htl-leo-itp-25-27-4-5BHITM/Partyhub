@@ -1,0 +1,166 @@
+@host = http://localhost:8080
+@usersUrl = {{host}}/api/users
+@meUrl = {{host}}/api/me
+
+# Seed: users 1-6 and 8-10 are private, mia_steiner (7) is public, nina (9) blocked elias (10).
+
+###
+### Privacy: read own state
+###
+GET {{meUrl}}/privacy
+X-User-Id: 4
+
+?? status == 200
+?? body isPrivate == true
+
+###
+### Privacy: non-follower sees only the basics of a private profile
+###
+GET {{usersUrl}}/6
+X-User-Id: 5
+
+?? status == 200
+?? body isPrivate == true
+
+###
+### Privacy: follower list of a private account is forbidden for non-followers
+###
+GET {{usersUrl}}/6/followers
+X-User-Id: 5
+
+?? status == 403
+
+###
+### Privacy: hosted parties of a private account are forbidden for non-followers
+###
+GET {{usersUrl}}/6/parties
+X-User-Id: 5
+
+?? status == 403
+
+###
+### Privacy: counts stay visible
+###
+GET {{usersUrl}}/6/followers/count
+X-User-Id: 5
+
+?? status == 200
+
+###
+### Follow: public account (mia) is followed directly
+###
+POST {{usersUrl}}/8/follow?targetUserId=7
+X-User-Id: 8
+
+?? status == 201
+?? body status == following
+
+###
+### Follow: private account gets a request
+###
+POST {{usersUrl}}/8/follow?targetUserId=6
+X-User-Id: 8
+
+?? status == 201
+?? body status == pending
+
+###
+### Follow: yourself is rejected
+###
+POST {{usersUrl}}/8/follow?targetUserId=8
+X-User-Id: 8
+
+?? status == 400
+
+###
+### Privacy: going public with open requests needs confirmation
+###
+PUT {{meUrl}}/privacy
+X-User-Id: 6
+Content-Type: application/json
+
+{ "isPrivate": false }
+
+?? status == 409
+?? body code == CONFIRM_ACCEPT_REQUESTS
+
+###
+### Privacy: going public accepts the open requests
+###
+PUT {{meUrl}}/privacy
+X-User-Id: 6
+Content-Type: application/json
+
+{ "isPrivate": false, "acceptPendingRequests": true }
+
+?? status == 200
+?? body isPrivate == false
+?? body pendingRequests == 0
+
+###
+### Privacy: back to private keeps followers
+###
+PUT {{meUrl}}/privacy
+X-User-Id: 6
+Content-Type: application/json
+
+{ "isPrivate": true }
+
+?? status == 200
+?? body isPrivate == true
+
+###
+### Blocks: own list
+###
+GET {{meUrl}}/blocks
+X-User-Id: 9
+
+?? status == 200
+?? js response.parsedBody.length == 1
+
+###
+### Blocks: blocked user cannot open the blocker's profile
+###
+GET {{usersUrl}}/9
+X-User-Id: 10
+
+?? status == 404
+
+###
+### Blocks: blocked user cannot follow
+###
+POST {{usersUrl}}/10/follow?targetUserId=9
+X-User-Id: 10
+
+?? status == 404
+
+###
+### Blocks: block someone
+###
+PUT {{meUrl}}/blocks/5
+X-User-Id: 8
+
+?? status == 204
+
+###
+### Blocks: blocking yourself is rejected
+###
+PUT {{meUrl}}/blocks/8
+X-User-Id: 8
+
+?? status == 400
+
+###
+### Blocks: unblock
+###
+DELETE {{meUrl}}/blocks/5
+X-User-Id: 8
+
+?? status == 204
+
+###
+### Blocks: anonymous caller is rejected
+###
+GET {{meUrl}}/blocks
+
+?? status == 401

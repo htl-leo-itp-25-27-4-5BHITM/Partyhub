@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <script src="/theme-boot.js?v=20261125-settings"></script>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Settings - PartyHub</title>
+    <link rel="manifest" href="/manifest.json" />
+    <meta name="theme-color" content="#1a1040" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="apple-mobile-web-app-title" content="PartyHub" />
+    <link rel="apple-touch-icon" sizes="180x180" href="/icons/apple-touch-icon.png" />
+    <link rel="icon" href="/icons/icon-192.png" sizes="192x192" type="image/png" />
+    <link rel="stylesheet" href="../global.css">
+    <link rel="stylesheet" href="../index.css">
+    <script src="../auth-service.js?v=20261125-settings" defer></script>
+    <script src="../route-guard.js" defer></script>
+    <script src="../nav.js?v=20261125-settings" defer></script>
+    <script src="./settings-common.js?v=20261125-settings" defer></script>
+    <script src="./index.js?v=20261125-settings" defer></script>
+    <link rel="stylesheet" href="/design-system.css?v=20261125-light-palette" />
+    <link rel="stylesheet" href="/theme-light.css?v=20261125-light-palette" />
+    <link rel="stylesheet" href="./settings.css?v=20261125-settings">
+</head>
+<body class="settings-page" data-auth-required>
+    <div class="app-shell">
+      <main class="settings-main">
+        <header class="settings-header">
+          <a class="icon-button" href="/profile/profile.html" data-back aria-label="Back to profile">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M19 12H5M12 19l-7-7 7-7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </a>
+          <h1>Settings</h1>
+          <span aria-hidden="true"></span>
+        </header>
+
+        <section class="settings-section" aria-labelledby="sec-account">
+          <h2 id="sec-account">Account</h2>
+          <nav class="settings-card" aria-label="Account settings">
+        <a class="settings-row" href="profile.html">
+          <span class="row-icon" aria-hidden="true"><svg viewBox="0 0 24 24" width="20" height="20" fill="none"><circle cx="12" cy="8.5" r="3.2" stroke="currentColor" stroke-width="1.8"/><path d="M5 20a7 7 0 0 1 14 0" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg></span>
+          <span class="row-text"><span class="row-title">Edit profile</span><span class="row-hint">Picture, name, username, bio</span></span>
+          <svg class="row-chevron" viewBox="0 0 24 24" width="18" height="18" fill="none" aria-hidden="true"><path d="m9 6 6 6-6 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </a>
+        <a class="settings-row" href="email.html">
+          <span class="row-icon" aria-hidden="true"><svg viewBox="0 0 24 24" width="20" height="20" fill="none"><rect x="3" y="5" width="18" height="14" rx="2.5" stroke="currentColor" stroke-width="1.8"/><path d="m4 7 8 6 8-6" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></svg></span>
+          <span class="row-text"><span class="row-title">E-mail address</span><span class="row-hint" id="overview-email"></span></span>
+          <svg class="row-chevron" viewBox="0 0 24 24" width="18" height="18" fill="none" aria-hidden="true"><path d="m9 6 6 6-6 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </a>
+        <a class="settings-row" href="password.html">
+          <span class="row-icon" aria-hidden="true"><svg viewBox="0 0 24 24" width="20" height="20" fill="none"><rect x="5" y="10.5" width="14" height="10" rx="2.5" stroke="currentColor" stroke-width="1.8"/><path d="M8 10.5V8a4 4 0 0 1 8 0v2.5" stroke="currentColor" stroke-width="1.8"/></svg></span>
+          <span class="row-text"><span class="row-title">Password</span><span class="row-hint">Change your password</span></span>
+          <svg class="row-chevron" viewBox="0 0 24 24" width="18" height="18" fill="none" aria-hidden="true"><path d="m9 6 6 6-6 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </a>
+          </nav>
+        </section>
+        <section class="settings-section" aria-labelledby="sec-app">
+          <h2 id="sec-app">App</h2>
+          <nav class="settings-card" aria-label="App settings">
+        <a class="settings-row" href="appearance.html">
+          <span class="row-icon" aria-hidden="true"><svg viewBox="0 0 24 24" width="20" height="20" fill="none"><path d="M12 3a9 9 0 1 0 9 9 7 7 0 0 1-9-9z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></svg></span>
+          <span class="row-text"><span class="row-title">Appearance</span><span class="row-hint" id="overview-theme"></span></span>
+          <svg class="row-chevron" viewBox="0 0 24 24" width="18" height="18" fill="none" aria-hidden="true"><path d="m9 6 6 6-6 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </a>
+        <a class="settings-row" href="notifications.html">
+          <span class="row-icon" aria-hidden="true"><svg viewBox="0 0 24 24" width="20" height="20" fill="none"><path d="M18 9a6 6 0 1 0-12 0v4l-2 3h16l-2-3V9z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/><path d="M10 19a2 2 0 0 0 4 0" stroke="currentColor" stroke-width="1.8"/></svg></span>
+          <span class="row-text"><span class="row-title">Notifications</span><span class="row-hint">Choose what PartyHub tells you</span></span>
+          <svg class="row-chevron" viewBox="0 0 24 24" width="18" height="18" fill="none" aria-hidden="true"><path d="m9 6 6 6-6 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </a>
+          </nav>
+        </section>
+        <section class="settings-section" aria-labelledby="sec-privacy">
+          <h2 id="sec-privacy">Privacy</h2>
+          <nav class="settings-card" aria-label="Privacy settings">
+        <a class="settings-row" href="privacy.html">
+          <span class="row-icon" aria-hidden="true"><svg viewBox="0 0 24 24" width="20" height="20" fill="none"><path d="M12 3 5 6v5c0 4.5 3 8.2 7 10 4-1.8 7-5.5 7-10V6l-7-3z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></svg></span>
+          <span class="row-text"><span class="row-title">Account privacy</span><span class="row-hint" id="overview-privacy"></span></span>
+          <svg class="row-chevron" viewBox="0 0 24 24" width="18" height="18" fill="none" aria-hidden="true"><path d="m9 6 6 6-6 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </a>
+        <a class="settings-row" href="blocked.html">
+          <span class="row-icon" aria-hidden="true"><svg viewBox="0 0 24 24" width="20" height="20" fill="none"><circle cx="12" cy="12" r="8.5" stroke="currentColor" stroke-width="1.8"/><path d="m6 6 12 12" stroke="currentColor" stroke-width="1.8"/></svg></span>
+          <span class="row-text"><span class="row-title">Blocked accounts</span></span>
+          <svg class="row-chevron" viewBox="0 0 24 24" width="18" height="18" fill="none" aria-hidden="true"><path d="m9 6 6 6-6 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </a>
+        <a class="settings-row" href="share.html">
+          <span class="row-icon" aria-hidden="true"><svg viewBox="0 0 24 24" width="20" height="20" fill="none"><circle cx="18" cy="5.5" r="2.5" stroke="currentColor" stroke-width="1.8"/><circle cx="6" cy="12" r="2.5" stroke="currentColor" stroke-width="1.8"/><circle cx="18" cy="18.5" r="2.5" stroke="currentColor" stroke-width="1.8"/><path d="m8.2 10.8 7.6-4M8.2 13.2l7.6 4" stroke="currentColor" stroke-width="1.8"/></svg></span>
+          <span class="row-text"><span class="row-title">Share profile</span></span>
+          <svg class="row-chevron" viewBox="0 0 24 24" width="18" height="18" fill="none" aria-hidden="true"><path d="m9 6 6 6-6 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </a>
+          </nav>
+        </section>
+        <section class="settings-section" aria-labelledby="sec-more">
+          <h2 id="sec-more">More</h2>
+          <div class="settings-card">
+        <a class="settings-row" href="/dashboard/dashboard.html">
+          <span class="row-icon" aria-hidden="true"><svg viewBox="0 0 24 24" width="20" height="20" fill="none"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg></span>
+          <span class="row-text"><span class="row-title">Dashboard</span><span class="row-hint">Statistics for the parties you host</span></span>
+          <svg class="row-chevron" viewBox="0 0 24 24" width="18" height="18" fill="none" aria-hidden="true"><path d="m9 6 6 6-6 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </a>
+            <button type="button" class="settings-row danger" id="logoutBtn">
+              <span class="row-icon" aria-hidden="true"><svg viewBox="0 0 24 24" width="20" height="20" fill="none"><path d="M15 4h3a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2h-3" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><path d="M10 16l-4-4 4-4M6 12h10" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+              <span class="row-text"><span class="row-title">Log out</span></span>
+            </button>
+          </div>
+        </section>
+      </main>
+      <nav class="bottom-nav" role="navigation" aria-label="Bottom navigation">
+        <a class="nav-btn" href="/index.html" aria-label="Home">
+          <svg class="nav-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M3 6.5L8 4l7 2.5 6-2.5v11l-6 2.5L10 15 3 17.5v-11z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round" stroke-linecap="round"/>
+          </svg>
+          <span class="nav-label">Home</span>
+        </a>
+
+        <a class="nav-btn" href="/listPartys/listPartys.html" aria-label="Parties">
+          <svg class="nav-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <rect x="3" y="3" width="18" height="18" rx="3" stroke="currentColor" stroke-width="1.6"/>
+            <circle cx="8.5" cy="8.5" r="1.8" fill="currentColor" />
+            <path d="M21 21l-6-6-5 5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+          <span class="nav-label">Parties</span>
+        </a>
+
+        <a class="nav-btn" href="/notifications/notifications.html" aria-label="Inbox">
+          <svg class="nav-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M12 22a2.5 2.5 0 0 0 2.45-2H9.55A2.5 2.5 0 0 0 12 22z" fill="currentColor"/>
+            <path d="M18 8a6 6 0 10-12 0v5l-2 2v1h16v-1l-2-2V8z" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+          <span class="nav-label">Inbox</span>
+        </a>
+
+        <a class="nav-btn active" href="/profile/profile.html" aria-label="Profile" aria-current="page">
+          <svg class="nav-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <circle cx="12" cy="8.5" r="3" stroke="currentColor" stroke-width="1.6"/>
+            <path d="M4 20a8 8 0 0 1 16 0" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+          <span class="nav-label">Profile</span>
+        </a>
+      </nav>
+    </div>
+</body>
+</html>

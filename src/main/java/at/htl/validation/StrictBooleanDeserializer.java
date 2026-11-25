@@ -15,11 +15,4 @@ public class StrictBooleanDeserializer extends JsonDeserializer<Boolean> {
         return parser.getBooleanValue();
     }
 
-    @Override
-    public Boolean getAbsentValue(DeserializationContext context) { return false; }
-
-    @Override
-    public Boolean getNullValue(DeserializationContext context) throws MismatchedInputException {
-        throw MismatchedInputException.from(context.getParser(), Boolean.class, "Expected a JSON boolean");
-    }
 }

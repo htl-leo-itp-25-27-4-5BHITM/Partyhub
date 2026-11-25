@@ -1,0 +1,10 @@
+{#include emails/security/layout}
+{#title}Confirm your new e-mail address{/title}
+<p><strong>Hi {displayName},</strong></p>
+<p>You asked to use <strong>{newEmail}</strong> for your PartyHub account. Confirm the address with the button below.</p>
+<div class="actions">
+    <a href="{confirmUrl}" class="btn">Confirm e-mail address</a>
+</div>
+<p class="muted">The link works once and for {validHours} hours. Until you confirm it, your current address stays active for login.</p>
+<p class="muted">If you did not ask for this, ignore this e-mail &ndash; nothing will change.</p>
+{/include}

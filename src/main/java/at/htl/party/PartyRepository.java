@@ -1,5 +1,7 @@
 package at.htl.party;
 
+import at.htl.notificationsettings.NotificationCategory;
+
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
@@ -334,7 +336,7 @@ public class PartyRepository {
         String hostName = displayName(host);
         String message = hostName + " invited you to the party \"" + party.getTitle() + "\"";
         Notification notification = new Notification(recipient, host, party, message);
-        notificationRepository.createNotification(notification);
+        notificationRepository.createNotification(notification, NotificationCategory.PARTY_INVITES);
     }
 
     private void notifyCancellationRecipients(Party party) {
@@ -379,7 +381,7 @@ public class PartyRepository {
 
         String message = "The party \"" + party.getTitle() + "\" was canceled.";
         Notification notification = new Notification(recipient, host, null, message);
-        notificationRepository.createNotification(notification);
+        notificationRepository.createNotification(notification, NotificationCategory.PARTY_CANCELLATIONS);
     }
 
     private void notifyPartyUpdated(Party party, User sender, Long actorUserId, Set<Long> skippedUserIds) {
@@ -388,7 +390,8 @@ public class PartyRepository {
             if (recipient.getId() != null &&
                     !recipient.getId().equals(actorUserId) &&
                     (skippedUserIds == null || !skippedUserIds.contains(recipient.getId()))) {
-                notificationRepository.createNotification(new Notification(recipient, sender, party, message));
+                notificationRepository.createNotification(new Notification(recipient, sender, party, message),
+                        NotificationCategory.PARTY_UPDATES);
             }
         }
     }
@@ -396,7 +399,8 @@ public class PartyRepository {
     private void notifyPartyDeleted(Party party) {
         String message = "The party \"" + party.getTitle() + "\" was deleted.";
         for (User recipient : collectPartyRecipients(party).values()) {
-            outOfAppNotificationService.send(recipient, "PartyHub: Party deleted", message);
+            outOfAppNotificationService.send(recipient, "PartyHub: Party deleted", message,
+                    NotificationCategory.PARTY_CANCELLATIONS);
         }
     }
 
@@ -850,7 +854,7 @@ public class PartyRepository {
         }
 
         Notification notification = new Notification(host, actor, party, message);
-        notificationRepository.createNotification(notification);
+        notificationRepository.createNotification(notification, NotificationCategory.INVITATION_RESPONSES);
     }
 
     private String displayName(User user) {
@@ -867,6 +871,19 @@ public class PartyRepository {
             return user.getDistinctName();
         }
         return "Someone";
+    }
+
+    /** Parties hosted by {@code hostId} that {@code viewerId} may see, newest first. */
+    public List<Party> hostedPartiesVisibleTo(Long hostId, Long viewerId) {
+        return entityManager.createQuery(
+                        "SELECT DISTINCT p FROM Party p LEFT JOIN p.invitations i LEFT JOIN p.users pu " +
+                                "WHERE p.host_user.id = :hostId AND (p.visibility = :publicVisibility " +
+                                "OR p.host_user.id = :viewerId OR i.recipient.id = :viewerId OR pu.id = :viewerId) " +
+                                "ORDER BY p.time_start DESC, p.id ASC", Party.class)
+                .setParameter("hostId", hostId)
+                .setParameter("viewerId", viewerId != null ? viewerId : -1L)
+                .setParameter("publicVisibility", "PUBLIC")
+                .getResultList();
     }
 
     public List<Party> findWithFilters(FilterParams filters, Long userId) {
@@ -889,7 +906,10 @@ public class PartyRepository {
             "WHERE (p.visibility = 'PUBLIC' " +
             "   OR p.host_user.id = :userId " +
             "   OR (i.recipient.id = :userId AND i.status = 'PENDING') " +
-            "   OR pu.id = :userId) "
+            "   OR pu.id = :userId) " +
+            // Parties of hosts who block the viewer, or whom the viewer blocked, are not shown.
+            "AND NOT EXISTS (SELECT b FROM UserBlock b WHERE (b.blockerId = :userId AND b.blockedId = p.host_user.id) " +
+            "   OR (b.blockedId = :userId AND b.blockerId = p.host_user.id)) "
         );
 
         if (!includePast) {

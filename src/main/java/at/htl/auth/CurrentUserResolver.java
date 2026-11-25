@@ -47,7 +47,35 @@ public class CurrentUserResolver {
         }
 
         return userRepository.findByKeycloakId(subject)
+                .map(this::syncEmailFromToken)
                 .orElseGet(() -> linkOrCreateUser(subject));
+    }
+
+    /**
+     * Keycloak owns the login e-mail; the profile follows it (e.g. after an admin changed it).
+     * Tokens issued before the last confirmed e-mail change still carry the old address.
+     */
+    private User syncEmailFromToken(User user) {
+        claimAsString("email")
+                .filter(tokenEmail -> shouldTakeTokenEmail(user, tokenEmail, safeIssuedAt()))
+                .ifPresent(user::setEmail);
+        return user;
+    }
+
+    static boolean shouldTakeTokenEmail(User user, String tokenEmail, long issuedAtSeconds) {
+        if (tokenEmail == null || tokenEmail.isBlank() || tokenEmail.equalsIgnoreCase(String.valueOf(user.getEmail()))) {
+            return false;
+        }
+        return issuedAtSeconds > 0 && (user.getEmailChangedAt() == null
+                || issuedAtSeconds > user.getEmailChangedAt().toEpochSecond());
+    }
+
+    private long safeIssuedAt() {
+        try {
+            return jwt.getIssuedAtTime();
+        } catch (RuntimeException e) {
+            return 0;
+        }
     }
 
     @Transactional
@@ -65,6 +93,7 @@ public class CurrentUserResolver {
                         return byId.get();
                     }
                     return userRepository.findByKeycloakId(subject)
+                            .map(this::syncEmailFromToken)
                             .orElseGet(() -> linkOrCreateUser(subject));
                 });
     }

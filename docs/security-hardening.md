@@ -26,7 +26,7 @@ The upload count and aggregate limits are separate: 20 small files can fit; 20 f
 
 `POST /api/users` now returns 401 anonymously and 403 for authenticated callers. Accounts are provisioned from Keycloak through authenticated `/api/users/me`; profile changes use PUT for the caller's own ID. No browser flow needs arbitrary account creation. API fixtures are seeded locally instead of using an unsafe public account endpoint.
 
-Private invitations that bypassed the host/mutual-contact rules are now rejected. Existing records are not rewritten; unsafe historical text/links/files are guarded when rendered or served. V12 only widens text columns to match existing advertised DTO limits; it neither deletes nor normalizes stored values. Bring-along's encoded JSON text remains unchanged.
+Private invitations that bypassed the host/mutual-contact rules are now rejected. Existing records are not rewritten; unsafe historical text/links/files are guarded when rendered or served. V13 only widens text columns to match existing advertised DTO limits; it neither deletes nor normalizes stored values. Bring-along's encoded JSON text remains unchanged.
 
 ## Checks
 

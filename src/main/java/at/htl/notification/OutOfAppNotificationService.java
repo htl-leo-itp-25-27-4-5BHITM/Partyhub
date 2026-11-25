@@ -1,5 +1,6 @@
 package at.htl.notification;
 
+import at.htl.notificationsettings.NotificationCategory;
 import at.htl.notificationsettings.UserNotificationSettings;
 import at.htl.notificationsettings.UserNotificationSettingsRepository;
 import at.htl.party.Party;
@@ -41,6 +42,21 @@ public class OutOfAppNotificationService {
         send(notification.getRecipient(), "PartyHub: " + partyTitle, notification.getMessage());
     }
 
+    /** Sends a notification e-mail if the recipient's settings allow this category by e-mail. */
+    public void send(User recipient, String subject, String message, NotificationCategory category) {
+        if (recipient == null) {
+            return;
+        }
+        UserNotificationSettings settings = recipient.getId() == null ? null
+                : settingsRepository.findByUserId(recipient.getId()).orElse(null);
+        if (!UserNotificationSettings.allows(settings, category, true)) {
+            logger.debugf("Skipping email for user %s: %s disabled", recipient.getId(), category);
+            return;
+        }
+        send(recipient, subject, message);
+    }
+
+    /** Sends without checking preferences; callers have already checked them. */
     public void send(User recipient, String subject, String message) {
         if (recipient == null || message == null || message.isBlank()) {
             return;
@@ -50,14 +66,6 @@ public class OutOfAppNotificationService {
         if (!emailEnabled) {
             logger.debugf("Skipping email for user %s: email notifications disabled globally", recipient != null ? recipient.getId() : null);
             return;
-        }
-
-        if (recipient.getId() != null) {
-            UserNotificationSettings settings = settingsRepository.findByUserId(recipient.getId()).orElse(null);
-            if (settings != null && !settings.isEmailEnabled()) {
-                logger.debugf("Skipping email for user %s: email notifications disabled", recipient.getId());
-                return;
-            }
         }
 
         sendEmail(recipient, subject, message);

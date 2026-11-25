@@ -1,5 +1,7 @@
 package at.htl.follow;
 
+import at.htl.notificationsettings.NotificationCategory;
+
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -116,8 +118,26 @@ public class FollowRepository {
                 .getResultList();
         return !follows.isEmpty();
     }
+    @Inject
+    at.htl.block.BlockRepository blockRepository;
+
+    /**
+     * user1 follows user2: accepted at once for a public account, a pending request for a
+     * private one. Self-follows and follows across a block are rejected.
+     */
     @Transactional
     public Response createFollowRequest(long user1Id, long user2Id) {
+        if (user1Id == user2Id) {
+            return Response.status(Response.Status.BAD_REQUEST)
+                    .entity("{\"message\": \"You cannot follow yourself\"}")
+                    .build();
+        }
+        User target = entityManager.find(User.class, user2Id);
+        if (target == null || blockRepository.isBlockedEitherWay(user1Id, user2Id)) {
+            return Response.status(Response.Status.NOT_FOUND)
+                    .entity("{\"message\": \"User not found\"}")
+                    .build();
+        }
         if (isFollowing(user1Id, user2Id)) {
             return Response.status(Response.Status.CONFLICT)
                     .entity(java.util.Map.of("message", "Already following this user"))
@@ -141,14 +161,64 @@ public class FollowRepository {
         follow.setUser1_id(user1Id);
         follow.setUser2_id(user2Id);
         follow.setRequestedAt(LocalDateTime.now());
+
+        if (!target.isPrivateAccount()) {
+            follow.setStatus(entityManager.find(FollowStatus.class, 2L));
+            entityManager.persist(follow);
+            historyRecorder.recordFollow(user1Id, user2Id, FollowEventType.FOLLOWED);
+            followsChanged(user1Id, user2Id);
+            User follower = entityManager.find(User.class, user1Id);
+            notificationRepository.createNotification(
+                    new Notification(target, follower, null, displayName(follower) + " follows you now."),
+                    NotificationCategory.FOLLOW_EVENTS);
+            return Response.status(Response.Status.CREATED)
+                    .entity("{\"message\": \"Following\", \"status\": \"following\"}").build();
+        }
+
         // The new request shows up in the target's notifications.
         userChanged.fire(new UserChanged(user2Id, UserChanged.NOTIFICATIONS));
-
-        FollowStatus pendingStatus = entityManager.find(FollowStatus.class, 1L);
-        follow.setStatus(pendingStatus);
-
+        follow.setStatus(entityManager.find(FollowStatus.class, 1L));
         entityManager.persist(follow);
-        return Response.status(Response.Status.CREATED).entity(java.util.Map.of("message", "Follow request sent")).build();    }
+        return Response.status(Response.Status.CREATED)
+                .entity("{\"message\": \"Follow request sent\", \"status\": \"pending\"}").build();
+    }
+
+    /** Accepts every pending request to {@code userId}, e.g. when the account becomes public. */
+    @Transactional(Transactional.TxType.MANDATORY)
+    public int acceptAllPendingRequests(long userId) {
+        List<Long> requesterIds = entityManager.createQuery(
+                        "SELECT f.user1_id FROM Follow f WHERE f.user2_id = :userId AND f.status.status_id = 1", Long.class)
+                .setParameter("userId", userId)
+                .getResultList();
+        for (Long requesterId : requesterIds) {
+            acceptFollowRequest(requesterId, userId);
+        }
+        return requesterIds.size();
+    }
+
+    /**
+     * Removes every follow and request between two users without notifying anyone (blocking).
+     * Ended accepted follows are recorded as history like an unfollow.
+     */
+    @Transactional(Transactional.TxType.MANDATORY)
+    public void removeAllBetween(long a, long b) {
+        List<Follow> follows = entityManager.createQuery(
+                        "SELECT f FROM Follow f WHERE (f.user1_id = :a AND f.user2_id = :b) OR (f.user1_id = :b AND f.user2_id = :a)",
+                        Follow.class)
+                .setParameter("a", a)
+                .setParameter("b", b)
+                .getResultList();
+        for (Follow follow : follows) {
+            boolean wasAccepted = follow.getStatus() != null && Long.valueOf(2L).equals(follow.getStatus().getStatus_id());
+            entityManager.remove(follow);
+            if (wasAccepted) {
+                historyRecorder.recordFollow(follow.getUser1_id(), follow.getUser2_id(), FollowEventType.UNFOLLOWED);
+            }
+        }
+        if (!follows.isEmpty()) {
+            followsChanged(a, b);
+        }
+    }
 
     @Transactional
     public Response acceptFollowRequest(long user1Id, long user2Id) {
@@ -187,8 +257,10 @@ private void notifyFollowAccepted(long followerId, long acceptedById) {
 
     String acceptedMessage = displayName(acceptedBy) + " accepted your follow request.";
     String followsNowMessage = displayName(follower) + " follows you now.";
-    notificationRepository.createNotification(new Notification(follower, acceptedBy, null, acceptedMessage));
-    notificationRepository.createNotification(new Notification(acceptedBy, follower, null, followsNowMessage));
+    notificationRepository.createNotification(new Notification(follower, acceptedBy, null, acceptedMessage),
+            NotificationCategory.FOLLOW_EVENTS);
+    notificationRepository.createNotification(new Notification(acceptedBy, follower, null, followsNowMessage),
+            NotificationCategory.FOLLOW_EVENTS);
 }
 
 private String displayName(User user) {
@@ -209,6 +281,15 @@ private String displayName(User user) {
 
 @Transactional
 public Response removeFollow(long user1Id, long user2Id) {
+    return removeFollow(user1Id, user2Id, false);
+}
+
+/**
+ * Removes the follow or request from user1 to user2. {@code byFollower} marks that user1 ended
+ * their own accepted follow, which tells user2 with an unfollow notification.
+ */
+@Transactional
+public Response removeFollow(long user1Id, long user2Id, boolean byFollower) {
     Follow follow = entityManager.createQuery(
             "SELECT f FROM Follow f WHERE f.user1_id = :user1Id AND f.user2_id = :user2Id",
             Follow.class)
@@ -229,6 +310,15 @@ public Response removeFollow(long user1Id, long user2Id) {
     entityManager.remove(follow);
     if (wasAccepted) {
         historyRecorder.recordFollow(user1Id, user2Id, FollowEventType.UNFOLLOWED);
+        if (byFollower) {
+            User follower = entityManager.find(User.class, user1Id);
+            User followed = entityManager.find(User.class, user2Id);
+            if (follower != null && followed != null) {
+                notificationRepository.createNotification(
+                        new Notification(followed, follower, null, displayName(follower) + " unfollowed you."),
+                        NotificationCategory.UNFOLLOWS);
+            }
+        }
     }
     followsChanged(user1Id, user2Id);
     // A withdrawn or declined request disappears from the target's notifications.

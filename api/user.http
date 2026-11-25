@@ -132,6 +132,7 @@ GET {{baseUrl}}/{{anna}}/profile-picture-filename
 ### User media
 ###########################################
 GET {{baseUrl}}/{{anna}}/media
+X-User-Id: 2
 
 ?? status == 200
 
@@ -189,3 +190,35 @@ GET {{baseUrl}}/4/follow-requests
 GET {{baseUrl}}/1/followers/2/status
 
 ?? status == 401
+
+###
+### Profile update: the e-mail is not changed here (only through /api/me/email-change)
+###
+PUT {{baseUrl}}/3
+X-User-Id: 3
+Content-Type: application/json
+
+{ "displayName": "Katrin Bauer", "distinctName": "katrin_bauer", "email": "changed@example.test", "biography": "Hi" }
+
+?? status == 200
+?? body email == katrin.bauer@partyhub.at
+
+###
+### Profile update: a new handle must follow the rules
+###
+PUT {{baseUrl}}/3
+X-User-Id: 3
+Content-Type: application/json
+
+{ "displayName": "Katrin Bauer", "distinctName": "no spaces allowed", "biography": "Hi" }
+
+?? status == 400
+?? body field == distinctName
+
+###
+### Hosted parties of the own profile
+###
+GET {{baseUrl}}/3/parties
+X-User-Id: 3
+
+?? status == 200

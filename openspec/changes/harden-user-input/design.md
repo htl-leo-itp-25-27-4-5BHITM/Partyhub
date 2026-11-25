@@ -45,7 +45,7 @@ JSON is serialized through Jackson, including APNs payloads. Device tokens must 
 
 ### Storage and compatibility
 
-The existing API advertises descriptions/biographies up to 2000 characters and URLs/addresses up to 500, while some columns are 255. V12 only widens these columns to prevent accepted input causing SQL errors. No existing migration is changed and no records are rewritten. Existing response fields and bring-along encoding remain unchanged, apart from closing the arbitrary identity-creation endpoint.
+The existing API advertises descriptions/biographies up to 2000 characters and URLs/addresses up to 500, while some columns are 255. V13 only widens these columns to prevent accepted input causing SQL errors. No existing migration is changed and no records are rewritten. Existing response fields and bring-along encoding remain unchanged, apart from closing the arbitrary identity-creation endpoint.
 
 ## Risks / Trade-offs
 

@@ -1,0 +1,13 @@
+Confirm your new e-mail address
+
+Hi {displayName},
+
+You asked to use {newEmail} for your PartyHub account. Confirm the address here:
+{confirmUrl}
+
+The link works once and for {validHours} hours. Until you confirm it, your current address stays active for login.
+If you did not ask for this, ignore this e-mail - nothing will change.
+
+---
+This is a security message about your PartyHub account. It is sent even if you turned notifications off.
+PartyHub never asks for your password by e-mail.

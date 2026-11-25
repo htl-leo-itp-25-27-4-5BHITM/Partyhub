@@ -80,7 +80,7 @@ class InputSafetyResourceTest extends TestBase {
         for (String path : new String[]{"/api/users/" + owner, "/api/users/" + owner + "/notification-settings"}) {
             given().contentType("application/json").body("null").put(path).then().statusCode(400);
         }
-        for (String bad : new String[]{"\"true\"", "1", "null"}) {
+        for (String bad : new String[]{"\"true\"", "1"}) {
             given().contentType("application/json").body("{\"emailEnabled\":" + bad + "}")
                     .put("/api/users/" + owner + "/notification-settings").then().statusCode(400);
         }

@@ -61,6 +61,31 @@ public void setDeviceToken(String deviceToken) { this.deviceToken = deviceToken;
     @JsonIgnore
     private Set<Party> party;
 
+    /** Private accounts get follow requests and hide their content from non-followers. New accounts are public. */
+    @Column(name = "is_private", nullable = false)
+    private boolean privateAccount = false;
+
+    @Column(name = "email_changed_at")
+    private java.time.OffsetDateTime emailChangedAt;
+
+    @JsonIgnore
+    public java.time.OffsetDateTime getEmailChangedAt() {
+        return emailChangedAt;
+    }
+
+    public void setEmailChangedAt(java.time.OffsetDateTime emailChangedAt) {
+        this.emailChangedAt = emailChangedAt;
+    }
+
+    @JsonIgnore
+    public boolean isPrivateAccount() {
+        return privateAccount;
+    }
+
+    public void setPrivateAccount(boolean privateAccount) {
+        this.privateAccount = privateAccount;
+    }
+
     public Long getId() {
         return id;
     }

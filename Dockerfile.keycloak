@@ -2,5 +2,9 @@ FROM quay.io/keycloak/keycloak:26.5.0 AS theme
 
 COPY keycloak/themes/partyhub /opt/keycloak/themes/partyhub
 
+# The built-in "email" event listener only sends the "password changed" mail. A password change
+# also fires UPDATE_CREDENTIAL (would be a second mail) and login errors would mail users too.
+ENV KC_SPI_EVENTS_LISTENER__EMAIL__INCLUDE_EVENTS=UPDATE_PASSWORD
+
 FROM theme AS deployment
 COPY keycloak/realm-staging.json /opt/keycloak/data/import/realm-staging.json

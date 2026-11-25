@@ -87,7 +87,7 @@ public class PartyEmailDigestService {
         if (settings == null) {
             return true;
         }
-        return settings.isEmailEnabled() && settings.isPartyUpdates();
+        return settings.isAllEnabled() && settings.isEmailEnabled() && settings.isPartyUpdates();
     }
 
     private boolean sendDigest(User user, List<Party> parties) {
