@@ -1,4 +1,8 @@
 TRUNCATE TABLE
+    user_block,
+    user_settings,
+    email_change_request,
+    email_change_attempt,
     follow_event,
     attendance_event,
     bring_along_pledge,
@@ -364,3 +368,14 @@ INSERT INTO attendance_event (party_id, user_id, type, occurred_at) VALUES
     (22, 6, 'JOINED', LOCALTIMESTAMP - INTERVAL '6 days'),
     (22, 9, 'JOINED', LOCALTIMESTAMP - INTERVAL '4 days'),
     (22, 10, 'JOINED', LOCALTIMESTAMP - INTERVAL '1 day');
+
+-- =========================
+-- PRIVACY AND BLOCKS (settings page)
+-- =========================
+-- Accounts that existed before the settings page are private (see V12); mia_steiner shows a
+-- public account that anyone can follow directly. Open requests: carla -> michael, lukas -> elias.
+UPDATE users SET is_private = (id <> 7);
+
+-- nina_fischer blocked elias_berger
+INSERT INTO user_block (blocker_id, blocked_id, created_at) VALUES
+    (9, 10, NOW() - INTERVAL '3 days');

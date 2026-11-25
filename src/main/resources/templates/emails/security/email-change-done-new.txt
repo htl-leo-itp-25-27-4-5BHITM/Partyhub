@@ -1,0 +1,11 @@
+Your e-mail address was changed
+
+Hi {displayName},
+
+Your e-mail address was changed successfully. From now on you log in to PartyHub with {newEmail}.
+
+Open PartyHub: {siteUrl}
+
+---
+This is a security message about your PartyHub account. It is sent even if you turned notifications off.
+PartyHub never asks for your password by e-mail.

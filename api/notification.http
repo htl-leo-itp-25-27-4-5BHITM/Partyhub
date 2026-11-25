@@ -87,3 +87,37 @@ DELETE {{baseUrl}}/99999
 X-User-Id: 2
 
 ?? status == 404
+
+###
+### Notification settings: own state with master switch and categories
+###
+GET {{host}}/api/me/notification-settings
+X-User-Id: 1
+
+?? status == 200
+?? body allEnabled == true
+
+###
+### Notification settings: master off keeps the categories
+###
+PUT {{host}}/api/me/notification-settings
+X-User-Id: 1
+Content-Type: application/json
+
+{ "allEnabled": false }
+
+?? status == 200
+?? body allEnabled == false
+?? body partyUpdates == true
+
+###
+### Notification settings: master on again
+###
+PUT {{host}}/api/me/notification-settings
+X-User-Id: 1
+Content-Type: application/json
+
+{ "allEnabled": true }
+
+?? status == 200
+?? body allEnabled == true

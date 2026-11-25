@@ -1,0 +1,9 @@
+{#include emails/security/layout}
+{#title}The e-mail of your account was changed{/title}
+<p><strong>Hi {displayName},</strong></p>
+<p>On {changedAt} the e-mail address of your PartyHub account was changed to <strong>{maskedNewEmail}</strong>. This address no longer receives PartyHub e-mails.</p>
+<p class="warning">If you did not do this, someone else may have access to your account. Reset your password and contact us at {supportEmail} so we can restore your account.</p>
+<div class="actions">
+    <a href="{resetUrl}" class="btn">Reset password</a>
+</div>
+{/include}

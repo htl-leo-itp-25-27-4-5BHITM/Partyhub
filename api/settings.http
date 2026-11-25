@@ -1,0 +1,60 @@
+@host = http://localhost:8080
+@settingsUrl = {{host}}/api/me/settings
+
+###
+### Settings: read own preferences (defaults to SYSTEM)
+###
+GET {{settingsUrl}}
+X-User-Id: 1
+
+?? status == 200
+
+###
+### Settings: change theme to dark
+###
+PUT {{settingsUrl}}
+X-User-Id: 1
+Content-Type: application/json
+
+{ "theme": "DARK" }
+
+?? status == 200
+?? body theme == DARK
+
+###
+### Settings: stored theme is returned
+###
+GET {{settingsUrl}}
+X-User-Id: 1
+
+?? status == 200
+?? body theme == DARK
+
+###
+### Settings: unsupported theme is rejected
+###
+PUT {{settingsUrl}}
+X-User-Id: 1
+Content-Type: application/json
+
+{ "theme": "NEON" }
+
+?? status == 400
+
+###
+### Settings: anonymous caller is rejected
+###
+GET {{settingsUrl}}
+
+?? status == 401
+
+###
+### Settings: reset theme to system
+###
+PUT {{settingsUrl}}
+X-User-Id: 1
+Content-Type: application/json
+
+{ "theme": "SYSTEM" }
+
+?? status == 200

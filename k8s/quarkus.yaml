@@ -39,6 +39,14 @@ spec:
             value: Europe/Vienna
           - name: KEYCLOAK_ISSUER
             value: "https://it220274.cloud.htl-leonding.ac.at/keycloak/realms/partyhub"
+          # Service-account secret for the Keycloak Admin API (e-mail change); created by
+          # scripts/keycloak-configure-settings.sh. Optional so a deploy without it still starts.
+          - name: KEYCLOAK_ADMIN_CLIENT_SECRET
+            valueFrom:
+              secretKeyRef:
+                name: partyhub-keycloak-admin
+                key: client-secret
+                optional: true
           envFrom:
           - secretRef:
               name: partyhub-smtp-secret

@@ -12,7 +12,9 @@ function highlightActiveNav() {
             link.appendChild(label);
         }
     });
-    const currentPath = window.location.pathname.toLowerCase();
+    // The settings belong to the profile tab (settings/index.html must not light up "Home").
+    const rawPath = window.location.pathname.toLowerCase();
+    const currentPath = rawPath.startsWith('/settings/') ? '/profile/settings' : rawPath;
 
     links.forEach(a => {
         const icon = a.querySelector('.nav-icon');

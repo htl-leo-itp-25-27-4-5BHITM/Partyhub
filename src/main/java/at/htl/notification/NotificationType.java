@@ -4,5 +4,6 @@ public enum NotificationType {
     INVITATION,
     UPDATE,
     CANCELLATION,
-    FOLLOW
+    FOLLOW,
+    UNFOLLOW
 }

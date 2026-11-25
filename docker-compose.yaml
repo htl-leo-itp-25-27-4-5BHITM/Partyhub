@@ -15,6 +15,13 @@ services:
       timeout: 5s
       retries: 30
 
+  # Local mail catcher: SMTP on 1025, web UI on http://localhost:8025
+  mailpit:
+    image: axllent/mailpit:latest
+    ports:
+      - "127.0.0.1:1025:1025"
+      - "127.0.0.1:8025:8025"
+
   keycloak-db:
     image: postgres:16-alpine
     volumes:
@@ -51,6 +58,7 @@ services:
       KC_HEALTH_ENABLED: "true"
       KC_METRICS_ENABLED: "true"
       KC_SPI_THEME_DEFAULT: partyhub
+      PARTYHUB_RESET_URL: http://localhost:8000/realms/partyhub/login-actions/reset-credentials?client_id=frontend
       SMTP_PASSWORD: ${SMTP_PASSWORD:-}
     healthcheck:
       test:
@@ -65,6 +73,8 @@ services:
     depends_on:
       keycloak-db:
         condition: service_healthy
+      mailpit:
+        condition: service_started
 
 volumes:
   postgres:

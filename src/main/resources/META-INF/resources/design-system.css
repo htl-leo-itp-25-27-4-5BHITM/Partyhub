@@ -341,3 +341,40 @@ body .favorite-toggle[aria-pressed="true"] {
   transition: color .18s ease, background .18s ease;
 }
 .party-primary-actions .favorite-toggle:hover { color: #ff5c8a; background: rgba(255, 92, 138, .08); }
+
+/* ===== Light appearance (settings > Appearance). theme-boot.js sets data-theme on <html>. ===== */
+:root[data-theme="light"] {
+  color-scheme: light;
+  --primary-color: #f6f4fb;
+  --bg-primary: #f6f4fb;
+  --bg-secondary: #ffffff;
+  --bg-tertiary: #ece8f6;
+  --bg-surface: #ffffff;
+  --bg-elevated: #ffffff;
+  --text-primary: #1a1040;
+  --text-secondary: #4a4166;
+  --text-muted: #6b6385;
+  --border-soft: rgba(26, 16, 64, .14);
+  --shadow-soft: 0 8px 24px rgba(26, 16, 64, .08);
+  --accent-color: #e72561;
+  --accent-color-green: #56f27c;
+  /* page-level variables (party details, dashboard) */
+  --bg: #f6f4fb;
+  --border: rgba(26, 16, 64, .14);
+  --muted: #6b6385;
+  --text: #1a1040;
+  --text-soft: #4a4166;
+  --surface: rgba(26, 16, 64, .04);
+  --surface-strong: rgba(26, 16, 64, .08);
+  --success: #56f27c;
+  --dash-grid: rgba(26, 16, 64, .1);
+  --shadow: 0 12px 28px rgba(26, 16, 64, .10);
+}
+
+/* Elements hidden with the hidden attribute stay hidden even if a page sets display. */
+#profileTabs[hidden], .private-notice[hidden] { display: none !important; }
+body.profile-locked #tabContentParties .no-parties { display: none !important; }
+
+:root[data-theme="light"] .website { color: #4f3b9a; background: rgba(79, 59, 154, .10); }
+:root[data-theme="light"] .visibility-chip.private { color: #1a1040; border-color: rgba(255, 209, 102, .8); background: rgba(255, 209, 102, .3); }
+:root[data-theme="light"] .visibility-chip.public { color: #1a1040; border-color: rgba(86, 242, 124, .8); background: rgba(86, 242, 124, .25); }

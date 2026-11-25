@@ -9,6 +9,7 @@ document.addEventListener("DOMContentLoaded", async function () {
 
   let searchTimeout = null;
   let viewedUserId = null;
+  let viewedUser = null;
   let viewedUserFollowStatus = "not_following";
   let activeFollowMenu = null;
 
@@ -237,7 +238,9 @@ document.addEventListener("DOMContentLoaded", async function () {
           };
         }
 
-        return response;
+        // Public accounts are followed directly, private ones get a request.
+        const body = await response.json().catch(() => null);
+        return { ok: response.ok, status: response.status, following: body?.status === "following" };
       },
 
       async unfollowUser(targetUserId) {
@@ -257,7 +260,8 @@ document.addEventListener("DOMContentLoaded", async function () {
       },
 
       async getPartiesByUser(userId) {
-        const response = await window.authService.apiCall("/api/parties?include_past=true", {
+        // Server-side checked: private accounts show their parties to accepted followers only.
+        const response = await window.authService.apiCall(`/api/users/${encodeURIComponent(userId)}/parties`, {
           authRequired: true,
           cache: "no-store",
           headers: {
@@ -611,25 +615,70 @@ document.addEventListener("DOMContentLoaded", async function () {
     try {
       await syncViewedUserFollowStatus();
       await renderActionButton();
-
-      const followers = await window.backend.getFollowers(viewedUserId);
-      const followings = await window.backend.getFollowings(viewedUserId);
-
-      const followersCountEl = document.getElementById("followersCount");
-      const followingCountEl = document.getElementById("followingCount");
-
-      if (followersCountEl) {
-        followersCountEl.textContent = String(Array.isArray(followers) ? followers.length : 0);
+      const wasLocked = document.body.classList.contains("profile-locked");
+      await renderFollowCounts();
+      if (wasLocked && !isContentLocked()) {
+        await loadUserParties().catch(() => {});
+        await refreshCreatedPartiesCount(viewedUserId).catch(() => {});
       }
-
-      if (followingCountEl) {
-        followingCountEl.textContent = String(Array.isArray(followings) ? followings.length : 0);
-      }
-
-      attachFollowCountMenus(followers, followings);
     } catch (error) {
       console.error("refreshProfileFollowState failed", error);
     }
+  }
+
+  /** Private account and the viewer is neither the owner nor an accepted follower. */
+  function isContentLocked() {
+    return Boolean(viewedUser?.isPrivate) && !["self", "following"].includes(viewedUserFollowStatus);
+  }
+
+  async function fetchCount(kind) {
+    const response = await window.authService.apiCall(`/api/users/${encodeURIComponent(viewedUserId)}/${kind}/count`);
+    if (!response.ok) return 0;
+    const data = await response.json().catch(() => null);
+    return Number(data?.count ?? 0);
+  }
+
+  /** Counts are public; the lists behind them only when the profile content is visible. */
+  async function renderFollowCounts() {
+    const locked = isContentLocked();
+    applyPrivacyLock(locked);
+    const [followersTotal, followingTotal] = await Promise.all([fetchCount("followers"), fetchCount("following")]);
+    const followersCountEl = document.getElementById("followersCount");
+    const followingCountEl = document.getElementById("followingCount");
+    if (followersCountEl) followersCountEl.textContent = String(followersTotal);
+    if (followingCountEl) followingCountEl.textContent = String(followingTotal);
+
+    if (locked) {
+      [followersCountEl, followingCountEl].forEach((el) => {
+        if (!el) return;
+        el.onclick = null;
+        el.style.cursor = "default";
+      });
+      return;
+    }
+    const followers = await window.backend.getFollowers(viewedUserId);
+    const followings = await window.backend.getFollowings(viewedUserId);
+    attachFollowCountMenus(followers, followings);
+  }
+
+  function applyPrivacyLock(locked) {
+    document.body.classList.toggle("profile-locked", locked);
+    const tabs = document.getElementById("profileTabs");
+    let notice = document.getElementById("privateNotice");
+    if (locked && !notice && tabs) {
+      notice = document.createElement("div");
+      notice.id = "privateNotice";
+      notice.className = "private-notice";
+      notice.setAttribute("role", "note");
+      const title = document.createElement("strong");
+      title.textContent = "This account is private";
+      const text = document.createElement("p");
+      text.textContent = "Follow this account to see their parties, followers and following.";
+      notice.append(title, text);
+      tabs.parentNode.insertBefore(notice, tabs);
+    }
+    if (notice) notice.hidden = !locked;
+    if (tabs) tabs.hidden = locked;
   }
 
   function attachFollowCountMenus(followers, followings) {
@@ -829,14 +878,20 @@ document.addEventListener("DOMContentLoaded", async function () {
     console.error("User load failed:", reason);
 
     viewedUserId = null;
+    viewedUser = null;
     viewedUserFollowStatus = "not_following";
+    applyPrivacyLock(false);
+    const tabs = document.getElementById("profileTabs");
+    if (tabs) tabs.hidden = true;
+    document.getElementById("settingsGear")?.remove();
 
+    // Missing and blocked profiles look the same on purpose.
     if (displayNameElement) {
-      displayNameElement.textContent = "User not found";
+      displayNameElement.textContent = "";
     }
 
     if (distinctNameElement) {
-      distinctNameElement.textContent = "@unknown";
+      distinctNameElement.textContent = "This profile isn't available";
     }
 
     safeSetImgSrc(defaultAvatarDataUri());
@@ -1067,6 +1122,7 @@ document.addEventListener("DOMContentLoaded", async function () {
 
   async function updateUserProfile(user) {
     viewedUserId = user?.id ?? null;
+    viewedUser = user || null;
     updateBackToOwnProfileButton();
     const favoritesTab = document.getElementById("tabFavorites");
     if (favoritesTab) favoritesTab.style.display = String(viewedUserId) === String(getStoredUserId()) ? "" : "none";
@@ -1097,31 +1153,22 @@ document.addEventListener("DOMContentLoaded", async function () {
     await syncViewedUserFollowStatus();
     await renderActionButton();
 
-    await loadUserParties().catch((error) => {
-      console.debug("loadUserParties failed", error);
-    });
+    if (!isContentLocked()) {
+      await loadUserParties().catch((error) => {
+        console.debug("loadUserParties failed", error);
+      });
+    }
 
     try {
-      const followers = await window.backend.getFollowers(viewedUserId);
-      const followings = await window.backend.getFollowings(viewedUserId);
-
-      const followersCountEl = document.getElementById("followersCount");
-      const followingCountEl = document.getElementById("followingCount");
-
-      if (followersCountEl) {
-        followersCountEl.textContent = String(Array.isArray(followers) ? followers.length : 0);
-      }
-
-      if (followingCountEl) {
-        followingCountEl.textContent = String(Array.isArray(followings) ? followings.length : 0);
-      }
-
-      attachFollowCountMenus(followers, followings);
+      await renderFollowCounts();
     } catch (error) {
       console.debug("load follow lists failed", error);
     }
 
-    if (viewedUserId != null) {
+    if (viewedUserId != null && isContentLocked()) {
+      const postsCountEl = document.getElementById("postsCount");
+      if (postsCountEl) postsCountEl.textContent = "–";
+    } else if (viewedUserId != null) {
       try {
         await refreshCreatedPartiesCount(viewedUserId);
       } catch (error) {
@@ -1157,6 +1204,87 @@ document.addEventListener("DOMContentLoaded", async function () {
     }
   }
 
+  /** Gear icon at the top right of the own profile; never shown on other profiles. */
+  function renderSettingsGear(show) {
+    const existing = document.getElementById("settingsGear");
+    if (!show) {
+      existing?.remove();
+      return;
+    }
+    if (existing) return;
+    const summary = document.querySelector("#profileContainer .profile-summary");
+    if (!summary) return;
+    const gear = document.createElement("a");
+    gear.id = "settingsGear";
+    gear.className = "settings-gear";
+    gear.href = "/settings/index.html";
+    gear.setAttribute("aria-label", "Settings");
+    gear.title = "Settings";
+    gear.innerHTML =
+      '<svg viewBox="0 0 24 24" width="22" height="22" fill="none" aria-hidden="true">' +
+      '<circle cx="12" cy="12" r="3" stroke="currentColor" stroke-width="1.8"/>' +
+      '<path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/></svg>';
+    summary.prepend(gear);
+  }
+
+  /** "…" menu on another user's profile with "Block" behind a confirmation. */
+  function createProfileMoreMenu(profileUserId) {
+    const wrap = document.createElement("div");
+    wrap.className = "profile-more";
+    const button = document.createElement("button");
+    button.type = "button";
+    button.className = "profile-more-btn";
+    button.setAttribute("aria-label", "More options");
+    button.setAttribute("aria-haspopup", "menu");
+    button.setAttribute("aria-expanded", "false");
+    button.textContent = "…";
+    const menu = document.createElement("div");
+    menu.className = "profile-more-menu";
+    menu.setAttribute("role", "menu");
+    menu.hidden = true;
+    const block = document.createElement("button");
+    block.type = "button";
+    block.setAttribute("role", "menuitem");
+    block.className = "profile-more-item danger";
+    block.textContent = "Block";
+    menu.appendChild(block);
+    wrap.append(button, menu);
+
+    const close = () => {
+      menu.hidden = true;
+      button.setAttribute("aria-expanded", "false");
+    };
+    button.addEventListener("click", (event) => {
+      event.stopPropagation();
+      menu.hidden = !menu.hidden;
+      button.setAttribute("aria-expanded", String(!menu.hidden));
+      if (!menu.hidden) block.focus();
+    });
+    document.addEventListener("click", close);
+    menu.addEventListener("keydown", (event) => {
+      if (event.key === "Escape") {
+        close();
+        button.focus();
+      }
+    });
+
+    block.addEventListener("click", async (event) => {
+      event.stopPropagation();
+      close();
+      const name = viewedUser?.displayName || viewedUser?.distinctName || "this user";
+      const confirmed = window.confirm(
+        `Block ${name}?\n\nYou will unfollow each other and neither of you can see the other's profile or parties. ${name} won't be told.`);
+      if (!confirmed) return;
+      const response = await window.authService.apiCall(`/api/me/blocks/${encodeURIComponent(profileUserId)}`, { method: "PUT" });
+      if (!response.ok) {
+        window.alert("Blocking failed. Please try again.");
+        return;
+      }
+      window.location.replace("/settings/blocked.html");
+    });
+    return wrap;
+  }
+
   async function renderActionButton() {
     const container = document.getElementById("actionButton");
 
@@ -1184,66 +1312,14 @@ document.addEventListener("DOMContentLoaded", async function () {
     }
 
     if (String(loggedInUserId) === String(profileUserId)) {
-      // Edit account button
-      const btn = document.createElement("button");
-      btn.type = "button";
-      btn.className = "edit-account-btn";
-
-      const link = document.createElement("a");
-      link.href = "../editProfile/editProfile.html";
-      link.textContent = "Edit Account";
-      link.style.color = "inherit";
-      link.style.textDecoration = "none";
-
-      btn.appendChild(link);
-      container.appendChild(btn);
-
-      // Dashboard link (own statistics as host), compact like the logout button
-      const dashboardLink = document.createElement("a");
-      dashboardLink.className = "dashboard-btn";
-      dashboardLink.href = "../dashboard/dashboard.html";
-      dashboardLink.setAttribute("aria-label", "Dashboard");
-      dashboardLink.innerHTML =
-        '<svg viewBox="0 0 24 24" width="18" height="18" fill="none" aria-hidden="true">' +
-        '<path d="M4 20V10M10 20V4M16 20v-7M22 20H2" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>';
-      const dashboardLabel = document.createElement("span");
-      dashboardLabel.textContent = "Dashboard";
-      dashboardLink.appendChild(dashboardLabel);
-      container.appendChild(dashboardLink);
-
-      // Logout button
-      try {
-        const logoutBtn = document.createElement("button");
-        logoutBtn.type = "button";
-        logoutBtn.className = "logout-btn";
-        logoutBtn.textContent = "Logout";
-        logoutBtn.style.marginLeft = "8px";
-
-        logoutBtn.addEventListener("click", (e) => {
-          e.preventDefault();
-          e.stopPropagation();
-          try {
-            // Use authService.logout to perform full Keycloak logout and redirect
-            if (window.authService && typeof window.authService.logout === "function") {
-              window.authService.logout();
-            } else {
-              // Fallback: clear local state and reload
-              try {
-                window.authService?.clearAuth?.();
-              } catch {}
-              window.location.reload();
-            }
-          } catch (err) {
-            console.error("Logout failed", err);
-          }
-        });
-
-        container.appendChild(logoutBtn);
-      } catch (err) {
-        // ignore any DOM errors
-      }
-
+      // Editing, the dashboard and logout live in the settings, reached by the gear icon.
+      renderSettingsGear(true);
       return;
+    }
+
+    renderSettingsGear(false);
+    if (profileUserId != null) {
+      container.appendChild(createProfileMoreMenu(profileUserId));
     }
 
     const btn = document.createElement("button");
@@ -1280,6 +1356,11 @@ document.addEventListener("DOMContentLoaded", async function () {
             viewedUserFollowStatus = "pending";
           } else if (!response?.ok) {
             console.warn("follow failed", response);
+          } else if (response.following) {
+            // A direct follow unlocks the profile content; reload it.
+            viewedUserFollowStatus = "following";
+            await refreshProfileFollowState();
+            return;
           } else {
             viewedUserFollowStatus = "pending";
           }
@@ -1413,7 +1494,7 @@ document.addEventListener("DOMContentLoaded", async function () {
             } else if (!response?.ok) {
               console.warn("follow failed", response);
             } else {
-              statusValue = "pending";
+              statusValue = response.following ? "following" : "pending";
             }
           }
 

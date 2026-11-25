@@ -1,0 +1,20 @@
+Someone asked to change your e-mail
+
+Hi {displayName},
+
+A change of the e-mail address of your PartyHub account was requested.
+
+New address: {maskedNewEmail}
+Requested:   {requestedAt}
+Device:      {device}
+
+Your current address stays active until the new one is confirmed.
+
+If this wasn't you, stop the change and choose a new password right away:
+{notMeUrl}
+
+Questions? Write to {supportEmail}.
+
+---
+This is a security message about your PartyHub account. It is sent even if you turned notifications off.
+PartyHub never asks for your password by e-mail.
