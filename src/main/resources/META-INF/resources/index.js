@@ -326,7 +326,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         bounds.push(...points);
         const center = L.latLngBounds(points).getCenter();
         const friendParties = group.filter(party => (window.partySocial?.summary(party).count || 0) > 0).length;
-        const clusterLabel = `${group.length} parties. Zoom to explore.${friendParties ? ` Friends are going to ${friendParties} of these parties.` : ""}`;
+        const clusterLabel = `${group.length} parties. Zoom in to explore.${friendParties ? ` Friends are attending ${friendParties} of them.` : ""}`;
         const cluster = L.marker(center, {icon:L.divIcon({className:"event-cluster",html:`<span>${group.length}</span>${friendParties ? `<span class="cluster-friends" aria-hidden="true">${friendParties} with friends</span>` : ""}`,iconSize:[48,48],iconAnchor:[24,24]}),title:clusterLabel,keyboard:true}).addTo(partyLayer);
         cluster.getElement()?.setAttribute("aria-label", clusterLabel);
         cluster.on("click", () => {
@@ -356,7 +356,7 @@ document.addEventListener("DOMContentLoaded", async () => {
       const time = new Intl.DateTimeFormat("de-AT", {hour:"2-digit", minute:"2-digit"}).format(start);
       const day = new Intl.DateTimeFormat("en-GB", {weekday:"short"}).format(start);
       const friendCount = window.partySocial?.summary(party).count || 0;
-      const markerLabel = `${partyTitle(party)}, ${day} ${time}${friendCount ? `, ${friendCount} ${friendCount === 1 ? "friend is" : "friends are"} going` : ""}`;
+      const markerLabel = `${partyTitle(party)}, ${day} ${time}${friendCount ? `, ${friendCount} ${friendCount === 1 ? "friend" : "friends"} attending` : ""}`;
       const marker = L.marker([ll.lat, ll.lng], {
         icon:L.divIcon({className:"event-pin",html:`<span class="event-pin__body"><span>${escapeHtml(day)}</span><strong>${escapeHtml(time)}</strong></span>${window.partySocial?.pinHtml(party) || ""}`,iconSize:[76,44],iconAnchor:[38,48]}),
         title:markerLabel, alt:partyTitle(party), keyboard:true
