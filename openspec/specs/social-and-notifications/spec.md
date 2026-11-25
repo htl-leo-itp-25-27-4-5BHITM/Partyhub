@@ -6,11 +6,17 @@ Defines PartyHub's social graph and notification behavior, including one-way fol
 ## Requirements
 
 ### Requirement: Social relationships use a follow-request model
-The system SHALL model each follow as an independent directed relationship from an authenticated requester/follower to a different target/recipient. A new request SHALL begin as pending, only its recipient SHALL accept or reject it, and acceptance SHALL create one accepted one-way relationship without creating the reverse relationship. Mutual contact SHALL require accepted relationships in both directions.
+The system SHALL model each follow as an independent directed relationship from an authenticated requester/follower to a different target/recipient. A follow of a public account SHALL be accepted immediately. A follow of a private account SHALL begin as pending, only its recipient SHALL accept or reject it, and acceptance SHALL create one accepted one-way relationship without creating the reverse relationship. Mutual contact SHALL require accepted relationships in both directions. Follows between users where one blocks the other SHALL be rejected.
 
 #### Scenario: User initiates a follow
-- **WHEN** authenticated user A requests to follow different user B and no A-to-B relationship exists
+- **WHEN** authenticated user A requests to follow different private user B and no A-to-B relationship exists
 - **THEN** the system SHALL create one pending A-to-B follow request instead of an accepted or reverse relationship
+
+#### Scenario: User follows a public account
+- **WHEN** authenticated user A follows different public user B and no A-to-B relationship exists
+- **THEN** the system SHALL create one accepted A-to-B relationship without creating B-to-A
+- **AND** it SHALL record that A started following B
+- **AND** B SHALL receive one new-follower notification
 
 #### Scenario: Recipient accepts a follow request
 - **WHEN** target user B accepts A's pending A-to-B follow request
@@ -25,6 +31,10 @@ The system SHALL model each follow as an independent directed relationship from 
 #### Scenario: User attempts to follow themselves
 - **WHEN** authenticated user A requests an A-to-A follow
 - **THEN** the system SHALL reject the request without creating a relationship
+
+#### Scenario: User attempts to follow across a block
+- **WHEN** A requests to follow B while A blocks B or B blocks A
+- **THEN** the system SHALL reject the request without creating a relationship or notification
 
 #### Scenario: Pending request is repeated
 - **WHEN** A requests B while one pending A-to-B request already exists
@@ -119,21 +129,25 @@ The system SHALL use the authenticated recipient's notification center as the pr
 - **THEN** the system SHALL persist the requested notification state change without changing the underlying follow, invitation, attendance, or party state
 
 ### Requirement: Profiles support social discovery and party context
-PartyHub SHALL provide authenticated profile discovery and party context through shared backend contracts with explicit client scope. The browser SHALL support profile search, another-user profile navigation, social actions and profile party context. The iOS minimum SHALL support the authenticated user's own profile and accepted follower/following counts; browser-only social controls SHALL NOT imply iOS parity.
+PartyHub SHALL provide authenticated profile discovery and party context through shared backend contracts with explicit client scope. The browser SHALL support profile search, another-user profile navigation, social actions and profile party context, subject to account privacy and blocks. The iOS minimum SHALL support the authenticated user's own profile and accepted follower/following counts; browser-only social controls SHALL NOT imply iOS parity.
 
 #### Scenario: User searches for another user
 - **WHEN** an authenticated user searches by a supported profile identifier
-- **THEN** the system SHALL search the distinct profile handle case-insensitively and return matching bounded profile summaries
+- **THEN** the system SHALL search the distinct profile handle case-insensitively and return matching bounded profile summaries, leaving out users who block or are blocked by the searcher
 - **AND** it SHALL allow navigation to the selected profile
 
 #### Scenario: User views another profile
 - **WHEN** an authenticated user opens another user's profile
-- **THEN** the system SHALL show the bounded cross-user profile projection and accepted social relationship context available to that viewer
+- **THEN** the system SHALL show the bounded cross-user profile projection and the relationship context that the privacy and blocking rules allow that viewer
 
 #### Scenario: Profile-created parties are listed
-- **WHEN** an authenticated user views parties created by another user from that user's profile
+- **WHEN** an authenticated user who may see the profile content views parties created by another user from that user's profile
 - **THEN** the system SHALL show public parties and private parties to which the viewing user was invited
 - **AND** opening the profile SHALL NOT grant additional private-party access
+
+#### Scenario: Profile parties of a private account are requested by a non-follower
+- **WHEN** a user who is not an accepted follower requests the profile party list of a private account
+- **THEN** the system SHALL reject the request as forbidden
 
 #### Scenario: User views their own created parties
 - **WHEN** an authenticated user views the party context on their own profile
@@ -149,7 +163,7 @@ PartyHub SHALL provide authenticated profile discovery and party context through
 - **AND** the absence of cross-user search or follow controls SHALL NOT be treated as a failure of this iOS minimum
 
 ### Requirement: Profile and social reads use audience-specific projections
-PartyHub SHALL return explicit audience-specific profile projections rather than serializing internal user records. A cross-user profile SHALL include only the numeric profile reference, display name, distinct handle, biography, profile-picture reference or placeholder, and accepted follower/following counts. An authenticated self projection MAY additionally include provider username, email, phone number, gender and birth date. Keycloak subject links, device tokens and other internal fields SHALL NOT be returned by profile search, profile reads, relationship status, follow lists or pending-request reads. Gender and birth date SHALL NOT appear in any projection other than the self projection.
+PartyHub SHALL return explicit audience-specific profile projections rather than serializing internal user records. A cross-user profile SHALL include only the numeric profile reference, display name, distinct handle, biography, profile-picture reference or placeholder, accepted follower/following counts, and whether the account is private. An authenticated self projection MAY additionally include provider username, email, phone number, gender, birth date and pending e-mail change state. Keycloak subject links, device tokens and other internal fields SHALL NOT be returned by profile search, profile reads, relationship status, follow lists or pending-request reads. Gender and birth date SHALL NOT appear in any projection other than the self projection.
 
 #### Scenario: Search returns a bounded profile summary
 - **WHEN** an authenticated user searches for profiles
@@ -157,17 +171,17 @@ PartyHub SHALL return explicit audience-specific profile projections rather than
 
 #### Scenario: Cross-user profile is returned
 - **WHEN** an authenticated user reads another user's profile
-- **THEN** the response SHALL use the bounded cross-user projection
+- **THEN** the response SHALL use the bounded cross-user projection including the private flag
 - **AND** it SHALL exclude email, phone number, gender, birth date, provider username, Keycloak subject and device token
 
 #### Scenario: Self profile is returned
 - **WHEN** an authenticated user reads their own profile
-- **THEN** the response MAY include that user's provider username, email, phone number, gender and birth date in addition to the cross-user fields
+- **THEN** the response MAY include that user's provider username, email, phone number, gender, birth date and pending e-mail change state in addition to the cross-user fields
 - **AND** it SHALL exclude Keycloak subject and device token
 
 #### Scenario: Accepted follow list is returned
-- **WHEN** an authenticated profile viewer requests accepted followers or following users
-- **THEN** the system SHALL return only accepted relationships and a bounded cross-user profile projection for each listed user
+- **WHEN** an authenticated profile viewer who may see the profile content requests accepted followers or following users
+- **THEN** the system SHALL return only accepted relationships and a bounded cross-user profile projection for each listed user, leaving out users who block or are blocked by the viewer
 
 #### Scenario: Pending follow requests are read
 - **WHEN** an authenticated user requests their pending incoming follow requests
@@ -180,11 +194,15 @@ PartyHub SHALL return explicit audience-specific profile projections rather than
 - **AND** path or query identifiers SHALL NOT authorize inspection as another actor
 
 ### Requirement: Authenticated users manage only their own editable profile
-PartyHub SHALL allow an authenticated user to update only their own display name, distinct handle, email, phone number, biography, gender and birth date. Gender and birth date SHALL be optional; gender SHALL be one of male, female, diverse or not specified, and a birth date SHALL lie in the past. Database ID, provider username, Keycloak subject, device token and other internal fields SHALL remain outside profile editing. The distinct handle SHALL identify at most one profile.
+PartyHub SHALL allow an authenticated user to update only their own display name, distinct handle, phone number, biography, gender and birth date from the edit-profile settings sub-page. The e-mail address SHALL change only through the e-mail change flow; a profile update SHALL NOT change it. Gender and birth date SHALL be optional; gender SHALL be one of male, female, diverse or not specified, and a birth date SHALL lie in the past. Database ID, provider username, Keycloak subject, device token and other internal fields SHALL remain outside profile editing. The distinct handle SHALL identify at most one profile, SHALL be 3 to 30 characters and SHALL contain only letters, digits, dots and underscores when it is changed; an unchanged older handle SHALL stay valid. The browser SHALL show validation errors at the field, enable saving only when a value changed, show progress and the result of saving, and ask before leaving the page with unsaved changes.
 
 #### Scenario: User updates their editable profile fields
 - **WHEN** an authenticated user submits valid editable values for their own profile
 - **THEN** the system SHALL persist those values and return the updated self profile projection
+
+#### Scenario: Profile update contains an e-mail address
+- **WHEN** a profile update includes a different e-mail address
+- **THEN** the system SHALL ignore that field and keep the stored e-mail unchanged
 
 #### Scenario: User leaves gender and birth date empty
 - **WHEN** an authenticated user saves their profile without gender or birth date
@@ -204,11 +222,19 @@ PartyHub SHALL allow an authenticated user to update only their own display name
 
 #### Scenario: Distinct handle conflicts with another profile
 - **WHEN** a user selects a distinct handle already assigned to another profile
-- **THEN** the system SHALL reject the conflicting update and preserve the user's previous handle
+- **THEN** the system SHALL reject the conflicting update, preserve the user's previous handle and the browser SHALL show the error at the handle field
 
 #### Scenario: Profile update fails validation
 - **WHEN** any submitted editable value fails the accepted profile validation contract
 - **THEN** the system SHALL reject the update without partially changing the stored profile
+
+#### Scenario: Nothing was changed
+- **WHEN** a user opens the edit-profile sub-page and changes no value
+- **THEN** the save button SHALL be disabled
+
+#### Scenario: User leaves with unsaved changes
+- **WHEN** a user changed a field and navigates away without saving
+- **THEN** the browser SHALL ask whether to discard the changes and stay on the page if the user declines
 
 ### Requirement: Profile pictures are authenticated profile content and self-managed
 PartyHub SHALL make a profile picture or stable placeholder available as part of the authenticated profile-viewing contract. Only the authenticated profile owner SHALL upload or replace that picture. User-supplied profile pictures SHALL be non-empty JPEG, PNG, GIF, or WebP content no larger than 5 MiB, and a successful replacement SHALL leave exactly one current logical picture reference without exposing a filesystem path.
@@ -287,11 +313,11 @@ PartyHub SHALL expose notification-center state only to its authenticated recipi
 - **THEN** the system SHALL deny or report the unavailable item without changing notification or domain state
 
 ### Requirement: Notification preferences are same-user and independently effective
-PartyHub SHALL maintain one effective notification-settings state per user. Supported in-app and email channels and the `partyInvites`, `partyUpdates`, and `followEvents` categories SHALL default enabled; push and SMS SHALL default disabled while those channels are unsupported. Only the authenticated user SHALL read or replace their settings. Channel and category gates SHALL be evaluated independently, and a missing legacy settings row SHALL resolve to these defaults rather than disabling delivery or exposing another user's state.
+PartyHub SHALL maintain one effective notification-settings state per user. It SHALL contain a master switch, the in-app and email channels, and the categories `partyInvites` (invitations and their withdrawal), `invitationResponses` (accepts, declines and leaves reported to the host), `partyUpdates` (party changes and the weekly digest), `partyCancellations`, `followEvents` (follow requests, accepted requests and new followers) and `unfollows`. The master switch, channels and categories SHALL default enabled; for profiles that existed before `invitationResponses`, `partyCancellations` and `unfollows` were introduced, those SHALL start with the value of `partyInvites`, `partyUpdates` and `followEvents` respectively. Push and SMS SHALL default disabled while those channels are unsupported. Only the authenticated user SHALL read or replace their settings. When the master switch is off, no informational in-app item or email SHALL be delivered; the stored channel and category values SHALL be kept and SHALL apply again when the master switch is turned on. Channel and category gates SHALL otherwise be evaluated independently, and a missing legacy settings row SHALL resolve to these defaults rather than disabling delivery or exposing another user's state. Security e-mails SHALL NOT be governed by these settings. The browser SHALL show these settings on the notifications settings sub-page and SHALL show the individual switches disabled but with their values while the master switch is off.
 
 #### Scenario: New profile receives notification defaults
 - **WHEN** PartyHub creates a new user profile
-- **THEN** it SHALL establish enabled in-app, email, invitation, party-update, and follow-event preferences
+- **THEN** it SHALL establish enabled master, in-app, email and all category preferences
 - **AND** it SHALL keep unsupported push and SMS preferences disabled
 
 #### Scenario: Legacy profile has no settings row
@@ -300,7 +326,7 @@ PartyHub SHALL maintain one effective notification-settings state per user. Supp
 
 #### Scenario: User reads their settings
 - **WHEN** an authenticated user requests their own notification settings
-- **THEN** the system SHALL return the complete effective channel and category state
+- **THEN** the system SHALL return the complete effective master, channel and category state
 
 #### Scenario: User targets another user's settings
 - **WHEN** an authenticated user attempts to read or update another user's notification settings
@@ -308,7 +334,15 @@ PartyHub SHALL maintain one effective notification-settings state per user. Supp
 
 #### Scenario: User replaces settings
 - **WHEN** an authenticated user submits a complete valid settings state for themselves
-- **THEN** the system SHALL replace all channel and category values atomically or preserve the prior state on failure
+- **THEN** the system SHALL replace all master, channel and category values atomically or preserve the prior state on failure
+
+#### Scenario: User turns the master switch off
+- **WHEN** a qualifying event occurs for a user whose master switch is off
+- **THEN** the system SHALL deliver no informational in-app item and no email for it
+
+#### Scenario: User turns the master switch on again
+- **WHEN** a user with `partyUpdates` off and all other categories on turns the master switch off and on again
+- **THEN** `partyUpdates` SHALL still be off and the other categories SHALL still be on
 
 #### Scenario: User disables in-app informational delivery
 - **WHEN** a qualifying event occurs for a user whose in-app channel is disabled
@@ -319,13 +353,17 @@ PartyHub SHALL maintain one effective notification-settings state per user. Supp
 - **THEN** the system SHALL suppress email delivery without suppressing independently eligible in-app state
 
 #### Scenario: User disables an event category
-- **WHEN** an event belongs to a disabled invitation, party-update, or follow category
+- **WHEN** an event belongs to a disabled category
 - **THEN** the system SHALL suppress informational delivery for that category across enabled channels
 - **AND** it SHALL leave unrelated categories unchanged
 
 #### Scenario: Actionable request remains available when informational delivery is disabled
-- **WHEN** a pending invitation or follow request exists while its recipient has disabled a channel or event category
+- **WHEN** a pending invitation or follow request exists while its recipient has disabled the master switch, a channel or an event category
 - **THEN** the notification center SHALL still expose the authoritative pending action until it is accepted, declined, rejected, cancelled, or withdrawn
+
+#### Scenario: Security e-mail with all notifications off
+- **WHEN** a user with the master switch off requests an e-mail change
+- **THEN** the confirmation and notice e-mails SHALL still be sent
 
 ### Requirement: Notification delivery is channel-honest and failure-tolerant
 PartyHub SHALL process committed notification events independently per recipient and supported channel. In-app and email are the supported notification channels in this contract. Push and SMS settings SHALL NOT imply available delivery until a configured adapter and client contract are accepted. Delivery attempts SHALL use the event identity to prevent duplicate in-app items, and an out-of-app failure SHALL NOT roll back domain state or a successfully persisted in-app item.
@@ -470,3 +508,29 @@ PartyHub SHALL offer an authenticated live stream that tells the logged-in user,
 #### Scenario: Stream without login
 - **WHEN** a caller without login opens the live stream
 - **THEN** the system SHALL reject the request as unauthenticated
+
+### Requirement: Followed users are told when someone stops following
+When an accepted follower A stops following B by their own action, B SHALL receive one unfollow notification in the `unfollows` category. Removing a follower, declining or cancelling a request, and follows ended by a block SHALL NOT create an unfollow notification.
+
+#### Scenario: Follower unfollows
+- **WHEN** accepted follower A unfollows B
+- **THEN** B SHALL receive one unfollow notification naming A
+
+#### Scenario: Follow ends through a block
+- **WHEN** B blocks A and A's follow of B is removed
+- **THEN** neither A nor B SHALL receive an unfollow notification
+
+#### Scenario: Unfollows are switched off
+- **WHEN** B has `unfollows` disabled and A unfollows B
+- **THEN** B SHALL receive no unfollow notification
+
+### Requirement: Profile owners can remove their profile picture
+An authenticated user SHALL be able to remove their own custom profile picture from the edit-profile sub-page after a confirmation. Afterwards the profile SHALL show the stable placeholder. Another user SHALL NOT remove it.
+
+#### Scenario: User removes their picture
+- **WHEN** a user with a custom picture confirms removing it
+- **THEN** their profile SHALL show the placeholder picture
+
+#### Scenario: User removes another user's picture
+- **WHEN** an authenticated user attempts to remove another user's profile picture
+- **THEN** the system SHALL reject the action and keep that picture
