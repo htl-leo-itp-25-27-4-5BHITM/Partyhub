@@ -6,6 +6,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
   if (partyId) {
     loadPartyDetails(partyId);
+    startGuestListLive(partyId);
   } else {
     const titleElement = document.querySelector(".party-title");
 
@@ -25,6 +26,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
 let currentPartyIsPrivate = false;
 let currentParty = null;
+let attendanceRequestInFlight = false; // the user's own join/leave request is running
 
 function getCurrentUserIdSafe() {
   try {
@@ -286,6 +288,7 @@ async function handleJoinParty(partyId) {
   const method = isCurrentlyJoined ? "DELETE" : "POST";
 
   joinBtn.disabled = true;
+  attendanceRequestInFlight = true;
 
   try {
     const response = await window.authService.apiCall(
@@ -314,6 +317,7 @@ async function handleJoinParty(partyId) {
     alert("Error while updating attendance.");
   } finally {
     joinBtn.disabled = false;
+    attendanceRequestInFlight = false;
   }
 }
 
@@ -1227,5 +1231,96 @@ async function setupFavoriteButton() {
     await initialize();
   } catch (error) {
     feedback.textContent = "Favorites could not be loaded. Reload the page to try again.";
+  }
+}
+
+
+// ---------- Live guest list ----------
+// While the detail page is open, a stream for this party (/api/live/parties/{id}/events) reports
+// joins, leaves and invitation changes; the page then reloads the guest list and the join button.
+// Without the stream it re-checks every 15 s. Everything starts from the DOMContentLoaded handler.
+const guestListLive = {
+  controller: null,
+  connected: false,
+  backoffMs: 2000,
+  reconnectTimer: null,
+  refreshTimer: null,
+};
+
+function scheduleGuestListRefresh(partyId) {
+  clearTimeout(guestListLive.refreshTimer);
+  guestListLive.refreshTimer = setTimeout(() => refreshGuestList(partyId), 300);
+}
+
+async function refreshGuestList(partyId) {
+  if (!currentParty) return;
+  // Don't interfere with the user's own join/leave request; try again shortly after.
+  if (attendanceRequestInFlight) {
+    scheduleGuestListRefresh(partyId);
+    return;
+  }
+  try {
+    await checkAttendanceStatus(partyId, currentParty);
+    await loadPartyMembers(partyId, currentParty);
+  } catch (error) {
+    console.warn("Refreshing the guest list failed", error);
+  }
+}
+
+async function startGuestListLive(partyId) {
+  const loggedIn = await window.authService?.init?.().catch(() => false);
+  if (!loggedIn) return; // guest lists are only shown to logged-in users
+
+  setInterval(() => {
+    if (!document.hidden && !guestListLive.connected) refreshGuestList(partyId);
+  }, 15000);
+  document.addEventListener("visibilitychange", () => {
+    if (!document.hidden) refreshGuestList(partyId);
+  });
+  window.addEventListener("pagehide", () => {
+    clearTimeout(guestListLive.reconnectTimer);
+    const controller = guestListLive.controller;
+    guestListLive.controller = null;
+    controller?.abort();
+  });
+  connectGuestListStream(partyId);
+}
+
+async function connectGuestListStream(partyId) {
+  const controller = new AbortController();
+  guestListLive.controller = controller;
+  try {
+    const response = await window.authService.apiCall(
+      `/api/live/parties/${encodeURIComponent(partyId)}/events`,
+      { headers: { Accept: "text/event-stream" }, signal: controller.signal }
+    );
+    if (response.status === 401 || response.status === 403 || response.status === 404) {
+      guestListLive.controller = null;
+      return; // not allowed (anymore); polling stays off because nothing is shown
+    }
+    if (!response.ok || !response.body) throw new Error(`Guest list stream status ${response.status}`);
+
+    guestListLive.backoffMs = 2000;
+    const reader = response.body.pipeThrough(new TextDecoderStream()).getReader();
+    let buffer = "";
+    for (;;) {
+      const { value, done } = await reader.read();
+      if (done) break;
+      buffer += value;
+      const blocks = buffer.split(/\r?\n\r?\n/);
+      buffer = blocks.pop();
+      for (const block of blocks) {
+        if (/^event:\s*ready\s*$/m.test(block)) guestListLive.connected = true;
+        if (/^event:\s*changed\s*$/m.test(block)) scheduleGuestListRefresh(partyId);
+      }
+    }
+    throw new Error("Guest list stream closed");
+  } catch (error) {
+    if (guestListLive.controller !== controller) return; // stopped on purpose
+    guestListLive.connected = false;
+    if (controller.signal.aborted) return;
+    console.warn("Live guest list interrupted, reconnecting:", error.message);
+    guestListLive.reconnectTimer = setTimeout(() => connectGuestListStream(partyId), guestListLive.backoffMs);
+    guestListLive.backoffMs = Math.min(guestListLive.backoffMs * 2, 30000);
   }
 }
