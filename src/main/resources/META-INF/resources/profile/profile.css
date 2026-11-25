@@ -1521,3 +1521,10 @@ body.bg-light.profile-page .app-shell > .container {
 .profile-back-btn[hidden] {
   display: none;
 }
+
+/* From 600 px the picture sits at the left edge of the card; move it just past the back arrow */
+@media (min-width: 600px) {
+  .profile-summary.has-back-arrow {
+    padding-left: 60px;
+  }
+}
