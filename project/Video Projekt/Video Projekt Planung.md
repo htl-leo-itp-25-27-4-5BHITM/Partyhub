@@ -64,3 +64,11 @@ Mit PartyHub findet man Partys in der Nähe, sieht sofort, wer hingeht, und teil
 - [ ] Party-Location und Statisten organisieren
 - [ ] Musik auswählen
 - [ ] Storyboard bzw. Shotlist erstellen
+
+## Ablauf Video
+1. Personen vorstellung (Name, Zuständigkeit), Reihenfolge, Carla am Ende - Animation Namen einfliegen lassen
+2. Carla liegt auf der Couch und fadisiert sich, will unbedingt wieder auf die Party
+3. PartyHub öffnen
+4. Direkter Übergang zur Party
+5. Party feiern
+6. Ende
