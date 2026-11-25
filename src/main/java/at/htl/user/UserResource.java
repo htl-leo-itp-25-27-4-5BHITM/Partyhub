@@ -285,7 +285,7 @@ public class UserResource {
                 return serveDefaultImage();
             }
 
-            ImageType type = ImageType.detect(picturePath).orElse(null);
+            ImageType type = ImageType.storedType(picturePath).orElse(null);
             if (type == null) return serveDefaultImage();
             InputStream is = Files.newInputStream(picturePath);
             return Response.ok(is, type.mediaType()).header("X-Content-Type-Options", "nosniff").build();

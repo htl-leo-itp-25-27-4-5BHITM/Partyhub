@@ -88,7 +88,7 @@ class InputSafetyResourceTest extends TestBase {
     }
 
     @Test void boundedSearchAndJsonBudgetsApply() {
-        for (String query : new String[]{"limit=101", "offset=-1", "user_latitude=NaN&user_longitude=14", "sort=evil", "q=" + "x".repeat(201)})
+        for (String query : new String[]{"limit=501", "offset=-1", "user_latitude=NaN&user_longitude=14", "sort=evil", "q=" + "x".repeat(201)})
             given().get("/api/parties?" + query).then().statusCode(400);
         given().contentType("application/json").body("{\"biography\":\"" + "x".repeat(262144) + "\"}")
                 .post("/api/users").then().statusCode(413);

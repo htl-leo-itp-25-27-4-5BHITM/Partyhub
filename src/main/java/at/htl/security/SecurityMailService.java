@@ -23,6 +23,9 @@ public class SecurityMailService {
     Logger logger;
 
     @Inject
+    at.htl.validation.MailInput mailInput;
+
+    @Inject
     ReactiveMailer mailer;
 
     @Inject
@@ -36,7 +39,7 @@ public class SecurityMailService {
     }
 
     public void send(SecurityMail mail) {
-        if (mail.to() == null || mail.to().isBlank()) {
+        if (!mailInput.accepts(mail.to(), mail.subject())) {
             logger.infof("Skipping security mail %s for user %s: no address", mail.template(), mail.userId());
             return;
         }

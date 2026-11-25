@@ -20,7 +20,7 @@ public record FilterParams(
         if (userLatitude != null && (!Double.isFinite(userLatitude) || userLatitude < -90 || userLatitude > 90)
                 || userLongitude != null && (!Double.isFinite(userLongitude) || userLongitude < -180 || userLongitude > 180))
             throw new IllegalArgumentException("Invalid coordinates");
-        if (limit != null && (limit <= 0 || limit > 100)) {
+        if (limit != null && (limit <= 0 || limit > 500)) {
             throw new IllegalArgumentException("limit must be positive");
         }
         if (offset != null && (offset < 0 || offset > 1000000)) {

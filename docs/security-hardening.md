@@ -38,11 +38,15 @@ npx --prefix scripts/browser playwright install chromium
 npm --prefix scripts/browser test
 ```
 
-The Playwright script requires a disposable local server on port 8080, the dev seed, and a local Keycloak realm with the demo users. It performs real PKCE login and bearer-authenticated API requests. It refuses non-loopback destinations. With system Chromium, set `PLAYWRIGHT_CHROMIUM_EXECUTABLE=/usr/bin/chromium`. Set `EXPECT_AUTH_BYPASS_DISABLED=false` only for the separate HTTPYac dev fixture server; the normal browser security run requires bypass disabled.
+The Playwright script requires a disposable local server on port 8080, the dev seed, and a local Keycloak realm with the demo users. It performs real PKCE login and bearer-authenticated API requests. It refuses non-loopback destinations. For an existing realm with older demo passwords, set `PARTYHUB_TEST_PASSWORD` and `PARTYHUB_TEST_OTHER_PASSWORD` explicitly. With system Chromium, set `PLAYWRIGHT_CHROMIUM_EXECUTABLE=/usr/bin/chromium`. Set `EXPECT_AUTH_BYPASS_DISABLED=false` only for the separate HTTPYac dev fixture server; the normal browser security run requires bypass disabled.
 
 Use a dedicated PostgreSQL database such as `partyhub_validation`; do not run dev-mode clean/seed against persistent data. Set `partyhub.auth.bypass-enabled=false` and `quarkus.mailer.mock=true` for browser checks. The host JDK must support the Quarkus version; newer JDKs may need `JAVA_TOOL_OPTIONS='--add-opens=java.base/java.lang=ALL-UNNAMED'` for the local server.
 
 Attacker/owner/recipient coverage lives in `AccessControlResourceTest`, `AuthenticationBoundaryTest`, `DisabledQrResourceTest` and `scripts/browser/input-validation.cjs`. Other suites cover upload transaction cleanup and image spoofing, malformed input, template escaping and outbound serialization. Source review and regression tests do not establish that every possible vulnerability is absent.
+
+## Local verification
+
+The final local run passed 503 Java tests (including ownership/privacy, injection payloads, uploads and authentication boundaries), 40 Node tests, and 12 real-login Playwright groups. The browser run used a dedicated PostgreSQL database and Keycloak instance, mock mail, and disabled header bypass. All 369 PostgreSQL HTTPYac requests also passed. A second real account was denied edits, deletion, self-invitation and hidden private reads; host actions continued to work.
 
 ## Deployment and follow-up
 

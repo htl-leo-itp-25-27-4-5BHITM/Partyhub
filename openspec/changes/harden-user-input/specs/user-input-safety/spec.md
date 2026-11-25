@@ -79,7 +79,7 @@ Database operations SHALL bind user-controlled values as parameters and select d
 - **THEN** it SHALL be processed as a bound value without changing query structure
 
 #### Scenario: Excessive pagination
-- **WHEN** a caller requests a page limit above 100 or an invalid offset
+- **WHEN** a caller requests a page limit above 500 or an invalid offset
 - **THEN** the server SHALL return 400 without issuing an unbounded query
 
 ### Requirement: Uploads enforce bounded safe file handling

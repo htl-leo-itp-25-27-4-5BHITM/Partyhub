@@ -35,6 +35,14 @@ public enum ImageType {
     public static final long MAX_FILE_SIZE = 5L * 1024 * 1024;
     public static final long MAX_PIXELS = 16_000_000;
 
+    /** Cheap content-type check for serving: nosniff + a raster MIME type prevents active content.
+     * Full decode is performed once, on upload, rather than on every public image request.
+     */
+    public static Optional<ImageType> storedType(Path file) throws IOException {
+        if (Files.size(file) == 0 || Files.size(file) > MAX_FILE_SIZE) return Optional.empty();
+        return signature(file);
+    }
+
     /** Fully decode only bounded raster content; a magic prefix alone is not an image. */
     public static Optional<ImageType> detect(Path file) throws IOException {
         if (Files.size(file) == 0 || Files.size(file) > MAX_FILE_SIZE) return Optional.empty();

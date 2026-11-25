@@ -88,6 +88,26 @@ jobs:
         env:
           CI: true
 
+      - name: Install browser regression dependencies
+        run: |
+          npm ci --prefix scripts/browser
+          npx --prefix scripts/browser playwright install --with-deps chromium
+
+      - name: Browser exploit and access-control regressions
+        run: npm --prefix scripts/browser test
+        env:
+          # This job's HTTPYac fixture server deliberately enables the dev-only header.
+          # Playwright still logs in through Keycloak and uses real bearer tokens.
+          EXPECT_AUTH_BYPASS_DISABLED: 'false'
+
+      - name: Upload browser security evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: browser-security-results
+          path: scripts/browser/test-results/
+          retention-days: 7
+
       - name: Upload test results
         if: always()
         uses: actions/upload-artifact@v4

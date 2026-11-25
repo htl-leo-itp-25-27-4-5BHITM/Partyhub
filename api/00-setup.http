@@ -163,7 +163,7 @@ Content-Type: application/json
   "location_address": "Tabakfabrik Linz",
   "theme": "Birthday",
   "visibility": "PRIVATE",
-  "selectedUsers": ["2", "8"]
+  "selectedUsers": []
 }
 
 ?? status == 201
@@ -283,7 +283,7 @@ Content-Type: application/json
   "location_address": "Traun Schlosspark",
   "theme": "Dinner",
   "visibility": "PRIVATE",
-  "selectedUsers": ["1", "3"]
+  "selectedUsers": []
 }
 
 ?? status == 201

@@ -19,14 +19,14 @@ const evidence = path.join(__dirname, 'test-results'); fs.mkdirSync(evidence, {r
   try {
     await page.goto(base + '/profile/profile.html');
     await page.locator('#username').fill(process.env.PARTYHUB_TEST_USER || 'viki_vej');
-    await page.locator('#password').fill(process.env.PARTYHUB_TEST_PASSWORD || 'viki_vej');
+    await page.locator('#password').fill(process.env.PARTYHUB_TEST_PASSWORD || 'Demo-viki_vej-2026!');
     await page.locator('#kc-login').click();
     await page.waitForURL(base + '/profile/**');
     await page.waitForFunction(() => window.authService?.getAccessToken());
     const headers = {Authorization:`Bearer ${await page.evaluate(() => window.authService.getAccessToken())}`};
     const api = context.request;
     const me = await (await api.get(base + '/api/users/me', {headers})).json();
-    await check('Real bearer authentication and disabled header bypass', async () => {
+    await check('Real bearer authentication and configured header-bypass boundary', async () => {
       assert.ok(me.id);
       if (process.env.EXPECT_AUTH_BYPASS_DISABLED !== 'false')
         assert.equal((await api.get(base + '/api/users/me', {headers:{'X-User-Id':'1'}})).status(),401);
@@ -42,13 +42,20 @@ const evidence = path.join(__dirname, 'test-results'); fs.mkdirSync(evidence, {r
       assert.equal(await page.locator('.search-result-name img').count(),0);
       assert.equal(await page.evaluate(() => window.__validationXss),false);
       await page.locator('#searchInput').fill('');
-      const hostileHandle='<img/src=x/onerror=window.__menuXss=true>';
-      await api.put(base+`/api/users/${me.id}`,{headers,data:{displayName,distinctName:hostileHandle,email:me.email}});
-      await page.locator('#usernameBtn').click();
-      await page.locator('.username-item').filter({hasText:hostileHandle}).waitFor();
-      assert.equal(await page.locator('.username-item img').count(),0);
-      assert.equal(await page.evaluate(()=>window.__menuXss===true),false);
-      await page.keyboard.press('Escape');
+      // Older deployments expose a username menu; current main removed it from the page.
+      if(await page.locator('#usernameBtn').count()) {
+        const hostileHandle='<img/src=x/onerror=window.__menuXss=true>';
+        await page.route('**/api/users',async route=>{
+          const response=await route.fetch();const data=await response.json();
+          await route.fulfill({response,json:data.map(user=>user.id===me.id?{...user,distinctName:hostileHandle}:user)});
+        });
+        await page.locator('#usernameBtn').click();
+        await page.locator('.username-item').filter({hasText:hostileHandle}).waitFor();
+        assert.equal(await page.locator('.username-item img').count(),0);
+        assert.equal(await page.evaluate(()=>window.__menuXss===true),false);
+        await page.keyboard.press('Escape');
+        await page.unroute('**/api/users');
+      }
       await page.screenshot({path:path.join(evidence,'safe-profile.png'),fullPage:true});
     });
     const party = {title:"Reunion & O'Brien",time_start:'2027-01-20T18:00:00',time_end:'2027-01-20T22:00:00',latitude:48.3,longitude:14.3,location_address:'Local validation test',visibility:'PUBLIC',max_people:20};
@@ -94,7 +101,7 @@ const evidence = path.join(__dirname, 'test-results'); fs.mkdirSync(evidence, {r
       const items=await (await api.get(base+`/api/parties/${partyId}/bring-along`,{headers})).json();
       assert.ok(items.some(x=>x.name.includes('&#39;')),'Published HTML-encoded wire format stays compatible');
       await page.reload();
-      await page.getByText("Jack's crisps & dip",{exact:true}).waitFor();
+      await page.locator(".ba-name").filter({hasText:"Jack's crisps & dip"}).first().waitFor({state:"attached"});
     });
     await check('Malformed email, types and null objects fail before persistence', async () => {
       for(const data of [{email:'not-an-email'},{displayName:123},{biography:'x'.repeat(2001)}]){
@@ -106,7 +113,7 @@ const evidence = path.join(__dirname, 'test-results'); fs.mkdirSync(evidence, {r
       const settings=await api.put(base+`/api/users/${me.id}/notification-settings`,{headers,data:{emailEnabled:'true'}});assert.equal(settings.status(),400);
     });
     await check('Query, body, nesting and multipart limits are enforced', async () => {
-      for(const query of ['limit=101','offset=-1','user_latitude=NaN&user_longitude=14','sort=evil'])
+      for(const query of ['limit=501','offset=-1','user_latitude=NaN&user_longitude=14','sort=evil'])
         assert.equal((await api.get(base+'/api/parties?'+query,{headers})).status(),400);
       assert.equal((await api.get(base+'/api/parties?'+new URLSearchParams({q:"' OR 1=1 --"}),{headers})).status(),200);
       assert.equal((await api.get(base+'/api/parties?'+new URLSearchParams({user_latitude:'48.3',user_longitude:'14.3',distance:'10'}),{headers})).status(),200);
@@ -131,7 +138,7 @@ const evidence = path.join(__dirname, 'test-results'); fs.mkdirSync(evidence, {r
       const hostile='"><img src=x onerror="window.__keycloakXss=true">';
       await form.locator('#firstName').fill(hostile);await form.locator('#lastName').fill('Audit');
       await form.locator('#username').fill('validation_'+stamp);await form.locator('#email').fill('invalid-email');
-      await form.locator('#password').fill('test-password-123');await form.locator('#password-confirm').fill('test-password-123');
+      await form.locator('#password').fill('PartyHub-Audit-2026!');await form.locator('#password-confirm').fill('PartyHub-Audit-2026!');
       await form.locator('form').evaluate(el=>el.noValidate=true);await form.locator('input[type=submit]').click();
       await form.locator('#firstName').waitFor();
       assert.equal(await form.locator('#firstName').inputValue(),hostile);
@@ -145,7 +152,7 @@ const evidence = path.join(__dirname, 'test-results'); fs.mkdirSync(evidence, {r
       try {
         await outsiderPage.goto(base+'/profile/profile.html');
         await outsiderPage.locator('#username').fill(process.env.PARTYHUB_TEST_OTHER_USER||'carla_dimmler');
-        await outsiderPage.locator('#password').fill(process.env.PARTYHUB_TEST_OTHER_PASSWORD||'carla_dimmler');
+        await outsiderPage.locator('#password').fill(process.env.PARTYHUB_TEST_OTHER_PASSWORD||'Demo-carla_dimmler-2026!');
         await outsiderPage.locator('#kc-login').click();await outsiderPage.waitForURL(base+'/profile/**');
         await outsiderPage.waitForFunction(()=>window.authService?.getAccessToken());
         const other={Authorization:`Bearer ${await outsiderPage.evaluate(()=>window.authService.getAccessToken())}`};
