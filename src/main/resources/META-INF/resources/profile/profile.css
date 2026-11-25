@@ -1597,4 +1597,9 @@ body.bg-light.profile-page .app-shell > .container {
   .profile-summary.has-back-arrow {
     padding-left: 60px;
   }
+
+  /* Same on the right for the settings gear on the own profile */
+  .profile-summary:has(> .settings-gear) {
+    padding-right: 60px;
+  }
 }
