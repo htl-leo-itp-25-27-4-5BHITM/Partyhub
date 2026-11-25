@@ -330,8 +330,6 @@ document.addEventListener("DOMContentLoaded", async function () {
     if (!button) return;
     const ownId = getStoredUserId();
     button.hidden = ownId == null || viewedUserId == null || String(ownId) === String(viewedUserId);
-    // Lets the CSS move the profile picture out from under the arrow on wide layouts.
-    button.closest(".profile-summary")?.classList.toggle("has-back-arrow", !button.hidden);
   }
 
   function backToOwnProfile() {
