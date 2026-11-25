@@ -633,3 +633,99 @@ body { background: #151128; font-family: "PartyHub Sans", system-ui, sans-serif;
 }
 #kc-login, .pf-c-button.pf-m-primary { border-radius: 10px !important; box-shadow: none; }
 input:not([type="checkbox"]):not([type="submit"]) { border-radius: 10px; }
+
+/* Re-authentication ("Please re-authenticate"): the known user and the restart link */
+#kc-username {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  margin: 0 auto 12px;
+  color: var(--ph-text-primary);
+  font-weight: 600;
+}
+
+#kc-attempted-username {
+  padding: 6px 12px;
+  border: 1px solid var(--ph-border);
+  border-radius: 999px;
+  background: var(--ph-bg-secondary);
+}
+
+#reset-login {
+  color: var(--ph-accent-pink);
+  font-size: 0.875rem;
+  text-decoration: none;
+}
+
+#reset-login:hover,
+#reset-login:focus-visible {
+  text-decoration: underline;
+}
+
+#reset-login .kc-tooltip-text {
+  display: none;
+}
+
+/* Update password page */
+.ph-label {
+  display: block;
+  margin: 12px 0 6px;
+  color: var(--ph-text-secondary);
+  font-size: 0.8125rem;
+  font-weight: 600;
+  text-align: left;
+}
+
+.ph-field-error {
+  display: block;
+  margin: 4px 0 8px;
+  color: var(--ph-accent-pink);
+  font-size: 0.8125rem;
+  text-align: left;
+}
+
+.ph-password-rules {
+  margin: 8px 0 4px;
+  padding: 0;
+  list-style: none;
+  text-align: left;
+  font-size: 0.8125rem;
+  color: var(--ph-text-muted);
+}
+
+.ph-password-rules li {
+  position: relative;
+  padding-left: 22px;
+  margin: 4px 0;
+}
+
+.ph-password-rules li::before {
+  content: "○";
+  position: absolute;
+  left: 0;
+}
+
+.ph-password-rules li.ph-rule-ok {
+  color: var(--ph-accent-green);
+}
+
+.ph-password-rules li.ph-rule-ok::before {
+  content: "✓";
+}
+
+.ph-password-rules li.ph-rule-info::before {
+  content: "•";
+}
+
+#kc-cancel {
+  width: 100%;
+  margin-top: 10px;
+  padding: 12px;
+  border: 1px solid var(--ph-border);
+  border-radius: 12px;
+  background: transparent;
+  color: var(--ph-text-primary);
+  font: inherit;
+  cursor: pointer;
+}

@@ -5,60 +5,42 @@ import io.quarkus.security.Authenticated;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import jakarta.transaction.Transactional;
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotNull;
 import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 
+/** Older address of the notification settings, kept for existing clients; same rules as /api/me. */
 @Path("/api/users/{id}/notification-settings")
 @ApplicationScoped
+@Authenticated
 public class UserNotificationSettingsResource {
 
     @Inject
-    UserNotificationSettingsRepository repository;
+    MyNotificationSettingsResource own;
 
     @Inject
     CurrentUserResolver currentUserResolver;
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
-    @Authenticated
     public Response getSettings(@PathParam("id") Long userId) {
-        Long actualUserId = currentUserResolver.requireCurrentUserId();
-        if (!actualUserId.equals(userId)) {
+        if (!currentUserResolver.requireCurrentUserId().equals(userId)) {
             return Response.status(Response.Status.FORBIDDEN).build();
         }
-
-        return repository.findByUserId(userId)
-                .map(settings -> Response.ok(NotificationSettingsDto.from(settings)).build())
-                .orElse(Response.status(Response.Status.NOT_FOUND).build());
+        return Response.ok(own.get()).build();
     }
 
     @PUT
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     @Transactional
-    @Authenticated
-    public Response updateSettings(@PathParam("id") Long userId, NotificationSettingsDto dto) {
-        Long actualUserId = currentUserResolver.requireCurrentUserId();
-        if (!actualUserId.equals(userId)) {
+    public Response updateSettings(@PathParam("id") Long userId,
+                                   @Valid @NotNull(message = "Notification settings are required") NotificationSettingsDto dto) {
+        if (!currentUserResolver.requireCurrentUserId().equals(userId)) {
             return Response.status(Response.Status.FORBIDDEN).build();
         }
-
-        UserNotificationSettings settings = repository.findByUserId(userId)
-                .orElse(null);
-        if (settings == null) {
-            return Response.status(Response.Status.NOT_FOUND).build();
-        }
-
-        settings.setEmailEnabled(dto.emailEnabled());
-        settings.setPushEnabled(dto.pushEnabled());
-        settings.setSmsEnabled(dto.smsEnabled());
-        settings.setInAppEnabled(dto.inAppEnabled());
-        settings.setPartyInvites(dto.partyInvites());
-        settings.setPartyUpdates(dto.partyUpdates());
-        settings.setFollowEvents(dto.followEvents());
-
-        repository.save(settings);
-        return Response.ok(NotificationSettingsDto.from(settings)).build();
+        return Response.ok(own.update(dto)).build();
     }
 }

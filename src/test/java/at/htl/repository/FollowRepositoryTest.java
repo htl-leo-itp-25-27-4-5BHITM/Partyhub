@@ -57,6 +57,8 @@ public class FollowRepositoryTest {
         user.setDisplayName(name);
         user.setDistinctName(name.toLowerCase().replace(" ", ""));
         user.setEmail(name.toLowerCase().replace(" ", ".") + "@example.com");
+        // These tests cover the request model, which applies to private accounts.
+        user.setPrivateAccount(true);
         entityManager.persist(user);
         return user;
     }

@@ -122,7 +122,8 @@ document.addEventListener("DOMContentLoaded", async () => {
     return (
       normalized.includes("accepted your follow request") ||
       normalized.includes("just followed you") ||
-      normalized.includes("follows you now")
+      normalized.includes("follows you now") ||
+      normalized.includes("unfollowed you")
     );
   }
 

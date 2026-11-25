@@ -2,6 +2,7 @@ package at.htl.notification;
 
 import java.util.List;
 
+import at.htl.notificationsettings.NotificationCategory;
 import at.htl.notificationsettings.UserNotificationSettings;
 import at.htl.notificationsettings.UserNotificationSettingsRepository;
 import at.htl.live.UserChanged;
@@ -61,6 +62,7 @@ public class NotificationRepository {
                 case "INVITATION" -> jpql.append(" AND LOWER(n.message) LIKE '%invited you to the party%'");
                 case "UPDATE" -> jpql.append(" AND LOWER(n.message) LIKE '%was updated%'");
                 case "CANCELLATION" -> jpql.append(" AND (LOWER(n.message) LIKE '%was canceled%' OR LOWER(n.message) LIKE '%was cancelled%')");
+                case "UNFOLLOW" -> jpql.append(" AND LOWER(n.message) LIKE '%unfollowed you%'");
                 case "FOLLOW" -> jpql.append(" AND (LOWER(n.message) LIKE '%accepted your follow request%' OR LOWER(n.message) LIKE '%just followed you%' OR LOWER(n.message) LIKE '%follows you now%')");
             }
         }
@@ -166,19 +168,22 @@ public class NotificationRepository {
         return Response.noContent().build();
     }
 
-    public void createNotification(Notification notification) {
-        if (notification != null && notification.getRecipient() != null
-                && notification.getRecipient().getId() != null) {
-            UserNotificationSettings settings = userNotificationSettingsRepository
-                    .findByUserId(notification.getRecipient().getId()).orElse(null);
-            if (settings != null && !settings.isInAppEnabled()) {
-                return;
-            }
+    /**
+     * Delivers an informational notification in-app and by e-mail, each only if the recipient's
+     * master switch, that channel and the category are enabled.
+     */
+    public void createNotification(Notification notification, NotificationCategory category) {
+        if (notification == null || notification.getRecipient() == null || notification.getRecipient().getId() == null) {
+            return;
         }
-        entityManager.persist(notification);
-        outOfAppNotificationService.sendNotification(notification);
-        if (notification != null && notification.getRecipient() != null) {
+        UserNotificationSettings settings = userNotificationSettingsRepository
+                .findByUserId(notification.getRecipient().getId()).orElse(null);
+        if (UserNotificationSettings.allows(settings, category, false)) {
+            entityManager.persist(notification);
             notificationsChanged(notification.getRecipient().getId());
+        }
+        if (UserNotificationSettings.allows(settings, category, true)) {
+            outOfAppNotificationService.sendNotification(notification);
         }
     }
 

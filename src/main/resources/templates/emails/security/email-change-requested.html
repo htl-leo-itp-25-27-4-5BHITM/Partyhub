@@ -1,0 +1,16 @@
+{#include emails/security/layout}
+{#title}Someone asked to change your e-mail{/title}
+<p><strong>Hi {displayName},</strong></p>
+<p>A change of the e-mail address of your PartyHub account was requested.</p>
+<table class="details">
+    <tr><td>New address</td><td><strong>{maskedNewEmail}</strong></td></tr>
+    <tr><td>Requested</td><td>{requestedAt}</td></tr>
+    <tr><td>Device</td><td>{device}</td></tr>
+</table>
+<p>Your current address stays active until the new one is confirmed.</p>
+<p class="warning">If this wasn't you, stop the change and choose a new password right away:</p>
+<div class="actions">
+    <a href="{notMeUrl}" class="btn">This wasn't me</a>
+</div>
+<p class="muted">Questions? Write to {supportEmail}.</p>
+{/include}

@@ -86,8 +86,16 @@ GET {{host}}/api/media/999999
 ### Seed: media uploaded by Anna (only parties the caller can view)
 ###########################################
 GET {{host}}/api/users/1/media
+X-User-Id: 2
 
 ?? status == 200
+
+###########################################
+### Media of a private account is hidden from anonymous callers
+###########################################
+GET {{host}}/api/users/1/media
+
+?? status == 403
 
 
 ###########################################

@@ -181,6 +181,14 @@
       if (kcAction) {
         authUrl.searchParams.set("kc_action", kcAction);
       }
+      // prompt=login + max_age=0 make Keycloak ask for the password again (fresh auth_time),
+      // which the e-mail change requires.
+      if (options.prompt) {
+        authUrl.searchParams.set("prompt", options.prompt);
+      }
+      if (options.maxAge !== undefined) {
+        authUrl.searchParams.set("max_age", String(options.maxAge));
+      }
 
       window.location.replace(authUrl.toString());
     } catch (err) {
@@ -196,6 +204,12 @@
       });
       if (kcAction) {
         params.set("kc_action", kcAction);
+      }
+      if (options.prompt) {
+        params.set("prompt", options.prompt);
+      }
+      if (options.maxAge !== undefined) {
+        params.set("max_age", String(options.maxAge));
       }
       window.location.replace(`${config.authorizationEndpoint}?${params.toString()}`);
     }
@@ -323,7 +337,15 @@
     storeTokenResponse(tokenResponse);
     sessionStorage.removeItem(LOGIN_TRANSACTION_KEY);
     await loadCurrentUser();
-    window.location.replace(transaction.redirectTo || "/index.html");
+    window.location.replace(withActionStatus(transaction.redirectTo || "/index.html", params.get("kc_action_status")));
+  }
+
+  /** Hands Keycloak's application-initiated action result (success/cancelled/error) to the target page. */
+  function withActionStatus(target, status) {
+    if (!status) return target;
+    const url = new URL(target, window.location.origin);
+    url.searchParams.set("kc_action_status", status);
+    return `${url.pathname}${url.search}${url.hash}`;
   }
 
   function hasUsableAccessToken(minValiditySeconds = 0) {
