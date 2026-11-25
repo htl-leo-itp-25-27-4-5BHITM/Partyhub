@@ -814,8 +814,10 @@ function updateWebsite(party) {
     return;
   }
 
-  if (party.website) {
-    websiteElement.href = party.website;
+  const safeWebsite = window.inputSafety.website(party.website);
+  websiteElement.removeAttribute("href");
+  if (safeWebsite) {
+    websiteElement.href = safeWebsite;
     websiteElement.textContent = party.website;
     websiteElement.style.display = "block";
   } else {

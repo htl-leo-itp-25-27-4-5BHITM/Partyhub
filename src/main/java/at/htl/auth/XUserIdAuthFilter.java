@@ -26,14 +26,18 @@ public class XUserIdAuthFilter implements HttpAuthenticationMechanism {
     @ConfigProperty(name = "partyhub.auth.bypass-enabled", defaultValue = "false")
     boolean bypassEnabled;
 
+    static boolean allowsBypass(boolean enabled, io.quarkus.runtime.LaunchMode mode) {
+        return enabled && mode != io.quarkus.runtime.LaunchMode.NORMAL;
+    }
+
     @Override
     public Uni<SecurityIdentity> authenticate(RoutingContext context, IdentityProviderManager identityProviderManager) {
-        if (!bypassEnabled) {
+        if (!allowsBypass(bypassEnabled, io.quarkus.runtime.LaunchMode.current())) {
             return Uni.createFrom().nullItem();
         }
 
         String userId = context.request().getHeader("X-User-Id");
-        if (userId == null || userId.isBlank()) {
+        if (userId == null || !userId.matches("[1-9][0-9]{0,17}")) {
             return Uni.createFrom().nullItem();
         }
 
@@ -46,6 +50,7 @@ public class XUserIdAuthFilter implements HttpAuthenticationMechanism {
                         return userId;
                     }
                 })
+                .addAttribute("partyhub.test-bypass", true)
                 .addRole("user")
                 .build();
 

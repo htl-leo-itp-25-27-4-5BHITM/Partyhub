@@ -29,6 +29,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 @Produces(MediaType.APPLICATION_JSON)
 @Consumes(MediaType.APPLICATION_JSON)
 public class QrResource {
+    @org.eclipse.microprofile.config.inject.ConfigProperty(name="partyhub.qr.enabled", defaultValue="false")
+    boolean enabled;
 
     @Inject
     QrService qrService;
@@ -43,6 +45,7 @@ public class QrResource {
     @Path("/generate")
     @Authenticated
     public Response generate() {
+        if (!enabled) return Response.status(404).build();
         try {
             User user = currentUserResolver.requireCurrentUser();
 
@@ -55,13 +58,14 @@ public class QrResource {
                 put("imageUrl", "/api/qr/image/user/" + user.getId());
             }}).build();
         } catch (Exception e) {
-            return Response.status(500).entity(java.util.Map.of("error", e.getMessage())).build();
+            return Response.status(500).entity(java.util.Map.of("error", "Unable to process QR request")).build();
         }
     }
 
     @GET
     @Path("/status/{token}")
-    public Response status(@jakarta.ws.rs.PathParam("token") String token) {
+    public Response status(@jakarta.ws.rs.PathParam("token") @jakarta.validation.constraints.Pattern(regexp="[A-Za-z0-9_-]{1,512}") String token) {
+        if (!enabled) return Response.status(404).build();
         var opt = qrService.findByToken(token);
         if (opt.isEmpty()) return Response.status(404).build();
         QrLogin q = opt.get();
@@ -74,7 +78,8 @@ public class QrResource {
     @GET
     @Path("/image/user/{userId}")
     @Produces("image/png")
-    public Response imageByUserId(@jakarta.ws.rs.PathParam("userId") Long userId) {
+    public Response imageByUserId(@jakarta.ws.rs.PathParam("userId") @jakarta.validation.constraints.Positive Long userId) {
+        if (!enabled) return Response.status(404).build();
         var optUser = userRepository.findById(userId);
         if (optUser.isEmpty()) return Response.status(404).build();
         
@@ -87,14 +92,15 @@ public class QrResource {
             byte[] bytes = baos.toByteArray();
             return Response.ok(bytes).build();
         } catch (com.google.zxing.WriterException | java.io.IOException e) {
-            return Response.serverError().entity(java.util.Map.of("error", e.getMessage())).build();
+            return Response.serverError().entity(java.util.Map.of("error", "Unable to process QR request")).build();
         }
     }
 
     @GET
     @Path("/image/{token}")
     @Produces("image/png")
-    public Response image(@jakarta.ws.rs.PathParam("token") String token) {
+    public Response image(@jakarta.ws.rs.PathParam("token") @jakarta.validation.constraints.Pattern(regexp="[A-Za-z0-9_-]{1,512}") String token) {
+        if (!enabled) return Response.status(404).build();
         var opt = qrService.findByToken(token);
         if (opt.isEmpty()) return Response.status(404).build();
         QrLogin q = opt.get();
@@ -108,15 +114,16 @@ public class QrResource {
             byte[] bytes = baos.toByteArray();
             return Response.ok(bytes).build();
         } catch (com.google.zxing.WriterException | java.io.IOException e) {
-            return Response.serverError().entity(java.util.Map.of("error", e.getMessage())).build();
+            return Response.serverError().entity(java.util.Map.of("error", "Unable to process QR request")).build();
         }
     }
 
     @POST
     @Path("/exchange")
-    public Response exchange(java.util.Map<String, String> body) {
-        String token = body.get("token");
-        if (token == null) return Response.status(400).build();
+    public Response exchange(@jakarta.validation.constraints.NotNull java.util.Map<String, Object> body) {
+        if (!enabled) return Response.status(404).build();
+        if (!(body.get("token") instanceof String token) || !token.matches("[A-Za-z0-9_-]{1,512}"))
+            return at.htl.validation.InputExceptionMappers.invalid();
 
         var opt = qrService.findValidByToken(token);
         if (opt.isEmpty()) return Response.status(404).build();
@@ -129,9 +136,10 @@ public class QrResource {
 
     @POST
     @Path("/mobile/me")
-    public Response mobileMe(java.util.Map<String, String> body) {
-        String mobileJwt = body.get("mobile_token");
-        if (mobileJwt == null) return Response.status(400).build();
+    public Response mobileMe(@jakarta.validation.constraints.NotNull java.util.Map<String, Object> body) {
+        if (!enabled) return Response.status(404).build();
+        if (!(body.get("mobile_token") instanceof String mobileJwt) || mobileJwt.length() > 4096)
+            return at.htl.validation.InputExceptionMappers.invalid();
 
         try {
             // verify HMAC-SHA256 signature using same secret 'secret123'
@@ -164,8 +172,10 @@ public class QrResource {
 
             // success: return user id and optionally a JWT for mobile to use as Bearer
             return Response.ok(java.util.Map.of("userId", Long.toString(subInt))).build();
+        } catch (java.security.GeneralSecurityException e) {
+            return Response.serverError().entity(java.util.Map.of("error", "Unable to process QR request")).build();
         } catch (Exception e) {
-            return Response.status(500).entity(java.util.Map.of("error", e.getMessage())).build();
+            return at.htl.validation.InputExceptionMappers.invalid();
         }
     }
 }

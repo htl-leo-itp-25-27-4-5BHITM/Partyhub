@@ -173,7 +173,7 @@ public class MediaRepository {
         }
         Path path = stored.get();
         try {
-            return ImageType.detect(path).map(type -> new StoredImage(path, type));
+            return ImageType.storedType(path).map(type -> new StoredImage(path, type));
         } catch (IOException e) {
             logger.errorf("Failed to read backing image for media %d: %s", media.getId(), e.getMessage());
             return Optional.empty();

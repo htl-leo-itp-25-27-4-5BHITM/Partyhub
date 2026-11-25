@@ -32,8 +32,8 @@ public class NotificationResource {
     @Authenticated
     public Response getNotifications(
             @QueryParam("partyId") Long partyId,
-            @QueryParam("type") String type,
-            @QueryParam("search") String search) {
+            @QueryParam("type") @jakarta.validation.constraints.Size(max=50) String type,
+            @QueryParam("search") @jakarta.validation.constraints.Size(max=200) String search) {
         Long actualUserId = currentUserResolver.requireCurrentUserId();
         List<NotificationDto> notifications = notificationRepository
                 .getNotificationsByUser(actualUserId, partyId, type, search)
@@ -84,7 +84,7 @@ public class NotificationResource {
     @Transactional
     @Authenticated
     public Response markAsRead(
-            @PathParam("id") Long notificationId) {
+            @PathParam("id") @jakarta.validation.constraints.Positive Long notificationId) {
         Long actualUserId = currentUserResolver.requireCurrentUserId();
         return notificationRepository.markAsRead(notificationId, actualUserId);
     }
@@ -94,7 +94,7 @@ public class NotificationResource {
     @Transactional
     @Authenticated
     public Response deleteNotification(
-            @PathParam("id") Long notificationId) {
+            @PathParam("id") @jakarta.validation.constraints.Positive Long notificationId) {
         Long actualUserId = currentUserResolver.requireCurrentUserId();
         return notificationRepository.deleteNotification(notificationId, actualUserId);
     }

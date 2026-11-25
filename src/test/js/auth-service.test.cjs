@@ -13,6 +13,14 @@ function harness(initial={}) {
  return {auth:window.authService,window,store,navigations,fire:(type,event)=>(listeners[type]||[]).forEach(fn=>fn(event)),get refreshes(){return refreshes}};
 }
 (async()=>{
+ for (const redirectTo of ['https://evil.example', '//evil.example', '/\\evil.example', '/\n/evil.example']) {
+  const safe=harness();await safe.auth.login({redirectTo});
+  assert.equal(JSON.parse(safe.store.get('partyhub_oidc_transaction')).redirectTo,'/index.html');
+ }
+ const internal=harness();await internal.auth.login({redirectTo:'/profile/profile.html?id=2#bio'});
+ assert.equal(JSON.parse(internal.store.get('partyhub_oidc_transaction')).redirectTo,'/profile/profile.html?id=2#bio');
+ const corrupt=harness({'partyhub_oidc_transaction':'{bad json'});await corrupt.auth.init();assert.equal(corrupt.auth.isLoggedIn(),false);
+
  const h=harness({'partyhub_keycloak_session':JSON.stringify({accessToken:'expired',refreshToken:'original',expiresAt:1}), 'partyhub_current_user':JSON.stringify({id:1})});
  await h.auth.init();assert.equal(h.refreshes,1);await Promise.all([h.auth.updateToken(1000),h.auth.updateToken(1000),h.auth.updateToken(1000)]);assert.equal(h.refreshes,2);h.store.set('partyhub_keycloak_session',JSON.stringify({accessToken:'expired',refreshToken:'original',expiresAt:1}));await h.auth.init();assert.equal(h.refreshes,3);
  h.auth.clearAuth();assert.equal(h.auth.isLoggedIn(),false);

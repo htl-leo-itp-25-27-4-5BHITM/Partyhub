@@ -1,3 +1,4 @@
+<#ftl output_format="HTML" auto_esc=true>
 <#import "template.ftl" as layout>
 <@layout.registrationLayout displayMessage=true; section>
     <#if section = "header">
@@ -8,7 +9,7 @@
         <div class="brand-header">
             <h1>PartyHub</h1>
             <p class="brand-tagline">Discover &amp; Share</p>
-            <p class="brand-subtitle">${msg("loginTitle",(realm.displayName!""))?no_esc}</p>
+            <p class="brand-subtitle">${msg("loginTitle",(realm.displayName!""))}</p>
         </div>
 
         <div id="kc-form">

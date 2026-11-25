@@ -5,17 +5,17 @@ package at.htl.notificationsettings;
  * so older clients that do not know the newer switches cannot turn them off by accident.
  */
 public record NotificationSettingsDto(
-    Boolean allEnabled,
-    Boolean emailEnabled,
-    Boolean pushEnabled,
-    Boolean smsEnabled,
-    Boolean inAppEnabled,
-    Boolean partyInvites,
-    Boolean invitationResponses,
-    Boolean partyUpdates,
-    Boolean partyCancellations,
-    Boolean followEvents,
-    Boolean unfollows
+    @com.fasterxml.jackson.databind.annotation.JsonDeserialize(using=at.htl.validation.StrictBooleanDeserializer.class) Boolean allEnabled,
+    @com.fasterxml.jackson.databind.annotation.JsonDeserialize(using=at.htl.validation.StrictBooleanDeserializer.class) Boolean emailEnabled,
+    @com.fasterxml.jackson.databind.annotation.JsonDeserialize(using=at.htl.validation.StrictBooleanDeserializer.class) Boolean pushEnabled,
+    @com.fasterxml.jackson.databind.annotation.JsonDeserialize(using=at.htl.validation.StrictBooleanDeserializer.class) Boolean smsEnabled,
+    @com.fasterxml.jackson.databind.annotation.JsonDeserialize(using=at.htl.validation.StrictBooleanDeserializer.class) Boolean inAppEnabled,
+    @com.fasterxml.jackson.databind.annotation.JsonDeserialize(using=at.htl.validation.StrictBooleanDeserializer.class) Boolean partyInvites,
+    @com.fasterxml.jackson.databind.annotation.JsonDeserialize(using=at.htl.validation.StrictBooleanDeserializer.class) Boolean invitationResponses,
+    @com.fasterxml.jackson.databind.annotation.JsonDeserialize(using=at.htl.validation.StrictBooleanDeserializer.class) Boolean partyUpdates,
+    @com.fasterxml.jackson.databind.annotation.JsonDeserialize(using=at.htl.validation.StrictBooleanDeserializer.class) Boolean partyCancellations,
+    @com.fasterxml.jackson.databind.annotation.JsonDeserialize(using=at.htl.validation.StrictBooleanDeserializer.class) Boolean followEvents,
+    @com.fasterxml.jackson.databind.annotation.JsonDeserialize(using=at.htl.validation.StrictBooleanDeserializer.class) Boolean unfollows
 ) {
     public static NotificationSettingsDto from(UserNotificationSettings settings) {
         return new NotificationSettingsDto(

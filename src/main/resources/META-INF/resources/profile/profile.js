@@ -1062,8 +1062,9 @@ document.addEventListener("DOMContentLoaded", async function () {
   }
 
   function buildPartyDetailsHtml(party) {
-    const website = party?.website
-      ? `<a class="party-detail-link" href="${escapeHtml(party.website)}" target="_blank" rel="noopener">${escapeHtml(party.website)}</a>`
+    const safeWebsite = window.inputSafety.website(party?.website);
+    const website = safeWebsite
+      ? `<a class="party-detail-link" href="${escapeHtml(safeWebsite)}" target="_blank" rel="noopener">${escapeHtml(safeWebsite)}</a>`
       : `<span class="party-detail-value">-</span>`;
 
     return `
@@ -1397,14 +1398,20 @@ document.addEventListener("DOMContentLoaded", async function () {
       const item = document.createElement("div");
       item.className = "search-result-item";
 
-      item.innerHTML = `
-        <img src="/api/users/${user.id}/profile-picture" class="search-result-avatar"
-             onerror="this.onerror=null;this.src='${defaultAvatarDataUri()}';">
-        <div class="search-result-info">
-          <div class="search-result-name">${user.displayName || user.name || user.distinctName || ""}</div>
-          <div class="search-result-distinct-name">@${user.distinctName || ""}</div>
-        </div>
-      `;
+      const avatar = document.createElement("img");
+      avatar.src = `/api/users/${encodeURIComponent(user.id)}/profile-picture`;
+      avatar.className = "search-result-avatar";
+      avatar.addEventListener("error", () => { avatar.src = defaultAvatarDataUri(); }, { once: true });
+      const info = document.createElement("div");
+      info.className = "search-result-info";
+      const name = document.createElement("div");
+      name.className = "search-result-name";
+      name.textContent = user.displayName || user.name || user.distinctName || "";
+      const handle = document.createElement("div");
+      handle.className = "search-result-distinct-name";
+      handle.textContent = `@${user.distinctName || ""}`;
+      info.append(name, handle);
+      item.append(avatar, info);
 
       const action = document.createElement("div");
       action.className = "search-action";
@@ -1660,7 +1667,9 @@ document.addEventListener("DOMContentLoaded", async function () {
       const btn = document.createElement("button");
       btn.type = "button";
       btn.className = "username-item";
-      btn.innerHTML = `<span>@${user.distinctName || user.displayName || user.id}</span>`;
+      const label = document.createElement("span");
+      label.textContent = `@${user.distinctName || user.displayName || user.id}`;
+      btn.appendChild(label);
 
       btn.addEventListener("click", (event) => {
         event.stopPropagation();

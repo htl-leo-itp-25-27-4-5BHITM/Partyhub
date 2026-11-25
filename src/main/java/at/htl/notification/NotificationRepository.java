@@ -84,7 +84,7 @@ public class NotificationRepository {
             query.setParameter("search", "%" + search.toLowerCase() + "%");
         }
 
-        return query.getResultList();
+        return query.setMaxResults(100).getResultList();
     }
 
     public List<Notification> getUnreadNotifications(Long userId) {

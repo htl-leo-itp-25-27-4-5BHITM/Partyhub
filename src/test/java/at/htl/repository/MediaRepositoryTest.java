@@ -33,7 +33,14 @@ import static org.junit.jupiter.api.Assertions.*;
 @Transactional
 public class MediaRepositoryTest {
 
-    static final byte[] PNG_BYTES = {(byte) 0x89, 'P', 'N', 'G', 0x0D, 0x0A, 0x1A, 0x0A, 0, 0, 0, 0};
+    static final byte[] PNG_BYTES = fixture("png");
+
+    private static byte[] fixture(String extension) {
+        try (var in = MediaRepositoryTest.class.getResourceAsStream("/validation/valid." + extension)) {
+            if (in == null) throw new IllegalStateException("Missing image fixture");
+            return in.readAllBytes();
+        } catch (IOException e) { throw new IllegalStateException(e); }
+    }
 
     @Inject
     MediaRepository mediaRepository;
@@ -257,10 +264,10 @@ public class MediaRepositoryTest {
     @Test
     void testImageTypeDetection() throws IOException {
         Path dir = Files.createDirectories(Paths.get(uploadDir, "sniff"));
-        assertEquals(Optional.of(ImageType.JPEG), detect(dir, "a", new byte[]{(byte) 0xFF, (byte) 0xD8, (byte) 0xFF, (byte) 0xE0}));
+        assertEquals(Optional.of(ImageType.JPEG), detect(dir, "a", fixture("jpg")));
         assertEquals(Optional.of(ImageType.PNG), detect(dir, "b", PNG_BYTES));
-        assertEquals(Optional.of(ImageType.GIF), detect(dir, "c", "GIF89a".getBytes()));
-        assertEquals(Optional.of(ImageType.WEBP), detect(dir, "d", "RIFF\0\0\0\0WEBPVP8 ".getBytes()));
+        assertEquals(Optional.of(ImageType.GIF), detect(dir, "c", fixture("gif")));
+        assertEquals(Optional.of(ImageType.WEBP), detect(dir, "d", fixture("webp")));
         assertEquals(Optional.empty(), detect(dir, "e", "<html>hello</html>".getBytes()));
         assertEquals(Optional.empty(), detect(dir, "f", new byte[0]));
     }

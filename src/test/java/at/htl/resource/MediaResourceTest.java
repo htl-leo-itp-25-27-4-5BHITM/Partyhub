@@ -37,8 +37,17 @@ import static org.junit.jupiter.api.Assertions.*;
 @QuarkusTest
 public class MediaResourceTest extends TestBase {
 
-    static final byte[] PNG = {(byte) 0x89, 'P', 'N', 'G', 0x0D, 0x0A, 0x1A, 0x0A, 0, 0, 0, 13, 'I', 'H', 'D', 'R'};
-    static final byte[] JPEG = {(byte) 0xFF, (byte) 0xD8, (byte) 0xFF, (byte) 0xE0, 0, 16, 'J', 'F', 'I', 'F'};
+    static final byte[] PNG = image("png");
+    static final byte[] JPEG = image("jpg");
+
+    private static byte[] image(String format) {
+        try {
+            var out = new java.io.ByteArrayOutputStream();
+            javax.imageio.ImageIO.write(new java.awt.image.BufferedImage(2, 2,
+                    java.awt.image.BufferedImage.TYPE_INT_RGB), format, out);
+            return out.toByteArray();
+        } catch (java.io.IOException e) { throw new IllegalStateException(e); }
+    }
 
     @Inject
     EntityManager em;

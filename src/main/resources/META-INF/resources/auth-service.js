@@ -142,6 +142,14 @@
     removeLegacyLocalAuth();
   }
 
+  function safeReturnPath(value) {
+    if (typeof value !== "string" || !value.startsWith("/") || value.startsWith("//") || /[\\\u0000-\u0020\u007f]/.test(value)) return "/index.html";
+    try {
+      const target = new URL(value, window.location.origin);
+      return target.origin === window.location.origin ? `${target.pathname}${target.search}${target.hash}` : "/index.html";
+    } catch { return "/index.html"; }
+  }
+
   function getIntendedPath() {
     return `${window.location.pathname}${window.location.search}${window.location.hash}`;
   }
@@ -154,7 +162,7 @@
     const codeChallenge = await sha256Base64Url(codeVerifier);
     const state = randomBase64Url(32);
     const nonce = randomBase64Url(32);
-    const redirectTo = options.redirectTo || getIntendedPath() || "/index.html";
+    const redirectTo = safeReturnPath(options.redirectTo || getIntendedPath());
 
     writeJson(LOGIN_TRANSACTION_KEY, {
       state,
@@ -223,7 +231,7 @@
     const codeChallenge = await sha256Base64Url(codeVerifier);
     const state = randomBase64Url(32);
     const nonce = randomBase64Url(32);
-    const redirectTo = options.redirectTo || getIntendedPath() || "/index.html";
+    const redirectTo = safeReturnPath(options.redirectTo || getIntendedPath());
 
     writeJson(LOGIN_TRANSACTION_KEY, {
       state,
@@ -337,7 +345,7 @@
     storeTokenResponse(tokenResponse);
     sessionStorage.removeItem(LOGIN_TRANSACTION_KEY);
     await loadCurrentUser();
-    window.location.replace(withActionStatus(transaction.redirectTo || "/index.html", params.get("kc_action_status")));
+    window.location.replace(withActionStatus(safeReturnPath(transaction.redirectTo), params.get("kc_action_status")));
   }
 
   /** Hands Keycloak's application-initiated action result (success/cancelled/error) to the target page. */

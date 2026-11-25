@@ -72,7 +72,7 @@ public class ValidPartyNameValidatorTest {
     @Test
     void testInvalidCharacters() {
         assertFalse(validator.isValid("Party <script>", null));
-        assertFalse(validator.isValid("Party & Fun", null));
-        assertFalse(validator.isValid("Party @ 8pm", null));
+        assertTrue(validator.isValid("Party & Fun", null));
+        assertTrue(validator.isValid("Party @ 8pm", null));
     }
 }

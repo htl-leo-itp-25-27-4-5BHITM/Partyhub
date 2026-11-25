@@ -23,7 +23,7 @@ public class InvitationResource {
     @Produces(MediaType.APPLICATION_JSON)
     @Transactional
     @Authenticated
-    public Response createInvitation(@Valid InvitationDto invitationDto) {
+    public Response createInvitation(@jakarta.validation.constraints.NotNull @Valid InvitationDto invitationDto) {
         Long actualUserId = currentUserResolver.requireCurrentUserId();
         return invitationRepository.invite(invitationDto, actualUserId);
     }
@@ -35,7 +35,7 @@ public class InvitationResource {
         Long actualUserId = currentUserResolver.requireCurrentUserId();
         if (actualUserId == null) {
             return Response.status(Response.Status.BAD_REQUEST)
-                    .entity("{\"error\": \"User ID required\"}")
+                    .entity(java.util.Map.of("error", "User ID required"))
                     .build();
         }
         
@@ -50,7 +50,7 @@ public class InvitationResource {
     @Transactional
     @Path("/{id}")
     @Authenticated
-    public Response deleteInvitation(@PathParam("id") Long id) {
+    public Response deleteInvitation(@PathParam("id") @jakarta.validation.constraints.Positive Long id) {
         Long actualUserId = currentUserResolver.requireCurrentUserId();
         return invitationRepository.deleteInvite(id, actualUserId);
     }
@@ -59,7 +59,7 @@ public class InvitationResource {
     @Produces(MediaType.APPLICATION_JSON)
     @Path("/{id}/details")
     @Authenticated
-    public Response getInvitationDetails(@PathParam("id") Long id) {
+    public Response getInvitationDetails(@PathParam("id") @jakarta.validation.constraints.Positive Long id) {
         Long actualUserId = currentUserResolver.requireCurrentUserId();
         return invitationRepository.getInvitationDetails(id, actualUserId);
     }
@@ -69,7 +69,7 @@ public class InvitationResource {
     @Transactional
     @Path("/{id}/accept")
     @Authenticated
-    public Response acceptInvitation(@PathParam("id") Long id) {
+    public Response acceptInvitation(@PathParam("id") @jakarta.validation.constraints.Positive Long id) {
         Long actualUserId = currentUserResolver.requireCurrentUserId();
         return invitationRepository.acceptInvite(id, actualUserId);
     }
@@ -79,7 +79,7 @@ public class InvitationResource {
     @Transactional
     @Path("/{id}/decline")
     @Authenticated
-    public Response declineInvitation(@PathParam("id") Long id) {
+    public Response declineInvitation(@PathParam("id") @jakarta.validation.constraints.Positive Long id) {
         Long actualUserId = currentUserResolver.requireCurrentUserId();
         return invitationRepository.declineInvite(id, actualUserId);
     }

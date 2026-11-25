@@ -40,7 +40,7 @@ public class BringAlongResource {
     // Not @Authenticated: public parties expose an anonymised list to visitors (see resolveReader).
     @GET
     @Transactional
-    public List<BringAlongItemDto> list(@PathParam("partyId") Long partyId) {
+    public List<BringAlongItemDto> list(@PathParam("partyId") @jakarta.validation.constraints.Positive Long partyId) {
         Reader reader = resolveReader(partyId);
         List<BringAlongItem> items = em.createQuery(
                         "select i from BringAlongItem i where i.party.id = :partyId order by i.createdAt, i.id",
@@ -63,7 +63,7 @@ public class BringAlongResource {
     @Path("/events")
     @Produces(MediaType.SERVER_SENT_EVENTS)
     @Transactional
-    public void events(@PathParam("partyId") Long partyId, @Context SseEventSink sink, @Context Sse sse,
+    public void events(@PathParam("partyId") @jakarta.validation.constraints.Positive Long partyId, @Context SseEventSink sink, @Context Sse sse,
                        @Context HttpServerResponse response) {
         requireMember(partyId);
         // Stop nginx-style proxies from buffering the stream.
@@ -77,7 +77,7 @@ public class BringAlongResource {
     @Path("/items")
     @Consumes(MediaType.APPLICATION_JSON)
     @Transactional
-    public Response createItem(@PathParam("partyId") Long partyId, @Valid BringAlongItemRequest request) {
+    public Response createItem(@PathParam("partyId") @jakarta.validation.constraints.Positive Long partyId, @jakarta.validation.constraints.NotNull @Valid BringAlongItemRequest request) {
         Member member = requireHost(partyId);
         BringAlongItem item = new BringAlongItem();
         item.party = member.party();
@@ -93,8 +93,8 @@ public class BringAlongResource {
     @Path("/items/{itemId}")
     @Consumes(MediaType.APPLICATION_JSON)
     @Transactional
-    public BringAlongItemDto updateItem(@PathParam("partyId") Long partyId, @PathParam("itemId") Long itemId,
-                                        @Valid BringAlongItemRequest request) {
+    public BringAlongItemDto updateItem(@PathParam("partyId") @jakarta.validation.constraints.Positive Long partyId, @PathParam("itemId") @jakarta.validation.constraints.Positive Long itemId,
+                                        @jakarta.validation.constraints.NotNull @Valid BringAlongItemRequest request) {
         requireHost(partyId);
         BringAlongItem item = requireItem(partyId, itemId, LockModeType.NONE);
         apply(item, request);
@@ -106,7 +106,7 @@ public class BringAlongResource {
     @DELETE
     @Path("/items/{itemId}")
     @Transactional
-    public Response deleteItem(@PathParam("partyId") Long partyId, @PathParam("itemId") Long itemId) {
+    public Response deleteItem(@PathParam("partyId") @jakarta.validation.constraints.Positive Long partyId, @PathParam("itemId") @jakarta.validation.constraints.Positive Long itemId) {
         requireHost(partyId);
         BringAlongItem item = requireItem(partyId, itemId, LockModeType.NONE);
         em.createQuery("delete from BringAlongPledge p where p.item.id = :itemId")
@@ -121,8 +121,8 @@ public class BringAlongResource {
     @Path("/items/{itemId}/pledge")
     @Consumes(MediaType.APPLICATION_JSON)
     @Transactional
-    public Response pledge(@PathParam("partyId") Long partyId, @PathParam("itemId") Long itemId,
-                           @Valid BringAlongPledgeRequest request) {
+    public Response pledge(@PathParam("partyId") @jakarta.validation.constraints.Positive Long partyId, @PathParam("itemId") @jakarta.validation.constraints.Positive Long itemId,
+                           @jakarta.validation.constraints.NotNull @Valid BringAlongPledgeRequest request) {
         Member member = requireMember(partyId);
         // Lock the item so concurrent pledges cannot together exceed the required quantity.
         BringAlongItem item = requireItem(partyId, itemId, LockModeType.PESSIMISTIC_WRITE);
@@ -161,7 +161,7 @@ public class BringAlongResource {
     @DELETE
     @Path("/items/{itemId}/pledge")
     @Transactional
-    public Response withdrawPledge(@PathParam("partyId") Long partyId, @PathParam("itemId") Long itemId) {
+    public Response withdrawPledge(@PathParam("partyId") @jakarta.validation.constraints.Positive Long partyId, @PathParam("itemId") @jakarta.validation.constraints.Positive Long itemId) {
         Member member = requireMember(partyId);
         BringAlongItem item = requireItem(partyId, itemId, LockModeType.PESSIMISTIC_WRITE);
         int removed = em.createQuery("delete from BringAlongPledge p where p.item.id = :itemId and p.user.id = :userId")

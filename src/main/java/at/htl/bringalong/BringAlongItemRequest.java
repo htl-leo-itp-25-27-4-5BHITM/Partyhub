@@ -1,7 +1,7 @@
 package at.htl.bringalong;
 
 import at.htl.validation.NoHtml;
-import at.htl.validation.SafeText;
+import at.htl.validation.TextInput;
 import at.htl.validation.StrictIntDeserializer;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import jakarta.validation.constraints.*;
@@ -9,13 +9,15 @@ import jakarta.validation.constraints.*;
 public record BringAlongItemRequest(
         @NotBlank(message = "Name is required")
         @Size(max = 100, message = "Name must be at most 100 characters")
-        @SafeText(message = "Name contains invalid content")
         @NoHtml(message = "Name must not contain HTML")
+        @TextInput
+        @com.fasterxml.jackson.databind.annotation.JsonDeserialize(using=at.htl.validation.StrictTextDeserializer.class)
         String name,
 
         @Size(max = 30, message = "Unit must be at most 30 characters")
-        @SafeText(message = "Unit contains invalid content")
         @NoHtml(message = "Unit must not contain HTML")
+        @TextInput
+        @com.fasterxml.jackson.databind.annotation.JsonDeserialize(using=at.htl.validation.StrictTextDeserializer.class)
         String unit,
 
         @NotNull(message = "Quantity is required")

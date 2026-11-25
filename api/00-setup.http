@@ -3,137 +3,57 @@
 @partiesUrl = {{host}}/api/parties
 
 ###########################################
-### CI setup: create users expected by smoke tests
+### CI fixtures are loaded by the dev seed, never created through a public account API.
 ###########################################
-POST {{usersUrl}}
-Content-Type: application/json
+GET {{usersUrl}}/1
+X-User-Id: 1
 
-{
-  "displayName": "Anna Test",
-  "distinctName": "anna",
-  "email": "anna@example.test",
-  "phoneNumber": "+430000000001",
-  "biography": "HTTPYac setup user"
-}
+?? status == 200
 
-?? status == 201
+GET {{usersUrl}}/2
+X-User-Id: 1
 
-POST {{usersUrl}}
-Content-Type: application/json
+?? status == 200
 
-{
-  "displayName": "Michael Test",
-  "distinctName": "michael",
-  "email": "michael@example.test",
-  "phoneNumber": "+430000000002",
-  "biography": "HTTPYac setup user"
-}
+GET {{usersUrl}}/3
+X-User-Id: 1
 
-?? status == 201
+?? status == 200
 
-POST {{usersUrl}}
-Content-Type: application/json
+GET {{usersUrl}}/4
+X-User-Id: 1
 
-{
-  "displayName": "Katrin Test",
-  "distinctName": "katrin",
-  "email": "katrin@example.test",
-  "phoneNumber": "+430000000003",
-  "biography": "HTTPYac setup user"
-}
+?? status == 200
 
-?? status == 201
+GET {{usersUrl}}/5
+X-User-Id: 1
 
-POST {{usersUrl}}
-Content-Type: application/json
+?? status == 200
 
-{
-  "displayName": "Thomas Test",
-  "distinctName": "thomas",
-  "email": "thomas@example.test",
-  "phoneNumber": "+430000000004",
-  "biography": "HTTPYac setup user"
-}
+GET {{usersUrl}}/6
+X-User-Id: 1
 
-?? status == 201
+?? status == 200
 
-POST {{usersUrl}}
-Content-Type: application/json
+GET {{usersUrl}}/7
+X-User-Id: 1
 
-{
-  "displayName": "Sabine Test",
-  "distinctName": "sabine",
-  "email": "sabine@example.test",
-  "phoneNumber": "+430000000005",
-  "biography": "HTTPYac setup user"
-}
+?? status == 200
 
-?? status == 201
+GET {{usersUrl}}/8
+X-User-Id: 1
 
-POST {{usersUrl}}
-Content-Type: application/json
+?? status == 200
 
-{
-  "displayName": "Lukas Test",
-  "distinctName": "lukas",
-  "email": "lukas@example.test",
-  "phoneNumber": "+430000000006",
-  "biography": "HTTPYac setup user"
-}
+GET {{usersUrl}}/9
+X-User-Id: 1
 
-?? status == 201
+?? status == 200
 
-POST {{usersUrl}}
-Content-Type: application/json
+GET {{usersUrl}}/10
+X-User-Id: 1
 
-{
-  "displayName": "Mia Test",
-  "distinctName": "mia",
-  "email": "mia@example.test",
-  "phoneNumber": "+430000000007",
-  "biography": "HTTPYac setup user"
-}
-
-?? status == 201
-
-POST {{usersUrl}}
-Content-Type: application/json
-
-{
-  "displayName": "David Test",
-  "distinctName": "david",
-  "email": "david@example.test",
-  "phoneNumber": "+430000000008",
-  "biography": "HTTPYac setup user"
-}
-
-?? status == 201
-
-POST {{usersUrl}}
-Content-Type: application/json
-
-{
-  "displayName": "Nina Test",
-  "distinctName": "nina",
-  "email": "nina@example.test",
-  "phoneNumber": "+430000000009",
-  "biography": "HTTPYac setup user"
-}
-
-?? status == 201
-
-POST {{usersUrl}}
-Content-Type: application/json
-
-{
-  "displayName": "Elias Test",
-  "distinctName": "elias",
-  "email": "elias@example.test",
-  "phoneNumber": "+430000000010",
-  "biography": "HTTPYac setup user"
-}
-
-?? status == 201
+?? status == 200
 
 ###########################################
 ### Locations are not stored on the server (spec: device location stays client-side)
@@ -243,7 +163,7 @@ Content-Type: application/json
   "location_address": "Tabakfabrik Linz",
   "theme": "Birthday",
   "visibility": "PRIVATE",
-  "selectedUsers": ["2", "8"]
+  "selectedUsers": []
 }
 
 ?? status == 201
@@ -363,7 +283,7 @@ Content-Type: application/json
   "location_address": "Traun Schlosspark",
   "theme": "Dinner",
   "visibility": "PRIVATE",
-  "selectedUsers": ["1", "3"]
+  "selectedUsers": []
 }
 
 ?? status == 201

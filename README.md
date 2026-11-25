@@ -90,12 +90,14 @@ Keycloak runs at http://localhost:8000 and imports the `partyhub` realm from
 `keycloak/realm-dev.json` (`keycloak/realm-staging.json` is the realm baked into
 the deployment image). Keycloak admin console: bootstrap user `admin` / `admin`.
 
-Local demo users (password = username), for example:
+Fresh realm imports use demo passwords `Demo-<username>-2026!`, for example:
 
 ```text
 Username: viki_vej
-Password: viki_vej
+Password: Demo-viki_vej-2026!
 ```
+
+Existing realms retain their current passwords; these values apply to fresh imports and satisfy the realm’s `notUsername` policy.
 
 Each demo user matches exactly one seeded PartyHub user (seed users are stored
 without a Keycloak ID) and is linked on first login. If the `frontend` client

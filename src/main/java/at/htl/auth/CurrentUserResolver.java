@@ -31,6 +31,9 @@ public class CurrentUserResolver {
     @Inject
     WelcomeEmailService welcomeEmailService;
 
+    @Inject
+    jakarta.validation.Validator validator;
+
     @Transactional
     public User requireCurrentUser() {
         String subject = currentSubject()
@@ -104,6 +107,8 @@ public class CurrentUserResolver {
     }
 
     private Optional<User> tryFindByNumericId(String subject) {
+        if (securityIdentity == null || !Boolean.TRUE.equals(securityIdentity.getAttribute("partyhub.test-bypass")))
+            return Optional.empty();
         try {
             long id = Long.parseLong(subject);
             return userRepository.findById(id);
@@ -116,8 +121,12 @@ public class CurrentUserResolver {
         String username = claimAsString("preferred_username")
                 .or(() -> claimAsString("username"))
                 .or(this::principalName)
+                .filter(at.htl.validation.InputPolicy::handle)
                 .orElse(null);
-        String email = claimAsString("email").orElse(null);
+        String email = claimAsString("email")
+                .map(at.htl.validation.InputPolicy::optional)
+                .filter(value -> validator.validate(new at.htl.user.UserCreateDto(null, null, value, null, null)).isEmpty())
+                .orElse(null);
 
         Optional<User> existingUser = userRepository.findUnlinkedByUsernameOrEmail(username, email);
         if (existingUser.isPresent()) {
@@ -131,6 +140,7 @@ public class CurrentUserResolver {
         user.setEmail(email);
         user.setDisplayName(claimAsString("name")
                 .or(() -> claimAsString("given_name"))
+                .filter(value -> at.htl.validation.InputPolicy.singleLine(value, 255))
                 .orElse(user.getUsername()));
         userRepository.persist(user);
 
@@ -164,7 +174,7 @@ public class CurrentUserResolver {
     private Optional<String> claimAsString(String claimName) {
         return safeString(() -> {
             Object value = jwt.getClaim(claimName);
-            return value != null ? value.toString() : null;
+            return value instanceof String text ? text : null;
         });
     }
 

@@ -43,7 +43,7 @@ public void setDeviceToken(String deviceToken) { this.deviceToken = deviceToken;
     @Column(name = "phone_number")
     private String phoneNumber;
 
-    @Column(nullable = true)
+    @Column(nullable = true, length = 2000)
     private String biography;
 
     @Enumerated(EnumType.STRING)

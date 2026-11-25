@@ -20,6 +20,9 @@ public class QrService {
     @Inject
     QrLoginRepository qrRepo;
 
+    @Inject
+    com.fasterxml.jackson.databind.ObjectMapper objectMapper;
+
     @Transactional
     public QrLogin generateForUser(Long userId) {
         QrLogin q = new QrLogin();
@@ -62,7 +65,7 @@ public class QrService {
             long exp = Instant.now().plus(30, ChronoUnit.MINUTES).getEpochSecond();
 
             String header = Base64.getUrlEncoder().withoutPadding().encodeToString("{\"alg\":\"HS256\",\"typ\":\"JWT\"}".getBytes(StandardCharsets.UTF_8));
-            String payloadJson = String.format("{\"sub\":\"%d\",\"jti\":\"%s\",\"exp\":%d}", q.getUserId(), jti, exp);
+            String payloadJson = objectMapper.writeValueAsString(java.util.Map.of("sub", q.getUserId().toString(), "jti", jti, "exp", exp));
             String payload = Base64.getUrlEncoder().withoutPadding().encodeToString(payloadJson.getBytes(StandardCharsets.UTF_8));
 
             String signingInput = header + "." + payload;

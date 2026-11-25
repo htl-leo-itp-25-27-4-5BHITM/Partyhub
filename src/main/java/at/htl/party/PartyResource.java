@@ -51,9 +51,9 @@ public class PartyResource {
     public Response getParties(
             @QueryParam("q") String q,
             @QueryParam("theme") String theme,
-            @QueryParam("date_from") String dateFrom,
-            @QueryParam("date_to") String dateTo,
-            @QueryParam("sort") String sort,
+            @QueryParam("date_from") @jakarta.validation.constraints.Size(max=32) String dateFrom,
+            @QueryParam("date_to") @jakarta.validation.constraints.Size(max=32) String dateTo,
+            @QueryParam("sort") @jakarta.validation.constraints.Pattern(regexp="(?i)asc|desc") String sort,
             @QueryParam("user_age") Integer userAge,
             @QueryParam("free") Boolean free,
             @QueryParam("user_latitude") Double userLatitude,
@@ -66,16 +66,16 @@ public class PartyResource {
         Long actualUserId = currentUserResolver.currentUserIdIfAuthenticated().orElse(null);
 
         if (userLatitude != null && userLongitude == null) {
-            return Response.status(400).entity("{\"error\": \"user_longitude is required when user_latitude is provided\"}").build();
+            return Response.status(400).entity(java.util.Map.of("error", "user_longitude is required when user_latitude is provided")).build();
         }
         if (userLongitude != null && userLatitude == null) {
-            return Response.status(400).entity("{\"error\": \"user_latitude is required when user_longitude is provided\"}").build();
+            return Response.status(400).entity(java.util.Map.of("error", "user_latitude is required when user_longitude is provided")).build();
         }
         if (distanceKm != null && distanceKm < 0) {
-            return Response.status(400).entity("{\"error\": \"distance must be a positive number\"}").build();
+            return Response.status(400).entity(java.util.Map.of("error", "distance must be a positive number")).build();
         }
         if (distanceKm != null && (userLatitude == null || userLongitude == null)) {
-            return Response.status(400).entity("{\"error\": \"user_latitude and user_longitude are required for distance filter\"}").build();
+            return Response.status(400).entity(java.util.Map.of("error", "user_latitude and user_longitude are required for distance filter")).build();
         }
 
         try {
@@ -85,7 +85,7 @@ public class PartyResource {
             partySocialService.enrichVisibleParties(parties, actualUserId, false);
             return Response.ok(parties).header("Cache-Control", "private, no-store").build();
         } catch (IllegalArgumentException | java.time.DateTimeException e) {
-            return Response.status(400).entity("Invalid party filters").build();
+            return at.htl.validation.InputExceptionMappers.invalid();
         }
     }
 
@@ -95,7 +95,7 @@ public class PartyResource {
     @Produces(MediaType.APPLICATION_JSON)
     @Path("")
     @Authenticated
-    public Response createParty(@Valid PartyCreateDto partyCreateDto) {
+    public Response createParty(@jakarta.validation.constraints.NotNull @Valid @jakarta.validation.groups.ConvertGroup(from=jakarta.validation.groups.Default.class, to=at.htl.validation.OnCreate.class) PartyCreateDto partyCreateDto) {
         Long actualUserId = currentUserResolver.requireCurrentUserId();
         return partyRepository.addParty(partyCreateDto, actualUserId);
     }
@@ -105,7 +105,7 @@ public class PartyResource {
     @Produces(MediaType.APPLICATION_JSON)
     @Path("/{id}")
     public Response getParty(
-            @PathParam("id") Long id) {
+            @PathParam("id") @jakarta.validation.constraints.Positive Long id) {
         Long actualUserId = currentUserResolver.currentUserIdIfAuthenticated().orElse(null);
         Party party = partyRepository.getPartyByIdIfVisible(id, actualUserId);
 
@@ -120,7 +120,7 @@ public class PartyResource {
     @Produces(MediaType.APPLICATION_JSON)
     @Path("/{id}")
     @Authenticated
-    public Response removeParty(@PathParam("id") Long id) {
+    public Response removeParty(@PathParam("id") @jakarta.validation.constraints.Positive Long id) {
         Long actualUserId = currentUserResolver.requireCurrentUserId();
         return partyRepository.removeParty(id, actualUserId);
     }
@@ -131,11 +131,11 @@ public class PartyResource {
     @Transactional
     @Path("/{id}")
     @Authenticated
-    public Response updatePartyPut(@PathParam("id") Long id,
-                                   @Valid PartyCreateDto partyCreateDto) {
+    public Response updatePartyPut(@PathParam("id") @jakarta.validation.constraints.Positive Long id,
+                                   @jakarta.validation.constraints.NotNull @Valid PartyCreateDto partyCreateDto) {
         if (partyCreateDto == null) {
             return Response.status(Response.Status.BAD_REQUEST)
-                    .entity("{\"error\": \"Payload missing\"}")
+                    .entity(java.util.Map.of("error", "Payload missing"))
                     .build();
         }
         
@@ -147,7 +147,7 @@ public class PartyResource {
     @Path("/device-token")
     @Transactional
     @Authenticated
-    public Response updateToken(@QueryParam("token") String token) {
+    public Response updateToken(@QueryParam("token") @jakarta.validation.constraints.NotNull @jakarta.validation.constraints.Pattern(regexp="[a-fA-F0-9]{64}") String token) {
         Long userId = currentUserResolver.requireCurrentUserId();
         if (userId == null || token == null) {
             return Response.status(400).entity("User ID or Token missing").build();
@@ -165,7 +165,7 @@ public class PartyResource {
     @Produces(MediaType.APPLICATION_JSON)
     @Path("/{id}/join")
     @Authenticated
-    public Response joinParty(@PathParam("id") Long partyId) {
+    public Response joinParty(@PathParam("id") @jakarta.validation.constraints.Positive Long partyId) {
         Long actualUserId = currentUserResolver.requireCurrentUserId();
         return partyRepository.attendParty(partyId, actualUserId);
     }
@@ -175,7 +175,7 @@ public class PartyResource {
     @Transactional
     @Path("/{id}/join")
     @Authenticated
-    public Response leaveParty(@PathParam("id") Long partyId) {
+    public Response leaveParty(@PathParam("id") @jakarta.validation.constraints.Positive Long partyId) {
         Long actualUserId = currentUserResolver.requireCurrentUserId();
         return partyRepository.leaveParty(partyId, actualUserId);
     }
@@ -184,7 +184,7 @@ public class PartyResource {
     @Produces(MediaType.APPLICATION_JSON)
     @Path("/{id}/join/status")
     @Authenticated
-    public Response joinStatus(@PathParam("id") Long partyId) {
+    public Response joinStatus(@PathParam("id") @jakarta.validation.constraints.Positive Long partyId) {
         Long actualUserId = currentUserResolver.requireCurrentUserId();
         return partyRepository.attendStatus(partyId, actualUserId);
     }
@@ -193,7 +193,7 @@ public class PartyResource {
     @Produces(MediaType.APPLICATION_JSON)
     @Path("/{id}/invited-members")
     @Authenticated
-    public Response invitedMembers(@PathParam("id") Long partyId) {
+    public Response invitedMembers(@PathParam("id") @jakarta.validation.constraints.Positive Long partyId) {
         Long actualUserId = currentUserResolver.requireCurrentUserId();
         return partyRepository.getInvitedMembers(partyId, actualUserId);
     }
@@ -202,7 +202,7 @@ public class PartyResource {
     @Produces(MediaType.APPLICATION_JSON)
     @Path("/{id}/joined-members")
     @Authenticated
-    public Response joinedMembers(@PathParam("id") Long partyId) {
+    public Response joinedMembers(@PathParam("id") @jakarta.validation.constraints.Positive Long partyId) {
         Long actualUserId = currentUserResolver.requireCurrentUserId();
         return partyRepository.getJoinedMembers(partyId, actualUserId);
     }
@@ -211,7 +211,7 @@ public class PartyResource {
     @Produces(MediaType.APPLICATION_JSON)
     @Path("/{id}/invitation-stats")
     @Authenticated
-    public Response invitationStats(@PathParam("id") Long partyId) {
+    public Response invitationStats(@PathParam("id") @jakarta.validation.constraints.Positive Long partyId) {
         Long actualUserId = currentUserResolver.requireCurrentUserId();
         InvitationStatsDto stats = partyRepository.getInvitationStats(partyId, actualUserId);
         if (stats == null) {
@@ -227,12 +227,12 @@ public class PartyResource {
     @Transactional
     @Authenticated
     public Response upload(@Valid FileUploadInput input,
-                           @PathParam("partyId") long partyId) {
+                           @PathParam("partyId") @jakarta.validation.constraints.Positive long partyId) {
         Long actualUserId = currentUserResolver.requireCurrentUserId();
 
         if (actualUserId == null) {
             return Response.status(Response.Status.BAD_REQUEST)
-                    .entity("{\"error\": \"User ID required\"}")
+                    .entity(java.util.Map.of("error", "User ID required"))
                     .build();
         }
         return mediaRepository.upload(input, partyId, actualUserId);
@@ -242,7 +242,7 @@ public class PartyResource {
     @Path("/{id}/can-edit")
     @Produces(MediaType.APPLICATION_JSON)
     @Authenticated
-    public Response canEditParty(@PathParam("id") Long partyId) {
+    public Response canEditParty(@PathParam("id") @jakarta.validation.constraints.Positive Long partyId) {
         Long actualUserId = currentUserResolver.requireCurrentUserId();
 
         if (actualUserId == null) {
@@ -251,7 +251,7 @@ public class PartyResource {
                     .build();
         }
 
-        Party party = em.find(Party.class, partyId);
+        Party party = partyRepository.getPartyByIdIfVisible(partyId, actualUserId);
         if (party == null) {
             return Response.status(Response.Status.NOT_FOUND)
                     .entity(Map.of("error", "Party not found"))
@@ -273,7 +273,7 @@ public class PartyResource {
     @Path("/{id}/media")
     @Produces(MediaType.APPLICATION_JSON)
     @Transactional
-    public Response getPartyMedia(@PathParam("id") Long partyId) {
+    public Response getPartyMedia(@PathParam("id") @jakarta.validation.constraints.Positive Long partyId) {
         Long callerId = currentUserResolver.currentUserIdIfAuthenticated().orElse(null);
         Party party = partyRepository.getPartyByIdIfVisible(partyId, callerId);
         if (party == null) {

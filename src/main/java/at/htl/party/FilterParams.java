@@ -15,16 +15,21 @@ public record FilterParams(
     Integer offset
 ) {
     public FilterParams {
-        if (limit != null && limit <= 0) {
+        if (query != null && query.length() > 200 || theme != null && theme.length() > 50)
+            throw new IllegalArgumentException("Search text too long");
+        if (userLatitude != null && (!Double.isFinite(userLatitude) || userLatitude < -90 || userLatitude > 90)
+                || userLongitude != null && (!Double.isFinite(userLongitude) || userLongitude < -180 || userLongitude > 180))
+            throw new IllegalArgumentException("Invalid coordinates");
+        if (limit != null && (limit <= 0 || limit > 500)) {
             throw new IllegalArgumentException("limit must be positive");
         }
-        if (offset != null && offset < 0) {
+        if (offset != null && (offset < 0 || offset > 1000000)) {
             throw new IllegalArgumentException("offset must be non-negative");
         }
         if (userAge != null && (userAge < 0 || userAge > 150)) {
             throw new IllegalArgumentException("userAge must be between 0 and 150");
         }
-        if (distanceKm != null && distanceKm <= 0) {
+        if (distanceKm != null && (distanceKm <= 0 || distanceKm > 20000)) {
             throw new IllegalArgumentException("distanceKm must be positive");
         }
         if ((userLatitude == null) != (userLongitude == null)) {
