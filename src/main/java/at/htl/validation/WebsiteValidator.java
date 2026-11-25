@@ -3,6 +3,7 @@ import jakarta.validation.ConstraintValidator;
 import jakarta.validation.ConstraintValidatorContext;
 import java.net.URI;
 public class WebsiteValidator implements ConstraintValidator<Website, String> {
+    @Override
     public boolean isValid(String value, ConstraintValidatorContext context) {
         if (value == null || value.isBlank()) return true;
         if (value.codePoints().anyMatch(c -> Character.isWhitespace(c) || Character.isISOControl(c))) return false;

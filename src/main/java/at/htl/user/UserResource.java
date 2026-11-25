@@ -483,7 +483,9 @@ public class UserResource {
         if (targetUserId == null) {
             return Response.status(Response.Status.BAD_REQUEST).build();
         }
-        return followRepository.createFollowRequest(currentUserResolver.requireCurrentUserId(), targetUserId);
+        long callerId = currentUserResolver.requireCurrentUserId();
+        if (id != callerId) return Response.status(Response.Status.FORBIDDEN).build();
+        return followRepository.createFollowRequest(callerId, targetUserId);
     }
 
     @PUT
@@ -492,7 +494,9 @@ public class UserResource {
     @Authenticated
     public Response acceptFollow(@PathParam("id") @jakarta.validation.constraints.Positive long id,
                                 @PathParam("followerId") @jakarta.validation.constraints.Positive long followerId) {
-        return followRepository.acceptFollowRequest(followerId, currentUserResolver.requireCurrentUserId());
+        long callerId = currentUserResolver.requireCurrentUserId();
+        if (id != callerId) return Response.status(Response.Status.FORBIDDEN).build();
+        return followRepository.acceptFollowRequest(followerId, callerId);
     }
 
     @DELETE

@@ -133,6 +133,13 @@ class AccessControlResourceTest extends TestBase {
     }
 
     @Test @TestSecurity(user="access-attacker")
+    void followActorInThePathMustMatchTheCaller() {
+        given().queryParam("targetUserId",recipient).post("/api/users/"+host+"/follow").then().statusCode(403);
+        given().put("/api/users/"+host+"/followers/"+recipient).then().statusCode(403);
+        given().queryParam("targetUserId",host).post("/api/users/"+attacker+"/follow").then().statusCode(201);
+    }
+
+    @Test @TestSecurity(user="access-attacker")
     void callersCannotManufactureOtherIdentityRecords() {
         long before=QuarkusTransaction.requiringNew().call(()->em.createQuery("select count(u) from User u",Long.class).getSingleResult());
         given().contentType("application/json").body(Map.of("displayName","Forged","email","victim@example.test"))

@@ -16,18 +16,12 @@ public class InputExceptionMappers {
                 .entity(Map.of("error", "invalid_input", "message", "Request fields are missing or invalid")).build();
     }
 
-    @ServerExceptionMapper
-    public Response validation(ResteasyReactiveViolationException exception) { return invalid(); }
-
-    @ServerExceptionMapper
-    public Response invalidType(com.fasterxml.jackson.databind.exc.MismatchedInputException exception) { return invalid(); }
-
-    @ServerExceptionMapper
-    public Response invalidSyntax(com.fasterxml.jackson.core.JsonParseException exception) { return invalid(); }
-
-    @ServerExceptionMapper
-    public Response malformed(JsonProcessingException exception) { return invalid(); }
-
-    @ServerExceptionMapper
-    public Response badRequest(BadRequestException exception) { return invalid(); }
+    @ServerExceptionMapper({
+        ResteasyReactiveViolationException.class,
+        com.fasterxml.jackson.databind.exc.MismatchedInputException.class,
+        com.fasterxml.jackson.core.JsonParseException.class,
+        JsonProcessingException.class,
+        BadRequestException.class
+    })
+    public Response invalidRequest() { return invalid(); }
 }
