@@ -113,3 +113,10 @@ PartyHub SHALL once add follow and attendance history for activity before histor
 #### Scenario: Activity without a notification
 - **WHEN** a guest joined a public party without an invitation, or a follower was removed, before history was recorded
 - **THEN** that activity SHALL NOT appear in any time range
+
+### Requirement: Dashboard refreshes while open
+The browser dashboard SHALL update the shown range without a page reload when the host's follow relationships or the attendance of their parties change, and SHALL keep the selected range and metric. Without a live stream it SHALL re-check at least once per minute while visible.
+
+#### Scenario: Guest joins while the dashboard is open
+- **WHEN** a guest joins one of the host's parties while the host views the dashboard
+- **THEN** the joins figure SHALL update without the host reloading the page
