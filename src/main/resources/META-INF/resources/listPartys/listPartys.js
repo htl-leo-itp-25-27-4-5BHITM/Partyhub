@@ -287,9 +287,7 @@ function createPartyCard(party) {
     if (ownParty) {
         card.classList.add('is-own-party');
     }
-    const theme = party.theme || party.category_id || 'General';
     const title = party.title || party.name || 'Untitled party';
-    const fee = Number(party.fee || 0);
 
     card.innerHTML = `
         <header class="party-header-list">
@@ -302,7 +300,6 @@ function createPartyCard(party) {
                         Hosted by you</span>` : ''}
                 </div>
             </div>
-            <span class="party-category">${escapeHtml(theme)}</span>
         </header>
 
         <div class="party-meta">
@@ -322,14 +319,6 @@ function createPartyCard(party) {
                     <circle cx="12" cy="10" r="3" stroke="currentColor" stroke-width="1.5" fill="none"/>
                 </svg>
                 ${escapeHtml(getLocationText(party))}
-            </div>
-
-            <div class="party-attendees">
-                <strong>${escapeHtml(String(party.max_people || 'Unlimited'))}</strong> max
-            </div>
-
-            <div class="party-price">
-                ${fee > 0 ? escapeHtml(formatMoney(fee)) : 'Free'}
             </div>
         </div>
     `;
@@ -406,14 +395,6 @@ function getLocationText(party) {
     }
 
     return 'Location TBA';
-}
-
-function formatMoney(value) {
-    return new Intl.NumberFormat('de-AT', {
-        style: 'currency',
-        currency: 'EUR',
-        maximumFractionDigits: value % 1 === 0 ? 0 : 2
-    }).format(value);
 }
 
 function formatPartyDateList(date) {
