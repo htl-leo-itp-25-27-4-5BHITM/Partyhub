@@ -19,7 +19,8 @@ on:
   workflow_dispatch:
 jobs:
   test:
-    runs-on: ubuntu-latest
+    # Pin the browser-test OS: Playwright 1.58 supports 24.04, not the new 26.04 runner.
+    runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v4
 
