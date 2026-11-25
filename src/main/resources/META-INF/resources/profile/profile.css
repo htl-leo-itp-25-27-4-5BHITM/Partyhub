@@ -1563,3 +1563,38 @@ body.bg-light.profile-page .app-shell > .container {
 }
 
 .private-notice p { margin: 6px 0 0; color: var(--text-secondary); }
+
+/* Back arrow on someone else's profile (top left of the profile card) */
+.profile-back-btn {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  z-index: 2;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  padding: 0;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.06);
+  color: var(--text-primary, #fff);
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+
+.profile-back-btn:hover {
+  background: rgba(255, 255, 255, 0.12);
+}
+
+.profile-back-btn[hidden] {
+  display: none;
+}
+
+/* From 600 px the picture sits at the left edge of the card; move it just past the back arrow */
+@media (min-width: 600px) {
+  .profile-summary.has-back-arrow {
+    padding-left: 60px;
+  }
+}

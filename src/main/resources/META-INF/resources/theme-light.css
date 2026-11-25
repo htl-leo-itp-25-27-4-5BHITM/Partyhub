@@ -477,6 +477,13 @@
 }
 
 /* ---- profile/profile.css ---- */
+:root[data-theme="light"] .profile-back-btn {
+  border: 1px solid rgba(26, 16, 64, 0.140);
+  background: rgba(26, 16, 64, 0.060);
+}
+:root[data-theme="light"] .profile-back-btn:hover {
+  background: rgba(26, 16, 64, 0.120);
+}
 :root[data-theme="light"] #mobileNavbar {
   background: var(--bg-surface);
 }

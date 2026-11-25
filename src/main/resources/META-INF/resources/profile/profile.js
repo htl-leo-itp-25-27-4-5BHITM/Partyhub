@@ -328,6 +328,30 @@ document.addEventListener("DOMContentLoaded", async function () {
     }
   }
 
+  // Back arrow at the top left: shown on someone else's profile, leads back to the own profile.
+  function updateBackToOwnProfileButton() {
+    const button = document.getElementById("backToOwnProfile");
+    if (!button) return;
+    const ownId = getStoredUserId();
+    button.hidden = ownId == null || viewedUserId == null || String(ownId) === String(viewedUserId);
+    // Lets the CSS move the profile picture out from under the arrow on wide layouts.
+    button.closest(".profile-summary")?.classList.toggle("has-back-arrow", !button.hidden);
+  }
+
+  function backToOwnProfile() {
+    const ownId = getStoredUserId();
+    if (ownId == null) return;
+    closeFollowMenu();
+    const newUrl = new URL(window.location.href);
+    newUrl.searchParams.delete("handle");
+    newUrl.searchParams.delete("id");
+    window.history.replaceState({}, "", newUrl);
+    loadUserDataById(ownId);
+    window.scrollTo({ top: 0 });
+  }
+
+  document.getElementById("backToOwnProfile")?.addEventListener("click", backToOwnProfile);
+
   function openUserProfileFromList(user) {
     if (!user) {
       return;
@@ -1099,6 +1123,7 @@ document.addEventListener("DOMContentLoaded", async function () {
   async function updateUserProfile(user) {
     viewedUserId = user?.id ?? null;
     viewedUser = user || null;
+    updateBackToOwnProfileButton();
     const favoritesTab = document.getElementById("tabFavorites");
     if (favoritesTab) favoritesTab.style.display = String(viewedUserId) === String(getStoredUserId()) ? "" : "none";
     document.getElementById("favoritesContainer")?.replaceChildren();
