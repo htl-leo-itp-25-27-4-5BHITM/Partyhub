@@ -213,8 +213,7 @@ function matchesFilter(party, invitedPartyIds) {
     }
 
     if (filter === 'hosted') {
-        return partyListState.currentUserId != null &&
-            String(getHostId(party)) === String(partyListState.currentUserId);
+        return isOwnParty(party);
     }
 
     if (filter === 'free') {
@@ -284,6 +283,10 @@ function createPartyCard(party) {
 
     const partyDate = getPartyDate(party);
     const visibility = getVisibility(party);
+    const ownParty = isOwnParty(party);
+    if (ownParty) {
+        card.classList.add('is-own-party');
+    }
     const theme = party.theme || party.category_id || 'General';
     const title = party.title || party.name || 'Untitled party';
     const fee = Number(party.fee || 0);
@@ -292,7 +295,12 @@ function createPartyCard(party) {
         <header class="party-header-list">
             <div class="party-title-group">
                 <h3 class="party-name-list">${escapeHtml(title)}</h3>
-                <span class="party-visibility ${visibility.toLowerCase()}">${escapeHtml(visibility)}</span>
+                <div class="party-badges">
+                    <span class="party-visibility ${visibility.toLowerCase()}">${escapeHtml(visibility)}</span>
+                    ${ownParty ? `<span class="party-own-badge" title="You are hosting this party">
+                        <svg viewBox="0 0 24 24" width="12" height="12" aria-hidden="true"><path d="M12 3l2.7 5.6 6.1.9-4.4 4.3 1 6.1L12 17l-5.4 2.9 1-6.1-4.4-4.3 6.1-.9z" fill="currentColor"/></svg>
+                        Hosted by you</span>` : ''}
+                </div>
             </div>
             <span class="party-category">${escapeHtml(theme)}</span>
         </header>
@@ -327,6 +335,12 @@ function createPartyCard(party) {
     `;
 
     return card;
+}
+
+/** True when the logged-in user hosts this party (same check as the "hosted" filter). */
+function isOwnParty(party) {
+    return partyListState.currentUserId != null &&
+        String(getHostId(party)) === String(partyListState.currentUserId);
 }
 
 function getPartyId(party) {

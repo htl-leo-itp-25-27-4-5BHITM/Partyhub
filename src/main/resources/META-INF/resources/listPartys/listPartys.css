@@ -515,3 +515,32 @@
 @media (min-width: 992px) {
   body .parties-header .party-header-actions { grid-column: 2; grid-row: 1 / 3; align-self: center; }
 }
+
+/* Parties the logged-in user hosts: a "Hosted by you" badge next to Public/Private and an accent
+   on the card. Violet like the dashboard link, so it is not confused with the pink category chip. */
+.party-badges {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+}
+
+.party-own-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  min-height: 28px;
+  padding: 6px 10px;
+  border-radius: 999px;
+  background: rgba(169, 154, 255, 0.14);
+  border: 1px solid rgba(169, 154, 255, 0.36);
+  color: #c9bdff;
+  font: 800 0.72rem var(--app-body-font);
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+body .party-card-list.is-own-party {
+  border-color: rgba(169, 154, 255, 0.32);
+  border-left: 3px solid #a99aff;
+}
