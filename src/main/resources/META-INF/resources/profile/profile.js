@@ -324,6 +324,28 @@ document.addEventListener("DOMContentLoaded", async function () {
     }
   }
 
+  // Back arrow at the top left: shown on someone else's profile, leads back to the own profile.
+  function updateBackToOwnProfileButton() {
+    const button = document.getElementById("backToOwnProfile");
+    if (!button) return;
+    const ownId = getStoredUserId();
+    button.hidden = ownId == null || viewedUserId == null || String(ownId) === String(viewedUserId);
+  }
+
+  function backToOwnProfile() {
+    const ownId = getStoredUserId();
+    if (ownId == null) return;
+    closeFollowMenu();
+    const newUrl = new URL(window.location.href);
+    newUrl.searchParams.delete("handle");
+    newUrl.searchParams.delete("id");
+    window.history.replaceState({}, "", newUrl);
+    loadUserDataById(ownId);
+    window.scrollTo({ top: 0 });
+  }
+
+  document.getElementById("backToOwnProfile")?.addEventListener("click", backToOwnProfile);
+
   function openUserProfileFromList(user) {
     if (!user) {
       return;
@@ -1043,6 +1065,7 @@ document.addEventListener("DOMContentLoaded", async function () {
 
   async function updateUserProfile(user) {
     viewedUserId = user?.id ?? null;
+    updateBackToOwnProfileButton();
     const favoritesTab = document.getElementById("tabFavorites");
     if (favoritesTab) favoritesTab.style.display = String(viewedUserId) === String(getStoredUserId()) ? "" : "none";
     document.getElementById("favoritesContainer")?.replaceChildren();
