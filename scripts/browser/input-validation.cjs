@@ -105,7 +105,7 @@ const evidence = path.join(__dirname, 'test-results'); fs.mkdirSync(evidence, {r
     });
     await check('Malformed email, types and null objects fail before persistence', async () => {
       for(const data of [{email:'not-an-email'},{displayName:123},{biography:'x'.repeat(2001)}]){
-        const res=await api.post(base+'/api/users',{headers,data});assert.equal(res.status(),400);
+        const res=await api.put(base+`/api/users/${me.id}`,{headers,data});assert.equal(res.status(),400);
       }
       for(const endpoint of [`/api/users/${me.id}`,`/api/users/${me.id}/notification-settings`]){
         const res=await api.put(base+endpoint,{headers:{...headers,'Content-Type':'application/json'},data:'null'});assert.equal(res.status(),400);
@@ -117,8 +117,8 @@ const evidence = path.join(__dirname, 'test-results'); fs.mkdirSync(evidence, {r
         assert.equal((await api.get(base+'/api/parties?'+query,{headers})).status(),400);
       assert.equal((await api.get(base+'/api/parties?'+new URLSearchParams({q:"' OR 1=1 --"}),{headers})).status(),200);
       assert.equal((await api.get(base+'/api/parties?'+new URLSearchParams({user_latitude:'48.3',user_longitude:'14.3',distance:'10'}),{headers})).status(),200);
-      const large=await api.post(base+'/api/users',{headers,data:{biography:'x'.repeat(262144)}});assert.equal(large.status(),413);
-      const nested=await api.post(base+'/api/users',{headers:{...headers,'Content-Type':'application/json'},data:'{"unknown":'+'['.repeat(40)+'0'+']'.repeat(40)+'}'});assert.equal(nested.status(),400);
+      const large=await api.put(base+`/api/users/${me.id}`,{headers,data:{biography:'x'.repeat(262144)}});assert.equal(large.status(),413);
+      const nested=await api.put(base+`/api/users/${me.id}`,{headers:{...headers,'Content-Type':'application/json'},data:'{"unknown":'+'['.repeat(40)+'0'+']'.repeat(40)+'}'});assert.equal(nested.status(),400);
       const oversized=await api.post(base+`/api/users/${me.id}/upload-profile-picture`,{headers,multipart:{file:{name:'huge.png',mimeType:'image/png',buffer:Buffer.alloc(8*1024*1024+1)}}});assert.equal(oversized.status(),413);
     });
     await check('Uploads reject spoofed images and oversized files', async () => {

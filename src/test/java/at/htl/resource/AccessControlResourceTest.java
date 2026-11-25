@@ -144,6 +144,8 @@ class AccessControlResourceTest extends TestBase {
         long before=QuarkusTransaction.requiringNew().call(()->em.createQuery("select count(u) from User u",Long.class).getSingleResult());
         given().contentType("application/json").body(Map.of("displayName","Forged","email","victim@example.test"))
                 .post("/api/users").then().statusCode(403);
+        given().contentType("application/json").body("{malformed")
+                .post("/api/users").then().statusCode(403);
         long after=QuarkusTransaction.requiringNew().call(()->em.createQuery("select count(u) from User u",Long.class).getSingleResult());
         assertEquals(before,after);
     }

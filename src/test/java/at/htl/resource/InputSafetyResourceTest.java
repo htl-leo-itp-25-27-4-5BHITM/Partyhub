@@ -59,17 +59,17 @@ class InputSafetyResourceTest extends TestBase {
     @Test void rejectsCoercedScalarsAndMalformedJsonWithoutLeakingPayloads() {
         invalidParty(party.replace("\"visibility\"", "\"max_people\":1.5,\"visibility\""));
         invalidParty(party.replace("\"visibility\"", "\"max_people\":\"20\",\"visibility\""));
-        given().contentType("application/json").body("{\"displayName\":123}").post("/api/users")
+        given().contentType("application/json").body("{\"displayName\":123}").put("/api/users/" + owner)
                 .then().statusCode(400).body(not(containsString("123")));
-        given().contentType("application/json").body("{\"secret-rejected-value\":").post("/api/users")
+        given().contentType("application/json").body("{\"secret-rejected-value\":").put("/api/users/" + owner)
                 .then().statusCode(400).body(not(containsString("secret-rejected-value")));
     }
 
     @Test void validatesProfileWhileKeepingPlainTextAndUnicode() {
         long before = count("User");
-        given().contentType("application/json").body(Map.of("email", "bad-email")).post("/api/users").then().statusCode(400);
-        given().contentType("application/json").body(Map.of("biography", "x".repeat(2001))).post("/api/users").then().statusCode(400);
-        given().contentType("application/json").body(Map.of("displayName", "line\nspoof")).post("/api/users").then().statusCode(400);
+        given().contentType("application/json").body(Map.of("email", "bad-email")).put("/api/users/" + owner).then().statusCode(400);
+        given().contentType("application/json").body(Map.of("biography", "x".repeat(2001))).put("/api/users/" + owner).then().statusCode(400);
+        given().contentType("application/json").body(Map.of("displayName", "line\nspoof")).put("/api/users/" + owner).then().statusCode(400);
         assertEquals(before, count("User"));
         String text = "Özlem 李 🎉 O'Brien <img src=x>";
         given().contentType("application/json").body(Map.of("displayName", text, "biography", "First line\nSecond\tline"))
@@ -91,8 +91,8 @@ class InputSafetyResourceTest extends TestBase {
         for (String query : new String[]{"limit=501", "offset=-1", "user_latitude=NaN&user_longitude=14", "sort=evil", "q=" + "x".repeat(201)})
             given().get("/api/parties?" + query).then().statusCode(400);
         given().contentType("application/json").body("{\"biography\":\"" + "x".repeat(262144) + "\"}")
-                .post("/api/users").then().statusCode(413);
+                .put("/api/users/" + owner).then().statusCode(413);
         given().contentType("application/json").body("{\"unknown\":" + "[".repeat(40) + "0" + "]".repeat(40) + "}")
-                .post("/api/users").then().statusCode(400);
+                .put("/api/users/" + owner).then().statusCode(400);
     }
 }

@@ -79,7 +79,7 @@ public class UserResource {
     @Consumes(MediaType.APPLICATION_JSON)
     @jakarta.ws.rs.Path("")
     @Authenticated
-    public Response createUser(@jakarta.validation.constraints.NotNull @Valid UserCreateDto userCreateDto) {
+    public Response createUser() {
         // Identity provisioning is owned by Keycloak, never by an arbitrary request body.
         return Response.status(Response.Status.FORBIDDEN).entity(Map.of("error", "identity_managed_by_keycloak")).build();
     }
