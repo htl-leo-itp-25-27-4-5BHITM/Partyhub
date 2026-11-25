@@ -248,7 +248,7 @@
     "from": "noreply.partyhub@gmail.com",
     "fromDisplayName": "PartyHub"
   },
-  "passwordPolicy": "length(8) and notUsername and passwordHistory(1)",
+  "passwordPolicy": "length(8) and passwordHistory(1)",
   "eventsEnabled": true,
   "eventsListeners": [
     "jboss-logging",
