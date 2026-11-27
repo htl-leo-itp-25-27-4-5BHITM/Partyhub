@@ -119,7 +119,7 @@ Dauer: ca. 15 Minuten, 14 Folien.
 
 ## Folie 6: Warum sich das lohnt
 
-**Auf der Folie:** Vier Vorteile, nur als Überschrift mit Symbol. Nach einem Klick ein Codebeispiel: vom Commit-SHA zum Image-Tag.
+**Auf der Folie:** Vier Vorteile, nur als Überschrift mit Symbol.
 
 **Sagen:**
 > Vier Vorteile:
@@ -128,7 +128,7 @@ Dauer: ca. 15 Minuten, 14 Folien.
 > - **Nachvollziehbar:** Jedes Image trägt den Commit-SHA, aus dem es gebaut wurde.
 > - **Häufige Releases:** Weil Ausliefern nichts kostet, gehen bei uns oft mehrere Änderungen pro Tag live. Kleine Änderungen sind leichter zu prüfen als eine große.
 >
-> *(Klick)* Was ist ein **Commit-SHA**? Jeder Commit in Git bekommt eine eindeutige ID, einen langen Hash aus Buchstaben und Zahlen. `git log --oneline` zeigt die ersten 7 Zeichen, hier `6a3329c`, und die reichen. Unsere Pipeline verwendet genau diese ID als Namen für das Docker-Image, das sieht man in der letzten Zeile. Wenn in Produktion das Image `partyhub-backend:6a3329c` läuft, wissen wir genau, welcher Code dort läuft, und können ihn mit `git show 6a3329c` anschauen.
+> Was ist ein **Commit-SHA**? Jeder Commit in Git bekommt eine eindeutige ID, einen langen Hash aus Buchstaben und Zahlen. Meistens reichen die ersten 7 Zeichen, zum Beispiel `6a3329c`. Unsere Pipeline verwendet genau diese ID als Namen für das Docker-Image, also `partyhub-backend:6a3329c`. Wenn in Produktion das Image `partyhub-backend:6a3329c` läuft, wissen wir genau, welcher Code dort läuft, und können ihn mit `git show 6a3329c` anschauen.
 
 **Falls gefragt wird, wofür „SHA“ steht:** *Secure Hash Algorithm*. Git berechnet aus dem Inhalt des Commits eine Prüfsumme. Ändert sich auch nur ein Zeichen, ist der Hash ein anderer.
 
