@@ -7,7 +7,7 @@ Dauer: ca. 15 Minuten, 14 Folien.
 ## Bedienung der Folien
 
 - `docs/ci-cd-slides.html` im Browser öffnen. Für reveal.js und die Schriften braucht man Internet.
-- **Pfeiltasten** blättern. Viele Folien bauen sich Schritt für Schritt auf. Bei Code mit Markierung springt die Markierung mit jedem Klick weiter.
+- **Pfeiltasten** blättern. Manche Folien bauen sich Schritt für Schritt auf. Im Sprechertext steht dort *(Klick)*.
 - **F** = Vollbild, **Esc** = Übersicht aller Folien.
 - PDF: Adresse mit `?print-pdf` am Ende öffnen, dann im Browser als PDF drucken.
 
@@ -16,7 +16,7 @@ Dauer: ca. 15 Minuten, 14 Folien.
 | Folie | Titel | Dauer |
 |---|---|---|
 | 1 | CI / CD / CD bei PartyHub | 0:30 |
-| 2 | So sähe jedes Release ohne CI/CD aus | 1:30 |
+| 2 | Ein Release bei PartyHub | 1:30 |
 | 3 | Drei Begriffe | 1:30 |
 | 4 | Die Pipeline (Deployment, Produktion) | 1:30 |
 | 5 | Wozu der Kreis? | 1:00 |
@@ -39,20 +39,20 @@ Dauer: ca. 15 Minuten, 14 Folien.
 
 ---
 
-## Folie 2: So sähe jedes Release ohne CI/CD aus
+## Folie 2: Ein Release bei PartyHub
 
-**Auf der Folie:** Alle Befehle, die man ohne Automatisierung bei **jeder** Änderung per Hand ausführen müsste. Die Befehle sind echt und entsprechen dem, was unsere Pipeline macht.
+**Auf der Folie:** Links „Ohne CI/CD“: die 10 Befehle, die man bei jeder Änderung per Hand ausführen müsste. Sie sind echt und entsprechen dem, was unsere Pipeline macht. Rechts, nach einem Klick, „Mit CI/CD“: der Merge-Button im Pull Request und was danach automatisch passiert.
 
 **Sagen:**
-> Stellt euch vor, wir haben eine kleine Änderung gemacht und wollen sie auf unsere Website bringen. Ohne CI/CD müsste jemand von uns diese Befehle ausführen:
+> Stellt euch vor, wir haben eine kleine Änderung gemacht und wollen sie auf unsere Website bringen. Ohne CI/CD müsste jemand von uns diese 10 Befehle ausführen:
 >
-> 1. **Testen und bauen:** Mit Maven die Tests laufen lassen und die Quarkus-Anwendung bauen.
-> 2. **Docker-Images bauen und hochladen:** Wir brauchen zwei Images, eins für unser Backend und eins für Keycloak, also unseren Login. Die werden gebaut und in eine Registry hochgeladen, dazu gleich mehr. Der Tag `$TAG` ist der Commit-SHA, auch dazu gleich mehr.
-> 3. **Auf Kubernetes ausrollen:** Unsere Website läuft auf der School-Cloud in Kubernetes. Mit `kubectl` sagen wir dem Cluster: „Nimm das neue Image.“ Dann warten wir, bis die neue Version läuft.
+> 1. **Testen und bauen:** Die ersten zwei Zeilen lassen mit Maven die Tests laufen und bauen die Quarkus-Anwendung.
+> 2. **Docker-Images bauen und hochladen:** Die nächsten vier Zeilen bauen zwei Images, eins für unser Backend und eins für Keycloak, also unseren Login, und laden sie in eine Registry hoch. Was das ist, kommt gleich. `$TAG` ist die Versionsnummer, nämlich der Commit-SHA, auch dazu gleich mehr.
+> 3. **Auf Kubernetes ausrollen:** Unsere Website läuft auf der School-Cloud in Kubernetes. Mit den letzten vier Zeilen sagen wir dem Cluster mit `kubectl`: „Nimm das neue Image“, und warten, bis die neue Version läuft.
 >
-> Das sind über zehn Befehle, bei jeder Änderung. Man braucht die Zugangsdaten zum Cluster auf dem eigenen Laptop, und wenn man einen Schritt vergisst, zum Beispiel die Tests, geht kaputter Code live.
+> Und das bei jeder Änderung. Man braucht die Zugangsdaten zum Cluster auf dem eigenen Laptop, und wenn man einen Schritt vergisst, zum Beispiel die Tests, geht kaputter Code live.
 >
-> *(Klick)* Mit CI/CD ist es ein Klick: „Merge“ im Pull Request. Alles andere macht GitHub Actions automatisch, jedes Mal gleich und jedes Mal mit Tests.
+> *(Klick)* Mit CI/CD ist es ein Klick: Im Pull Request steht „All checks have passed“, also alle Tests sind grün, und man drückt „Merge pull request“. Danach führt GitHub Actions automatisch genau die Befehle von links aus: testen, bauen, ausrollen. Und die Änderung ist live. Jedes Mal gleich und jedes Mal mit Tests.
 
 **Begriffe:**
 - **Docker-Image:** ein fertiges Paket aus unserer Anwendung und allem, was sie zum Laufen braucht (z. B. Java).
@@ -76,14 +76,16 @@ Dauer: ca. 15 Minuten, 14 Folien.
 
 ## Folie 4: Die Pipeline
 
-**Auf der Folie:** Ablauf von der Code-Änderung bis zur Produktion, darunter die drei Stufen. Per Klick erscheinen die Begriffe „Deployment“ und „Produktion“.
+**Auf der Folie:** Nur das Diagramm: Ablauf von der Code-Änderung bis zur Produktion, darunter die drei Stufen.
 
 **Sagen:**
 > Eine **Pipeline** ist die Abfolge von Schritten, die jede Änderung automatisch durchläuft, wie ein Fließband. Build und Tests gehören zur Integration. Paket und Freigabe gehören zur Delivery. Der letzte Schritt, das Ausrollen in die Produktion, ist das Deployment.
 >
-> *(Klick)* **Deployment** heißt: eine neue Version der Software auf den Server bringen. Bei uns ist das genau dieser `kubectl`-Befehl. Er sagt Kubernetes, dass Quarkus ab jetzt das Image mit einer bestimmten Version verwenden soll. Kubernetes startet dann den neuen Container und stoppt den alten.
+> Zwei Begriffe dazu:
 >
-> *(Klick)* **Produktion** ist die echte, laufende Anwendung, die alle Benutzer:innen verwenden. Bei uns ist das die Website `it220274.cloud.htl-leonding.ac.at`. Im Gegensatz dazu läuft die Anwendung beim Entwickeln **lokal** auf dem eigenen Laptop unter `localhost:8080`, und nur man selbst sieht sie. Was in Produktion kaputtgeht, merken alle. Deshalb soll nur getesteter Code dort landen.
+> **Deployment** heißt: eine neue Version der Software auf den Server bringen. Bei uns ist das der Befehl `kubectl set image deployment/quarkus quarkus=…:6a3329c`. Er sagt Kubernetes, dass Quarkus ab jetzt das Image mit dieser Version verwenden soll. Kubernetes startet dann den neuen Container und stoppt den alten.
+>
+> **Produktion** ist die echte, laufende Anwendung, die alle Benutzer:innen verwenden. Bei uns ist das die Website `it220274.cloud.htl-leonding.ac.at`. Im Gegensatz dazu läuft die Anwendung beim Entwickeln **lokal** auf dem eigenen Laptop unter `localhost:8080`, und nur man selbst sieht sie. Was in Produktion kaputtgeht, merken alle. Deshalb soll nur getesteter Code dort landen.
 
 **Falls gefragt wird, was „Freigabe“ ist:** Die Entscheidung, ob ausgerollt wird. Bei Continuous Delivery klickt ein Mensch, bei Continuous Deployment (wie bei uns) passiert es automatisch, sobald alles grün ist.
 
@@ -91,12 +93,23 @@ Dauer: ca. 15 Minuten, 14 Folien.
 
 ## Folie 5: Wozu der Kreis?
 
-**Auf der Folie:** Der DevOps-Kreislauf als liegende Acht mit acht Phasen und rechts, was jede Phase bei uns bedeutet.
+**Auf der Folie:** Nur der DevOps-Kreislauf als liegende Acht mit acht Phasen.
 
 **Sagen:**
 > Der Kreis zeigt, dass Software nie fertig ist. Jede Änderung, egal ob neues Feature oder Bugfix, läuft diese acht Phasen durch, und danach beginnt es wieder von vorn.
 >
-> Links ist die Entwicklung: Wir **planen** ein Feature, bei uns mit OpenSpec, **programmieren** es auf einem Branch, dann wird es **gebaut** und **getestet**. Rechts ist der Betrieb: Das Image wird **veröffentlicht** (Release), auf den Server **ausgerollt** (Deploy), die Website **läuft** für alle (Betrieb), und wir bekommen **Feedback**, also Bugs oder Wünsche. Daraus planen wir die nächste Änderung.
+> Links ist die Entwicklung, rechts der Betrieb. Was jede Phase bei uns bedeutet:
+>
+> | Phase | Bei PartyHub |
+> |---|---|
+> | **Plan** | Feature planen, bei uns mit OpenSpec |
+> | **Code** | Auf einem eigenen Branch programmieren |
+> | **Build** | `mvn package`, `docker build` |
+> | **Test** | `mvn test`, API-Tests mit HTTPYac |
+> | **Release** | Das fertige Image liegt in ghcr.io |
+> | **Deploy** | Ausrollen auf die School-Cloud mit `kubectl` |
+> | **Betrieb** | Die Website läuft für alle |
+> | **Feedback** | Bugs und Wünsche, daraus planen wir die nächste Änderung |
 >
 > Der Kreis zeigt auch, wo CI/CD sitzt: **CI** automatisiert Build und Test (grün), **CD** automatisiert Release und Deploy (pink). Das ist genau der Teil, den sonst jemand per Hand machen müsste, also die Befehle von Folie 2.
 
@@ -106,14 +119,16 @@ Dauer: ca. 15 Minuten, 14 Folien.
 
 ## Folie 6: Warum sich das lohnt
 
+**Auf der Folie:** Vier Vorteile, nur als Überschrift mit Symbol. Nach einem Klick ein Codebeispiel: vom Commit-SHA zum Image-Tag.
+
 **Sagen:**
 > Vier Vorteile:
 > - **Fehler früh finden:** Kaputter Code fällt schon im Pull Request auf, nicht erst, wenn die Website kaputt ist.
-> - **Keine Handarbeit:** Niemand muss die Befehle von vorhin kennen oder Zugangsdaten zum Cluster auf dem Laptop haben.
-> - **Nachvollziehbar:** Jedes Image trägt den Commit-SHA.
+> - **Keine Handarbeit:** Niemand muss die Befehle von vorhin kennen, Images hochladen oder Zugangsdaten zum Cluster auf dem Laptop haben.
+> - **Nachvollziehbar:** Jedes Image trägt den Commit-SHA, aus dem es gebaut wurde.
 > - **Häufige Releases:** Weil Ausliefern nichts kostet, gehen bei uns oft mehrere Änderungen pro Tag live. Kleine Änderungen sind leichter zu prüfen als eine große.
 >
-> *(Klick)* Was ist ein **Commit-SHA**? Jeder Commit in Git bekommt eine eindeutige ID, einen langen Hash aus Buchstaben und Zahlen. Meistens reichen die ersten 7 Zeichen, hier `6a3329c`. Unsere Pipeline verwendet genau diese ID als Namen für das Docker-Image. Wenn in Produktion das Image `partyhub-backend:6a3329c` läuft, wissen wir genau, welcher Code dort läuft, und können ihn mit `git show 6a3329c` anschauen.
+> *(Klick)* Was ist ein **Commit-SHA**? Jeder Commit in Git bekommt eine eindeutige ID, einen langen Hash aus Buchstaben und Zahlen. `git log --oneline` zeigt die ersten 7 Zeichen, hier `6a3329c`, und die reichen. Unsere Pipeline verwendet genau diese ID als Namen für das Docker-Image, das sieht man in der letzten Zeile. Wenn in Produktion das Image `partyhub-backend:6a3329c` läuft, wissen wir genau, welcher Code dort läuft, und können ihn mit `git show 6a3329c` anschauen.
 
 **Falls gefragt wird, wofür „SHA“ steht:** *Secure Hash Algorithm*. Git berechnet aus dem Inhalt des Commits eine Prüfsumme. Ändert sich auch nur ein Zeichen, ist der Hash ein anderer.
 
@@ -121,14 +136,14 @@ Dauer: ca. 15 Minuten, 14 Folien.
 
 ## Folie 7: Architektur
 
-**Auf der Folie:** Der Weg des Codes vom Branch bis zur School-Cloud. Per Klick: was ghcr.io ist und wo die Pipeline im Repo liegt.
+**Auf der Folie:** Der Weg des Codes vom Branch bis zur School-Cloud. Nach einem Klick der Ordner `.github/workflows/` mit den drei Workflow-Dateien.
 
 **Sagen:**
 > Von links nach rechts: Wir pushen unseren Branch auf **GitHub**. GitHub startet **GitHub Actions**, das ist der Dienst, der unsere Pipeline ausführt. Er läuft auf einem Rechner von GitHub, dem sogenannten Runner. Die Pipeline testet, baut die zwei Docker-Images und lädt sie nach **ghcr.io** hoch. Dann sagt sie der **School-Cloud**, dass die neuen Images verwendet werden sollen.
 >
 > In der School-Cloud läuft Kubernetes. Der **Ingress** nimmt die Anfragen an unsere Website-URL an und leitet sie weiter: normale Anfragen an **Quarkus**, unser Backend mit der **Postgres**-Datenbank, und Login-Anfragen an **Keycloak** mit eigener Datenbank.
 >
-> *(Klick)* **ghcr.io** ist die **GitHub Container Registry**. Das ist ein Online-Speicher für Docker-Images. GitHub speichert unseren Code, ghcr.io speichert die fertig gebauten Images. Die Pipeline lädt sie dort hoch, und Kubernetes lädt sie beim Deployment von dort herunter.
+> **ghcr.io** ist die **GitHub Container Registry**. Das ist ein Online-Speicher für Docker-Images. GitHub speichert unseren Code, ghcr.io speichert die fertig gebauten Images. Die Pipeline lädt sie dort hoch, und Kubernetes lädt sie beim Deployment von dort herunter.
 >
 > *(Klick)* Die Pipeline selbst ist Code: Sie besteht aus drei YAML-Dateien im Ordner `.github/workflows/` in unserem Repository. Jede Datei ist ein **Workflow**, eine Abfolge von Schritten:
 > - `test.yml` testet,
@@ -189,18 +204,18 @@ Dauer: ca. 15 Minuten, 14 Folien.
 
 ## Folie 10: Unser Ablauf im Team
 
-**Auf der Folie:** Git-Grafik und die Befehle, die wir dafür verwenden. Die Markierung im Code springt mit jedem Klick weiter.
+**Auf der Folie:** Git-Grafik und darunter die Befehle, die wir dafür verwenden.
 
-**Sagen:**
+**Sagen** (den Code von oben nach unten durchgehen):
 > So arbeiten wir im Team. Die pinke Linie ist `main`, die blaue ein Feature-Branch.
 >
-> *(Klick)* Zuerst legt man einen **eigenen Branch** an, eine Kopie von `main`, auf der man arbeiten kann, ohne die anderen zu stören.
+> Zuerst legt man mit `git switch -c` einen **eigenen Branch** an, eine Kopie von `main`, auf der man arbeiten kann, ohne die anderen zu stören.
 >
-> *(Klick)* Dann ändert man den Code, testet lokal und macht einen **Commit**, also einen gespeicherten Zwischenstand mit Beschreibung. Unsere Commit-Nachrichten beginnen mit `feat:`, `fix:` oder `docs:` (Conventional Commits).
+> Dann ändert man den Code, testet lokal und macht einen **Commit**, also einen gespeicherten Zwischenstand mit Beschreibung. Unsere Commit-Nachrichten beginnen mit `feat:`, `fix:` oder `docs:` (Conventional Commits).
 >
-> *(Klick)* Den Branch pushen und einen **Pull Request** auf `main` öffnen. Ab jetzt läuft die CI automatisch.
+> Mit `git push` und `gh pr create` lädt man den Branch hoch und öffnet einen **Pull Request** auf `main`. Ab jetzt läuft die CI automatisch.
 >
-> *(Klick)* Ist der Test grün, schaut jemand aus dem Team den Code an (Review), und dann wird gemergt. Der Merge ist gleichzeitig das Deployment. Nach etwa 9 Minuten ist die Änderung live.
+> Ist der Test grün, schaut jemand aus dem Team den Code an (Review), und dann wird gemergt. Der Merge ist gleichzeitig das Deployment. Nach etwa 9 Minuten ist die Änderung live.
 >
 > Ist der Test rot, korrigiert man den Fehler im Branch und pusht noch einmal. Der Test läuft dann automatisch erneut.
 >
@@ -210,18 +225,18 @@ Dauer: ca. 15 Minuten, 14 Folien.
 
 ## Folie 11: Ein minimaler CI-Workflow
 
-**Auf der Folie:** Die kleinste sinnvolle Version eines Test-Workflows. Die Markierung springt mit jedem Klick zum nächsten Teil.
+**Auf der Folie:** Links die kleinste sinnvolle Version eines Test-Workflows, rechts vier Karten zu den Schlüsselwörtern.
 
-**Sagen:**
+**Sagen** (den Code von oben nach unten durchgehen):
 > So sieht ein CI-Workflow im Kern aus. Er hat drei Teile:
 >
-> *(Klick)* **`on`: Wann läuft er?** Bei jedem Pull Request auf `main` und bei jedem Push auf `main`.
+> **`on`: Wann läuft er?** Bei jedem Pull Request auf `main` und bei jedem Push auf `main`.
 >
-> *(Klick)* **`runs-on`: Wo läuft er?** GitHub stellt für jeden Lauf einen frischen, leeren Ubuntu-Rechner bereit, den **Runner**. Weil er jedes Mal neu ist, kann es kein „bei mir funktioniert's“ geben. Was dort läuft, funktioniert überall.
+> **`runs-on`: Wo läuft er?** GitHub stellt für jeden Lauf einen frischen, leeren Ubuntu-Rechner bereit, den **Runner**. Weil er jedes Mal neu ist, kann es kein „bei mir funktioniert's“ geben. Was dort läuft, funktioniert überall.
 >
-> *(Klick)* **`steps`: Was passiert?** Mit `uses:` verwendet man **fertige Bausteine**, sogenannte Actions, die andere geschrieben haben: hier „Code auschecken“ und „Java 21 installieren“.
+> **`steps`: Was passiert?** Mit `uses:` verwendet man **fertige Bausteine**, sogenannte Actions, die andere geschrieben haben: hier „Code auschecken“ und „Java 21 installieren“.
 >
-> *(Klick)* Mit `run:` führt man **eigene Befehle** aus, hier die Tests. Schlägt ein Befehl fehl, ist der ganze Lauf rot, und im Pull Request erscheint ein rotes ✗.
+> Mit `run:` führt man **eigene Befehle** aus, hier die Tests. Schlägt ein Befehl fehl, ist der ganze Lauf rot, und im Pull Request erscheint ein rotes ✗.
 >
 > Mehr braucht man für den Anfang nicht. Diese Datei ins Repo legen, und GitHub führt sie ab sofort bei jedem PR aus. Unsere echte `test.yml` ist länger, weil sie zusätzlich Datenbanken und Keycloak startet und die API-Tests ausführt. Das Prinzip ist aber dasselbe.
 

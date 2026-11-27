@@ -91,9 +91,6 @@
   .hljs-number, .hljs-literal, .hljs-variable, .hljs-template-variable { color: var(--yellow); }
   .hljs-bullet, .hljs-meta, .hljs-punctuation { color: var(--text2); }
   .reveal .code-wrapper { margin: 0; }
-  .reveal pre code[data-line-numbers] .highlight-line { background: rgba(79, 59, 154, 0.55); }
-  .reveal .hljs-ln-numbers { color: var(--muted); padding-right: 12px; }
-  .reveal .hljs.has-highlights tr:not(.highlight-line) { opacity: 0.35; }
 
   .code-title {
     font-family: 'JetBrains Mono', monospace;
@@ -137,6 +134,8 @@
   .card.accent-yellow { border-top: 5px solid var(--yellow); }
   .card.accent-purple { border-top: 5px solid var(--purple); }
   .big-icon { font-size: 1.4em; line-height: 1; margin-bottom: 0.25em; }
+  .center-card { text-align: center; padding: 26px 16px; }
+  .center-card h3 { margin: 0; }
   .big-num { font-size: 2.2em; font-weight: 800; line-height: 1; color: var(--green); margin: 10px 0; }
 
   .pill {
@@ -214,10 +213,35 @@
   table.status td:first-child { font-weight: 700; }
   .check { color: var(--green); font-weight: 800; }
 
-  /* Legend for the DevOps loop */
-  .legend { list-style: none; margin: 0; padding: 0; }
-  .legend li { display: grid; grid-template-columns: 110px 1fr; gap: 12px; align-items: center; font-size: 0.5em; padding: 6px 0; border-bottom: 1px solid var(--border); margin: 0; }
-  .legend li span:last-child { color: var(--text2); }
+  /* Slide 2: manual vs. automated */
+  .vs { display: flex; flex-direction: column; gap: 16px; }
+  .vs-head h3 { margin-bottom: 0.1em; }
+  .vs-head p { font-size: 0.5em; margin: 0; }
+  .vs-num { font-size: 1.6em; font-weight: 800; line-height: 1.1; }
+  .pr-box {
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    background: var(--navy);
+    padding: 16px 18px;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+  }
+  .pr-row { display: flex; align-items: center; gap: 10px; font-size: 0.55em; font-weight: 600; }
+  .pr-merge {
+    align-self: flex-start;
+    background: var(--green);
+    color: var(--navy);
+    font-weight: 700;
+    font-size: 0.55em;
+    padding: 10px 20px;
+    border-radius: 10px;
+  }
+
+  /* Large pipeline on slide 4 */
+  .flow.lg .node { font-size: 0.68em; padding: 16px 20px; }
+  .flow.lg .bracket { font-size: 0.5em; }
+  .flow.lg .arrow { font-size: 1em; }
 
   .title-slide h1 span { color: var(--pink); }
   .terms { display: flex; gap: 14px; flex-wrap: wrap; margin-top: 10px; }
@@ -247,36 +271,43 @@
 <!-- 2 Ohne CI/CD -->
 <section>
   <div class="kicker">Warum?</div>
-  <h2>So sähe jedes Release ohne CI/CD aus</h2>
-  <div class="grid" style="grid-template-columns: 1.65fr 1fr; align-items:stretch">
-    <div>
-      <div class="code-title">Terminal · bei jeder Änderung, von Hand</div>
+  <h2>Ein Release bei PartyHub</h2>
+  <div class="grid g2" style="margin-top:10px; align-items:stretch">
+    <div class="card accent-pink vs">
+      <div class="vs-head">
+        <h3>Ohne CI/CD</h3>
+        <div class="vs-num pinktext">10 Befehle</div>
+        <p class="muted">von Hand, bei jeder Änderung</p>
+      </div>
       <pre><code class="language-bash" data-trim>
-# 1. Testen und bauen
 ./mvnw clean test
-./mvnw package -DskipTests
-
-# 2. Docker-Images bauen und hochladen
-REG=ghcr.io/htl-leo-itp-25-27-4-5bhitm
-TAG=$(git rev-parse --short HEAD)
-docker build -t $REG/partyhub-backend:$TAG .
-docker build -f Dockerfile.keycloak -t $REG/partyhub-keycloak:$TAG .
-docker push $REG/partyhub-backend:$TAG
-docker push $REG/partyhub-keycloak:$TAG
-
-# 3. Auf Kubernetes (School-Cloud) ausrollen
+./mvnw package
+docker build -t …/partyhub-backend:$TAG .
+docker build -t …/partyhub-keycloak:$TAG .
+docker push …/partyhub-backend:$TAG
+docker push …/partyhub-keycloak:$TAG
 kubectl apply -f k8s/
-kubectl set image deployment/quarkus quarkus=$REG/partyhub-backend:$TAG
-kubectl set image deployment/keycloak keycloak=$REG/partyhub-keycloak:$TAG
+kubectl set image deployment/quarkus …
+kubectl set image deployment/keycloak …
 kubectl rollout status deployment/quarkus
       </code></pre>
     </div>
-    <div class="card accent-green fragment" style="display:flex; flex-direction:column; justify-content:center">
-      <div class="big-icon">✨</div>
-      <h3>Mit CI/CD</h3>
-      <div class="big-num">1 Klick</div>
-      <p><strong>„Merge“</strong> im Pull Request.</p>
-      <p>Alle Befehle links führt GitHub Actions automatisch aus. Jedes Mal gleich, jedes Mal mit Tests.</p>
+    <div class="card accent-green vs fragment">
+      <div class="vs-head">
+        <h3>Mit CI/CD</h3>
+        <div class="vs-num green">1 Klick</div>
+        <p class="muted">im Pull Request</p>
+      </div>
+      <div class="pr-box">
+        <div class="pr-row"><span class="check">✓</span> All checks have passed <span class="pill green" style="margin-left:auto">Test</span></div>
+        <div class="pr-merge">Merge pull request</div>
+      </div>
+      <div class="flow" style="margin-top:22px">
+        <div class="node green">Test</div><span class="arrow">→</span>
+        <div class="node blue">Build</div><span class="arrow">→</span>
+        <div class="node pink">Deploy</div><span class="arrow">→</span>
+        <div class="node fill-green">Live 🚀</div>
+      </div>
     </div>
   </div>
 </section>
@@ -311,7 +342,7 @@ kubectl rollout status deployment/quarkus
 <section>
   <div class="kicker">Was ist CI/CD?</div>
   <h2>Die Pipeline</h2>
-  <div class="flow" style="align-items:flex-start; margin-top:20px">
+  <div class="flow lg" style="align-items:flex-start; margin-top:150px">
     <div class="grp"><div class="node">Code-<br>Änderung</div></div>
     <span class="arrow" style="margin-top:16px">→</span>
     <div class="grp green">
@@ -329,30 +360,14 @@ kubectl rollout status deployment/quarkus
       <div class="bracket">Deployment</div>
     </div>
   </div>
-  <div class="grid g2" style="margin-top:34px">
-    <div class="card accent-pink fragment">
-      <h3>🚀 Deployment</h3>
-      <p>Eine neue Version der Software auf den Server <strong>ausrollen</strong>.</p>
-      <pre style="margin-top:10px"><code class="language-bash" data-trim>
-kubectl set image deployment/quarkus quarkus=…:6a3329c
-      </code></pre>
-    </div>
-    <div class="card accent-yellow fragment">
-      <h3>🌍 Produktion</h3>
-      <p>Die <strong>echte, laufende</strong> Anwendung, die alle Nutzer:innen verwenden.</p>
-      <p>Lokal: <code>localhost:8080</code> · nur für dich<br>
-         Produktion: <code>it220274.cloud.htl-leonding.ac.at</code> · für alle</p>
-    </div>
-  </div>
 </section>
 
 <!-- 5 DevOps-Kreislauf -->
 <section>
   <div class="kicker">Was ist CI/CD?</div>
   <h2>Wozu der Kreis?</h2>
-  <p class="lead">Software ist nie fertig. Jede Änderung läuft diesen Kreis durch, immer wieder.</p>
-  <div class="grid" style="grid-template-columns: 1.15fr 1fr; align-items:center; gap:30px">
-    <svg viewBox="0 0 640 310" style="width:100%" role="img" aria-label="DevOps-Kreislauf als liegende Acht">
+  <div style="display:flex; justify-content:center; margin-top:20px">
+    <svg viewBox="0 0 640 310" style="width:88%" role="img" aria-label="DevOps-Kreislauf als liegende Acht">
       <path d="M320,155 C240,40 70,40 70,155 C70,270 240,270 320,155 C400,40 570,40 570,155 C570,270 400,270 320,155 Z"
             fill="none" stroke="#4f3b9a" stroke-width="14" stroke-linecap="round"/>
       <g font-family="Montserrat" font-weight="700" font-size="17" text-anchor="middle">
@@ -370,16 +385,6 @@ kubectl set image deployment/quarkus quarkus=…:6a3329c
         <text x="450" y="163" fill="#ff2e63">CD</text>
       </g>
     </svg>
-    <ul class="legend">
-      <li><span class="pill" style="background:var(--bg3); color:#fff">Plan</span><span>Feature planen (OpenSpec)</span></li>
-      <li><span class="pill" style="background:var(--bg3); color:#fff">Code</span><span>Auf einem Branch programmieren</span></li>
-      <li><span class="pill green">Build</span><span><code>mvn package</code>, <code>docker build</code></span></li>
-      <li><span class="pill green">Test</span><span><code>mvn test</code>, API-Tests</span></li>
-      <li><span class="pill pink">Release</span><span>Image liegt in <code>ghcr.io</code></span></li>
-      <li><span class="pill pink">Deploy</span><span>Ausrollen mit <code>kubectl</code></span></li>
-      <li><span class="pill blue">Betrieb</span><span>Website läuft für alle</span></li>
-      <li><span class="pill blue">Feedback</span><span>Bugs, Wünsche → neuer Plan</span></li>
-    </ul>
   </div>
 </section>
 
@@ -387,25 +392,20 @@ kubectl set image deployment/quarkus quarkus=…:6a3329c
 <section>
   <div class="kicker">Was ist CI/CD?</div>
   <h2>Warum sich das lohnt</h2>
-  <div class="grid g4" style="margin-top:14px">
-    <div class="card accent-green"><h3>🐞 Fehler früh finden</h3><p>Kaputter Code fällt im Pull Request auf, nicht erst auf dem Server.</p></div>
-    <div class="card accent-blue"><h3>🤖 Keine Handarbeit</h3><p>Niemand baut lokal, lädt Images hoch oder tippt <code>kubectl</code>.</p></div>
-    <div class="card accent-yellow"><h3>🔎 Nachvollziehbar</h3><p>Jedes Image trägt den <strong>Commit-SHA</strong>, aus dem es gebaut wurde.</p></div>
-    <div class="card accent-pink"><h3>⚡ Häufige Releases</h3><p>Bei uns gehen oft mehrere Änderungen pro Tag live.</p></div>
+  <div class="grid g4" style="margin-top:24px">
+    <div class="card accent-green center-card"><div class="big-icon">🐞</div><h3>Fehler früh finden</h3></div>
+    <div class="card accent-blue center-card"><div class="big-icon">🤖</div><h3>Keine Handarbeit</h3></div>
+    <div class="card accent-yellow center-card"><div class="big-icon">🔎</div><h3>Nachvollziehbar</h3></div>
+    <div class="card accent-pink center-card"><div class="big-icon">⚡</div><h3>Häufige Releases</h3></div>
   </div>
-  <div class="grid g2 fragment" style="margin-top:26px; align-items:center">
+  <div class="fragment" style="margin-top:40px">
+    <div class="code-title">Commit-SHA → Image-Tag</div>
     <pre><code class="language-bash" data-trim>
 $ git log --oneline -1
 6a3329c docs: add reveal.js slides for the CI/CD talk
 
-# daraus wird der Image-Tag:
 ghcr.io/htl-leo-itp-25-27-4-5bhitm/partyhub-backend:6a3329c
     </code></pre>
-    <div class="card accent-yellow">
-      <h3>Was ist ein Commit-SHA?</h3>
-      <p>Eine <strong>eindeutige ID</strong> für jeden Commit. Die ersten 7 Zeichen reichen: <code>6a3329c</code>.</p>
-      <p>Läuft in Produktion <code>6a3329c</code>, wissen wir genau, welcher Code dort läuft.</p>
-    </div>
   </div>
 </section>
 
@@ -431,21 +431,14 @@ ghcr.io/htl-leo-itp-25-27-4-5bhitm/partyhub-backend:6a3329c
       <div class="node yellow" style="grid-column:5; grid-row:2">Keycloak-DB</div>
     </div>
   </div>
-  <div class="grid g2" style="margin-top:28px; align-items:stretch">
-    <div class="card accent-blue fragment">
-      <h3>📦 ghcr.io = GitHub Container Registry</h3>
-      <p>Ein <strong>Online-Speicher für Docker-Images</strong>, direkt bei GitHub. Wie GitHub für Code, nur für fertige Images.</p>
-      <p>Die Pipeline lädt die Images hoch, Kubernetes lädt sie von dort herunter.</p>
-    </div>
-    <div class="fragment">
-      <div class="code-title">Die Pipeline liegt im Repo als YAML-Dateien</div>
-      <pre><code class="language-plaintext" data-trim>
+  <div class="fragment" style="margin:44px auto 0; width:62%">
+    <div class="code-title">.github/workflows/</div>
+    <pre style="font-size:0.55em"><code class="language-plaintext" data-trim>
 .github/workflows/
-├── test.yml     →  Test             (testen)
-├── push.yaml    →  Build and Push   (Images → ghcr.io)
-└── deploy.yml   →  Deploy           (→ School-Cloud)
-      </code></pre>
-    </div>
+├── test.yml     →  Test
+├── push.yaml    →  Build and Push  →  ghcr.io
+└── deploy.yml   →  Deploy          →  School-Cloud
+    </code></pre>
   </div>
 </section>
 
@@ -567,7 +560,7 @@ jobs:
     </g>
   </svg>
   <div class="grid" style="grid-template-columns: 1.3fr 1fr; margin-top:14px; align-items:stretch">
-    <pre><code class="language-bash" data-trim data-line-numbers="1|2-4|5-6|7">
+    <pre><code class="language-bash" data-trim>
 git switch -c fix/profile-picture       # eigener Branch
 # … Code ändern …
 ./mvnw clean test                       # lokal testen
@@ -591,7 +584,7 @@ gh pr create --base main                # Pull Request öffnen
   <div class="grid" style="grid-template-columns: 1.15fr 1fr; align-items:start; margin-top:6px">
     <div>
       <div class="code-title">.github/workflows/test.yml</div>
-      <pre style="font-size:0.5em"><code class="language-yaml" data-trim data-line-numbers="1-6|7-9|10-13|14">
+      <pre style="font-size:0.5em"><code class="language-yaml" data-trim>
 name: Test
 on:
   pull_request:
