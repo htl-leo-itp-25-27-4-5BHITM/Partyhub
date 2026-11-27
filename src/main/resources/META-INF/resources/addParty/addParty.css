@@ -58,7 +58,7 @@ body {
 .wizard-step::before {
   content: "";
   position: absolute;
-  top: 13px;
+  top: 17px;
   left: calc(-50% + 18px);
   width: calc(100% - 28px);
   height: 2px;
@@ -73,8 +73,11 @@ body {
   position: relative;
   z-index: 1;
   display: grid;
-  width: 28px;
-  height: 28px;
+  width: 36px;
+  height: 36px;
+  padding: 0;
+  font: inherit;
+  cursor: pointer;
   place-items: center;
   border: 2px solid rgba(255, 255, 255, 0.34);
   border-radius: 50%;
@@ -515,3 +518,9 @@ body {
 }
 #saveDraft[data-saved="true"] .draft-saved-icon { display: block; }
 #saveDraft[data-saved="true"]:hover { background: #193a2b; border-color: #56f27c; }
+
+.wizard-number:hover { border-color: #ff4f8f; }
+.wizard-number:focus-visible {
+  outline: 3px solid #ff4f8f;
+  outline-offset: 4px;
+}
