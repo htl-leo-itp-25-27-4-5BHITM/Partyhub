@@ -1,4 +1,9 @@
 /* Settings area. Uses only design tokens so it works in the light and the dark appearance. */
+/* Settings use document scrolling rather than the shared fixed-height app layout. */
+body.settings-page {
+  overflow-y: auto;
+}
+
 .settings-page .app-shell {
   height: auto;
   min-height: 100dvh;
