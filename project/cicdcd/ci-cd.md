@@ -6,7 +6,7 @@ Dauer: ca. 15 Minuten, 14 Folien.
 
 ## Bedienung der Folien
 
-- `docs/ci-cd-slides.html` im Browser öffnen. Für reveal.js und die Schriften braucht man Internet.
+- `project/cicdcd/ci-cd-slides.html` im Browser öffnen. Für reveal.js und die Schriften braucht man Internet.
 - **Pfeiltasten** blättern. Manche Folien bauen sich Schritt für Schritt auf. Im Sprechertext steht dort *(Klick)*.
 - **F** = Vollbild, **Esc** = Übersicht aller Folien.
 - PDF: Adresse mit `?print-pdf` am Ende öffnen, dann im Browser als PDF drucken.
