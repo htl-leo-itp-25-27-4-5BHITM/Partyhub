@@ -1,0 +1,678 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>CI/CD bei PartyHub</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/dist/reveal.css">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --navy: #1a1040;
+    --purple: #4f3b9a;
+    --pink: #ff2e63;
+    --green: #56f27c;
+    --blue: #3ec1f3;
+    --yellow: #ffd166;
+    --bg2: #221a4d;
+    --bg3: #2a2259;
+    --text: #ffffff;
+    --text2: rgba(255, 255, 255, 0.75);
+    --muted: rgba(255, 255, 255, 0.58);
+    --border: rgba(255, 255, 255, 0.12);
+  }
+
+  html, body { background: var(--navy); }
+  .reveal-viewport {
+    background:
+      radial-gradient(circle at 85% 10%, rgba(79, 59, 154, 0.55), transparent 45%),
+      radial-gradient(circle at 10% 90%, rgba(255, 46, 99, 0.18), transparent 40%),
+      var(--navy);
+  }
+  .reveal {
+    font-family: 'Montserrat', system-ui, sans-serif;
+    font-size: 30px;
+    color: var(--text);
+  }
+  .reveal .slides { text-align: left; }
+  .reveal .slides section { height: 100%; }
+  .reveal h1, .reveal h2, .reveal h3 {
+    font-family: 'Montserrat', sans-serif;
+    font-weight: 800;
+    letter-spacing: -0.02em;
+    line-height: 1.1;
+    margin: 0 0 0.45em;
+  }
+  .reveal h1 { font-size: 2.6em; }
+  .reveal h2 { font-size: 1.5em; }
+  .reveal h3 { font-size: 0.8em; font-weight: 700; margin-bottom: 0.3em; }
+  .reveal p { margin: 0 0 0.5em; line-height: 1.4; }
+  .reveal ul, .reveal ol { margin: 0 0 0 1.1em; line-height: 1.45; }
+  .reveal li { margin-bottom: 0.3em; }
+  .reveal li::marker { color: var(--pink); }
+  .reveal strong { color: var(--text); font-weight: 700; }
+  .reveal a { color: var(--blue); }
+  .reveal code {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.85em;
+    background: var(--bg3);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 0.05em 0.35em;
+  }
+
+  /* Code blocks in the PartyHub palette */
+  .reveal pre {
+    width: 100%;
+    margin: 0;
+    box-shadow: none;
+    font-size: 0.45em;
+    border-radius: 14px;
+    border: 1px solid var(--border);
+    overflow: hidden;
+  }
+  .reveal pre code {
+    display: block;
+    background: var(--navy);
+    color: var(--text);
+    border: 0;
+    border-radius: 0;
+    padding: 0.9em 1.1em;
+    max-height: 560px;
+    font-size: 1em;
+    line-height: 1.5;
+  }
+  .reveal pre.sm { font-size: 0.38em; }
+  .hljs-comment, .hljs-quote { color: var(--muted); font-style: italic; }
+  .hljs-attr, .hljs-section, .hljs-title { color: var(--blue); }
+  .hljs-string, .hljs-symbol { color: var(--green); }
+  .hljs-keyword, .hljs-built_in, .hljs-selector-tag { color: var(--pink); }
+  .hljs-number, .hljs-literal, .hljs-variable, .hljs-template-variable { color: var(--yellow); }
+  .hljs-bullet, .hljs-meta, .hljs-punctuation { color: var(--text2); }
+  .reveal .code-wrapper { margin: 0; }
+
+  .code-title {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.42em;
+    color: var(--text2);
+    margin-bottom: 8px;
+  }
+
+  .kicker {
+    font-size: 0.5em;
+    font-weight: 700;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--pink);
+    margin-bottom: 0.5em;
+  }
+  .lead { font-size: 0.8em; color: var(--text2); }
+  .muted { color: var(--muted); }
+  .small { font-size: 0.65em; }
+  .tiny { font-size: 0.5em; }
+  .green { color: var(--green); }
+  .pinktext { color: var(--pink); }
+
+  /* Cards and grids */
+  .grid { display: grid; gap: 20px; }
+  .g2 { grid-template-columns: repeat(2, 1fr); }
+  .g3 { grid-template-columns: repeat(3, 1fr); }
+  .g4 { grid-template-columns: repeat(4, 1fr); }
+  .card {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: 18px;
+    padding: 18px 22px;
+    box-shadow: 0 12px 32px rgba(0, 0, 0, 0.24);
+  }
+  .card p, .card li { font-size: 0.58em; color: var(--text2); }
+  .card p:last-child { margin-bottom: 0; }
+  .card.accent-green { border-top: 5px solid var(--green); }
+  .card.accent-pink { border-top: 5px solid var(--pink); }
+  .card.accent-blue { border-top: 5px solid var(--blue); }
+  .card.accent-yellow { border-top: 5px solid var(--yellow); }
+  .card.accent-purple { border-top: 5px solid var(--purple); }
+  .big-icon { font-size: 1.4em; line-height: 1; margin-bottom: 0.25em; }
+  .center-card { text-align: center; padding: 26px 16px; }
+  .center-card h3 { margin: 0; }
+  .big-num { font-size: 2.2em; font-weight: 800; line-height: 1; color: var(--green); margin: 10px 0; }
+
+  .pill {
+    display: inline-block;
+    font-size: 0.45em;
+    font-weight: 700;
+    padding: 0.25em 0.8em;
+    border-radius: 999px;
+    letter-spacing: 0.04em;
+    white-space: nowrap;
+  }
+  .pill.green { background: var(--green); color: var(--navy); }
+  .pill.pink { background: var(--pink); color: #fff; }
+  .pill.blue { background: var(--blue); color: var(--navy); }
+  .pill.yellow { background: var(--yellow); color: var(--navy); }
+
+  /* Flow diagrams */
+  .flow { display: flex; align-items: center; justify-content: center; gap: 10px; }
+  .node {
+    background: var(--bg2);
+    border: 2px solid var(--purple);
+    border-radius: 14px;
+    padding: 12px 14px;
+    font-size: 0.5em;
+    font-weight: 600;
+    text-align: center;
+    line-height: 1.3;
+  }
+  .node small { display: block; font-weight: 400; color: var(--text2); font-size: 0.85em; margin-top: 3px; }
+  .node.green { border-color: var(--green); }
+  .node.pink { border-color: var(--pink); }
+  .node.blue { border-color: var(--blue); }
+  .node.yellow { border-color: var(--yellow); }
+  .node.fill-green { background: var(--green); border-color: var(--green); color: var(--navy); }
+  .node.fill-pink { background: var(--pink); border-color: var(--pink); color: #fff; }
+  .arrow { color: var(--muted); font-size: 0.75em; font-weight: 700; flex: none; }
+  .grp { display: flex; flex-direction: column; gap: 10px; }
+  .bracket {
+    border-top: 3px solid currentColor;
+    text-align: center;
+    font-size: 0.42em;
+    font-weight: 700;
+    padding-top: 6px;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+  }
+
+  /* Architecture */
+  .cluster {
+    border: 2px dashed var(--blue);
+    border-radius: 20px;
+    padding: 30px 14px 14px;
+    position: relative;
+    display: grid;
+    grid-template-columns: repeat(5, auto);
+    gap: 12px 8px;
+    align-items: center;
+  }
+  .cluster-label {
+    position: absolute;
+    top: 7px;
+    left: 16px;
+    font-size: 0.4em;
+    font-weight: 700;
+    color: var(--blue);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+  .ingress { grid-row: 1 / span 2; }
+
+  /* Tables */
+  table.status { width: 100%; border-collapse: collapse; font-size: 0.58em; }
+  table.status th, table.status td { padding: 11px 14px; border-bottom: 1px solid var(--border); text-align: left; vertical-align: middle; }
+  table.status th { color: var(--muted); font-weight: 600; font-size: 0.85em; text-transform: uppercase; letter-spacing: 0.08em; }
+  table.status td:first-child { font-weight: 700; }
+  .check { color: var(--green); font-weight: 800; }
+
+  /* Slide 2: manual vs. automated */
+  .vs { display: flex; flex-direction: column; gap: 16px; }
+  .vs-head h3 { margin-bottom: 0.1em; }
+  .vs-head p { font-size: 0.5em; margin: 0; }
+  .vs-num { font-size: 1.6em; font-weight: 800; line-height: 1.1; }
+  .pr-box {
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    background: var(--navy);
+    padding: 16px 18px;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+  }
+  .pr-row { display: flex; align-items: center; gap: 10px; font-size: 0.55em; font-weight: 600; }
+  .pr-merge {
+    align-self: flex-start;
+    background: var(--green);
+    color: var(--navy);
+    font-weight: 700;
+    font-size: 0.55em;
+    padding: 10px 20px;
+    border-radius: 10px;
+  }
+
+  /* Large pipeline on slide 4 */
+  .flow.lg .node { font-size: 0.68em; padding: 16px 20px; }
+  .flow.lg .bracket { font-size: 0.5em; }
+  .flow.lg .arrow { font-size: 1em; }
+
+  .title-slide h1 span { color: var(--pink); }
+  .terms { display: flex; gap: 14px; flex-wrap: wrap; margin-top: 10px; }
+  .logo { width: 110px; margin-bottom: 18px; }
+
+  .reveal .slide-number { background: transparent; color: var(--muted); font-family: 'Montserrat', sans-serif; font-size: 16px; }
+  .reveal .progress { color: var(--pink); height: 4px; }
+  .reveal .controls { color: var(--pink); }
+</style>
+</head>
+<body>
+<div class="reveal">
+<div class="slides">
+
+<!-- 1 Titel -->
+<section class="title-slide">
+  <img class="logo" src="images/logo.png" alt="PartyHub-Logo">
+  <div class="kicker">ITP · PartyHub</div>
+  <h1>CI / CD / CD<br>bei <span>PartyHub</span></h1>
+  <div class="terms">
+    <span class="pill green">Continuous Integration</span>
+    <span class="pill blue">Continuous Delivery</span>
+    <span class="pill pink">Continuous Deployment</span>
+  </div>
+</section>
+
+<!-- 2 Ohne CI/CD -->
+<section>
+  <div class="kicker">Warum?</div>
+  <h2>Ein Release bei PartyHub</h2>
+  <div class="grid g2" style="margin-top:10px; align-items:stretch">
+    <div class="card accent-pink vs">
+      <div class="vs-head">
+        <h3>Ohne CI/CD</h3>
+        <div class="vs-num pinktext">10 Befehle</div>
+        <p class="muted">von Hand, bei jeder Änderung</p>
+      </div>
+      <pre><code class="language-bash" data-trim>
+./mvnw clean test
+./mvnw package
+docker build -t …/partyhub-backend:$TAG .
+docker build -t …/partyhub-keycloak:$TAG .
+docker push …/partyhub-backend:$TAG
+docker push …/partyhub-keycloak:$TAG
+kubectl apply -f k8s/
+kubectl set image deployment/quarkus …
+kubectl set image deployment/keycloak …
+kubectl rollout status deployment/quarkus
+      </code></pre>
+    </div>
+    <div class="card accent-green vs fragment">
+      <div class="vs-head">
+        <h3>Mit CI/CD</h3>
+        <div class="vs-num green">1 Klick</div>
+        <p class="muted">im Pull Request</p>
+      </div>
+      <div class="pr-box">
+        <div class="pr-row"><span class="check">✓</span> All checks have passed <span class="pill green" style="margin-left:auto">Test</span></div>
+        <div class="pr-merge">Merge pull request</div>
+      </div>
+      <div class="flow" style="margin-top:22px">
+        <div class="node green">Test</div><span class="arrow">→</span>
+        <div class="node blue">Build</div><span class="arrow">→</span>
+        <div class="node pink">Deploy</div><span class="arrow">→</span>
+        <div class="node fill-green">Live 🚀</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 3 Begriffe -->
+<section>
+  <div class="kicker">Was ist CI/CD?</div>
+  <h2>Drei Begriffe, die aufeinander aufbauen</h2>
+  <div class="grid g3" style="margin-top:24px">
+    <div class="card accent-green fragment">
+      <div class="big-icon">🔁</div>
+      <h3>Continuous Integration</h3>
+      <p>Jede Änderung wird <strong>automatisch gebaut und getestet</strong>, sobald sie ins gemeinsame Repo kommt.</p>
+      <p class="muted">„Funktioniert mein Code mit dem der anderen?“</p>
+    </div>
+    <div class="card accent-blue fragment">
+      <div class="big-icon">📦</div>
+      <h3>Continuous Delivery</h3>
+      <p>Nach grünen Tests entsteht automatisch ein <strong>auslieferbares Paket</strong>. Ausrollen per Klick.</p>
+      <p class="muted">„Wir <em>könnten</em> jederzeit ausliefern.“</p>
+    </div>
+    <div class="card accent-pink fragment">
+      <div class="big-icon">🚀</div>
+      <h3>Continuous Deployment</h3>
+      <p>Das Paket wird <strong>ohne manuellen Schritt</strong> in Produktion ausgerollt.</p>
+      <p class="muted">„Jede grüne Änderung ist sofort live.“</p>
+    </div>
+  </div>
+</section>
+
+<!-- 4 Pipeline, Deployment, Produktion -->
+<section>
+  <div class="kicker">Was ist CI/CD?</div>
+  <h2>Die Pipeline</h2>
+  <div class="flow lg" style="align-items:flex-start; margin-top:150px">
+    <div class="grp"><div class="node">Code-<br>Änderung</div></div>
+    <span class="arrow" style="margin-top:16px">→</span>
+    <div class="grp green">
+      <div class="flow"><div class="node green">Build</div><span class="arrow">→</span><div class="node green">Tests</div></div>
+      <div class="bracket">Integration</div>
+    </div>
+    <span class="arrow" style="margin-top:16px">→</span>
+    <div class="grp" style="color:var(--blue)">
+      <div class="flow"><div class="node blue">Paket<small>Docker-Image</small></div><span class="arrow">→</span><div class="node blue">Freigabe</div></div>
+      <div class="bracket">Delivery</div>
+    </div>
+    <span class="arrow" style="margin-top:16px">→</span>
+    <div class="grp" style="color:var(--pink)">
+      <div class="node pink">Produktion</div>
+      <div class="bracket">Deployment</div>
+    </div>
+  </div>
+</section>
+
+<!-- 5 DevOps-Kreislauf -->
+<section>
+  <div class="kicker">Was ist CI/CD?</div>
+  <h2>Wozu der Kreis?</h2>
+  <div style="display:flex; justify-content:center; margin-top:20px">
+    <svg viewBox="0 0 640 310" style="width:88%" role="img" aria-label="DevOps-Kreislauf als liegende Acht">
+      <path d="M320,155 C240,40 70,40 70,155 C70,270 240,270 320,155 C400,40 570,40 570,155 C570,270 400,270 320,155 Z"
+            fill="none" stroke="#4f3b9a" stroke-width="14" stroke-linecap="round"/>
+      <g font-family="Montserrat" font-weight="700" font-size="17" text-anchor="middle">
+        <rect x="185" y="52" width="96" height="32" rx="16" fill="#221a4d" stroke="#ffffff" stroke-opacity="0.4"/><text x="233" y="73" fill="#fff">Plan</text>
+        <rect x="52" y="74" width="96" height="32" rx="16" fill="#221a4d" stroke="#ffffff" stroke-opacity="0.4"/><text x="100" y="95" fill="#fff">Code</text>
+        <rect x="52" y="204" width="96" height="32" rx="16" fill="#56f27c"/><text x="100" y="225" fill="#1a1040">Build</text>
+        <rect x="185" y="226" width="96" height="32" rx="16" fill="#56f27c"/><text x="233" y="247" fill="#1a1040">Test</text>
+        <rect x="359" y="52" width="96" height="32" rx="16" fill="#ff2e63"/><text x="407" y="73" fill="#fff">Release</text>
+        <rect x="492" y="74" width="96" height="32" rx="16" fill="#ff2e63"/><text x="540" y="95" fill="#fff">Deploy</text>
+        <rect x="492" y="204" width="96" height="32" rx="16" fill="#3ec1f3"/><text x="540" y="225" fill="#1a1040">Betrieb</text>
+        <rect x="353" y="226" width="108" height="32" rx="16" fill="#3ec1f3"/><text x="407" y="247" fill="#1a1040">Feedback</text>
+      </g>
+      <g font-family="Montserrat" font-weight="800" font-size="22" text-anchor="middle">
+        <text x="190" y="163" fill="#56f27c">CI</text>
+        <text x="450" y="163" fill="#ff2e63">CD</text>
+      </g>
+    </svg>
+  </div>
+</section>
+
+<!-- 6 Vorteile + Commit-SHA -->
+<section>
+  <div class="kicker">Was ist CI/CD?</div>
+  <h2>Warum sich das lohnt</h2>
+  <div class="grid g4" style="margin-top:150px">
+    <div class="card accent-green center-card"><div class="big-icon">🐞</div><h3>Fehler früh finden</h3></div>
+    <div class="card accent-blue center-card"><div class="big-icon">🤖</div><h3>Keine Handarbeit</h3></div>
+    <div class="card accent-yellow center-card"><div class="big-icon">🔎</div><h3>Nachvollziehbar</h3></div>
+    <div class="card accent-pink center-card"><div class="big-icon">⚡</div><h3>Häufige Releases</h3></div>
+  </div>
+</section>
+
+<!-- 7 Architektur + ghcr.io + workflows -->
+<section>
+  <div class="kicker">Unsere Pipeline</div>
+  <h2>Architektur</h2>
+  <div class="flow" style="margin-top:10px">
+    <div class="node">👩‍💻 Branch<small>git push</small></div><span class="arrow">→</span>
+    <div class="node">GitHub<small>Repository</small></div><span class="arrow">→</span>
+    <div class="node green">GitHub Actions<small>führt die Workflows aus</small></div><span class="arrow">→</span>
+    <div class="node blue">ghcr.io<small>Images</small></div><span class="arrow">→</span>
+    <div class="cluster">
+      <div class="cluster-label">School-Cloud · Kubernetes</div>
+      <div class="node pink ingress">Ingress<small>Website-URL</small></div>
+      <span class="arrow">→</span>
+      <div class="node">Quarkus</div>
+      <span class="arrow">→</span>
+      <div class="node yellow">Postgres</div>
+      <span class="arrow" style="grid-column:2; grid-row:2">→</span>
+      <div class="node" style="grid-column:3; grid-row:2">Keycloak</div>
+      <span class="arrow" style="grid-column:4; grid-row:2">→</span>
+      <div class="node yellow" style="grid-column:5; grid-row:2">Keycloak-DB</div>
+    </div>
+  </div>
+  <div class="fragment" style="margin:44px auto 0; width:62%">
+    <div class="code-title">.github/workflows/</div>
+    <pre style="font-size:0.55em"><code class="language-plaintext" data-trim>
+.github/workflows/
+├── test.yml     →  Test
+├── push.yaml    →  Build and Push  →  ghcr.io
+└── deploy.yml   →  Deploy          →  School-Cloud
+    </code></pre>
+  </div>
+</section>
+
+<!-- 8 Status + Pull Request -->
+<section>
+  <div class="kicker">Unsere Pipeline</div>
+  <h2>Ist das bei uns automatisiert? <span class="green">Ja.</span></h2>
+  <div class="grid g2" style="margin-top:8px">
+    <div class="card accent-purple">
+      <h3>🔀 Pull Request (PR)</h3>
+      <p>Eine <strong>Anfrage, die Änderungen eines Branches in <code>main</code> zu übernehmen</strong>. Dort laufen die Tests, und das Team schaut den Code an.</p>
+    </div>
+    <div class="card accent-purple">
+      <h3>⬆️ Push auf main</h3>
+      <p>Neuer Code landet in <code>main</code>. Bei uns passiert das durch den <strong>Merge</strong> eines Pull Requests.</p>
+    </div>
+  </div>
+  <table class="status" style="margin-top:18px">
+    <thead><tr><th>Stufe</th><th>Wann läuft sie?</th><th>Workflow</th><th></th></tr></thead>
+    <tbody>
+      <tr class="fragment"><td>Continuous Integration</td><td>bei jedem Pull Request und jedem Push auf <code>main</code></td><td><code>test.yml</code></td><td class="check">✓</td></tr>
+      <tr class="fragment"><td>Continuous Delivery</td><td>nach grünem Test auf <code>main</code></td><td><code>push.yaml</code></td><td class="check">✓</td></tr>
+      <tr class="fragment"><td>Continuous Deployment</td><td>direkt nach dem Build</td><td><code>deploy.yml</code></td><td class="check">✓</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<!-- 9 Wie hängen die Workflows zusammen -->
+<section>
+  <div class="kicker">Unsere Pipeline</div>
+  <h2>Wie hängen die Workflows zusammen?</h2>
+  <div class="grid" style="grid-template-columns: 1fr auto 1fr auto 1fr; gap:10px; align-items:start; margin-top:6px">
+    <div class="fragment" data-fragment-index="1">
+      <span class="pill green">test.yml</span>
+      <pre class="sm" style="margin-top:8px"><code class="language-yaml" data-trim>
+name: Test
+on:
+  pull_request:
+    branches: [ "main" ]
+  push:
+    branches: [ "main" ]
+jobs:
+  test:
+    steps:
+      - run: node --test …
+      - run: mvn clean test
+      - run: npx httpyac --all *.http
+      </code></pre>
+    </div>
+    <span class="arrow fragment" data-fragment-index="2" style="margin-top:160px">→</span>
+    <div class="fragment" data-fragment-index="2">
+      <span class="pill blue">push.yaml</span>
+      <pre class="sm" style="margin-top:8px"><code class="language-yaml" data-trim>
+name: Build and Push
+on:
+  workflow_run:
+    workflows: [ "Test" ]
+    types: [ completed ]
+jobs:
+  build-and-push:
+    # nur wenn Test grün und Branch main
+    steps:
+      - run: mvn -B package -DskipTests
+      - uses: docker/build-push-action@v5
+  deploy:
+    needs: build-and-push
+    uses: ./.github/workflows/deploy.yml
+      </code></pre>
+    </div>
+    <span class="arrow fragment" data-fragment-index="3" style="margin-top:160px">→</span>
+    <div class="fragment" data-fragment-index="3">
+      <span class="pill pink">deploy.yml</span>
+      <pre class="sm" style="margin-top:8px"><code class="language-yaml" data-trim>
+name: Deploy
+on:
+  workflow_call:
+    inputs:
+      image-tag: { type: string }
+jobs:
+  deploy:
+    steps:
+      - run: kubectl apply -f k8s/
+      - run: kubectl set image
+          deployment/quarkus quarkus=…:$TAG
+      - run: kubectl rollout status
+          deployment/quarkus
+      </code></pre>
+    </div>
+  </div>
+  <div class="grid g3 fragment" data-fragment-index="4" style="margin-top:16px; gap:56px">
+    <p class="tiny muted"><code>on: pull_request / push</code> startet bei jedem PR und Merge</p>
+    <p class="tiny muted"><code>workflow_run</code> startet, wenn „Test“ fertig ist</p>
+    <p class="tiny muted"><code>workflow_call</code> wird von „Build and Push“ aufgerufen</p>
+  </div>
+  <p class="tiny muted" style="margin-top:4px">Gekürzt. Vollständig in <code>.github/workflows/</code>.</p>
+</section>
+
+<!-- 10 Team-Ablauf -->
+<section>
+  <div class="kicker">Unsere Pipeline</div>
+  <h2>Unser Ablauf im Team</h2>
+  <svg viewBox="0 0 900 190" style="width:100%; max-height:175px" role="img" aria-label="Git-Ablauf mit Branch, Pull Request und Merge">
+    <g font-family="Montserrat" font-size="16" font-weight="600">
+      <line x1="30" y1="60" x2="870" y2="60" stroke="#ff2e63" stroke-width="6" stroke-linecap="round"/>
+      <path d="M150,60 C200,60 200,140 250,140 L560,140 C610,140 610,60 660,60" fill="none" stroke="#3ec1f3" stroke-width="6"/>
+      <circle cx="90" cy="60" r="12" fill="#ff2e63"/>
+      <circle cx="300" cy="140" r="12" fill="#3ec1f3"/>
+      <circle cx="420" cy="140" r="12" fill="#56f27c"/>
+      <circle cx="530" cy="140" r="12" fill="#ffd166"/>
+      <circle cx="660" cy="60" r="14" fill="#ff2e63" stroke="#fff" stroke-width="3"/>
+      <circle cx="800" cy="60" r="12" fill="#56f27c"/>
+      <text x="30" y="30" fill="#ff2e63" font-weight="800">main</text>
+      <text x="250" y="182" fill="#3ec1f3" font-weight="800">fix/profile-picture</text>
+      <text x="300" y="118" fill="#fff" text-anchor="middle">Commit</text>
+      <text x="420" y="118" fill="#fff" text-anchor="middle">PR: Test ✓</text>
+      <text x="530" y="118" fill="#fff" text-anchor="middle">Review</text>
+      <text x="660" y="30" fill="#fff" text-anchor="middle">Merge</text>
+      <text x="800" y="30" fill="#fff" text-anchor="middle">Live 🚀</text>
+    </g>
+  </svg>
+  <div class="grid" style="grid-template-columns: 1.3fr 1fr; margin-top:14px; align-items:stretch">
+    <pre><code class="language-bash" data-trim>
+git switch -c fix/profile-picture       # eigener Branch
+# … Code ändern …
+./mvnw clean test                       # lokal testen
+git commit -am "fix: move profile picture"
+git push -u origin fix/profile-picture
+gh pr create --base main                # Pull Request öffnen
+# → CI läuft · Review · Merge · automatisch live
+    </code></pre>
+    <div class="card accent-blue" style="display:flex; flex-direction:column; justify-content:center">
+      <p><span class="pill green">grün</span> → Review → Merge → live</p>
+      <p><span class="pill pink">rot</span> → im Branch korrigieren, nochmal pushen</p>
+      <p class="muted">Nie direkt auf <code>main</code> arbeiten.</p>
+    </div>
+  </div>
+</section>
+
+<!-- 11 Minimaler Workflow -->
+<section>
+  <div class="kicker">Umsetzung</div>
+  <h2>Ein minimaler CI-Workflow</h2>
+  <div class="grid" style="grid-template-columns: 1.15fr 1fr; align-items:start; margin-top:6px">
+    <div>
+      <div class="code-title">.github/workflows/test.yml</div>
+      <pre style="font-size:0.5em"><code class="language-yaml" data-trim>
+name: Test
+on:
+  pull_request:
+    branches: [ "main" ]
+  push:
+    branches: [ "main" ]
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with: { distribution: temurin, java-version: '21' }
+      - run: mvn clean test
+      </code></pre>
+    </div>
+    <div style="display:flex; flex-direction:column; gap:12px">
+      <div class="card accent-green"><h3><code>on</code> · Wann?</h3><p>Bei jedem Pull Request und jedem Push auf <code>main</code>.</p></div>
+      <div class="card accent-blue"><h3><code>runs-on</code> · Wo?</h3><p>Auf einem frischen Ubuntu-Rechner von GitHub, dem <strong>Runner</strong>.</p></div>
+      <div class="card accent-purple"><h3><code>uses</code> · Fertige Bausteine</h3><p>Code auschecken, Java 21 installieren.</p></div>
+      <div class="card accent-pink"><h3><code>run</code> · Eigener Befehl</h3><p>Tests ausführen. Schlägt er fehl, ist der Lauf <strong>rot ✗</strong>.</p></div>
+    </div>
+  </div>
+</section>
+
+<!-- 12 Was wir noch tun müssen -->
+<section>
+  <div class="kicker">Umsetzung</div>
+  <h2>Was wir noch tun müssen</h2>
+  <table class="status" style="margin-top:14px">
+    <thead><tr><th></th><th>Aufgabe</th><th>Warum</th></tr></thead>
+    <tbody>
+      <tr><td><span class="pill pink">Muss</span></td><td>Branch-Schutz für <code>main</code></td><td>Ein roter PR kann heute trotzdem gemergt werden</td></tr>
+      <tr><td><span class="pill yellow">Sollte</span></td><td>Rollback dokumentieren und üben</td><td>Es gibt keinen automatischen Rollback</td></tr>
+      <tr><td><span class="pill yellow">Sollte</span></td><td>Datenbank-Backup</td><td>Produktionsdaten haben kein Backup</td></tr>
+      <tr><td><span class="pill blue">Kann</span></td><td>Staging-Umgebung</td><td>Zurzeit nur lokal und Produktion</td></tr>
+      <tr><td><span class="pill blue">Kann</span></td><td>Benachrichtigung bei Fehlern</td><td>Rote Läufe auf <code>main</code> fallen spät auf</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<!-- 13 Branch-Schutz -->
+<section>
+  <div class="kicker">Umsetzung</div>
+  <h2>Branch-Schutz für <code style="font-size:0.8em">main</code></h2>
+  <p class="lead">Regeln, die GitHub für <code>main</code> <strong>erzwingt</strong>. Ohne grünen Test kein Merge.</p>
+  <div class="grid g2" style="align-items:center">
+    <div class="card accent-pink">
+      <h3>Settings → Branches → Ruleset für <code>main</code></h3>
+      <ul>
+        <li>✓ Require a pull request before merging</li>
+        <li>✓ Require status checks to pass: <code>test</code></li>
+        <li>✓ Block force pushes</li>
+        <li>✓ Restrict deletions</li>
+      </ul>
+    </div>
+    <div style="display:flex; flex-direction:column; gap:12px; align-items:center">
+      <div class="flow"><div class="node">Pull Request</div><span class="arrow">→</span><div class="node green">Test grün?</div><span class="arrow">→</span><div class="node green">Review?</div></div>
+      <div class="flow fragment"><div class="node fill-green">✓ Merge → automatischer Deploy</div></div>
+      <div class="flow fragment"><div class="node fill-pink">✗ Merge-Button gesperrt 🔒</div></div>
+    </div>
+  </div>
+  <div class="fragment" style="margin-top:18px">
+    <div class="code-title">Oder im Terminal (braucht Admin-Rechte):</div>
+    <pre><code class="language-bash" data-trim>
+gh api -X PUT repos/htl-leo-itp-25-27-4-5BHITM/PartyHub/branches/main/protection \
+  -F required_status_checks[strict]=true \
+  -F 'required_status_checks[contexts][]=test' \
+  -F enforce_admins=false \
+  -F required_pull_request_reviews[required_approving_review_count]=1 \
+  -F restrictions=null
+    </code></pre>
+  </div>
+</section>
+
+<!-- 14 Danke -->
+<section style="display:flex; flex-direction:column; justify-content:center; align-items:center; text-align:center">
+  <img class="logo" src="images/logo.png" alt="PartyHub-Logo">
+  <h1 style="font-size:2.1em">Danke für Ihre<br><span class="pinktext">Aufmerksamkeit</span></h1>
+</section>
+
+</div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/dist/reveal.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/plugin/highlight/highlight.js"></script>
+<script>
+  Reveal.initialize({
+    width: 1280,
+    height: 720,
+    margin: 0.05,
+    hash: true,
+    slideNumber: 'c/t',
+    transition: 'slide',
+    center: false,
+    plugins: [ RevealHighlight ]
+  });
+</script>
+</body>
+</html>
