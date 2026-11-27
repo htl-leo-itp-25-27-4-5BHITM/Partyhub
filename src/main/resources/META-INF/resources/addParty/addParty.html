@@ -13,7 +13,7 @@
     <meta name="apple-mobile-web-app-title" content="PartyHub" />
     <link rel="apple-touch-icon" sizes="180x180" href="/icons/apple-touch-icon.png" />
     <link rel="icon" href="/icons/icon-192.png" sizes="192x192" type="image/png" />
-    <link rel="stylesheet" href="./addParty.css?v=20261123-saved-state" />
+    <link rel="stylesheet" href="./addParty.css?v=20261127-stage-navigation" />
     <link rel="stylesheet" href="../global.css" />
     <link rel="stylesheet" href="../index.css" />
     <link
@@ -39,9 +39,9 @@
       crossorigin=""
       defer
     ></script>
-    <script src="../party-drafts.js?v=20261123-saved-state" defer></script>
-    <script src="./addParty.js?v=20261123-saved-state" defer></script>
-    <script src="./bringAlongStep.js?v=20261123-saved-state" defer></script>
+    <script src="../party-drafts.js?v=20261127-stage-navigation" defer></script>
+    <script src="./addParty.js?v=20261127-stage-navigation" defer></script>
+    <script src="./bringAlongStep.js?v=20261127-stage-navigation" defer></script>
     <script>
       document.addEventListener("DOMContentLoaded", () => {
         window.requireAuth?.();
@@ -61,23 +61,23 @@
 
         <ol class="wizard-progress" aria-label="Party creation progress">
           <li class="wizard-step active" data-step-indicator="1" aria-current="step">
-            <span class="wizard-number">1</span>
+            <button type="button" class="wizard-number" aria-label="Step 1: Basics" aria-current="step">1</button>
             <span class="wizard-label">Basics</span>
           </li>
           <li class="wizard-step" data-step-indicator="2">
-            <span class="wizard-number">2</span>
+            <button type="button" class="wizard-number" aria-label="Step 2: Guests">2</button>
             <span class="wizard-label">Guests</span>
           </li>
           <li class="wizard-step" data-step-indicator="3">
-            <span class="wizard-number">3</span>
+            <button type="button" class="wizard-number" aria-label="Step 3: Details">3</button>
             <span class="wizard-label">Details</span>
           </li>
           <li class="wizard-step" data-step-indicator="4">
-            <span class="wizard-number">4</span>
+            <button type="button" class="wizard-number" aria-label="Step 4: Bring">4</button>
             <span class="wizard-label">Bring</span>
           </li>
           <li class="wizard-step" data-step-indicator="5">
-            <span class="wizard-number">5</span>
+            <button type="button" class="wizard-number" aria-label="Step 5: Map">5</button>
             <span class="wizard-label">Map</span>
           </li>
         </ol>

@@ -18,11 +18,17 @@ async function boot(storage = new Map(), user = '1', search = '') {
   const form = node('form');
   form.elements = Object.fromEntries(names.map(name => [name, node(name)]));
   form.querySelectorAll = () => names.map(node);
+  const indicators = [1, 2, 3, 4, 5].map(number => {
+    const indicator = node('indicator' + number);
+    indicator.dataset.stepIndicator = String(number);
+    indicator.querySelector = () => node('stage' + number);
+    return indicator;
+  });
   const bring = { items: [{ name: 'Water', quantity: 3 }], pending: { name: 'Ice', quantity: '2', unit: 'bags' } };
   let restored;
   const context = { console: { log() {}, warn() {}, error() {} }, URLSearchParams, URL, Date, crypto: require('node:crypto').webcrypto,
     document: { addEventListener(_, fn) { ready = fn; }, getElementById: node,
-      querySelector: selector => selector === '.party-form' ? form : node(selector), querySelectorAll: () => [] },
+      querySelector: selector => selector === '.party-form' ? form : node(selector), querySelectorAll: selector => selector === '.wizard-step' ? indicators : [] },
     localStorage: { get length() { return storage.size; }, key: i => Array.from(storage.keys())[i] ?? null, getItem: k => storage.get(k) ?? null, setItem: (k, v) => storage.set(k, v), removeItem: k => storage.delete(k) },
     window: { location: { search, href: 'http://localhost/addParty/addParty.html' + search }, history: { back() {}, replaceState(_, __, url) { context.window.location.href = String(url); } }, confirm: () => true,
       getCurrentUserId: () => user,
@@ -114,4 +120,29 @@ test('save feedback stays on the button and resets when the draft changes', asyn
   assert.equal(app.node('draftSaveLabel').textContent, 'Saved');
   assert.equal(app.context.window.PartyDrafts.forUser('1').list().length, 1);
   assert.equal(app.context.window.PartyDrafts.forUser('1').list()[0].fields.title, 'Changed name');
+});
+
+test('direct navigation skips incomplete stages, retains fields and saves the selected stage', async () => {
+  const app = await boot();
+  app.node('title').value = 'Round trip';
+  app.node('description').value = 'Draft details';
+  app.node('time_start').value = '25.12.2026 20:00';
+  app.node('time_end').value = '26.12.2026 02:00';
+  app.node('location_address').value = 'Hauptplatz 1, Linz';
+  app.click('stage3');
+  app.click('saveDraft');
+  const store = app.context.window.PartyDrafts.forUser('1');
+  const draft = store.list()[0];
+  assert.equal(draft.step, 3);
+  const reopened = await boot(app.storage, '1', '?draft=' + draft.id);
+  for (const name of ['title', 'description', 'time_start', 'time_end', 'location_address']) {
+    assert.equal(reopened.node(name).value, app.node(name).value);
+  }
+  assert.equal(reopened.node('stepTitle').textContent, 'Other Infos');
+  reopened.click('stage2');
+  assert.equal(reopened.node('draftSaveLabel').textContent, 'Save draft');
+  reopened.click('saveDraft');
+  assert.equal(store.get(draft.id).step, 2);
+  reopened.click('stage1');
+  assert.equal(reopened.node('title').value, 'Round trip');
 });

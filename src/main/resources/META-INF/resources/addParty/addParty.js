@@ -76,6 +76,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   let draftStore = null;
   let activeDraftId = null;
+  let markDraftChanged = () => {};
   init();
 
   async function init() {
@@ -93,7 +94,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     setupDrafts();
     await loadUsers();
 
-    showStep(currentStep);
+    showStep(currentStep, false);
   }
 
   // A new editor is always independent of previously saved drafts.
@@ -129,6 +130,7 @@ document.addEventListener("DOMContentLoaded", async () => {
       save.setAttribute("aria-disabled", String(saved));
       document.getElementById("draftSaveLabel").textContent = saved ? "Saved" : "Save draft";
     }
+    markDraftChanged = () => showSavedState(false);
     showSavedState(Boolean(activeDraftId) && !save.disabled);
     form.addEventListener("input", () => showSavedState(false));
     form.addEventListener("change", () => showSavedState(false));
@@ -213,6 +215,14 @@ document.addEventListener("DOMContentLoaded", async () => {
   }
 
   function setupStepButtons() {
+    wizardSteps.forEach((step) => {
+      step.querySelector("button").addEventListener("click", () => {
+        clearFeedback();
+        currentStep = Number(step.dataset.stepIndicator);
+        showStep(currentStep);
+      });
+    });
+
     continueBtn.addEventListener("click", async () => {
       clearFeedback();
 
@@ -963,7 +973,7 @@ function parseBackendDate(value) {
     updateVisibilityUI();
   }
 
-  function showStep(stepNumber) {
+  function showStep(stepNumber, markChanged = true) {
     steps.forEach((step) => {
       const number = Number(step.dataset.step);
       step.classList.toggle("active", number === stepNumber);
@@ -974,6 +984,7 @@ function parseBackendDate(value) {
     }
 
     updateWizard(stepNumber);
+    if (markChanged) markDraftChanged();
 
     if (stepNumber === LAST_STEP) {
       continueBtn.textContent = isEditMode ? "Save changes" : "Create party";
@@ -993,8 +1004,10 @@ function parseBackendDate(value) {
 
       if (isActive) {
         step.setAttribute("aria-current", "step");
+        step.querySelector("button").setAttribute("aria-current", "step");
       } else {
         step.removeAttribute("aria-current");
+        step.querySelector("button").removeAttribute("aria-current");
       }
     });
   }
