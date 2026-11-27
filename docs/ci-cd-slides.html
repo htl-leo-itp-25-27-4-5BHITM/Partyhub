@@ -5,7 +5,6 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>CI/CD bei PartyHub</title>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/dist/reveal.css">
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/plugin/highlight/monokai.css">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
 <style>
@@ -43,14 +42,14 @@
     font-weight: 800;
     letter-spacing: -0.02em;
     line-height: 1.1;
-    margin: 0 0 0.5em;
+    margin: 0 0 0.45em;
   }
   .reveal h1 { font-size: 2.6em; }
-  .reveal h2 { font-size: 1.6em; }
-  .reveal h3 { font-size: 1.05em; font-weight: 700; margin-bottom: 0.3em; }
-  .reveal p { margin: 0 0 0.6em; line-height: 1.4; }
+  .reveal h2 { font-size: 1.5em; }
+  .reveal h3 { font-size: 0.8em; font-weight: 700; margin-bottom: 0.3em; }
+  .reveal p { margin: 0 0 0.5em; line-height: 1.4; }
   .reveal ul, .reveal ol { margin: 0 0 0 1.1em; line-height: 1.45; }
-  .reveal li { margin-bottom: 0.35em; }
+  .reveal li { margin-bottom: 0.3em; }
   .reveal li::marker { color: var(--pink); }
   .reveal strong { color: var(--text); font-weight: 700; }
   .reveal a { color: var(--blue); }
@@ -62,43 +61,64 @@
     border-radius: 6px;
     padding: 0.05em 0.35em;
   }
+
+  /* Code blocks in the PartyHub palette */
   .reveal pre {
     width: 100%;
     margin: 0;
     box-shadow: none;
-    font-size: 0.5em;
+    font-size: 0.45em;
     border-radius: 14px;
     border: 1px solid var(--border);
     overflow: hidden;
   }
   .reveal pre code {
-    background: #272822;
+    display: block;
+    background: var(--navy);
+    color: var(--text);
     border: 0;
-    padding: 1em 1.2em;
-    max-height: 520px;
+    border-radius: 0;
+    padding: 0.9em 1.1em;
+    max-height: 560px;
     font-size: 1em;
     line-height: 1.5;
   }
+  .reveal pre.sm { font-size: 0.38em; }
+  .hljs-comment, .hljs-quote { color: var(--muted); font-style: italic; }
+  .hljs-attr, .hljs-section, .hljs-title { color: var(--blue); }
+  .hljs-string, .hljs-symbol { color: var(--green); }
+  .hljs-keyword, .hljs-built_in, .hljs-selector-tag { color: var(--pink); }
+  .hljs-number, .hljs-literal, .hljs-variable, .hljs-template-variable { color: var(--yellow); }
+  .hljs-bullet, .hljs-meta, .hljs-punctuation { color: var(--text2); }
+  .reveal .code-wrapper { margin: 0; }
+  .reveal pre code[data-line-numbers] .highlight-line { background: rgba(79, 59, 154, 0.55); }
+  .reveal .hljs-ln-numbers { color: var(--muted); padding-right: 12px; }
+  .reveal .hljs.has-highlights tr:not(.highlight-line) { opacity: 0.35; }
+
+  .code-title {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.42em;
+    color: var(--text2);
+    margin-bottom: 8px;
+  }
 
   .kicker {
-    font-size: 0.55em;
+    font-size: 0.5em;
     font-weight: 700;
     letter-spacing: 0.18em;
     text-transform: uppercase;
     color: var(--pink);
-    margin-bottom: 0.6em;
+    margin-bottom: 0.5em;
   }
-  .lead { font-size: 1.05em; color: var(--text2); }
+  .lead { font-size: 0.8em; color: var(--text2); }
   .muted { color: var(--muted); }
-  .small { font-size: 0.7em; }
-  .tiny { font-size: 0.55em; }
-  .pink { color: var(--pink); }
+  .small { font-size: 0.65em; }
+  .tiny { font-size: 0.5em; }
   .green { color: var(--green); }
-  .blue { color: var(--blue); }
-  .yellow { color: var(--yellow); }
+  .pinktext { color: var(--pink); }
 
   /* Cards and grids */
-  .grid { display: grid; gap: 22px; }
+  .grid { display: grid; gap: 20px; }
   .g2 { grid-template-columns: repeat(2, 1fr); }
   .g3 { grid-template-columns: repeat(3, 1fr); }
   .g4 { grid-template-columns: repeat(4, 1fr); }
@@ -106,202 +126,106 @@
     background: var(--bg2);
     border: 1px solid var(--border);
     border-radius: 18px;
-    padding: 22px 24px;
+    padding: 18px 22px;
     box-shadow: 0 12px 32px rgba(0, 0, 0, 0.24);
   }
-  .card h3 { font-size: 0.85em; }
-  .card p, .card li { font-size: 0.62em; color: var(--text2); }
+  .card p, .card li { font-size: 0.58em; color: var(--text2); }
+  .card p:last-child { margin-bottom: 0; }
   .card.accent-green { border-top: 5px solid var(--green); }
   .card.accent-pink { border-top: 5px solid var(--pink); }
   .card.accent-blue { border-top: 5px solid var(--blue); }
   .card.accent-yellow { border-top: 5px solid var(--yellow); }
   .card.accent-purple { border-top: 5px solid var(--purple); }
-  .big-icon { font-size: 1.6em; line-height: 1; margin-bottom: 0.3em; }
+  .big-icon { font-size: 1.4em; line-height: 1; margin-bottom: 0.25em; }
+  .big-num { font-size: 2.2em; font-weight: 800; line-height: 1; color: var(--green); margin: 10px 0; }
 
   .pill {
     display: inline-block;
-    font-size: 0.5em;
+    font-size: 0.45em;
     font-weight: 700;
     padding: 0.25em 0.8em;
     border-radius: 999px;
     letter-spacing: 0.04em;
+    white-space: nowrap;
   }
   .pill.green { background: var(--green); color: var(--navy); }
   .pill.pink { background: var(--pink); color: #fff; }
   .pill.blue { background: var(--blue); color: var(--navy); }
   .pill.yellow { background: var(--yellow); color: var(--navy); }
-  .pill.purple { background: var(--purple); color: #fff; }
 
   /* Flow diagrams */
-  .flow {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 10px;
-    flex-wrap: nowrap;
-  }
+  .flow { display: flex; align-items: center; justify-content: center; gap: 10px; }
   .node {
     background: var(--bg2);
     border: 2px solid var(--purple);
     border-radius: 14px;
-    padding: 14px 16px;
-    font-size: 0.55em;
+    padding: 12px 14px;
+    font-size: 0.5em;
     font-weight: 600;
     text-align: center;
     line-height: 1.3;
-    min-width: 110px;
   }
-  .node small { display: block; font-weight: 400; color: var(--text2); font-size: 0.85em; margin-top: 4px; }
+  .node small { display: block; font-weight: 400; color: var(--text2); font-size: 0.85em; margin-top: 3px; }
   .node.green { border-color: var(--green); }
   .node.pink { border-color: var(--pink); }
   .node.blue { border-color: var(--blue); }
   .node.yellow { border-color: var(--yellow); }
   .node.fill-green { background: var(--green); border-color: var(--green); color: var(--navy); }
-  .node.fill-green small { color: var(--navy); }
   .node.fill-pink { background: var(--pink); border-color: var(--pink); color: #fff; }
-  .node.fill-pink small { color: #fff; }
-  .arrow { color: var(--muted); font-size: 0.9em; font-weight: 700; flex: none; }
+  .arrow { color: var(--muted); font-size: 0.75em; font-weight: 700; flex: none; }
+  .grp { display: flex; flex-direction: column; gap: 10px; }
   .bracket {
     border-top: 3px solid currentColor;
     text-align: center;
-    font-size: 0.5em;
+    font-size: 0.42em;
     font-weight: 700;
-    padding-top: 8px;
+    padding-top: 6px;
     letter-spacing: 0.06em;
     text-transform: uppercase;
   }
 
   /* Architecture */
-  .arch { display: flex; align-items: center; gap: 12px; justify-content: center; margin-top: 30px; }
   .cluster {
     border: 2px dashed var(--blue);
     border-radius: 20px;
-    padding: 34px 18px 18px;
+    padding: 30px 14px 14px;
     position: relative;
     display: grid;
-    grid-template-columns: auto auto auto auto auto;
-    grid-template-rows: auto auto;
-    gap: 14px 10px;
+    grid-template-columns: repeat(5, auto);
+    gap: 12px 8px;
     align-items: center;
   }
   .cluster-label {
     position: absolute;
-    top: 8px;
-    left: 18px;
-    font-size: 0.45em;
+    top: 7px;
+    left: 16px;
+    font-size: 0.4em;
     font-weight: 700;
     color: var(--blue);
     letter-spacing: 0.08em;
     text-transform: uppercase;
   }
   .ingress { grid-row: 1 / span 2; }
-  .arch .node { min-width: 0; font-size: 0.48em; padding: 12px 12px; }
-  .arch .arrow { font-size: 0.75em; }
 
-  /* Status table */
-  table.status { width: 100%; border-collapse: collapse; font-size: 0.62em; }
-  table.status th, table.status td { padding: 14px 16px; border-bottom: 1px solid var(--border); text-align: left; vertical-align: middle; }
+  /* Tables */
+  table.status { width: 100%; border-collapse: collapse; font-size: 0.58em; }
+  table.status th, table.status td { padding: 11px 14px; border-bottom: 1px solid var(--border); text-align: left; vertical-align: middle; }
   table.status th { color: var(--muted); font-weight: 600; font-size: 0.85em; text-transform: uppercase; letter-spacing: 0.08em; }
   table.status td:first-child { font-weight: 700; }
   .check { color: var(--green); font-weight: 800; }
 
-  /* Steps list */
-  .steps { counter-reset: s; list-style: none; margin: 0; padding: 0; }
-  .steps li {
-    counter-increment: s;
-    position: relative;
-    padding: 9px 0 9px 52px;
-    font-size: 0.62em;
-    border-bottom: 1px solid var(--border);
-    margin: 0;
-  }
-  .steps li::before {
-    content: counter(s);
-    position: absolute;
-    left: 0;
-    top: 7px;
-    width: 34px;
-    height: 34px;
-    border-radius: 50%;
-    background: var(--purple);
-    color: #fff;
-    font-weight: 700;
-    display: grid;
-    place-items: center;
-    font-size: 0.9em;
-  }
-  .steps.pink li::before { background: var(--pink); }
-  .steps.green li::before { background: var(--green); color: var(--navy); }
+  /* Legend for the DevOps loop */
+  .legend { list-style: none; margin: 0; padding: 0; }
+  .legend li { display: grid; grid-template-columns: 110px 1fr; gap: 12px; align-items: center; font-size: 0.5em; padding: 6px 0; border-bottom: 1px solid var(--border); margin: 0; }
+  .legend li span:last-child { color: var(--text2); }
 
-  /* Timeline */
-  .timeline { position: relative; margin-top: 30px; }
-  .tl-row { display: grid; grid-template-columns: 210px 1fr; align-items: center; height: 58px; }
-  .tl-label { font-size: 0.55em; font-weight: 600; color: var(--text2); }
-  .tl-track { position: relative; height: 100%; border-left: 1px solid var(--border); }
-  .tl-bar {
-    position: absolute;
-    top: 12px;
-    height: 34px;
-    border-radius: 8px;
-    font-size: 0.45em;
-    font-weight: 700;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    white-space: nowrap;
-  }
-  .tl-bar.green { background: var(--green); color: var(--navy); }
-  .tl-bar.blue { background: var(--blue); color: var(--navy); }
-  .tl-bar.pink { background: var(--pink); color: #fff; }
-  .tl-bar.yellow { background: var(--yellow); color: var(--navy); }
-  .tl-merge {
-    position: absolute;
-    top: 0;
-    bottom: 0;
-    width: 0;
-    border-left: 3px dashed var(--yellow);
-  }
-  .tl-merge span {
-    position: absolute;
-    top: -34px;
-    left: -40px;
-    font-size: 0.45em;
-    font-weight: 700;
-    color: var(--yellow);
-    white-space: nowrap;
-  }
-  .tl-axis { display: grid; grid-template-columns: 210px 1fr; margin-top: 6px; }
-  .tl-ticks { position: relative; height: 28px; border-top: 1px solid var(--border); }
-  .tl-ticks span { position: absolute; top: 6px; transform: translateX(-50%); font-size: 0.42em; color: var(--muted); }
-
-  .stat {
-    font-size: 2.4em;
-    font-weight: 800;
-    line-height: 1;
-    color: var(--green);
-  }
-  .stat-label { font-size: 0.55em; color: var(--text2); margin-top: 6px; }
-
-  .center { text-align: center; }
   .title-slide h1 span { color: var(--pink); }
-  .logo { width: 120px; margin-bottom: 20px; }
+  .terms { display: flex; gap: 14px; flex-wrap: wrap; margin-top: 10px; }
+  .logo { width: 110px; margin-bottom: 18px; }
 
   .reveal .slide-number { background: transparent; color: var(--muted); font-family: 'Montserrat', sans-serif; font-size: 16px; }
   .reveal .progress { color: var(--pink); height: 4px; }
   .reveal .controls { color: var(--pink); }
-
-  .term {
-    background: #0f0a26;
-    border: 1px solid var(--border);
-    border-radius: 14px;
-    padding: 18px 22px;
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 0.48em;
-    line-height: 1.7;
-    color: var(--text2);
-  }
-  .term .p { color: var(--green); }
-  .term .c { color: var(--muted); }
 </style>
 </head>
 <body>
@@ -309,67 +233,57 @@
 <div class="slides">
 
 <!-- 1 Titel -->
-<section class="title-slide" data-auto-animate>
+<section class="title-slide">
   <img class="logo" src="images/logo.png" alt="PartyHub-Logo">
   <div class="kicker">ITP · PartyHub</div>
-  <h1>CI/CD bei <span>PartyHub</span></h1>
-  <p class="lead">Wie eine Codeänderung automatisch getestet, gebaut und ausgeliefert wird</p>
-  <aside class="notes">
-    Begrüßung. Thema: CI/CD, also wie unser Code automatisch getestet, gebaut und auf die School-Cloud ausgerollt wird. Dauer ca. 15 Minuten, Fragen gern am Ende.
-  </aside>
-</section>
-
-<!-- 2 Agenda -->
-<section>
-  <div class="kicker">Agenda</div>
-  <h2>Ablauf</h2>
-  <div class="grid g3" style="margin-top:30px">
-    <div class="card accent-purple"><h3>1 · Warum?</h3><p>Das Problem ohne Automatisierung</p></div>
-    <div class="card accent-green"><h3>2 · Was ist CI/CD?</h3><p>Integration, Delivery, Deployment</p></div>
-    <div class="card accent-blue"><h3>3 · Unsere Pipeline</h3><p>Test → Build and Push → Deploy</p></div>
-    <div class="card accent-yellow"><h3>4 · Beispiele</h3><p>PR #229 und PR #228 aus unserem Projekt</p></div>
-    <div class="card accent-pink"><h3>5 · Umsetzung</h3><p>Schritte und was wir noch tun müssen</p></div>
-    <div class="card accent-purple"><h3>6 · Fazit</h3><p>Kernaussagen und Fragen</p></div>
+  <h1>CI / CD / CD<br>bei <span>PartyHub</span></h1>
+  <div class="terms">
+    <span class="pill green">Continuous Integration</span>
+    <span class="pill blue">Continuous Delivery</span>
+    <span class="pill pink">Continuous Deployment</span>
   </div>
-  <aside class="notes">
-    Kurz die sechs Teile durchgehen. Zeitplan: Warum 1 min, Begriffe 3 min, Pipeline 4 min, Beispiele 4 min, Umsetzung 2 min, Fazit 1 min.
-  </aside>
 </section>
 
-<!-- 3 Problem -->
+<!-- 2 Ohne CI/CD -->
 <section>
-  <div class="kicker">1 · Warum?</div>
-  <h2>„Bei mir funktioniert's!“</h2>
-  <div class="grid g2" style="margin-top:20px; align-items:start">
-    <div class="card accent-pink">
-      <h3>Ohne Automatisierung</h3>
-      <ol class="steps pink">
-        <li>Jemand merged auf <code>main</code></li>
-        <li>Jemand baut das Projekt lokal am Laptop</li>
-        <li>Docker-Image per Hand hochladen</li>
-        <li><code>kubectl</code> per Hand auf dem Server</li>
-        <li>Merken, dass die Tests gar nicht liefen 😬</li>
-      </ol>
+  <div class="kicker">Warum?</div>
+  <h2>So sähe jedes Release ohne CI/CD aus</h2>
+  <div class="grid" style="grid-template-columns: 1.65fr 1fr; align-items:stretch">
+    <div>
+      <div class="code-title">Terminal · bei jeder Änderung, von Hand</div>
+      <pre><code class="language-bash" data-trim>
+# 1. Testen und bauen
+./mvnw clean test
+./mvnw package -DskipTests
+
+# 2. Docker-Images bauen und hochladen
+REG=ghcr.io/htl-leo-itp-25-27-4-5bhitm
+TAG=$(git rev-parse --short HEAD)
+docker build -t $REG/partyhub-backend:$TAG .
+docker build -f Dockerfile.keycloak -t $REG/partyhub-keycloak:$TAG .
+docker push $REG/partyhub-backend:$TAG
+docker push $REG/partyhub-keycloak:$TAG
+
+# 3. Auf Kubernetes (School-Cloud) ausrollen
+kubectl apply -f k8s/
+kubectl set image deployment/quarkus quarkus=$REG/partyhub-backend:$TAG
+kubectl set image deployment/keycloak keycloak=$REG/partyhub-keycloak:$TAG
+kubectl rollout status deployment/quarkus
+      </code></pre>
     </div>
-    <div class="card accent-green fragment">
+    <div class="card accent-green fragment" style="display:flex; flex-direction:column; justify-content:center">
+      <div class="big-icon">✨</div>
       <h3>Mit CI/CD</h3>
-      <ol class="steps green">
-        <li>Merge auf <code>main</code></li>
-        <li>Alles Weitere läuft automatisch</li>
-        <li>Immer dieselben Schritte</li>
-        <li>Immer in einer sauberen Umgebung</li>
-        <li>Nichts geht live, wenn ein Test rot ist</li>
-      </ol>
+      <div class="big-num">1 Klick</div>
+      <p><strong>„Merge“</strong> im Pull Request.</p>
+      <p>Alle Befehle links führt GitHub Actions automatisch aus. Jedes Mal gleich, jedes Mal mit Tests.</p>
     </div>
   </div>
-  <aside class="notes">
-    Links das typische Problem: viele manuelle Schritte, jeder macht es ein bisschen anders, Fehler fallen spät auf. Klick: rechts dasselbe mit CI/CD. Die Pipeline macht es jedes Mal gleich.
-  </aside>
 </section>
 
-<!-- 4 Begriffe -->
+<!-- 3 Begriffe -->
 <section>
-  <div class="kicker">2 · Was ist CI/CD?</div>
+  <div class="kicker">Was ist CI/CD?</div>
   <h2>Drei Begriffe, die aufeinander aufbauen</h2>
   <div class="grid g3" style="margin-top:24px">
     <div class="card accent-green fragment">
@@ -391,92 +305,122 @@
       <p class="muted">„Jede grüne Änderung ist sofort live.“</p>
     </div>
   </div>
-  <aside class="notes">
-    CI: Integration, also Zusammenführen und Testen. Delivery: Es gibt immer ein fertiges Paket, aber ein Mensch drückt den Knopf. Deployment: Auch der Knopf ist automatisiert. Die beiden CD unterscheiden sich nur im letzten Schritt.
-  </aside>
 </section>
 
-<!-- 5 Pipeline generisch -->
+<!-- 4 Pipeline, Deployment, Produktion -->
 <section>
-  <div class="kicker">2 · Was ist CI/CD?</div>
+  <div class="kicker">Was ist CI/CD?</div>
   <h2>Die Pipeline</h2>
-  <p class="lead small">Eine <strong>Pipeline</strong> ist die Abfolge automatischer Schritte, die jede Änderung durchläuft.</p>
-  <div style="margin-top:50px">
-    <div class="flow">
-      <div class="node">Code-<br>Änderung</div><span class="arrow">→</span>
-      <div class="node green">Build</div><span class="arrow">→</span>
-      <div class="node green">Tests</div><span class="arrow">→</span>
-      <div class="node blue">Paket<small>Docker-Image</small></div><span class="arrow">→</span>
-      <div class="node blue">Freigabe</div><span class="arrow">→</span>
-      <div class="node pink">Produktion</div>
+  <div class="flow" style="align-items:flex-start; margin-top:20px">
+    <div class="grp"><div class="node">Code-<br>Änderung</div></div>
+    <span class="arrow" style="margin-top:16px">→</span>
+    <div class="grp green">
+      <div class="flow"><div class="node green">Build</div><span class="arrow">→</span><div class="node green">Tests</div></div>
+      <div class="bracket">Integration</div>
     </div>
-    <div style="display:grid; grid-template-columns: 150px 330px 320px 160px; gap:20px; justify-content:center; margin-top:18px">
-      <div></div>
-      <div class="bracket green">Continuous Integration</div>
-      <div class="bracket blue">Continuous Delivery</div>
-      <div class="bracket pink">Deployment</div>
+    <span class="arrow" style="margin-top:16px">→</span>
+    <div class="grp" style="color:var(--blue)">
+      <div class="flow"><div class="node blue">Paket<small>Docker-Image</small></div><span class="arrow">→</span><div class="node blue">Freigabe</div></div>
+      <div class="bracket">Delivery</div>
+    </div>
+    <span class="arrow" style="margin-top:16px">→</span>
+    <div class="grp" style="color:var(--pink)">
+      <div class="node pink">Produktion</div>
+      <div class="bracket">Deployment</div>
     </div>
   </div>
-  <p class="small muted center" style="margin-top:50px">Bekannte Werkzeuge: GitHub Actions · GitLab CI · Jenkins · Azure DevOps. <strong class="pink">Wir verwenden GitHub Actions.</strong></p>
-  <aside class="notes">
-    Allgemeiner Ablauf: Build und Tests sind CI. Paket und Freigabe sind Continuous Delivery. Wenn auch die Freigabe automatisch passiert, ist es Continuous Deployment. Werkzeuge gibt es viele, wir nutzen GitHub Actions, weil unser Code ohnehin auf GitHub liegt.
-  </aside>
+  <div class="grid g2" style="margin-top:34px">
+    <div class="card accent-pink fragment">
+      <h3>🚀 Deployment</h3>
+      <p>Eine neue Version der Software auf den Server <strong>ausrollen</strong>.</p>
+      <pre style="margin-top:10px"><code class="language-bash" data-trim>
+kubectl set image deployment/quarkus quarkus=…:6a3329c
+      </code></pre>
+    </div>
+    <div class="card accent-yellow fragment">
+      <h3>🌍 Produktion</h3>
+      <p>Die <strong>echte, laufende</strong> Anwendung, die alle Nutzer:innen verwenden.</p>
+      <p>Lokal: <code>localhost:8080</code> · nur für dich<br>
+         Produktion: <code>it220274.cloud.htl-leonding.ac.at</code> · für alle</p>
+    </div>
+  </div>
 </section>
 
-<!-- 6 DevOps-Kreislauf -->
+<!-- 5 DevOps-Kreislauf -->
 <section>
-  <div class="kicker">2 · Was ist CI/CD?</div>
-  <h2>Teil des DevOps-Kreislaufs</h2>
-  <svg viewBox="0 0 640 310" style="width:100%; max-height:430px; margin-top:10px" role="img" aria-label="DevOps-Kreislauf als liegende Acht">
-    <path d="M320,155 C240,40 70,40 70,155 C70,270 240,270 320,155 C400,40 570,40 570,155 C570,270 400,270 320,155 Z"
-          fill="none" stroke="#4f3b9a" stroke-width="14" stroke-linecap="round"/>
-    <g font-family="Montserrat" font-weight="700" font-size="16" text-anchor="middle">
-      <rect x="185" y="52" width="96" height="32" rx="16" fill="#221a4d" stroke="#ffffff" stroke-opacity="0.4"/><text x="233" y="73" fill="#fff">Plan</text>
-      <rect x="52" y="74" width="96" height="32" rx="16" fill="#221a4d" stroke="#ffffff" stroke-opacity="0.4"/><text x="100" y="95" fill="#fff">Code</text>
-      <rect x="52" y="204" width="96" height="32" rx="16" fill="#56f27c"/><text x="100" y="225" fill="#1a1040">Build</text>
-      <rect x="185" y="226" width="96" height="32" rx="16" fill="#56f27c"/><text x="233" y="247" fill="#1a1040">Test</text>
-      <rect x="359" y="52" width="96" height="32" rx="16" fill="#ff2e63"/><text x="407" y="73" fill="#fff">Release</text>
-      <rect x="492" y="74" width="96" height="32" rx="16" fill="#ff2e63"/><text x="540" y="95" fill="#fff">Deploy</text>
-      <rect x="492" y="204" width="96" height="32" rx="16" fill="#3ec1f3"/><text x="540" y="225" fill="#1a1040">Betrieb</text>
-      <rect x="353" y="226" width="108" height="32" rx="16" fill="#3ec1f3"/><text x="407" y="247" fill="#1a1040">Feedback</text>
-    </g>
-    <g font-family="Montserrat" font-weight="800" font-size="20" text-anchor="middle">
-      <text x="190" y="162" fill="#56f27c">CI</text>
-      <text x="450" y="162" fill="#ff2e63">CD</text>
-    </g>
-  </svg>
-  <aside class="notes">
-    CI/CD ist der automatisierte Teil eines Kreislaufs, der sich bei jeder Änderung wiederholt. Grün: Build und Test, das ist CI. Pink: Release und Deploy, das ist CD. Danach Betrieb und Feedback, daraus entsteht die nächste Planung.
-  </aside>
+  <div class="kicker">Was ist CI/CD?</div>
+  <h2>Wozu der Kreis?</h2>
+  <p class="lead">Software ist nie fertig. Jede Änderung läuft diesen Kreis durch, immer wieder.</p>
+  <div class="grid" style="grid-template-columns: 1.15fr 1fr; align-items:center; gap:30px">
+    <svg viewBox="0 0 640 310" style="width:100%" role="img" aria-label="DevOps-Kreislauf als liegende Acht">
+      <path d="M320,155 C240,40 70,40 70,155 C70,270 240,270 320,155 C400,40 570,40 570,155 C570,270 400,270 320,155 Z"
+            fill="none" stroke="#4f3b9a" stroke-width="14" stroke-linecap="round"/>
+      <g font-family="Montserrat" font-weight="700" font-size="17" text-anchor="middle">
+        <rect x="185" y="52" width="96" height="32" rx="16" fill="#221a4d" stroke="#ffffff" stroke-opacity="0.4"/><text x="233" y="73" fill="#fff">Plan</text>
+        <rect x="52" y="74" width="96" height="32" rx="16" fill="#221a4d" stroke="#ffffff" stroke-opacity="0.4"/><text x="100" y="95" fill="#fff">Code</text>
+        <rect x="52" y="204" width="96" height="32" rx="16" fill="#56f27c"/><text x="100" y="225" fill="#1a1040">Build</text>
+        <rect x="185" y="226" width="96" height="32" rx="16" fill="#56f27c"/><text x="233" y="247" fill="#1a1040">Test</text>
+        <rect x="359" y="52" width="96" height="32" rx="16" fill="#ff2e63"/><text x="407" y="73" fill="#fff">Release</text>
+        <rect x="492" y="74" width="96" height="32" rx="16" fill="#ff2e63"/><text x="540" y="95" fill="#fff">Deploy</text>
+        <rect x="492" y="204" width="96" height="32" rx="16" fill="#3ec1f3"/><text x="540" y="225" fill="#1a1040">Betrieb</text>
+        <rect x="353" y="226" width="108" height="32" rx="16" fill="#3ec1f3"/><text x="407" y="247" fill="#1a1040">Feedback</text>
+      </g>
+      <g font-family="Montserrat" font-weight="800" font-size="22" text-anchor="middle">
+        <text x="190" y="163" fill="#56f27c">CI</text>
+        <text x="450" y="163" fill="#ff2e63">CD</text>
+      </g>
+    </svg>
+    <ul class="legend">
+      <li><span class="pill" style="background:var(--bg3); color:#fff">Plan</span><span>Feature planen (OpenSpec)</span></li>
+      <li><span class="pill" style="background:var(--bg3); color:#fff">Code</span><span>Auf einem Branch programmieren</span></li>
+      <li><span class="pill green">Build</span><span><code>mvn package</code>, <code>docker build</code></span></li>
+      <li><span class="pill green">Test</span><span><code>mvn test</code>, API-Tests</span></li>
+      <li><span class="pill pink">Release</span><span>Image liegt in <code>ghcr.io</code></span></li>
+      <li><span class="pill pink">Deploy</span><span>Ausrollen mit <code>kubectl</code></span></li>
+      <li><span class="pill blue">Betrieb</span><span>Website läuft für alle</span></li>
+      <li><span class="pill blue">Feedback</span><span>Bugs, Wünsche → neuer Plan</span></li>
+    </ul>
+  </div>
 </section>
 
-<!-- 7 Vorteile -->
+<!-- 6 Vorteile + Commit-SHA -->
 <section>
-  <div class="kicker">2 · Was ist CI/CD?</div>
+  <div class="kicker">Was ist CI/CD?</div>
   <h2>Warum sich das lohnt</h2>
-  <div class="grid g2" style="margin-top:24px">
+  <div class="grid g4" style="margin-top:14px">
     <div class="card accent-green"><h3>🐞 Fehler früh finden</h3><p>Kaputter Code fällt im Pull Request auf, nicht erst auf dem Server.</p></div>
     <div class="card accent-blue"><h3>🤖 Keine Handarbeit</h3><p>Niemand baut lokal, lädt Images hoch oder tippt <code>kubectl</code>.</p></div>
-    <div class="card accent-yellow"><h3>🔎 Nachvollziehbar</h3><p>Jedes Image trägt den Commit-SHA, aus dem es gebaut wurde.</p></div>
-    <div class="card accent-pink"><h3>⚡ Kleine, häufige Releases</h3><p>Bei uns gehen oft mehrere Änderungen pro Tag live.</p></div>
+    <div class="card accent-yellow"><h3>🔎 Nachvollziehbar</h3><p>Jedes Image trägt den <strong>Commit-SHA</strong>, aus dem es gebaut wurde.</p></div>
+    <div class="card accent-pink"><h3>⚡ Häufige Releases</h3><p>Bei uns gehen oft mehrere Änderungen pro Tag live.</p></div>
   </div>
-  <aside class="notes">
-    Vier Vorteile. Am wichtigsten für uns als Team: Fehler fallen im Pull Request auf, und niemand muss sich merken, wie man deployt.
-  </aside>
+  <div class="grid g2 fragment" style="margin-top:26px; align-items:center">
+    <pre><code class="language-bash" data-trim>
+$ git log --oneline -1
+6a3329c docs: add reveal.js slides for the CI/CD talk
+
+# daraus wird der Image-Tag:
+ghcr.io/htl-leo-itp-25-27-4-5bhitm/partyhub-backend:6a3329c
+    </code></pre>
+    <div class="card accent-yellow">
+      <h3>Was ist ein Commit-SHA?</h3>
+      <p>Eine <strong>eindeutige ID</strong> für jeden Commit. Die ersten 7 Zeichen reichen: <code>6a3329c</code>.</p>
+      <p>Läuft in Produktion <code>6a3329c</code>, wissen wir genau, welcher Code dort läuft.</p>
+    </div>
+  </div>
 </section>
 
-<!-- 8 Architektur -->
+<!-- 7 Architektur + ghcr.io + workflows -->
 <section>
-  <div class="kicker">3 · Unsere Pipeline</div>
+  <div class="kicker">Unsere Pipeline</div>
   <h2>Architektur</h2>
-  <div class="arch">
-    <div class="node">👩‍💻 Branch<small>git push / PR</small></div><span class="arrow">→</span>
+  <div class="flow" style="margin-top:10px">
+    <div class="node">👩‍💻 Branch<small>git push</small></div><span class="arrow">→</span>
     <div class="node">GitHub<small>Repository</small></div><span class="arrow">→</span>
-    <div class="node green">GitHub Actions<small>Ubuntu-Runner</small></div><span class="arrow">→</span>
-    <div class="node blue">ghcr.io<small>Container Registry</small></div><span class="arrow">→</span>
+    <div class="node green">GitHub Actions<small>führt die Workflows aus</small></div><span class="arrow">→</span>
+    <div class="node blue">ghcr.io<small>Images</small></div><span class="arrow">→</span>
     <div class="cluster">
       <div class="cluster-label">School-Cloud · Kubernetes</div>
-      <div class="node pink ingress">Ingress<small>it220274.cloud…</small></div>
+      <div class="node pink ingress">Ingress<small>Website-URL</small></div>
       <span class="arrow">→</span>
       <div class="node">Quarkus</div>
       <span class="arrow">→</span>
@@ -487,84 +431,124 @@
       <div class="node yellow" style="grid-column:5; grid-row:2">Keycloak-DB</div>
     </div>
   </div>
-  <p class="small muted center" style="margin-top:36px">Die Pipeline ist als YAML in <code>.github/workflows/</code> beschrieben und liegt direkt im Repository.</p>
-  <aside class="notes">
-    Von links nach rechts: Wir pushen einen Branch auf GitHub. GitHub Actions startet einen Runner, testet, baut zwei Docker-Images und legt sie in die GitHub Container Registry. Dann wendet die Pipeline die Kubernetes-Manifeste auf der School-Cloud an. Dort laufen Quarkus mit Postgres und Keycloak mit eigener Datenbank. Der Ingress verteilt die Anfragen.
-  </aside>
-</section>
-
-<!-- 9 Status -->
-<section>
-  <div class="kicker">3 · Unsere Pipeline</div>
-  <h2>Ist das bei uns automatisiert?</h2>
-  <p class="lead"><strong class="green">Ja, vollständig.</strong> Inklusive Continuous Deployment.</p>
-  <table class="status">
-    <thead><tr><th>Stufe</th><th>Wann</th><th>Workflow</th><th></th></tr></thead>
-    <tbody>
-      <tr class="fragment"><td>Continuous Integration</td><td>jeder PR und Push auf <code>main</code></td><td><code>test.yml</code></td><td class="check">✓</td></tr>
-      <tr class="fragment"><td>Continuous Delivery</td><td>nach grünem Test auf <code>main</code></td><td><code>push.yaml</code></td><td class="check">✓</td></tr>
-      <tr class="fragment"><td>Continuous Deployment</td><td>direkt nach dem Build</td><td><code>deploy.yml</code></td><td class="check">✓</td></tr>
-      <tr class="fragment"><td>Code-Scanning</td><td>Push auf <code>main</code></td><td>CodeQL</td><td class="check">✓</td></tr>
-    </tbody>
-  </table>
-  <aside class="notes">
-    Alle Stufen sind bei uns automatisiert. Ein Merge auf main geht ohne manuellen Schritt live, sobald Test und Build grün sind. Zusätzlich scannt CodeQL den Code auf Sicherheitslücken.
-  </aside>
-</section>
-
-<!-- 10 Drei Workflows -->
-<section>
-  <div class="kicker">3 · Unsere Pipeline</div>
-  <h2>Drei Workflows hintereinander</h2>
-  <div class="grid g3" style="margin-top:20px; align-items:stretch">
-    <div class="card accent-green fragment" data-fragment-index="1">
-      <span class="pill green">test.yml</span>
-      <h3 style="margin-top:12px">Test</h3>
-      <ol class="steps green">
-        <li>Browser-Tests <code>node --test</code></li>
-        <li>Postgres und Keycloak starten</li>
-        <li><code>mvn clean test</code></li>
-        <li>Quarkus starten</li>
-        <li>API-Tests <code>api/*.http</code></li>
-      </ol>
+  <div class="grid g2" style="margin-top:28px; align-items:stretch">
+    <div class="card accent-blue fragment">
+      <h3>📦 ghcr.io = GitHub Container Registry</h3>
+      <p>Ein <strong>Online-Speicher für Docker-Images</strong>, direkt bei GitHub. Wie GitHub für Code, nur für fertige Images.</p>
+      <p>Die Pipeline lädt die Images hoch, Kubernetes lädt sie von dort herunter.</p>
     </div>
-    <div class="card accent-blue fragment" data-fragment-index="2">
-      <span class="pill blue">push.yaml</span>
-      <h3 style="margin-top:12px">Build and Push</h3>
-      <ol class="steps">
-        <li>getesteten Commit auschecken</li>
-        <li>Tag = Commit-SHA</li>
-        <li><code>mvn package</code></li>
-        <li>Image <code>partyhub-backend</code></li>
-        <li>Image <code>partyhub-keycloak</code></li>
-      </ol>
-    </div>
-    <div class="card accent-pink fragment" data-fragment-index="3">
-      <span class="pill pink">deploy.yml</span>
-      <h3 style="margin-top:12px">Deploy</h3>
-      <ol class="steps pink">
-        <li>Kubeconfig aus Secret</li>
-        <li>Keycloak-DB-Check</li>
-        <li><code>kubectl apply k8s/</code></li>
-        <li><code>kubectl set image</code></li>
-        <li><code>rollout status</code></li>
-      </ol>
+    <div class="fragment">
+      <div class="code-title">Die Pipeline liegt im Repo als YAML-Dateien</div>
+      <pre><code class="language-plaintext" data-trim>
+.github/workflows/
+├── test.yml     →  Test             (testen)
+├── push.yaml    →  Build and Push   (Images → ghcr.io)
+└── deploy.yml   →  Deploy           (→ School-Cloud)
+      </code></pre>
     </div>
   </div>
-  <p class="small muted center fragment" data-fragment-index="4" style="margin-top:22px">Build and Push startet <strong>nur</strong>, wenn Test auf <code>main</code> grün war. Bei Pull Requests heißt es „skipped“.</p>
-  <aside class="notes">
-    Test läuft bei jedem PR: zuerst Frontend-Tests, dann Datenbanken und Keycloak per Docker Compose, dann die Maven-Tests und zum Schluss die API-Tests gegen einen echten Quarkus.
-    Build and Push baut genau den getesteten Commit, taggt ihn mit dem Commit-SHA und pusht zwei Images.
-    Deploy holt sich die Zugangsdaten aus einem GitHub-Secret, prüft, dass die Keycloak-Datenbank migriert ist, damit keine Konten verloren gehen, und rollt die neuen Images aus. Datenbanken und Uploads bleiben erhalten.
-  </aside>
 </section>
 
-<!-- 11 Team-Ablauf -->
+<!-- 8 Status + Pull Request -->
 <section>
-  <div class="kicker">3 · Unsere Pipeline</div>
+  <div class="kicker">Unsere Pipeline</div>
+  <h2>Ist das bei uns automatisiert? <span class="green">Ja.</span></h2>
+  <div class="grid g2" style="margin-top:8px">
+    <div class="card accent-purple">
+      <h3>🔀 Pull Request (PR)</h3>
+      <p>Eine <strong>Anfrage, die Änderungen eines Branches in <code>main</code> zu übernehmen</strong>. Dort laufen die Tests, und das Team schaut den Code an.</p>
+    </div>
+    <div class="card accent-purple">
+      <h3>⬆️ Push auf main</h3>
+      <p>Neuer Code landet in <code>main</code>. Bei uns passiert das durch den <strong>Merge</strong> eines Pull Requests.</p>
+    </div>
+  </div>
+  <table class="status" style="margin-top:18px">
+    <thead><tr><th>Stufe</th><th>Wann läuft sie?</th><th>Workflow</th><th></th></tr></thead>
+    <tbody>
+      <tr class="fragment"><td>Continuous Integration</td><td>bei jedem Pull Request und jedem Push auf <code>main</code></td><td><code>test.yml</code></td><td class="check">✓</td></tr>
+      <tr class="fragment"><td>Continuous Delivery</td><td>nach grünem Test auf <code>main</code></td><td><code>push.yaml</code></td><td class="check">✓</td></tr>
+      <tr class="fragment"><td>Continuous Deployment</td><td>direkt nach dem Build</td><td><code>deploy.yml</code></td><td class="check">✓</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<!-- 9 Wie hängen die Workflows zusammen -->
+<section>
+  <div class="kicker">Unsere Pipeline</div>
+  <h2>Wie hängen die Workflows zusammen?</h2>
+  <div class="grid" style="grid-template-columns: 1fr auto 1fr auto 1fr; gap:10px; align-items:start; margin-top:6px">
+    <div class="fragment" data-fragment-index="1">
+      <span class="pill green">test.yml</span>
+      <pre class="sm" style="margin-top:8px"><code class="language-yaml" data-trim>
+name: Test
+on:
+  pull_request:
+    branches: [ "main" ]
+  push:
+    branches: [ "main" ]
+jobs:
+  test:
+    steps:
+      - run: node --test …
+      - run: mvn clean test
+      - run: npx httpyac --all *.http
+      </code></pre>
+    </div>
+    <span class="arrow fragment" data-fragment-index="2" style="margin-top:160px">→</span>
+    <div class="fragment" data-fragment-index="2">
+      <span class="pill blue">push.yaml</span>
+      <pre class="sm" style="margin-top:8px"><code class="language-yaml" data-trim>
+name: Build and Push
+on:
+  workflow_run:
+    workflows: [ "Test" ]
+    types: [ completed ]
+jobs:
+  build-and-push:
+    # nur wenn Test grün und Branch main
+    steps:
+      - run: mvn -B package -DskipTests
+      - uses: docker/build-push-action@v5
+  deploy:
+    needs: build-and-push
+    uses: ./.github/workflows/deploy.yml
+      </code></pre>
+    </div>
+    <span class="arrow fragment" data-fragment-index="3" style="margin-top:160px">→</span>
+    <div class="fragment" data-fragment-index="3">
+      <span class="pill pink">deploy.yml</span>
+      <pre class="sm" style="margin-top:8px"><code class="language-yaml" data-trim>
+name: Deploy
+on:
+  workflow_call:
+    inputs:
+      image-tag: { type: string }
+jobs:
+  deploy:
+    steps:
+      - run: kubectl apply -f k8s/
+      - run: kubectl set image
+          deployment/quarkus quarkus=…:$TAG
+      - run: kubectl rollout status
+          deployment/quarkus
+      </code></pre>
+    </div>
+  </div>
+  <div class="grid g3 fragment" data-fragment-index="4" style="margin-top:16px; gap:56px">
+    <p class="tiny muted"><code>on: pull_request / push</code> startet bei jedem PR und Merge</p>
+    <p class="tiny muted"><code>workflow_run</code> startet, wenn „Test“ fertig ist</p>
+    <p class="tiny muted"><code>workflow_call</code> wird von „Build and Push“ aufgerufen</p>
+  </div>
+  <p class="tiny muted" style="margin-top:4px">Gekürzt. Vollständig in <code>.github/workflows/</code>.</p>
+</section>
+
+<!-- 10 Team-Ablauf -->
+<section>
+  <div class="kicker">Unsere Pipeline</div>
   <h2>Unser Ablauf im Team</h2>
-  <svg viewBox="0 0 900 200" style="width:100%; margin-top:10px" role="img" aria-label="Git-Ablauf mit Branch, Pull Request und Merge">
-    <g font-family="Montserrat" font-size="15" font-weight="600">
+  <svg viewBox="0 0 900 190" style="width:100%; max-height:175px" role="img" aria-label="Git-Ablauf mit Branch, Pull Request und Merge">
+    <g font-family="Montserrat" font-size="16" font-weight="600">
       <line x1="30" y1="60" x2="870" y2="60" stroke="#ff2e63" stroke-width="6" stroke-linecap="round"/>
       <path d="M150,60 C200,60 200,140 250,140 L560,140 C610,140 610,60 660,60" fill="none" stroke="#3ec1f3" stroke-width="6"/>
       <circle cx="90" cy="60" r="12" fill="#ff2e63"/>
@@ -574,7 +558,7 @@
       <circle cx="660" cy="60" r="14" fill="#ff2e63" stroke="#fff" stroke-width="3"/>
       <circle cx="800" cy="60" r="12" fill="#56f27c"/>
       <text x="30" y="30" fill="#ff2e63" font-weight="800">main</text>
-      <text x="250" y="185" fill="#3ec1f3" font-weight="800">fix/profile-picture</text>
+      <text x="250" y="182" fill="#3ec1f3" font-weight="800">fix/profile-picture</text>
       <text x="300" y="118" fill="#fff" text-anchor="middle">Commit</text>
       <text x="420" y="118" fill="#fff" text-anchor="middle">PR: Test ✓</text>
       <text x="530" y="118" fill="#fff" text-anchor="middle">Review</text>
@@ -582,128 +566,32 @@
       <text x="800" y="30" fill="#fff" text-anchor="middle">Live 🚀</text>
     </g>
   </svg>
-  <ol class="steps" style="margin-top:16px">
-    <li>Eigenen Branch anlegen, lokal <code>./mvnw clean test</code> und <code>./run-http-tests.sh</code></li>
-    <li>Pushen und Pull Request auf <code>main</code> öffnen. Die CI läuft automatisch.</li>
-    <li>Rot → im Branch korrigieren · Grün → Review im Team → Merge</li>
-    <li>Pipeline baut und deployt. Nach ca. 9 Minuten ist die Änderung live.</li>
-  </ol>
-  <aside class="notes">
-    Nie direkt auf main arbeiten. Jede Änderung kommt über einen eigenen Branch und einen Pull Request. Erst wenn die CI grün ist und jemand reviewt hat, wird gemergt. Der Merge ist gleichzeitig das Deployment.
-  </aside>
-</section>
-
-<!-- 12 Beispiel A -->
-<section>
-  <div class="kicker">4 · Beispiel A</div>
-  <h2>PR #229: vom Fix bis live</h2>
-  <p class="small muted">„fix: always place the profile picture a bit further right“ · <code>profile.css</code>, <code>profile.html</code>, <code>profile.js</code> · 25.11.2026</p>
-  <div class="timeline" style="margin-top:50px">
-    <div class="tl-row"><div class="tl-label">Test (PR)</div>
-      <div class="tl-track"><div class="tl-bar green fragment" data-fragment-index="1" style="left:3.7%; width:18.5%">3 min</div>
-        <div class="tl-merge fragment" data-fragment-index="2" style="left:43.9%"><span>Merge 12:41</span></div></div></div>
-    <div class="tl-row"><div class="tl-label">Test (main)</div>
-      <div class="tl-track"><div class="tl-bar green fragment" data-fragment-index="3" style="left:44.3%; width:21.6%">3:40 min</div></div></div>
-    <div class="tl-row"><div class="tl-label">Build and Push</div>
-      <div class="tl-track"><div class="tl-bar blue fragment" data-fragment-index="4" style="left:66.8%; width:7.3%">1:14</div></div></div>
-    <div class="tl-row"><div class="tl-label">Deploy</div>
-      <div class="tl-track"><div class="tl-bar pink fragment" data-fragment-index="5" style="left:82.2%; width:14.9%">2:32 min</div></div></div>
-    <div class="tl-axis"><div></div>
-      <div class="tl-ticks">
-        <span style="left:0%">12:34</span><span style="left:23.5%">12:38</span><span style="left:47.1%">12:42</span><span style="left:70.6%">12:46</span><span style="left:94.1%">12:50</span>
-      </div></div>
-  </div>
-  <div class="grid g2 fragment" data-fragment-index="6" style="margin-top:34px">
-    <div class="card center"><div class="stat">≈ 9 min</div><div class="stat-label">vom Merge bis live</div></div>
-    <div class="card center"><div class="stat">0</div><div class="stat-label">manuelle Schritte</div></div>
-  </div>
-  <aside class="notes">
-    Echtes Beispiel aus unseren Actions-Läufen. 12:34 öffnet sich der PR, die Tests laufen 3 Minuten und sind grün. 12:41 wird gemergt. Auf main läuft der Test noch einmal, dann werden die Images gebaut, und um 12:50 ist der Rollout fertig. Vom Merge bis live sind es etwa 9 Minuten, ohne dass jemand etwas per Hand machen musste.
-  </aside>
-</section>
-
-<!-- 13 Beispiel B -->
-<section>
-  <div class="kicker">4 · Beispiel B</div>
-  <h2>PR #228: die Pipeline schützt die Produktion</h2>
-  <div style="display:flex; flex-direction:column; gap:22px; margin-top:34px">
-    <div class="flow">
-      <div class="node">PR #228<small>feat: settings page</small></div><span class="arrow">→</span>
-      <div class="node fill-pink fragment" data-fragment-index="1">Test im PR ✗<small>Keycloak-Container exit 1</small></div><span class="arrow fragment" data-fragment-index="2">→</span>
-      <div class="node pink fragment" data-fragment-index="2">trotzdem gemergt<small>main ist nicht geschützt</small></div><span class="arrow fragment" data-fragment-index="3">→</span>
-      <div class="node fill-pink fragment" data-fragment-index="3">Test auf main ✗</div>
-    </div>
-    <div class="flow">
-      <div class="node blue fragment" data-fragment-index="4">Build: skipped<small>Deploy läuft nicht</small></div><span class="arrow fragment" data-fragment-index="4">→</span>
-      <div class="node fill-green fragment" data-fragment-index="5">Produktion bleibt<small>auf der alten Version</small></div><span class="arrow fragment" data-fragment-index="6">→</span>
-      <div class="node fragment" data-fragment-index="6">PR #231<small>Dev-Realm importiert wieder</small></div><span class="arrow fragment" data-fragment-index="6">→</span>
-      <div class="node fill-green fragment" data-fragment-index="6">Test ✓ → Deploy 🚀</div>
+  <div class="grid" style="grid-template-columns: 1.3fr 1fr; margin-top:14px; align-items:stretch">
+    <pre><code class="language-bash" data-trim data-line-numbers="1|2-4|5-6|7">
+git switch -c fix/profile-picture       # eigener Branch
+# … Code ändern …
+./mvnw clean test                       # lokal testen
+git commit -am "fix: move profile picture"
+git push -u origin fix/profile-picture
+gh pr create --base main                # Pull Request öffnen
+# → CI läuft · Review · Merge · automatisch live
+    </code></pre>
+    <div class="card accent-blue" style="display:flex; flex-direction:column; justify-content:center">
+      <p><span class="pill green">grün</span> → Review → Merge → live</p>
+      <p><span class="pill pink">rot</span> → im Branch korrigieren, nochmal pushen</p>
+      <p class="muted">Nie direkt auf <code>main</code> arbeiten.</p>
     </div>
   </div>
-  <div class="grid g2 fragment" data-fragment-index="7" style="margin-top:34px">
-    <div class="card accent-green"><h3>✓ Hat funktioniert</h3><p>Ungetesteter Code ging <strong>nicht</strong> live.</p></div>
-    <div class="card accent-pink"><h3>✗ Lücke</h3><p>Roter Code konnte trotzdem auf <code>main</code> landen. Dagegen hilft Branch-Schutz.</p></div>
-  </div>
-  <aside class="notes">
-    Ein Beispiel, bei dem etwas schiefging. Der Test für PR 228 war rot: Der Keycloak-Container ist abgestürzt, weil das Dev-Realm nicht importiert werden konnte. Der PR wurde trotzdem gemergt, das geht, weil main nicht geschützt ist. Auf main war der Test wieder rot, deshalb liefen weder Build noch Deploy, und die Produktion blieb auf der alten Version. PR 231 hat den Fehler behoben, danach lief alles durch. Fazit: Die Pipeline hat die Produktion geschützt, aber nicht main selbst.
-  </aside>
 </section>
 
-<!-- 14 Live-Demo -->
+<!-- 11 Minimaler Workflow -->
 <section>
-  <div class="kicker">4 · Live</div>
-  <h2>Live zeigen</h2>
-  <div class="grid g2" style="margin-top:20px; align-items:start">
-    <ol class="steps">
-      <li>GitHub → <strong>Actions</strong> → Workflow „Test“ öffnen, Schritte aufklappen</li>
-      <li>Run von PR #229: <code>build-and-push</code> → <code>deploy / deploy</code></li>
-      <li>GitHub → <strong>Packages</strong>: Images mit Commit-SHA-Tags</li>
-      <li>Website öffnen: <a href="https://it220274.cloud.htl-leonding.ac.at">it220274.cloud.htl-leonding.ac.at</a></li>
-    </ol>
-    <div class="term">
-      <div class="c"># Beispielausgabe, gekürzt</div>
-      <div><span class="p">$</span> gh run list</div>
-      <div class="c">success  Build and Push  main  5m17s</div>
-      <div class="c">success  Test            main  3m40s</div>
-      <div class="c">skipped  Build and Push  main  1s</div>
-      <div class="c">success  Test   fix/profile-…  3m09s</div>
-      <div class="c">failure  Test   carla/settings  …</div>
-    </div>
-  </div>
-  <aside class="notes">
-    Hier in den Browser wechseln. Actions-Tab zeigen, einen Test-Lauf aufklappen, dann den Build-and-Push-Lauf mit den zwei Jobs. Unter Packages sieht man die Images mit den SHA-Tags. Zum Schluss die Website. Falls das Internet nicht geht: Die Folie zeigt die Ausgabe von gh run list.
-  </aside>
-</section>
-
-<!-- 15 Umsetzung -->
-<section>
-  <div class="kicker">5 · Umsetzung</div>
-  <h2>So baut man so eine Pipeline auf</h2>
-  <div class="grid g2" style="margin-top:14px; gap:10px 40px">
-    <ol class="steps">
-      <li><strong>Voraussetzungen</strong>: Git-Repo, automatische Tests, Build mit einem Befehl (<code>./mvnw</code>)</li>
-      <li><strong>CI-Workflow</strong>: <code>test.yml</code> bei <code>pull_request</code> und <code>push</code></li>
-      <li><strong>Container</strong>: <code>Dockerfile</code> und Registry <code>ghcr.io</code></li>
-      <li><strong>Zielumgebung</strong>: Manifeste in <code>k8s/</code>, Kubeconfig als GitHub-Secret</li>
-    </ol>
-    <ol class="steps pink" start="5" style="counter-reset: s 4">
-      <li><strong>Deploy-Workflow</strong>: verknüpft über <code>workflow_run</code> / <code>workflow_call</code></li>
-      <li><strong>Absichern</strong>: Branch-Schutz, Required Checks, <code>concurrency</code></li>
-      <li><strong>Team-Regeln</strong>: Branch → PR → Review → Merge</li>
-    </ol>
-  </div>
-  <aside class="notes">
-    So wurde unsere Pipeline aufgebaut, und so geht man bei jedem Projekt vor. Ohne automatische Tests bringt CI nichts, deshalb sind sie die Voraussetzung. Geheimnisse wie die Kubeconfig kommen als Secret in die GitHub-Einstellungen, nie ins Repo. Schritt 6, das Absichern, ist bei uns noch nicht ganz fertig.
-  </aside>
-</section>
-
-<!-- 16 YAML -->
-<section>
-  <div class="kicker">5 · Umsetzung</div>
+  <div class="kicker">Umsetzung</div>
   <h2>Ein minimaler CI-Workflow</h2>
-  <div class="grid g2" style="grid-template-columns: 1.2fr 1fr; align-items:start">
-    <pre><code class="language-yaml" data-trim data-line-numbers="3-7|8-10|11-15">
-# .github/workflows/test.yml
+  <div class="grid" style="grid-template-columns: 1.15fr 1fr; align-items:start; margin-top:6px">
+    <div>
+      <div class="code-title">.github/workflows/test.yml</div>
+      <pre style="font-size:0.5em"><code class="language-yaml" data-trim data-line-numbers="1-6|7-9|10-13|14">
 name: Test
 on:
   pull_request:
@@ -718,105 +606,88 @@ jobs:
       - uses: actions/setup-java@v4
         with: { distribution: temurin, java-version: '21' }
       - run: mvn clean test
-    </code></pre>
-    <div>
-      <div class="card accent-green" style="margin-bottom:16px"><h3><code>on</code></h3><p>Wann läuft der Workflow? Bei PRs und Pushes auf <code>main</code>.</p></div>
-      <div class="card accent-blue" style="margin-bottom:16px"><h3><code>runs-on</code></h3><p>Auf einer frischen Ubuntu-VM von GitHub.</p></div>
-      <div class="card accent-pink"><h3><code>steps</code></h3><p>Code holen, Java einrichten, Tests ausführen. Ein roter Schritt = roter Lauf.</p></div>
+      </code></pre>
+    </div>
+    <div style="display:flex; flex-direction:column; gap:12px">
+      <div class="card accent-green"><h3><code>on</code> · Wann?</h3><p>Bei jedem Pull Request und jedem Push auf <code>main</code>.</p></div>
+      <div class="card accent-blue"><h3><code>runs-on</code> · Wo?</h3><p>Auf einem frischen Ubuntu-Rechner von GitHub, dem <strong>Runner</strong>.</p></div>
+      <div class="card accent-purple"><h3><code>uses</code> · Fertige Bausteine</h3><p>Code auschecken, Java 21 installieren.</p></div>
+      <div class="card accent-pink"><h3><code>run</code> · Eigener Befehl</h3><p>Tests ausführen. Schlägt er fehl, ist der Lauf <strong>rot ✗</strong>.</p></div>
     </div>
   </div>
-  <aside class="notes">
-    So sieht ein CI-Workflow im Kern aus. Auslöser, Umgebung, Schritte. Unser echter test.yml ist länger, weil er zusätzlich Datenbanken, Keycloak und die API-Tests startet, aber das Prinzip ist dasselbe. Mit Pfeiltaste durch die Markierungen klicken.
-  </aside>
 </section>
 
-<!-- 17 Was wir noch tun müssen -->
+<!-- 12 Was wir noch tun müssen -->
 <section>
-  <div class="kicker">5 · Umsetzung</div>
+  <div class="kicker">Umsetzung</div>
   <h2>Was wir noch tun müssen</h2>
-  <table class="status">
+  <table class="status" style="margin-top:14px">
     <thead><tr><th></th><th>Aufgabe</th><th>Warum</th></tr></thead>
     <tbody>
-      <tr><td><span class="pill pink">Muss</span></td><td>Branch-Schutz für <code>main</code></td><td>Beispiel B: Ein roter PR konnte gemergt werden</td></tr>
+      <tr><td><span class="pill pink">Muss</span></td><td>Branch-Schutz für <code>main</code></td><td>Ein roter PR kann heute trotzdem gemergt werden</td></tr>
       <tr><td><span class="pill yellow">Sollte</span></td><td>Rollback dokumentieren und üben</td><td>Es gibt keinen automatischen Rollback</td></tr>
       <tr><td><span class="pill yellow">Sollte</span></td><td>Datenbank-Backup</td><td>Produktionsdaten haben kein Backup</td></tr>
       <tr><td><span class="pill blue">Kann</span></td><td>Staging-Umgebung</td><td>Zurzeit nur lokal und Produktion</td></tr>
       <tr><td><span class="pill blue">Kann</span></td><td>Benachrichtigung bei Fehlern</td><td>Rote Läufe auf <code>main</code> fallen spät auf</td></tr>
     </tbody>
   </table>
-  <aside class="notes">
-    Die Pipeline funktioniert, aber es gibt Lücken. Am wichtigsten ist der Branch-Schutz. Ein Rollback geht heute schon per Hand: Deploy-Workflow manuell starten und einen älteren Image-Tag eingeben. Ein Backup der Datenbank fehlt komplett.
-  </aside>
 </section>
 
-<!-- 18 Branch-Schutz -->
+<!-- 13 Branch-Schutz -->
 <section>
-  <div class="kicker">5 · Umsetzung</div>
-  <h2>Branch-Schutz einrichten</h2>
-  <div class="grid g2" style="margin-top:14px; align-items:start">
+  <div class="kicker">Umsetzung</div>
+  <h2>Branch-Schutz für <code style="font-size:0.8em">main</code></h2>
+  <p class="lead">Regeln, die GitHub für <code>main</code> <strong>erzwingt</strong>. Ohne grünen Test kein Merge.</p>
+  <div class="grid g2" style="align-items:center">
     <div class="card accent-pink">
-      <h3>GitHub → Settings → Branches → Ruleset für <code>main</code></h3>
+      <h3>Settings → Branches → Ruleset für <code>main</code></h3>
       <ul>
         <li>✓ Require a pull request before merging</li>
         <li>✓ Require status checks to pass: <code>test</code></li>
         <li>✓ Block force pushes</li>
         <li>✓ Restrict deletions</li>
       </ul>
-      <p class="tiny muted" style="margin-top:12px">Braucht Admin-Rechte im Repo. Vorher im Team absprechen.</p>
     </div>
-    <div>
-      <p class="small muted">Danach gilt:</p>
-      <div style="display:flex; flex-direction:column; gap:12px; align-items:flex-start">
-        <div class="flow"><div class="node">Pull Request</div><span class="arrow">→</span><div class="node green">Test grün?</div><span class="arrow">→</span><div class="node green">Review?</div></div>
-        <div class="flow"><div class="node fill-green">✓ Merge → automatischer Deploy</div></div>
-        <div class="flow"><div class="node fill-pink">✗ Merge-Button gesperrt 🔒</div></div>
-      </div>
+    <div style="display:flex; flex-direction:column; gap:12px; align-items:center">
+      <div class="flow"><div class="node">Pull Request</div><span class="arrow">→</span><div class="node green">Test grün?</div><span class="arrow">→</span><div class="node green">Review?</div></div>
+      <div class="flow fragment"><div class="node fill-green">✓ Merge → automatischer Deploy</div></div>
+      <div class="flow fragment"><div class="node fill-pink">✗ Merge-Button gesperrt 🔒</div></div>
     </div>
   </div>
-  <aside class="notes">
-    Mit diesen vier Einstellungen kann niemand mehr direkt auf main pushen, und ein PR lässt sich nur mergen, wenn der Test grün ist. Genau das hätte Beispiel B verhindert. Wichtig: Der Test läuft bei jedem PR, auch bei Doku-Änderungen, deshalb blockiert der Required Check keine Doku-PRs.
-  </aside>
-</section>
-
-<!-- 19 Fazit -->
-<section>
-  <div class="kicker">6 · Fazit</div>
-  <h2>Das Wichtigste</h2>
-  <div class="grid g2" style="margin-top:20px">
-    <div class="card accent-green"><h3>CI</h3><p>Jede Änderung wird automatisch gebaut und getestet.</p></div>
-    <div class="card accent-blue"><h3>CD</h3><p>Das Ergebnis wird automatisch verpackt und ausgerollt.</p></div>
-    <div class="card accent-pink"><h3>PartyHub</h3><p><code>test.yml</code> → <code>push.yaml</code> → <code>deploy.yml</code>. Vom Merge bis live ca. 9 Minuten.</p></div>
-    <div class="card accent-yellow"><h3>Nächster Schritt</h3><p>Branch-Schutz, damit roter Code gar nicht erst auf <code>main</code> landet.</p></div>
+  <div class="fragment" style="margin-top:18px">
+    <div class="code-title">Oder im Terminal (braucht Admin-Rechte):</div>
+    <pre><code class="language-bash" data-trim>
+gh api -X PUT repos/htl-leo-itp-25-27-4-5BHITM/PartyHub/branches/main/protection \
+  -F required_status_checks[strict]=true \
+  -F 'required_status_checks[contexts][]=test' \
+  -F enforce_admins=false \
+  -F required_pull_request_reviews[required_approving_review_count]=1 \
+  -F restrictions=null
+    </code></pre>
   </div>
-  <aside class="notes">
-    Zusammenfassung in vier Sätzen. CI testet, CD liefert aus. Bei uns ist alles automatisiert und die Pipeline hat die Produktion schon geschützt. Der nächste Schritt ist Branch-Schutz.
-  </aside>
 </section>
 
-<!-- 20 Fragen -->
-<section class="center" style="display:flex; flex-direction:column; justify-content:center">
-  <img class="logo" src="images/logo.png" alt="PartyHub-Logo" style="margin:0 auto 20px">
-  <h1 style="font-size:2.2em">Fragen?</h1>
-  <p class="lead small">Mehr Details: <code>docs/ci-cd.md</code> · Workflows: <code>.github/workflows/</code></p>
-  <aside class="notes">Danke fürs Zuhören. Fragen beantworten.</aside>
+<!-- 14 Danke -->
+<section style="display:flex; flex-direction:column; justify-content:center; align-items:center; text-align:center">
+  <img class="logo" src="images/logo.png" alt="PartyHub-Logo">
+  <h1 style="font-size:2.1em">Danke für Ihre<br><span class="pinktext">Aufmerksamkeit</span></h1>
 </section>
 
 </div>
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/dist/reveal.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/plugin/notes/notes.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/plugin/highlight/highlight.js"></script>
 <script>
   Reveal.initialize({
     width: 1280,
     height: 720,
-    margin: 0.06,
+    margin: 0.05,
     hash: true,
     slideNumber: 'c/t',
     transition: 'slide',
     center: false,
-    plugins: [ RevealNotes, RevealHighlight ]
+    plugins: [ RevealHighlight ]
   });
 </script>
 </body>
